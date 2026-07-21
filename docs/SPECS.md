@@ -40,9 +40,9 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 
 ### 2.1 Autenticación
 
-- **Login con Apple ID (Sign in with Apple).**
-- Perfil mínimo: nombre visible, avatar (opcional), Apple ID.
-- **⚠️ Crítica de diseño:** *solo* Apple ID deja fuera a cualquier amigo con Android/sin dispositivo Apple. En un grupo de amigos casi seguro hay alguien con Android. **Decisión pendiente (Q1).** Recomendación: Apple ID como método principal + un fallback (Google o email/enlace mágico) para no bloquear a nadie.
+- **Login con Apple ID (Sign in with Apple)** como método **principal**.
+- **✅ Decidido (Q1):** además de Apple ID, hay **fallback** (Google y/o email con enlace mágico) para no dejar fuera a los amigos con Android o sin dispositivo Apple.
+- Perfil mínimo: nombre visible, avatar (opcional), método de login.
 - **Invitados sin cuenta:** ¿se puede añadir a alguien al viaje que no tiene la app (p. ej. la pareja de un amigo, un niño)? Sí, deberían existir **participantes "fantasma"** (perfiles gestionados por otro usuario, sin login propio) — sobre todo para niños y para gente que no se instala nada. Ver §5.
 
 ### 2.2 Familias
@@ -96,10 +96,11 @@ Modos de reparto:
   - *"Por familia a partes iguales"*: cada familia paga lo mismo sin importar el tamaño.
   - *"Personalizado guardado"*: el que definas.
 - Al crear un gasto, eliges una plantilla y puedes ajustar puntualmente.
-- **⚠️ Decisión importante (Q3):** ¿la deuda se salda entre **personas** o entre **familias**? Esto cambia todo el modelo:
-  - *Entre personas*: Splitwise clásico. Al final, "Ana debe 20€ a Luis".
-  - *Entre familias*: "Los García deben 60€ a Los Pérez", y dentro de la familia ya se apañan. Más simple para grupos donde cada familia tiene una "cartera" común.
-  - Recomendación: **saldar entre familias** como modo por defecto (encaja con "familias más grandes"), con la persona como unidad opcional. Pero necesito tu confirmación porque es el eje del diseño.
+- **✅ Decidido (Q3): la deuda se salda ENTRE FAMILIAS.** "Los García deben 60€ a Los Pérez", y dentro de cada familia ya se apañan. Implicaciones:
+  - La **familia es la unidad de cartera**: pagador y deudores son familias, no personas sueltas.
+  - Aun así, un gasto puede **repartirse contando personas** (para ponderar el tamaño), pero el saldo resultante se **agrega a nivel familia**.
+  - Una persona sin familia asignada se trata como **familia de uno**.
+  - Las estadísticas y la liquidación (§3.4) trabajan en unidad **familia**.
 
 ### 3.4 Saldos y liquidación
 - Vista de **"quién debe a quién"** con **simplificación de deudas** (minimizar el nº de transferencias, como Splitwise).
@@ -137,16 +138,14 @@ En la parte de viaje, por cada persona se define:
 - **Bunga donde duerme** (§2.3).
 - (Opcional) si es un participante "fantasma" gestionado por otro.
 
-### ⚠️ El problema del rol "ambos"
-"Niño / mayor / ambos" es ambiguo y me chirría. ¿Qué significa "ambos"?
-- ¿Un adolescente que a veces cuenta como niño (para comidas) y a veces como adulto (para el vino)?
-- ¿Alguien que come en la mesa de los niños pero paga como adulto?
-
-**Propuesta (a validar, Q4):** separar dos ejes en vez de un enum confuso:
+### ✅ Rol de persona: dos ejes en vez de "ambos" (decidido, Q4)
+Se abandona el enum `niño/mayor/ambos` (ambiguo). En su lugar, cada persona tiene:
 - **Categoría de edad:** `adulto` / `niño` (binario, claro).
-- **Flags de comportamiento** independientes, p. ej. "come en la mesa de los mayores", "cuenta como adulto para el reparto". Así un adolescente = niño + "come/paga como mayor". Esto elimina el "ambos" mágico y lo hace explícito.
-
-Si prefieres mantener `mayor/niño/ambos` tal cual por simplicidad, lo dejamos, pero conviene decidir **qué decisiones concretas depende de ese rol** (comidas, gastos, o ambas).
+- **Flags de comportamiento** independientes:
+  - `come_con_mayores` (por defecto según edad; sobrescribible) → afecta a §6.4.
+  - `cuenta_como_adulto_reparto` (por defecto según edad; sobrescribible) → afecta a §3.
+- Ejemplo: un **adolescente** = `niño` + `come_con_mayores: true` + `cuenta_como_adulto_reparto: true`. El antiguo "ambos" queda expresado de forma explícita y sin magia.
+- Los defaults hacen que el 90% de la gente se configure sola: adulto = ambos flags true, niño = ambos false.
 
 ---
 
@@ -185,7 +184,7 @@ Categorías (multi-selección, un plato puede tener varias):
   - (b) **por día**,
   - (c) **por comida**?
   - Recomendación: por defecto **a nivel viaje** (los niños comen en el Bunga X, los mayores en el Y), con posibilidad de **sobrescribir por comida** cuando haga falta. Menos clicks el 90% del tiempo.
-- Esto conecta con el rol de persona (§5): "mayores" y "niños" salen de ahí. Por eso urge cerrar el tema del rol/"ambos".
+- **Quién es "mayor" aquí** sale del flag `come_con_mayores` de cada persona (§5), no de la edad directamente. Así un adolescente marcado como niño pero que come con los adultos cae en el bunga correcto sin excepciones a mano.
 
 ### 6.5 Preguntas abiertas de comidas
 - ¿Quién cocina se modela como campo estructurado (asignar personas/familia) o va en el texto libre de "qué se hace"? Propuesta: empezar libre, estructurar si duele.
@@ -236,9 +235,12 @@ Pendiente de cerrar según respuestas: unidad de deuda (persona vs familia), glo
 
 ## 10. Alcance por versiones (propuesta)
 
-- **v1 (MVP):** Auth, viajes con fechas, personas/familias/bungas, gastos estilo Splitwise con splits por familia, saldos + liquidación, planes básicos, comidas con platos y bungas, estadísticas mínimas.
-- **v2:** lista de la compra agregada, multi-moneda, notificaciones, histórico entre viajes, votaciones ricas en planes.
-- **⚠️ Riesgo de scope:** esto es MUCHO para un MVP. Recomiendo priorizar duro: probablemente **gastos + personas/familias/bungas** primero (es lo que da valor y es lo más difícil), y comidas/planes/estadísticas después.
+**✅ Decidido (Q8): priorizar gastos + gente.** El MVP no intenta cubrir las cinco áreas a la vez.
+
+- **v1 (MVP, foco):** Auth (Apple ID + fallback), viajes con fechas, **personas/familias/bungas**, **gastos estilo Splitwise con reparto por familia + liquidación entre familias**. Es el núcleo de valor y lo más difícil de acertar.
+- **v1.5:** comidas (platos, clasificación, bungas mayores/niños) y planes básicos.
+- **v2:** estadísticas ricas, lista de la compra agregada, multi-moneda, notificaciones, histórico entre viajes, votaciones ricas en planes.
+- Las áreas de comidas/planes/estadísticas se **especifican** en este doc pero **no se implementan** hasta cerrar el núcleo económico.
 
 ---
 
@@ -251,16 +253,23 @@ Pendiente de cerrar según respuestas: unidad de deuda (persona vs familia), glo
 
 ---
 
-## 12. Resumen de decisiones que necesito de ti
+## 12. Registro de decisiones
 
+### ✅ Cerradas
+| # | Decisión | Resolución |
+|---|---|---|
+| Q1 | Autenticación | **Apple ID + fallback** (Google / email con enlace mágico) |
+| Q3 | Unidad de deuda | **Entre familias** (familia = cartera; persona sin familia = familia de uno) |
+| Q4 | Rol de persona | **Dos ejes:** edad (`adulto`/`niño`) + flags (`come_con_mayores`, `cuenta_como_adulto_reparto`) |
+| Q8 | Alcance v1 | **Priorizar gastos + gente**; comidas/planes/estadísticas después |
+
+### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
 |---|---|---|
-| Q1 | ¿Solo Apple ID o también fallback (Android/email)? | Apple ID + fallback |
 | Q2 | Familias: ¿globales o por viaje? | Personas globales, composición congelada por viaje |
-| Q3 | Deuda: ¿se salda entre personas o entre familias? | Entre familias (con persona opcional) |
-| Q4 | Rol persona: ¿enum `niño/mayor/ambos` o ejes separados (edad + flags)? | Ejes separados |
 | Q5 | Bunga de comida mayores/niños: ¿por viaje, día o comida? | Por viaje, override por comida |
 | Q6 | Catálogo de platos/familias: ¿global o por viaje? | Global |
 | Q7 | Permisos: ¿todos editan o hay admin? | Todos editan + creador con extras |
-| Q8 | Alcance v1: ¿todo o priorizar gastos primero? | Priorizar gastos + gente |
+| — | Moneda: ¿una por viaje o multi-moneda? | Una por viaje (v1) |
+| — | Nombre de la app | Pendiente ("Ballenita"?) |
 ```
