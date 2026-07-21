@@ -45,7 +45,7 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 - **Login con Apple ID (Sign in with Apple)** como método **principal**.
 - **✅ Decidido (Q1):** además de Apple ID, hay **fallback** (Google y/o email con enlace mágico) para no dejar fuera a los amigos con Android o sin dispositivo Apple.
 - Perfil mínimo: nombre visible, avatar (opcional), método de login.
-- **Invitados sin cuenta:** ¿se puede añadir a alguien al viaje que no tiene la app (p. ej. la pareja de un amigo, un niño)? Sí, deberían existir **participantes "fantasma"** (perfiles gestionados por otro usuario, sin login propio) — sobre todo para niños y para gente que no se instala nada. Ver §5.
+- **Cuentas por familia:** cada familia tiene **mínimo un login**. Desde ese login se pueden crear **perfiles-nombre gestionados** (niños, el cuñado que no se instala nada) o pueden entrar más **usuarios completos** asignados a esa familia. Modelo detallado en §5.1.
 
 ### 2.2 Familias
 
@@ -149,10 +149,18 @@ Actividades candidatas para los días del viaje.
 
 En la parte de viaje, por cada persona se define:
 
-- **Familia** a la que pertenece (§2.2).
-- **Rol:** `mayor`, `niño` o **`ambos`**.
-- **Bunga donde duerme** (§2.3).
-- (Opcional) si es un participante "fantasma" gestionado por otro.
+- **Familia** a la que pertenece (§2.2) — **cada uno elige su familia** (auto-asignación).
+- **Rol:** edad (`adulto`/`niño`) + flags (ver abajo).
+- **Bunga:** el de su familia (§2.3), no se asigna persona a persona.
+- **Tipo de participante:** cuenta completa (con login) o perfil-nombre gestionado (§5.1).
+
+### 5.1 Modelo de cuentas y pertenencia (aclarado) ⭐
+- **Cada familia tiene como mínimo un login.** Ese login es quien puede saldar cuentas y gestionar la familia (encaja con "la deuda se salda entre familias", §3).
+- Una persona puede ser:
+  1. **Usuario completo:** se autentica (Apple/Google/email), **elige a qué familia pertenece** y participa por sí mismo.
+  2. **Perfil-nombre gestionado ("fantasma"):** no tiene login; lo crea el login de una familia (típico para niños o para el cuñado que no se instala nada). Cuenta para comidas, bungas y reparto, pero no entra solo.
+- Un perfil gestionado puede **"ascender" a usuario completo** más adelante si esa persona acaba instalando la app.
+- **⚠️ Ojo (auto-asignación de familia):** si cada uno elige su familia libremente, alguien podría meterse en la familia equivocada y descuadrar el reparto. Propuesta: la elección es libre pero **visible para todos** en el viaje; sin aprobación formal (grupo de confianza), pero con el historial (§9) para detectar líos.
 
 ### ✅ Rol de persona: dos ejes en vez de "ambos" (decidido, Q4)
 Se abandona el enum `niño/mayor/ambos` (ambiguo). En su lugar, cada persona tiene:
@@ -182,7 +190,7 @@ La sección más peculiar y donde hay más miga logística.
 - Catálogo de **platos** reutilizables ("tortilla", "paella", "sangría", "aceitunas").
 - Cada plato tiene una o varias **clasificaciones** (ver §6.3) — un plato **puede ser varias cosas a la vez** (p. ej. algo que es aperitivo y acompañamiento).
 - Al montar una comida, **seleccionas platos** del catálogo (y puedes crear uno nuevo al vuelo).
-- **Q abierta:** ¿el catálogo de platos es global (se reutiliza entre viajes, "la paella de siempre") o por viaje? Propuesta: **global**, para no reescribir la carta cada año.
+- **✅ Decidido (Q6): catálogo global + favoritos del grupo.** Los platos viven en un **catálogo global** reutilizable entre viajes ("la paella de siempre"), y además el grupo puede **marcar sus clásicos como favoritos** para tenerlos a mano al montar comidas. Se pueden crear platos nuevos al vuelo.
 
 ### 6.3 Clasificación de platos
 Categorías (multi-selección, un plato puede tener varias):
@@ -201,13 +209,13 @@ Aclarado el modelo real (corrige la versión anterior):
   - **qué bunga acoge la comida de los mayores**, y
   - **qué bunga acoge la de los niños**.
 - **Objetivo de balanceo:** repartir la carga de "hacer de anfitrión" a lo largo del viaje, para que no le toque siempre al mismo bunga/familia cargar con la comilona.
-  - La app debe **mostrar el balance** (cuántas veces ha acogido cada bunga a mayores y a niños) para decidir de un vistazo a quién le toca.
-  - **⚠️ Decisión pendiente (Q-nueva):** ¿la app solo **muestra** el balance y decide un humano, o **auto-sugiere** el bunga anfitrión del día para igualar el reparto? Propuesta: v1 muestra el marcador y sugiere ("hoy le toca al Bunga 3"), sin obligar.
+  - **✅ Decidido:** la app **muestra el marcador** (cuántas veces ha acogido cada bunga a mayores y a niños) **y sugiere** a quién le toca ("hoy le toca al Bunga 3"), pero **decide un humano** — no auto-asigna.
+- **✅ Anfitrión = solo prestar el bunga (el espacio).** Lo que se balancea es el **uso del sitio/mesa**, no el cocinar. Quién cocina puede ser una familia distinta y va aparte (§6.5). Así "acoger" no implica "currar".
 - **Quién es "mayor" aquí** sale del flag `come_con_mayores` de cada persona (§5), no de la edad directamente. Así un adolescente marcado como niño pero que come con los adultos cae en la mesa correcta sin excepciones a mano.
 - **Granularidad:** por defecto la asignación del día vale para todas las comidas de ese día; se puede afinar por comida si un día hace falta (p. ej. la cena especial donde comen todos juntos en un solo bunga).
 
 ### 6.5 Preguntas abiertas de comidas
-- ¿Quién cocina se modela como campo estructurado (asignar personas/familia) o va en el texto libre de "qué se hace"? Propuesta: empezar libre, estructurar si duele.
+- **Quién cocina es distinto de quién acoge** (§6.4). ¿Se modela como campo estructurado (asignar familia/personas) o va en el texto libre de "qué se hace"? Propuesta: empezar libre, estructurar si duele. ¿Se balancea también el turno de cocina, o eso ya os lo montáis a mano? (pendiente)
 - ¿Las comidas generan gasto automáticamente (la compra) o el gasto va por libre en §3? Propuesta: desacoplado en v1, con enlace manual opcional.
 - ¿Lista de la compra agregada a partir de las "cantidades" de todas las comidas? Sería potente pero es v2.
 
@@ -288,18 +296,21 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | Q7 | Permisos | **Todos editan todo, sin roles** → historial de cambios pasa a obligatorio |
 | Q8 | Alcance v1 | **Priorizar gastos + gente**; comidas/planes/estadísticas después |
 | Q5 | Bunga de comidas | **Rotación por día** (bunga anfitrión de mayores y de niños cada día), buscando balance |
+| Q6 | Catálogo de platos | **Global + favoritos del grupo** |
 | — | Moneda | **Multi-moneda** (moneda base por viaje + tipo congelado por gasto) |
 | — | Nombre | **Ballena Ops** (mascota: la ballenita) |
 | — | Reparto de gastos | **Fino a nivel persona** (incluir/excluir personas), saldo agregado por familia |
 | — | Liquidación | **Simplificada** (minimizar transferencias, estilo Splitwise) |
 | — | Planes | **Lista + votación ligera** (👍/🤷/👎 + asignar a día), sin agenda por franjas |
+| — | Balance de anfitrión | La app **muestra + sugiere**, decide un humano |
+| — | Anfitrión de comida | **Solo presta el bunga** (espacio); cocinar es aparte |
+| — | Cuentas | **≥1 login por familia**; perfiles-nombre gestionados o usuarios completos; **cada uno elige su familia** |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
 |---|---|---|
-| Q6 | Catálogo de platos: ¿global o por viaje? | Global |
 | — | Modelo bunga↔familia: ¿familia con 2 bungas? ¿bungas compartidos? (§2.3) | Familia→1 bunga; bunga de 1 sola familia |
-| — | Balance de anfitrión: ¿la app solo muestra o auto-sugiere? (§6.4) | Muestra + sugiere, sin obligar |
+| — | Turno de cocina: ¿se balancea o va a mano? (§6.5) | A mano en v1 |
 | — | Origen de los tipos de cambio (§3.6) | Congelar al crear el gasto; fuente a decidir |
 | — | ¿Postres y bebidas como clasificación de plato? (§6.3) | Añadirlas |
 ```
