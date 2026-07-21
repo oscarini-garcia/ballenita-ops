@@ -58,9 +58,9 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 ### 2.3 Bungas (bungalows)
 
 - Se **definen al principio del viaje**: nombre/identificador ("Bunga 1", "El de la piscina"), capacidad opcional.
-- Una persona se asigna a un bunga (dónde duerme).
-- Los bungas se usan también en comidas (§6): dónde se come cada cosa.
-- **Pregunta (Q abierta):** ¿una persona puede estar en varios bungas? (p. ej. duerme en uno, pero come en otro). Propuesta: separar **"bunga de dormir"** (1 por persona) de **"bunga donde come"** (que se decide por comida). Ver §6.4.
+- **✅ Modelo (aclarado): cada familia tiene su bunga.** El bunga es el alojamiento de una familia — no se asigna persona a persona, sino **familia ↔ bunga**. La persona "hereda" el bunga de su familia.
+- Los bungas se usan además como **sede rotatoria de las comidas** (§6): cada día se decide qué bunga acoge la comida de los mayores y cuál la de los niños, repartiendo la carga.
+- **⚠️ Casos borde a decidir (Q abierta):** ¿una familia grande puede ocupar **2 bungas**? ¿Dos familias pequeñas **comparten** uno? Propuesta: relación **familia → 1 bunga** por defecto, permitiendo varios bungas por familia si hace falta, pero **un bunga pertenece a una sola familia** (para que "el bunga de los García" siga teniendo sentido).
 
 ### 2.4 Gente / participantes (común pero se instancia por viaje)
 
@@ -103,9 +103,14 @@ Modos de reparto:
   - Aun así, un gasto puede **repartirse contando personas** (para ponderar el tamaño), pero el saldo resultante se **agrega a nivel familia**.
   - Una persona sin familia asignada se trata como **familia de uno**.
   - Las estadísticas y la liquidación (§3.4) trabajan en unidad **familia**.
+- **✅ Decidido: reparto fino a nivel PERSONA (dentro de la familia).** Al crear un gasto puedes **incluir/excluir personas sueltas**, aunque el saldo se sume a su familia. Casos que esto habilita:
+  - "Solo mayores" (el vino) → excluye niños automáticamente vía el flag `cuenta_como_adulto_reparto`.
+  - "Los que fueron al kayak" → selección manual de personas, salten las familias que salten.
+  - El gasto guarda la **lista de personas afectadas** y sus partes; el saldo mostrado es el rollup por familia.
 
 ### 3.4 Saldos y liquidación
-- Vista de **"quién debe a quién"** con **simplificación de deudas** (minimizar el nº de transferencias, como Splitwise).
+- **✅ Decidido: liquidación simplificada** — minimizar el nº de transferencias, como Splitwise (aunque A acabe pagando a C sin haberle comprado nada).
+- Vista de **"quién debe a quién"** entre familias con ese plan simplificado.
 - Marcar pagos/liquidaciones ("Ana ha pagado a Luis 20€").
 - Estado por viaje: saldo total, tu saldo personal/familiar.
 - **Cierre de viaje:** al terminar, un resumen de "cuentas del viaje" y liquidación final.
@@ -134,7 +139,7 @@ Actividades candidatas para los días del viaje.
 - **Estados:** propuesto → votando → confirmado → hecho/cancelado.
 - **Votación / interés:** la gente marca si le apunta (👍 / 🤷 / 👎) o se apunta a la lista. Útil para decidir sin discutir en el grupo de WhatsApp.
 - **Asignar a un día** del calendario del viaje (vista por días).
-- **⚠️ Crítica:** cuidado con solapar esto con una app de calendario. v1 debería ser ligera: lista de ideas + votación + a qué día va. Sin invitaciones tipo Google Calendar ni recordatorios complejos.
+- **✅ Decidido: lista + votación ligera.** Ideas para los días + 👍/🤷/👎 + asignar a un día. **Nada de agenda por franjas ni recordatorios** (eso es reinventar Google Calendar y dispara el scope).
 - **Vínculo con gastos:** ¿un plan confirmado puede generar un gasto? (p. ej. "alquiler kayaks 40€"). Propuesta: enlace opcional, no obligatorio.
 - **Vínculo con comidas:** una comida es un tipo de plan, pero la gestionamos aparte por su complejidad (§6).
 
@@ -188,14 +193,18 @@ Categorías (multi-selección, un plato puede tener varias):
 
 *(¿Faltan "postres" y "bebidas"? Los apunto como candidatos — Q abierta.)*
 
-### 6.4 Bungas en las comidas — mayores vs niños
-- Se puede **definir en qué bunga(s) comen los mayores y en cuál(es) los niños**.
-- **⚠️ Decisión de granularidad (Q5):** ¿esto se define…
-  - (a) **una vez por viaje** ("los niños siempre comen en el Bunga 2"),
-  - (b) **por día**,
-  - (c) **por comida**?
-  - Recomendación: por defecto **a nivel viaje** (los niños comen en el Bunga X, los mayores en el Y), con posibilidad de **sobrescribir por comida** cuando haga falta. Menos clicks el 90% del tiempo.
-- **Quién es "mayor" aquí** sale del flag `come_con_mayores` de cada persona (§5), no de la edad directamente. Así un adolescente marcado como niño pero que come con los adultos cae en el bunga correcto sin excepciones a mano.
+### 6.4 Bungas en las comidas — rotación diaria mayores / niños ⭐
+Aclarado el modelo real (corrige la versión anterior):
+
+- Cada familia tiene su bunga (§2.3). Las comidas **rotan de sede**: no se come siempre en el mismo sitio.
+- **La asignación se hace POR DÍA** (Q5 resuelta → **por día**): cada día del viaje se decide:
+  - **qué bunga acoge la comida de los mayores**, y
+  - **qué bunga acoge la de los niños**.
+- **Objetivo de balanceo:** repartir la carga de "hacer de anfitrión" a lo largo del viaje, para que no le toque siempre al mismo bunga/familia cargar con la comilona.
+  - La app debe **mostrar el balance** (cuántas veces ha acogido cada bunga a mayores y a niños) para decidir de un vistazo a quién le toca.
+  - **⚠️ Decisión pendiente (Q-nueva):** ¿la app solo **muestra** el balance y decide un humano, o **auto-sugiere** el bunga anfitrión del día para igualar el reparto? Propuesta: v1 muestra el marcador y sugiere ("hoy le toca al Bunga 3"), sin obligar.
+- **Quién es "mayor" aquí** sale del flag `come_con_mayores` de cada persona (§5), no de la edad directamente. Así un adolescente marcado como niño pero que come con los adultos cae en la mesa correcta sin excepciones a mano.
+- **Granularidad:** por defecto la asignación del día vale para todas las comidas de ese día; se puede afinar por comida si un día hace falta (p. ej. la cena especial donde comen todos juntos en un solo bunga).
 
 ### 6.5 Preguntas abiertas de comidas
 - ¿Quién cocina se modela como campo estructurado (asignar personas/familia) o va en el texto libre de "qué se hace"? Propuesta: empezar libre, estructurar si duele.
@@ -210,7 +219,7 @@ Sección de vanidad y de piques sanos. Todo por viaje (y quizá histórico entre
 
 Ideas de métricas (con la ballena troleando):
 - **Gastos:** total del viaje, gasto por persona/familia, quién ha pagado más, categoría más cara, "el más rácano" / "el manirroto".
-- **Comidas:** nº de platos por tipo, plato más repetido, familia que más ha cocinado.
+- **Comidas:** nº de platos por tipo, plato más repetido, familia que más ha cocinado, **balance de anfitrión** (veces que cada bunga ha acogido comidas de mayores/niños — el mismo marcador que usa §6.4).
 - **Planes:** planes propuestos vs realizados, el que más propone, el que más vota que no.
 - **Curiosidades:** día más caro, ratio vino/persona, etc.
 - **⚠️ Crítica:** ojo con estadísticas que señalen a alguien de forma incómoda ("el que menos paga"). Con humor sí, pero con opción de que sea opt-in/desactivable para no montar dramas reales.
@@ -278,14 +287,19 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | Q4 | Rol de persona | **Dos ejes:** edad (`adulto`/`niño`) + flags (`come_con_mayores`, `cuenta_como_adulto_reparto`) |
 | Q7 | Permisos | **Todos editan todo, sin roles** → historial de cambios pasa a obligatorio |
 | Q8 | Alcance v1 | **Priorizar gastos + gente**; comidas/planes/estadísticas después |
+| Q5 | Bunga de comidas | **Rotación por día** (bunga anfitrión de mayores y de niños cada día), buscando balance |
 | — | Moneda | **Multi-moneda** (moneda base por viaje + tipo congelado por gasto) |
 | — | Nombre | **Ballena Ops** (mascota: la ballenita) |
+| — | Reparto de gastos | **Fino a nivel persona** (incluir/excluir personas), saldo agregado por familia |
+| — | Liquidación | **Simplificada** (minimizar transferencias, estilo Splitwise) |
+| — | Planes | **Lista + votación ligera** (👍/🤷/👎 + asignar a día), sin agenda por franjas |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
 |---|---|---|
-| Q5 | Bunga de comida mayores/niños: ¿por viaje, día o comida? | Por viaje, override por comida |
 | Q6 | Catálogo de platos: ¿global o por viaje? | Global |
+| — | Modelo bunga↔familia: ¿familia con 2 bungas? ¿bungas compartidos? (§2.3) | Familia→1 bunga; bunga de 1 sola familia |
+| — | Balance de anfitrión: ¿la app solo muestra o auto-sugiere? (§6.4) | Muestra + sugiere, sin obligar |
 | — | Origen de los tipos de cambio (§3.6) | Congelar al crear el gasto; fuente a decidir |
 | — | ¿Postres y bebidas como clasificación de plato? (§6.3) | Añadirlas |
 ```
