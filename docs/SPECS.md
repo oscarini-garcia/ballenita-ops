@@ -57,6 +57,7 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
   1. **Reparto de gastos por familia** (el pool con 5 personas paga más que el soltero).
   2. **Logística de comidas** (esta familia cocina hoy, los niños de estas familias comen en el bunga X).
 - **✅ Decidido (Q2): globales, congeladas por evento.** Hay un catálogo **global** de personas y familias reutilizable cada año, pero la **composición de cada evento se congela** al añadir gente (este año no vino el hijo mayor, hay novia nueva, etc.). Cambiar la familia global no reescribe eventos pasados.
+- Cada familia tiene **color**, y además **avatar/logo y estado** personalizables (emoji, imagen o foto — ver §5.2).
 
 ### 2.3 Bungas (bungalows)
 
@@ -133,7 +134,8 @@ Modos de reparto:
 - **Cierre de evento:** al terminar, un resumen de "cuentas del evento" y liquidación final. Reabrible (ver §2.5).
 
 ### 3.5 Fotos y adjuntos
-- **✅ Decidido: sin fotos en v1.** Ni ticket ni foto de la paella. Motivo: las imágenes pesan y complican el **offline-first** (§12.2) — hay que almacenarlas, subirlas al reconectar y gestionar el espacio. Se pospone a v2. En v1 el justificante es la **nota de texto**.
+- **✅ Decidido: sin fotos en v1** (de ticket ni de comida). Motivo: las imágenes pesan y complican el **offline-first** (§12.2). Se pospone a v2. En v1 el justificante es la **nota de texto**.
+- **Nota:** los **avatares y estados** de perfil (§5.2) admiten **emoji e imágenes predefinidas ya en v1** (son baratos); solo la **foto subida** comparte esta restricción y viaja a v2 junto con las fotos de gasto.
 
 ### 3.6 Multi-moneda (decidido, con letra pequeña)
 - **✅ Decidido:** se admiten **gastos en distintas monedas** con conversión.
@@ -197,6 +199,15 @@ Se abandona el enum `niño/mayor/ambos` (ambiguo). En su lugar, cada persona tie
 - **`peso_reparto`** (✅ decidido): **cuánto cuenta esta persona en el reparto por cabezas**, configurable **en su perfil**. Por defecto 1 (adulto); un niño puede ponerse a 0,5 o lo que el grupo acuerde, **por persona** — no es un ajuste global del evento. Un bebé podría ir a 0.
 - Ejemplo: un **adolescente** = `niño` + `come_con_mayores: true` + `cuenta_como_adulto_reparto: true` + `peso_reparto: 1`. El antiguo "ambos" queda expresado de forma explícita y sin magia.
 - Los defaults hacen que el 90% de la gente se configure sola: adulto = flags true + peso 1; niño = flags false + peso a elegir en su perfil.
+
+### 5.2 Personalización de perfil — avatar + estado ⭐
+- **✅ Cada persona/usuario Y cada familia** pueden personalizar dos cosas:
+  - **Avatar / logo:** un **emoji** (🐋), una **imagen** de un set predefinido, o una **foto** subida. La familia tiene además su color (§2.2); el avatar se suma.
+  - **Estado:** una línea corta tipo "mood" (texto opcional + emoji, p. ej. "🏖️ en modo playa", "💸 sin blanca hasta el finiquito"). El estado también puede llevar una **imagen o foto**.
+- Da personalidad al grupo y ayuda a identificar de un vistazo quién es quién en gastos, cenas y planes.
+- **⚠️ Reconciliación con "sin fotos en v1" (§3.5):** aquello era por las **fotos de ticket/comida** (pesan y complican el offline). Aquí pasa lo mismo con la **foto subida**:
+  - **Emoji** e **imágenes predefinidas** son baratísimos y **offline-friendly** → entran en **v1** sin problema.
+  - La **foto subida** por el usuario arrastra el **mismo coste de almacenamiento + sync** que descartamos en gastos. **Recomendación:** v1 = emoji + imágenes predefinidas; **foto a v2**, junto con las fotos de gasto (misma pieza de ingeniería). Si el grupo la quiere ya, se asume ese coste explícitamente.
 
 ---
 
@@ -297,14 +308,20 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - `duplicadoDe` (→Event, opcional — al clonar el anterior)
 
 **User** (login)
-- `nombre` · `avatar` (opcional)
+- `nombre`
 - `metodoLogin` (`apple` | `google` | `email`)
+- `avatar` ({ `tipo`: `emoji`|`imagen`|`foto`, `valor` }) · `estado` ({ `texto`?, `emoji`?, `media`? }) — ver §5.2
+
+**Media** (tipo reutilizable para avatar/estado)
+- `tipo` (`emoji` | `imagen` | `foto`)
+- `valor` (el emoji, o id de imagen predefinida, o referencia de la foto subida)
 
 **Membership** (User participa en un Event)
 - `userId` (→User) · `eventId` (→Event)
 
 **Family** (unidad de cartera)
 - `eventId` (→Event) · `nombre` · `color`
+- `avatar` (Media) · `estado` ({ `texto`?, `emoji`?, `media`? })
 - `bungaId` (→Bunga, 1:1)
 
 **Bunga**
@@ -312,7 +329,8 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - `familiaId` (→Family, 1:1)
 
 **Person**
-- `eventId` (→Event) · `nombre` · `avatar` (opcional)
+- `eventId` (→Event) · `nombre`
+- `avatar` (Media) · `estado` ({ `texto`?, `emoji`?, `media`? }) — ver §5.2
 - `familiaId` (→Family)
 - `edad` (`adulto` | `niño`)
 - `comeConMayores` (bool) · `cuentaComoAdultoReparto` (bool) · `pesoReparto` (number, default 1)
@@ -474,6 +492,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Resumen diario | **Por la mañana** |
 | — | Logo | Ballena **saltando en diagonal**, sonriente, con chorro |
 | — | Entidad raíz | **Evento** (antes "viaje") — suele ser un viaje, pero puede ser cualquier plan con fechas |
+| — | Perfil personalizable | **Persona y familia:** avatar/logo + estado con **emoji/imagen** (v1) o **foto** (v2, mismo coste que fotos de gasto) |
 
 ### 🟡 Aún abiertas (nivel implementación, no bloquean producto)
 | # | Decisión | Recomendación |
