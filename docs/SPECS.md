@@ -14,7 +14,8 @@
 ## 0. Filosofía y tono
 
 - **Todo vive dentro de un viaje.** No hay entidades globales "sueltas" desde el punto de vista del usuario: entras, eliges/creas un viaje, y ahí dentro pasa todo (gastos, comidas, planes, bungalows, gente). El viaje es el contenedor raíz.
-- **Tono con humor.** Microcopy gamberro, estados vacíos con gracia, la ballena como mascota que comenta cosas ("La ballenita ha detectado que Fran lleva 3 cenas sin pagar 🐋").
+- **Tono con humor.** Microcopy gamberro, estados vacíos con gracia, la ballena como mascota. **✅ La ballenita comenta en momentos clave** (estados vacíos, avisos, estadísticas) con gracia, pero **no molesta** — personalidad sin cansar, no está en todas las pantallas soltando frases.
+- **✅ Todo gasto vive dentro de un viaje.** No hay "botes" ni cajas comunes que crucen viajes: cada gasto pertenece a un viaje y se salda al cerrarlo. Coherente con el principio raíz.
 - **Mobile-first.** Esto se usa con el móvil en la mano, en chanclas, con mala cobertura. Debe funcionar rápido y, a poder ser, offline-tolerante.
 - **Idioma: solo español** (✅ decidido). El grupo es español; una sola lengua, con los textos con gracia bien cuidados. El humor se escribe, no se traduce. Sin i18n en v1 (no es tanto trabajo dejarlo medianamente ordenado por si acaso, pero no es objetivo).
 
@@ -160,6 +161,12 @@ Actividades candidatas para los días del viaje.
 - **Vínculo con gastos:** ¿un plan confirmado puede generar un gasto? (p. ej. "alquiler kayaks 40€"). Propuesta: enlace opcional, no obligatorio.
 - **Vínculo con comidas:** una comida es un tipo de plan, pero la gestionamos aparte por su complejidad (§6).
 
+### 4.1 Agenda por días (vista que une todo) ⭐
+- **✅ Decidido:** además de las secciones sueltas (Gastos, Comidas, Planes), hay una **vista de agenda por días** que **une comidas y planes** de cada día: "Día 3 — playa por la mañana, paella de cena en Bunga 2".
+- Da **sensación de itinerario** sin ser un calendario con franjas horarias (§4): es una lista por día, ordenada, con las comidas y los planes de ese día juntos.
+- Las secciones sueltas siguen existiendo para "ver todos los gastos" o "toda la carta de comidas" de golpe; la agenda es la vista transversal del día a día.
+- Es una buena **home del viaje activo**: al entrar, ves el día de hoy.
+
 ---
 
 ## 5. Personas dentro del viaje 👥
@@ -236,7 +243,7 @@ Aclarado el modelo real (corrige la versión anterior):
 ### 6.5 Preguntas abiertas de comidas
 - **Quién cocina es distinto de quién acoge** (§6.4). ¿Se modela como campo estructurado (asignar familia/personas) o va en el texto libre de "qué se hace"? Propuesta: empezar libre, estructurar si duele. ¿Se balancea también el turno de cocina, o eso ya os lo montáis a mano? (pendiente)
 - ¿Las comidas generan gasto automáticamente (la compra) o el gasto va por libre en §3? Propuesta: desacoplado en v1, con enlace manual opcional.
-- ¿Lista de la compra agregada a partir de las "cantidades" de todas las comidas? Sería potente pero es v2.
+- **✅ Lista de la compra: manual en v1, agregada en v2.** En v1 las cantidades son **texto libre por comida**; agregar todo en una lista de la compra global del viaje (sumando cantidades) se deja para **v2** (requiere cantidades estructuradas).
 
 ---
 
@@ -372,6 +379,10 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Bunga↔familia | **1 familia = 1 bunga** en v1 (casos raros a mano) |
 | — | Plataforma | **PWA primero → iOS nativo (SwiftUI) después** |
 | — | Ambición | **Solo para el grupo** (sin escalar ni monetizar) |
+| — | La ballenita | **Comenta en momentos clave**, sin cansar |
+| — | Lista de la compra | **Manual (texto) en v1**, agregada en v2 |
+| — | Agenda por días | **Vista que une comidas + planes** por día, junto a las secciones sueltas |
+| — | Botes / gastos comunes | **No**: todo gasto vive dentro de un viaje |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
