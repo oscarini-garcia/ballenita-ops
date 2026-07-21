@@ -16,6 +16,7 @@
 - **Todo vive dentro de un viaje.** No hay entidades globales "sueltas" desde el punto de vista del usuario: entras, eliges/creas un viaje, y ahí dentro pasa todo (gastos, comidas, planes, bungalows, gente). El viaje es el contenedor raíz.
 - **Tono con humor.** Microcopy gamberro, estados vacíos con gracia, la ballena como mascota que comenta cosas ("La ballenita ha detectado que Fran lleva 3 cenas sin pagar 🐋").
 - **Mobile-first.** Esto se usa con el móvil en la mano, en chanclas, con mala cobertura. Debe funcionar rápido y, a poder ser, offline-tolerante.
+- **Idioma: solo español** (✅ decidido). El grupo es español; una sola lengua, con los textos con gracia bien cuidados. El humor se escribe, no se traduce. Sin i18n en v1 (no es tanto trabajo dejarlo medianamente ordenado por si acaso, pero no es objetivo).
 
 **Logo:** una ballena. Ver §11.
 
@@ -68,6 +69,7 @@ Ver §5 (es tan central que tiene sección propia).
 
 ### 2.5 Ciclo de vida del viaje (crear, duplicar, cerrar)
 
+- **✅ Varios viajes a la vez, con uno "activo":** el grupo puede tener el de verano en curso y **ya ir planeando el de invierno**. La app **resalta el viaje activo** (el que está pasando ahora) y deja el resto en una lista. Al abrir la app entras directo al activo.
 - **Crear:** nombre, fecha de inicio y fin, moneda base. A partir de ahí se añaden familias, bungas y gente.
 - **✅ Duplicar el viaje anterior:** al crear un viaje se puede **clonar el del año pasado** (misma gente, familias, bungas, platos favoritos) y solo ajustar fechas y quién viene este año. Nadie quiere remontar el camping entero cada verano.
   - *(Recordatorio §2.2: la composición se **congela** por viaje; duplicar copia el estado, no crea un vínculo vivo con el viaje anterior.)*
@@ -101,7 +103,7 @@ Modos de reparto:
 
 ### 3.3 Splits predefinidos por familia (el requisito clave) ⭐
 - Como hay familias de distinto tamaño, se puede definir un **split por defecto del viaje** que tenga en cuenta a las familias.
-- Idea: cada gasto, por defecto, se reparte **por número de personas de cada familia participante** (o por un peso configurable por familia).
+- Idea: cada gasto, por defecto, se reparte **por la suma del `peso_reparto` de las personas de cada familia participante** (§5). Así un niño con peso 0,5 cuenta la mitad automáticamente, sin reglas globales.
 - Se pueden guardar **plantillas de reparto** ("split predefinido"):
   - *"Todos por persona"* (default): cada persona = 1 parte, las familias grandes pagan proporcionalmente más.
   - *"Solo adultos"*: los niños no cuentan (útil para el gasto de vino 🍷).
@@ -123,6 +125,8 @@ Modos de reparto:
 - Vista de **"quién debe a quién"** entre familias con ese plan simplificado.
 - Marcar pagos/liquidaciones ("Ana ha pagado a Luis 20€").
 - Estado por viaje: saldo total, tu saldo personal/familiar.
+- **✅ Saldo actual + registro de cambios:** se muestra el "quién debe a quién" de ahora, con el **log de movimientos y pagos** (§9) para entender cómo se llegó ahí. Sin gráficas de evolución en v1 (eso a v2).
+- **✅ Gastos editables:** un gasto mal metido **se puede editar** (importe, pagador, reparto…); el saldo se **recalcula** y el cambio queda en el historial. Editar tras liquidar deja aviso de que las cuentas se movieron.
 - **Cierre de viaje:** al terminar, un resumen de "cuentas del viaje" y liquidación final. Reabrible (ver §2.5).
 
 ### 3.5 Fotos y adjuntos
@@ -139,7 +143,6 @@ Modos de reparto:
 
 ### 3.7 Preguntas abiertas de gastos
 - ¿Gastos que ocurren fuera del rango de fechas (adelantos, reservas previas)? Propuesta: permitir fecha fuera de rango con aviso.
-- ¿Editar/borrar gastos ya liquidados? (historial/auditoría).
 - **Proveedor de la API de tipos de cambio** y su fallback offline (ver §3.6 y §12) — pendiente.
 
 ---
@@ -181,8 +184,9 @@ Se abandona el enum `niño/mayor/ambos` (ambiguo). En su lugar, cada persona tie
 - **Flags de comportamiento** independientes:
   - `come_con_mayores` (por defecto según edad; sobrescribible) → afecta a §6.4.
   - `cuenta_como_adulto_reparto` (por defecto según edad; sobrescribible) → afecta a §3.
-- Ejemplo: un **adolescente** = `niño` + `come_con_mayores: true` + `cuenta_como_adulto_reparto: true`. El antiguo "ambos" queda expresado de forma explícita y sin magia.
-- Los defaults hacen que el 90% de la gente se configure sola: adulto = ambos flags true, niño = ambos false.
+- **`peso_reparto`** (✅ decidido): **cuánto cuenta esta persona en el reparto por cabezas**, configurable **en su perfil**. Por defecto 1 (adulto); un niño puede ponerse a 0,5 o lo que el grupo acuerde, **por persona** — no es un ajuste global del viaje. Un bebé podría ir a 0.
+- Ejemplo: un **adolescente** = `niño` + `come_con_mayores: true` + `cuenta_como_adulto_reparto: true` + `peso_reparto: 1`. El antiguo "ambos" queda expresado de forma explícita y sin magia.
+- Los defaults hacen que el 90% de la gente se configure sola: adulto = flags true + peso 1; niño = flags false + peso a elegir en su perfil.
 
 ---
 
@@ -348,6 +352,10 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Redondeo | **Reparto automático del sobrante**, avisando a quién le tocó el céntimo |
 | — | Categorías de gasto | **Lista fija con iconos** (comida/aloj./transporte/ocio/varios) |
 | — | Fotos | **Sin fotos en v1** (pesan y complican el offline); a v2 |
+| — | Peso de niños en reparto | **`peso_reparto` por persona** (en su perfil), default 1 |
+| — | Historial de saldos | **Saldo actual + registro de cambios**; **gastos editables** con recálculo |
+| — | Idioma | **Solo español** (sin i18n en v1) |
+| — | Multi-viaje | **Varios a la vez, con uno "activo"** resaltado |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
