@@ -59,9 +59,9 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 ### 2.3 Bungas (bungalows)
 
 - Se **definen al principio del viaje**: nombre/identificador ("Bunga 1", "El de la piscina"), capacidad opcional.
-- **✅ Modelo (aclarado): cada familia tiene su bunga.** El bunga es el alojamiento de una familia — no se asigna persona a persona, sino **familia ↔ bunga**. La persona "hereda" el bunga de su familia.
+- **✅ Modelo: cada familia tiene su bunga (1 a 1 en v1).** El bunga es el alojamiento de una familia — no se asigna persona a persona, sino **familia ↔ bunga**. La persona "hereda" el bunga de su familia.
+- **✅ Decidido:** en v1, **1 familia = 1 bunga** exactamente. Los casos raros (familia grande con 2 bungas, dos familias pequeñas compartiendo uno) **se apañan a mano** por ahora; se revisará si aparece la necesidad real. Menos modelo, cubre lo normal.
 - Los bungas se usan además como **sede rotatoria de las comidas** (§6): cada día se decide qué bunga acoge la comida de los mayores y cuál la de los niños, repartiendo la carga.
-- **⚠️ Casos borde a decidir (Q abierta):** ¿una familia grande puede ocupar **2 bungas**? ¿Dos familias pequeñas **comparten** uno? Propuesta: relación **familia → 1 bunga** por defecto, permitiendo varios bungas por familia si hace falta, pero **un bunga pertenece a una sola familia** (para que "el bunga de los García" siga teniendo sentido).
 
 ### 2.4 Gente / participantes (común pero se instancia por viaje)
 
@@ -70,6 +70,7 @@ Ver §5 (es tan central que tiene sección propia).
 ### 2.5 Ciclo de vida del viaje (crear, duplicar, cerrar)
 
 - **✅ Varios viajes a la vez, con uno "activo":** el grupo puede tener el de verano en curso y **ya ir planeando el de invierno**. La app **resalta el viaje activo** (el que está pasando ahora) y deja el resto en una lista. Al abrir la app entras directo al activo.
+- **✅ Unirse por enlace / QR:** quien crea el viaje comparte un **enlace o QR**; los demás entran y **eligen su familia** (§5). Sin gestionar emails ni invitaciones una a una. Ideal para pasarlo por el grupo de WhatsApp.
 - **Crear:** nombre, fecha de inicio y fin, moneda base. A partir de ahí se añaden familias, bungas y gente.
 - **✅ Duplicar el viaje anterior:** al crear un viaje se puede **clonar el del año pasado** (misma gente, familias, bungas, platos favoritos) y solo ajustar fechas y quién viene este año. Nadie quiere remontar el camping entero cada verano.
   - *(Recordatorio §2.2: la composición se **congela** por viaje; duplicar copia el estado, no crea un vínculo vivo con el viaje anterior.)*
@@ -319,7 +320,18 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 
 ---
 
-## 13. Registro de decisiones
+## 13. Tecnología y ambición
+
+- **✅ Ambición: solo para el grupo de amigos.** No aspira a escalar ni a monetizar. Esto **simplifica muchísimo**: nada de onboarding pulido para desconocidos, ni políticas de privacidad complejas, ni soporte, ni panel de admin. Se optimiza para *nosotros*, con nombres y bromas internas.
+- **✅ Plataforma: empezar como PWA (web app), migrar a iOS nativo con el tiempo.** Estrategia por fases:
+  - **Fase 1 — PWA:** funciona en cualquier móvil desde el navegador, instalable, rápida de repartir por un enlace (encaja con el "unirse por QR/enlace"). No hay que pasar por la App Store para que la use el grupo.
+  - **Fase 2 — iOS nativo (SwiftUI):** cuando compense, se va a nativo para un Sign in with Apple y un offline más finos y una sensación más pulida.
+  - **⚠️ Tensión a tener presente:** hemos decidido **offline-first** (§12.2) y **PWA** a la vez. El offline en PWA es posible (Service Worker + IndexedDB) pero es **de lo más difícil de hacer bien** en web; hay que asumir ese coste desde el principio o aceptar un offline más limitado en Fase 1 y completo en Fase 2. Conviene decidirlo explícitamente al planificar.
+  - Sign in with Apple **funciona en web**, así que el login con Apple no obliga a nativo desde el día 1.
+
+---
+
+## 14. Registro de decisiones
 
 ### ✅ Cerradas
 | # | Decisión | Resolución |
@@ -356,11 +368,15 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Historial de saldos | **Saldo actual + registro de cambios**; **gastos editables** con recálculo |
 | — | Idioma | **Solo español** (sin i18n en v1) |
 | — | Multi-viaje | **Varios a la vez, con uno "activo"** resaltado |
+| — | Unirse a un viaje | **Enlace / QR** + elegir familia |
+| — | Bunga↔familia | **1 familia = 1 bunga** en v1 (casos raros a mano) |
+| — | Plataforma | **PWA primero → iOS nativo (SwiftUI) después** |
+| — | Ambición | **Solo para el grupo** (sin escalar ni monetizar) |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
 |---|---|---|
-| — | Modelo bunga↔familia: ¿familia con 2 bungas? ¿bungas compartidos? (§2.3) | Familia→1 bunga; bunga de 1 sola familia |
 | — | Turno de cocina: ¿se balancea o va a mano? (§6.5) | A mano en v1 |
-| — | Proveedor de la API de tipos de cambio + fallback (§3.6) | Por decidir |
+| — | Proveedor de la API de tipos de cambio + fallback (§3.6) | Por decidir (nivel implementación) |
+| — | Alcance del offline en Fase 1 PWA (§13): ¿completo o limitado? | Limitado en PWA, completo en nativo |
 ```
