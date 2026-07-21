@@ -66,6 +66,14 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 
 Ver §5 (es tan central que tiene sección propia).
 
+### 2.5 Ciclo de vida del viaje (crear, duplicar, cerrar)
+
+- **Crear:** nombre, fecha de inicio y fin, moneda base. A partir de ahí se añaden familias, bungas y gente.
+- **✅ Duplicar el viaje anterior:** al crear un viaje se puede **clonar el del año pasado** (misma gente, familias, bungas, platos favoritos) y solo ajustar fechas y quién viene este año. Nadie quiere remontar el camping entero cada verano.
+  - *(Recordatorio §2.2: la composición se **congela** por viaje; duplicar copia el estado, no crea un vínculo vivo con el viaje anterior.)*
+- **✅ Cerrar (reabrible):** al terminar, **cualquiera** puede marcar el viaje como cerrado → se genera el **resumen de cuentas y la liquidación final** (§3.4). No hay candado (no hay roles, §9): se puede **reabrir** para meter ese gasto que faltaba y volver a cerrar.
+  - La ballenita puede empujar el cierre ("Lleváis 3 días en casa y quedan 47,50 € sin saldar 🐋").
+
 ---
 
 ## 3. Gastos — "Modo Splitwise" 💸
@@ -113,7 +121,7 @@ Modos de reparto:
 - Vista de **"quién debe a quién"** entre familias con ese plan simplificado.
 - Marcar pagos/liquidaciones ("Ana ha pagado a Luis 20€").
 - Estado por viaje: saldo total, tu saldo personal/familiar.
-- **Cierre de viaje:** al terminar, un resumen de "cuentas del viaje" y liquidación final.
+- **Cierre de viaje:** al terminar, un resumen de "cuentas del viaje" y liquidación final. Reabrible (ver §2.5).
 
 ### 3.6 Multi-moneda (decidido, con letra pequeña)
 - **✅ Decidido:** se admiten **gastos en distintas monedas** con conversión.
@@ -231,7 +239,7 @@ Ideas de métricas (con la ballena troleando):
 - **Comidas:** nº de platos por tipo, plato más repetido, familia que más ha cocinado, **balance de anfitrión** (veces que cada bunga ha acogido comidas de mayores/niños — el mismo marcador que usa §6.4).
 - **Planes:** planes propuestos vs realizados, el que más propone, el que más vota que no.
 - **Curiosidades:** día más caro, ratio vino/persona, etc.
-- **⚠️ Crítica:** ojo con estadísticas que señalen a alguien de forma incómoda ("el que menos paga"). Con humor sí, pero con opción de que sea opt-in/desactivable para no montar dramas reales.
+- **✅ Decidido: gamberras pero opt-in.** Por defecto las stats son suaves; las que **señalan a alguien** ("el rácano", "el manirroto") se **activan por viaje** si el grupo quiere. Humor sí, dramas reales no.
 
 ---
 
@@ -295,7 +303,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 ### 12.2 Offline-first ⭐
 - **✅ Decidido: la app funciona sin cobertura.** Se pueden apuntar gastos, comidas y planes **sin conexión** y todo se **sincroniza al recuperar red**. Es clave: los campings tienen poca o ninguna cobertura, que es justo donde se usa.
 - **⚠️ Esto es la decisión más cara de todas técnicamente.** Implica:
-  - **Resolución de conflictos:** dos personas editan el mismo gasto sin red y luego sincronizan. Hay que decidir estrategia (último gana / merge / marcar conflicto). Como no hay roles (§9), esto pesa aún más.
+  - **✅ Resolución de conflictos: último en sincronizar gana** (last-write-wins), apoyado en el **historial (§9)** para recuperar lo que se haya pisado. Simple y suficiente para un grupo pequeño; el historial es lo que lo hace tolerable sin roles.
   - **IDs generados en cliente** para no chocar al subir.
   - **La API de tipos de cambio no está disponible offline** (§3.6): si metes un gasto en divisa sin red, hay que permitir tipo manual o dejarlo pendiente de completar al reconectar.
   - Encaja bien con "todos editan todo", pero sube el listón de ingeniería del MVP. Merece una nota de riesgo en la planificación.
@@ -326,13 +334,16 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Tipo de cambio | **Automático (API) + editable**, congelado en el gasto |
 | — | Notificaciones | **Push a tope + resumen diario** (con preferencias por categoría) |
 | — | Offline | **Offline-first** (apuntar sin red, sincronizar al reconectar) |
+| — | Conflictos offline | **Último en sincronizar gana** (last-write-wins) + historial para recuperar |
 | — | Categorías de plato | Añadido **Postres**; «Bebidas» NO es categoría (va en cantidades) |
+| — | Recurrencia | **Duplicar viaje anterior** al crear uno nuevo |
+| — | Cierre de viaje | **Se cierra pero es reabrible** (sin candado; resumen + liquidación) |
+| — | Tono de estadísticas | **Gamberras pero opt-in** (las que señalan se activan por viaje) |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
 |---|---|---|
 | — | Modelo bunga↔familia: ¿familia con 2 bungas? ¿bungas compartidos? (§2.3) | Familia→1 bunga; bunga de 1 sola familia |
 | — | Turno de cocina: ¿se balancea o va a mano? (§6.5) | A mano en v1 |
-| — | Estrategia de conflictos offline (§12.2) | Por decidir (último gana / merge) |
 | — | Proveedor de la API de tipos de cambio + fallback (§3.6) | Por decidir |
 ```
