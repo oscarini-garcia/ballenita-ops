@@ -304,9 +304,10 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 ## 11. Marca y logo 🐋
 
 - **Logo: una ballena** (ballenita — encaja con el repo `ballenita-ops`).
-- Dirección visual: ballena redondeada, simpática, azul; podría "escupir" un chorro que sean monedas/iconos según la sección.
-- Mascota con voz en el microcopy (estados vacíos, avisos, estadísticas).
-- **Q abierta:** ¿nombre de la app? ("Ballenita", "Ballena Ops", otro).
+- **Inspiración:** el viaje del grupo es a **Camping La Ballena Alegre** (Sant Pere Pescador, Costa Brava). La mascota es una **ballena azul, sonriente y alegre**, en homenaje a ese sitio.
+- **⚠️ Ojo legal:** el logo del camping es **marca registrada de una empresa real**. La app usa una **ballena propia y original** inspirada en el espíritu (azul, sonriente), **no** una copia del logo del camping. Nada de dar a entender afiliación oficial con el camping.
+- Dirección visual: ballena redondeada, simpática, azul, con **sonrisa clara**; puede "escupir" un chorro que sean monedas/iconos según la sección.
+- Mascota con voz en el microcopy (comenta en momentos clave, §0).
 
 ---
 
