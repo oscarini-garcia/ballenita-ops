@@ -119,15 +119,15 @@ Modos de reparto:
 - **✅ Decidido:** se admiten **gastos en distintas monedas** con conversión.
 - Cada viaje tiene una **moneda base** (donde se calculan saldos y liquidación). Cada gasto guarda su moneda original + el **tipo de cambio aplicado** en ese momento.
 - **⚠️ Aviso de complejidad (fui recomendación de "una sola moneda"):** multi-moneda mete decisiones que hay que cerrar antes de implementar:
-  - ¿De dónde salen los tipos de cambio? (manual por el usuario / API de tipos / fijado por viaje). Sin esto, los saldos no cuadran.
-  - Los tipos fluctúan: si se recalcula a posteriori, los saldos cambian. Propuesta: **congelar el tipo al crear el gasto** y no re-tocarlo.
+  - **✅ Decidido: tipo automático vía API + editable.** Al meter un gasto en otra divisa, la app trae el **tipo del día de una API** y lo **congela en el gasto**; se puede corregir a mano si hiciera falta. (Implica: hay que elegir proveedor de tipos y tener un fallback si la API no responde estando offline — ver §12/offline.)
+  - Los tipos fluctúan: el tipo **congelado al crear el gasto** no se re-toca, así los saldos no bailan a posteriori.
   - Redondeos y descuadres de céntimos al convertir. Hay que decidir a favor de quién redondea.
   - Esto encarece el MVP; si aprieta el tiempo, se puede lanzar con una moneda y activar multi-moneda justo después sin romper el modelo (por eso guardamos moneda+tipo desde el día 1).
 
 ### 3.7 Preguntas abiertas de gastos
 - ¿Gastos que ocurren fuera del rango de fechas (adelantos, reservas previas)? Propuesta: permitir fecha fuera de rango con aviso.
 - ¿Editar/borrar gastos ya liquidados? (historial/auditoría).
-- **Origen de los tipos de cambio** (ver §3.6) — decisión pendiente.
+- **Proveedor de la API de tipos de cambio** y su fallback offline (ver §3.6 y §12) — pendiente.
 
 ---
 
@@ -198,8 +198,9 @@ Categorías (multi-selección, un plato puede tener varias):
 - **Entrantes**
 - **Principales**
 - **Acompañamientos**
+- **Postres** ✅ (añadida — la sandía también cuenta)
 
-*(¿Faltan "postres" y "bebidas"? Los apunto como candidatos — Q abierta.)*
+*(«Bebidas» se decide NO añadirla como categoría: va en el campo de cantidades o como acompañamiento.)*
 
 ### 6.4 Bungas en las comidas — rotación diaria mayores / niños ⭐
 Aclarado el modelo real (corrige la versión anterior):
@@ -284,7 +285,24 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 
 ---
 
-## 12. Registro de decisiones
+## 12. Notificaciones y sincronización
+
+### 12.1 Notificaciones push
+- **✅ Decidido: push a tope + resumen diario.** Se notifica bastante (te añaden a un gasto, te toca de anfitrión, alguien propone/vota un plan, se cierra el viaje…) y además un **resumen diario** ("lo que pasó ayer en el viaje", con la ballenita de narradora).
+- **⚠️ Riesgo (yo recomendaba "mínimas"):** notificar mucho cansa y la gente silencia la app. Mitigación imprescindible: **preferencias por categoría** (que cada uno apague lo que no quiera) y el resumen diario como digest agrupado en vez de 20 pings sueltos. Sin esos controles, "push a tope" se vuelve en contra.
+- Requiere permiso de notificaciones del sistema y un backend que sepa a quién avisar de qué.
+
+### 12.2 Offline-first ⭐
+- **✅ Decidido: la app funciona sin cobertura.** Se pueden apuntar gastos, comidas y planes **sin conexión** y todo se **sincroniza al recuperar red**. Es clave: los campings tienen poca o ninguna cobertura, que es justo donde se usa.
+- **⚠️ Esto es la decisión más cara de todas técnicamente.** Implica:
+  - **Resolución de conflictos:** dos personas editan el mismo gasto sin red y luego sincronizan. Hay que decidir estrategia (último gana / merge / marcar conflicto). Como no hay roles (§9), esto pesa aún más.
+  - **IDs generados en cliente** para no chocar al subir.
+  - **La API de tipos de cambio no está disponible offline** (§3.6): si metes un gasto en divisa sin red, hay que permitir tipo manual o dejarlo pendiente de completar al reconectar.
+  - Encaja bien con "todos editan todo", pero sube el listón de ingeniería del MVP. Merece una nota de riesgo en la planificación.
+
+---
+
+## 13. Registro de decisiones
 
 ### ✅ Cerradas
 | # | Decisión | Resolución |
@@ -305,12 +323,16 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Balance de anfitrión | La app **muestra + sugiere**, decide un humano |
 | — | Anfitrión de comida | **Solo presta el bunga** (espacio); cocinar es aparte |
 | — | Cuentas | **≥1 login por familia**; perfiles-nombre gestionados o usuarios completos; **cada uno elige su familia** |
+| — | Tipo de cambio | **Automático (API) + editable**, congelado en el gasto |
+| — | Notificaciones | **Push a tope + resumen diario** (con preferencias por categoría) |
+| — | Offline | **Offline-first** (apuntar sin red, sincronizar al reconectar) |
+| — | Categorías de plato | Añadido **Postres**; «Bebidas» NO es categoría (va en cantidades) |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
 |---|---|---|
 | — | Modelo bunga↔familia: ¿familia con 2 bungas? ¿bungas compartidos? (§2.3) | Familia→1 bunga; bunga de 1 sola familia |
 | — | Turno de cocina: ¿se balancea o va a mano? (§6.5) | A mano en v1 |
-| — | Origen de los tipos de cambio (§3.6) | Congelar al crear el gasto; fuente a decidir |
-| — | ¿Postres y bebidas como clasificación de plato? (§6.3) | Añadirlas |
+| — | Estrategia de conflictos offline (§12.2) | Por decidir (último gana / merge) |
+| — | Proveedor de la API de tipos de cambio + fallback (§3.6) | Por decidir |
 ```
