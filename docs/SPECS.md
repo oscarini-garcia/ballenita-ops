@@ -28,13 +28,13 @@
 | Término | Qué es |
 |---|---|
 | **Viaje** | Contenedor raíz. Tiene fecha de inicio y fin, un grupo de gente, bungalows, gastos, comidas y planes. |
-| **Persona / Participante** | Alguien que va al viaje. Pertenece a una familia y tiene un rol (mayor / niño / ambos). |
-| **Familia** | Unidad de agrupación de personas (p. ej. "Los García", "Los solteros"). Sirve para el reparto por defecto de gastos y para la logística de comidas. |
-| **Bunga (bungalow)** | Alojamiento físico dentro del viaje. Se definen al principio. La gente duerme y/o come en un bunga. |
-| **Gasto** | Un pago hecho por alguien, que se reparte entre varios. Estilo Splitwise. |
-| **Plan** | Actividad candidata o programada para un día (playa, kayak, ir a por hielo…). |
-| **Comida** | Un evento de comer (comida/cena/aperitivo). Tiene platos, bunga(s) donde se come, y notas. |
-| **Plato** | Un ítem de comida (p. ej. "tortilla de patata"), clasificable (entrante/principal/etc.). |
+| **Persona / Participante** | Alguien que va al viaje. Pertenece a una familia; tiene edad (`adulto`/`niño`) + flags + `peso_reparto` (§5). |
+| **Familia** | Unidad de agrupación de personas (p. ej. "Los García", "Los solteros"). Es la **unidad de cartera** del reparto de gastos y tiene su bunga. |
+| **Bunga (bungalow)** | Alojamiento de una familia (1 familia = 1 bunga). Además hace de **sede rotatoria** de las cenas. |
+| **Gasto** | Un pago hecho por una o varias familias, repartido entre personas y agregado a nivel familia. Estilo Splitwise. |
+| **Plan** | Actividad candidata o programada para un día (playa, kayak, ir a por hielo…). Se vota y se confirma. |
+| **Cena** | El evento de cenar de un día (una por día en v1). Tiene platos, bunga(s) de mayores/niños y notas. |
+| **Plato** | Un ítem de una cena (p. ej. "paella"), con una o varias clasificaciones (entrante/principal/…). |
 
 ---
 
@@ -266,19 +266,23 @@ Ideas de métricas (con la ballena troleando):
 ## 8. Modelo de datos (borrador de alto nivel)
 
 ```
-User (Apple ID) 1─* Membership *─1 Trip
-Trip 1─* Family
-Trip 1─* Bunga
-Trip 1─* Person   (Person → Family, Person → Bunga_dormir, rol)
-Trip  1─1 monedaBase
-Trip 1─* Expense  (Expense → payer(family), → splits[Family], moneda_original, tipo_cambio)
-Trip 1─* SplitTemplate
-Trip 1─* Plan
-Trip 1─* Meal     (Meal → Dish[], → Bunga[], notas, cantidades)
-Dish  *─* Category (aperitivo/entrante/principal/acompañamiento)   [¿global?]
+User (login: Apple/Google/email) 1─* Membership *─1 Trip
+Trip 1─1 monedaBase, fechaInicio, fechaFin, estado(planificando|activo|cerrado)
+Trip 1─* Family        (Family 1─1 Bunga)
+Trip 1─* Bunga         (Bunga 1─1 Family)
+Trip 1─* Person        (Person → Family; edad, come_con_mayores, cuenta_como_adulto_reparto, peso_reparto;
+                        Person = usuario completo (→User) | perfil-nombre gestionado)
+Trip 1─* Expense       (Expense → payers[Family], → shares[Person]→rollup Family,
+                        moneda_original, tipo_cambio_congelado, categoría, editable)
+Trip 1─* Settlement    (pago apuntado a mano: FamiliaA → FamiliaB, importe)
+Trip 1─* SplitTemplate (por persona | solo mayores | por familia | personalizado)
+Trip 1─* Plan          (estado, día opcional, votos[Person: 👍/🤷/👎])
+Trip 1─* Cena          (1 por día: → Dish[], bungaMayores→Bunga, bungaNiños→Bunga, qué_se_hace, cantidades)
+Dish  *─* Category     (aperitivo|entrante|principal|acompañamiento|postre)   [catálogo GLOBAL + favoritos]
+Trip 1─* AuditLog      (historial: quién tocó qué y cuándo — obligatorio, §9)
 ```
 
-Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas por viaje**; rol = **edad + flags**; **multi-moneda** (moneda base + tipo por gasto); **sin roles de app** (→ historial obligatorio). Pendiente: globalidad del catálogo de platos (Q6), granularidad bunga-comida (Q5), origen de tipos de cambio.
+Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congeladas por viaje**; rol = **edad + flags + peso**; **multi-moneda** (moneda base + tipo por gasto); **sin roles de app** (→ historial obligatorio); bunga↔familia **1:1**; bunga de cena **por día**. Pendiente (implementación): proveedor de la API de tipos de cambio.
 
 ---
 
@@ -404,4 +408,3 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Proveedor concreto de la API de tipos de cambio + su fallback offline (§3.6) | A elegir al implementar |
 
 *(A nivel de producto no queda ninguna decisión abierta. Lo único pendiente es técnico y se resuelve en la fase de implementación.)*
-```
