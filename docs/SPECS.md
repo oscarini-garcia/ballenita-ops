@@ -1,4 +1,6 @@
-# Ballenita 🐋 — Specs de producto
+# Ballena Ops 🐋 — Specs de producto
+
+> Nombre de la app: **Ballena Ops** (el viaje como operación militar de precisión… o eso pretendemos). La mascota es *la ballenita*.
 
 > App para gestionar la logística (y el caos) de los viajes con el grupo de amigos.
 > Todo pasa dentro de un viaje. La ballena vigila.
@@ -51,7 +53,7 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 - Casos de uso:
   1. **Reparto de gastos por familia** (el pool con 5 personas paga más que el soltero).
   2. **Logística de comidas** (esta familia cocina hoy, los niños de estas familias comen en el bunga X).
-- **⚠️ Crítica / decisión (Q2):** ¿la familia es global (persiste entre viajes, "Los García" siempre son Los García) o se define por viaje? Recomendación: catálogo global de personas + familias, pero **la pertenencia y composición se congela por viaje** (la gente cambia: divorcios, nuevos novios, un año no viene el hijo mayor).
+- **✅ Decidido (Q2): globales, congeladas por viaje.** Hay un catálogo **global** de personas y familias reutilizable cada año, pero la **composición de cada viaje se congela** al añadir gente (este año no vino el hijo mayor, hay novia nueva, etc.). Cambiar la familia global no reescribe viajes pasados.
 
 ### 2.3 Bungas (bungalows)
 
@@ -73,7 +75,7 @@ El corazón económico. Inspirado en Splitwise pero con el giro de **reparto por
 ### 3.1 Crear un gasto
 Campos:
 - **Descripción** ("Compra grande Mercadona", "Gasolina").
-- **Importe** + **moneda** (¿multi-moneda? Q abierta; propuesta: una sola moneda por viaje, fijada al crear el viaje).
+- **Importe** + **moneda** del gasto (**multi-moneda**, ver §3.6).
 - **Quién paga** (uno o varios pagadores; normalmente uno).
 - **Cómo se divide** (ver §3.2).
 - **Fecha** (por defecto hoy, dentro del rango del viaje).
@@ -108,10 +110,19 @@ Modos de reparto:
 - Estado por viaje: saldo total, tu saldo personal/familiar.
 - **Cierre de viaje:** al terminar, un resumen de "cuentas del viaje" y liquidación final.
 
-### 3.5 Preguntas abiertas de gastos
-- ¿Multi-moneda con conversión? (propuesta: no en v1).
+### 3.6 Multi-moneda (decidido, con letra pequeña)
+- **✅ Decidido:** se admiten **gastos en distintas monedas** con conversión.
+- Cada viaje tiene una **moneda base** (donde se calculan saldos y liquidación). Cada gasto guarda su moneda original + el **tipo de cambio aplicado** en ese momento.
+- **⚠️ Aviso de complejidad (fui recomendación de "una sola moneda"):** multi-moneda mete decisiones que hay que cerrar antes de implementar:
+  - ¿De dónde salen los tipos de cambio? (manual por el usuario / API de tipos / fijado por viaje). Sin esto, los saldos no cuadran.
+  - Los tipos fluctúan: si se recalcula a posteriori, los saldos cambian. Propuesta: **congelar el tipo al crear el gasto** y no re-tocarlo.
+  - Redondeos y descuadres de céntimos al convertir. Hay que decidir a favor de quién redondea.
+  - Esto encarece el MVP; si aprieta el tiempo, se puede lanzar con una moneda y activar multi-moneda justo después sin romper el modelo (por eso guardamos moneda+tipo desde el día 1).
+
+### 3.7 Preguntas abiertas de gastos
 - ¿Gastos que ocurren fuera del rango de fechas (adelantos, reservas previas)? Propuesta: permitir fecha fuera de rango con aviso.
 - ¿Editar/borrar gastos ya liquidados? (historial/auditoría).
+- **Origen de los tipos de cambio** (ver §3.6) — decisión pendiente.
 
 ---
 
@@ -213,23 +224,26 @@ User (Apple ID) 1─* Membership *─1 Trip
 Trip 1─* Family
 Trip 1─* Bunga
 Trip 1─* Person   (Person → Family, Person → Bunga_dormir, rol)
-Trip 1─* Expense  (Expense → payer(s), → splits[Person|Family])
+Trip  1─1 monedaBase
+Trip 1─* Expense  (Expense → payer(family), → splits[Family], moneda_original, tipo_cambio)
 Trip 1─* SplitTemplate
 Trip 1─* Plan
 Trip 1─* Meal     (Meal → Dish[], → Bunga[], notas, cantidades)
 Dish  *─* Category (aperitivo/entrante/principal/acompañamiento)   [¿global?]
 ```
 
-Pendiente de cerrar según respuestas: unidad de deuda (persona vs familia), globalidad de Family/Dish, ejes del rol.
+Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas por viaje**; rol = **edad + flags**; **multi-moneda** (moneda base + tipo por gasto); **sin roles de app** (→ historial obligatorio). Pendiente: globalidad del catálogo de platos (Q6), granularidad bunga-comida (Q5), origen de tipos de cambio.
 
 ---
 
-## 9. Permisos y roles de la app (NO cubierto en tu brief — lo levanto)
+## 9. Permisos y roles de la app
 
-- ¿Quién puede crear un viaje? ¿Quién invita?
-- ¿Todos editan todo, o hay un **admin/organizador** del viaje?
-- ¿Puede alguien borrar un gasto de otro?
-- **Propuesta v1 (simple):** todos los miembros del viaje pueden editar todo (grupo de amigos, confianza alta), con un historial de cambios para auditar. Un "creador del viaje" con poderes extra (cerrar viaje, expulsar). Confírmame (Q abierta).
+- **✅ Decidido (Q7): todos editan todo, sin roles.** Cualquier miembro del viaje puede crear/editar/borrar gastos, comidas y planes. Confianza alta de grupo de amigos.
+- **⚠️ Consecuencias que hay que asumir (yo recomendaba un "creador con extras"):**
+  - **No hay quién "cierre" el viaje ni la liquidación** de forma autoritativa. Solución mínima: cualquiera puede marcar el viaje como cerrado, pero cualquiera puede reabrirlo (sin candado).
+  - **Nadie puede expulsar** a un miembro problemático ni proteger un gasto de un borrado accidental o troll.
+  - **Imprescindible un historial de cambios** (quién tocó qué y cuándo) para poder deshacer líos y evitar el "yo no fui". Esto pasa de nice-to-have a **requisito** precisamente porque no hay roles.
+  - Recomiendo dejar el **modelo de datos preparado para roles** aunque la v1 no los use, por si el grupo pide un organizador más adelante.
 
 ---
 
@@ -259,17 +273,19 @@ Pendiente de cerrar según respuestas: unidad de deuda (persona vs familia), glo
 | # | Decisión | Resolución |
 |---|---|---|
 | Q1 | Autenticación | **Apple ID + fallback** (Google / email con enlace mágico) |
+| Q2 | Familias/personas | **Globales**, composición **congelada por viaje** |
 | Q3 | Unidad de deuda | **Entre familias** (familia = cartera; persona sin familia = familia de uno) |
 | Q4 | Rol de persona | **Dos ejes:** edad (`adulto`/`niño`) + flags (`come_con_mayores`, `cuenta_como_adulto_reparto`) |
+| Q7 | Permisos | **Todos editan todo, sin roles** → historial de cambios pasa a obligatorio |
 | Q8 | Alcance v1 | **Priorizar gastos + gente**; comidas/planes/estadísticas después |
+| — | Moneda | **Multi-moneda** (moneda base por viaje + tipo congelado por gasto) |
+| — | Nombre | **Ballena Ops** (mascota: la ballenita) |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
 |---|---|---|
-| Q2 | Familias: ¿globales o por viaje? | Personas globales, composición congelada por viaje |
 | Q5 | Bunga de comida mayores/niños: ¿por viaje, día o comida? | Por viaje, override por comida |
-| Q6 | Catálogo de platos/familias: ¿global o por viaje? | Global |
-| Q7 | Permisos: ¿todos editan o hay admin? | Todos editan + creador con extras |
-| — | Moneda: ¿una por viaje o multi-moneda? | Una por viaje (v1) |
-| — | Nombre de la app | Pendiente ("Ballenita"?) |
+| Q6 | Catálogo de platos: ¿global o por viaje? | Global |
+| — | Origen de los tipos de cambio (§3.6) | Congelar al crear el gasto; fuente a decidir |
+| — | ¿Postres y bebidas como clasificación de plato? (§6.3) | Añadirlas |
 ```
