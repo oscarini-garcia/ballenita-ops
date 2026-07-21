@@ -125,7 +125,7 @@ Modos de reparto:
 ### 3.4 Saldos y liquidación
 - **✅ Decidido: liquidación simplificada** — minimizar el nº de transferencias, como Splitwise (aunque A acabe pagando a C sin haberle comprado nada).
 - Vista de **"quién debe a quién"** entre familias con ese plan simplificado.
-- Marcar pagos/liquidaciones ("Ana ha pagado a Luis 20€").
+- **✅ Saldar = apuntar "pagado" a mano.** El dinero real se mueve **fuera de la app** (Bizum, efectivo): alguien hace el pago y luego **marca en la app** "Los García han pagado 62,50 € a Los Pérez". La app **lleva la cuenta, no mueve dinero** (sin integraciones de pago en v1). Un botón que abra Bizum con el importe queda para v2.
 - Estado por viaje: saldo total, tu saldo personal/familiar.
 - **✅ Saldo actual + registro de cambios:** se muestra el "quién debe a quién" de ahora, con el **log de movimientos y pagos** (§9) para entender cómo se llegó ahí. Sin gráficas de evolución en v1 (eso a v2).
 - **✅ Gastos editables:** un gasto mal metido **se puede editar** (importe, pagador, reparto…); el saldo se **recalcula** y el cambio queda en el historial. Editar tras liquidar deja aviso de que las cuentas se movieron.
@@ -156,7 +156,8 @@ Actividades candidatas para los días del viaje.
 - **Crear plan:** título, descripción, día/franja propuesta (o "sin fecha, a decidir"), coste estimado opcional, ubicación opcional.
 - **Estados:** propuesto → votando → confirmado → hecho/cancelado.
 - **Votación / interés:** la gente marca si le apunta (👍 / 🤷 / 👎) o se apunta a la lista. Útil para decidir sin discutir en el grupo de WhatsApp.
-- **Asignar a un día** del calendario del viaje (vista por días).
+- **✅ Confirmación: la decide quien propone (o cualquiera).** La votación **solo orienta**; no hay umbrales ni plazos automáticos. Alguien marca el plan como confirmado cuando ve que hay consenso. Simple y humano (coherente con "todos editan todo", §9).
+- **✅ Día opcional desde el principio:** un plan puede proponerse **con día** ("cuevas el miércoles") o **sin día** ("a decidir"). Al confirmarse **aparece en la Agenda** (§4.1) del día que tenga.
 - **✅ Decidido: lista + votación ligera.** Ideas para los días + 👍/🤷/👎 + asignar a un día. **Nada de agenda por franjas ni recordatorios** (eso es reinventar Google Calendar y dispara el scope).
 - **Vínculo con gastos:** ¿un plan confirmado puede generar un gasto? (p. ej. "alquiler kayaks 40€"). Propuesta: enlace opcional, no obligatorio.
 - **Vínculo con comidas:** una comida es un tipo de plan, pero la gestionamos aparte por su complejidad (§6).
@@ -198,14 +199,16 @@ Se abandona el enum `niño/mayor/ambos` (ambiguo). En su lugar, cada persona tie
 
 ---
 
-## 6. Comidas y cenas 🍳
+## 6. Cenas 🍳
 
 La sección más peculiar y donde hay más miga logística.
 
+- **✅ Decidido: en v1 solo se gestionan CENAS.** Una cena por día. Los desayunos, comidas y picoteos van por libre (no se modelan). El modelo se deja **preparado** para añadir más tipos de comida en el futuro, pero el foco y la UI de v1 son las cenas.
+
 ### 6.1 Modelo
-- Una **Comida** = un evento de comer en un día concreto (desayuno / comida / merienda / cena / aperitivo).
-- Cada comida tiene:
-  - **Día** y **tipo** (comida/cena/…).
+- Una **Cena** = el evento de cenar de un día concreto del viaje (una por día).
+- Cada cena tiene:
+  - **Día** (dentro del rango del viaje).
   - **Platos** seleccionados (§6.2).
   - **Bunga(s)** donde se come (§6.4).
   - **Campo "qué se hace / cómo"** (texto libre: preparación, quién cocina, instrucciones).
@@ -385,6 +388,10 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Lista de la compra | **Manual (texto) en v1**, agregada en v2 |
 | — | Agenda por días | **Vista que une comidas + planes** por día, junto a las secciones sueltas |
 | — | Botes / gastos comunes | **No**: todo gasto vive dentro de un viaje |
+| — | Comidas en v1 | **Solo cenas** (una por día); resto por libre |
+| — | Confirmar un plan | **Lo decide quien propone** (la votación orienta) |
+| — | Día de un plan | **Opcional desde el principio** (con día o "a decidir") |
+| — | Saldar deuda | **Apuntar "pagado" a mano**; la app no mueve dinero (Bizum a v2) |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
