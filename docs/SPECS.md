@@ -84,11 +84,11 @@ El corazón económico. Inspirado en Splitwise pero con el giro de **reparto por
 Campos:
 - **Descripción** ("Compra grande Mercadona", "Gasolina").
 - **Importe** + **moneda** del gasto (**multi-moneda**, ver §3.6).
-- **Quién paga** (uno o varios pagadores; normalmente uno).
+- **Quién paga** — **✅ uno o varios pagadores** (normalmente uno; permite "la reserva la pagaron dos familias a medias", indicando cuánto puso cada quien).
 - **Cómo se divide** (ver §3.2).
 - **Fecha** (por defecto hoy, dentro del rango del viaje).
-- **Categoría** (comida, alojamiento, transporte, ocio, varios) — opcional pero alimenta las estadísticas (§9).
-- Nota/foto del ticket (opcional).
+- **Categoría** — **✅ lista fija con iconos:** 🍔 comida · 🏠 alojamiento · 🚗 transporte · 🎉 ocio · 📦 varios. Alimenta las estadísticas (§9); fija para que las stats salgan consistentes.
+- **Nota** (texto libre, opcional). **Sin fotos en v1** (ver §3.5).
 
 ### 3.2 Cómo se divide el gasto
 Modos de reparto:
@@ -96,6 +96,8 @@ Modos de reparto:
 2. **Por importes exactos** (cada uno pone X).
 3. **Por porcentajes.**
 4. **Por partes/shares** (ponderado: la familia grande cuenta como N).
+
+**✅ Redondeo (decidido): reparto automático del sobrante.** Cuando no cuadra al céntimo (10 € entre 3 → 3,34 / 3,33 / 3,33), la app **asigna los céntimos sueltos sola** y **avisa a quién le tocó el de más**. Nada de descuadres ni de pelearse por un céntimo. Aplica igual tras convertir divisa (§3.6).
 
 ### 3.3 Splits predefinidos por familia (el requisito clave) ⭐
 - Como hay familias de distinto tamaño, se puede definir un **split por defecto del viaje** que tenga en cuenta a las familias.
@@ -123,13 +125,16 @@ Modos de reparto:
 - Estado por viaje: saldo total, tu saldo personal/familiar.
 - **Cierre de viaje:** al terminar, un resumen de "cuentas del viaje" y liquidación final. Reabrible (ver §2.5).
 
+### 3.5 Fotos y adjuntos
+- **✅ Decidido: sin fotos en v1.** Ni ticket ni foto de la paella. Motivo: las imágenes pesan y complican el **offline-first** (§12.2) — hay que almacenarlas, subirlas al reconectar y gestionar el espacio. Se pospone a v2. En v1 el justificante es la **nota de texto**.
+
 ### 3.6 Multi-moneda (decidido, con letra pequeña)
 - **✅ Decidido:** se admiten **gastos en distintas monedas** con conversión.
 - Cada viaje tiene una **moneda base** (donde se calculan saldos y liquidación). Cada gasto guarda su moneda original + el **tipo de cambio aplicado** en ese momento.
 - **⚠️ Aviso de complejidad (fui recomendación de "una sola moneda"):** multi-moneda mete decisiones que hay que cerrar antes de implementar:
   - **✅ Decidido: tipo automático vía API + editable.** Al meter un gasto en otra divisa, la app trae el **tipo del día de una API** y lo **congela en el gasto**; se puede corregir a mano si hiciera falta. (Implica: hay que elegir proveedor de tipos y tener un fallback si la API no responde estando offline — ver §12/offline.)
   - Los tipos fluctúan: el tipo **congelado al crear el gasto** no se re-toca, así los saldos no bailan a posteriori.
-  - Redondeos y descuadres de céntimos al convertir. Hay que decidir a favor de quién redondea.
+  - Redondeos y descuadres de céntimos al convertir → resueltos por el **reparto automático del sobrante** (§3.2).
   - Esto encarece el MVP; si aprieta el tiempo, se puede lanzar con una moneda y activar multi-moneda justo después sin romper el modelo (por eso guardamos moneda+tipo desde el día 1).
 
 ### 3.7 Preguntas abiertas de gastos
@@ -339,6 +344,10 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Recurrencia | **Duplicar viaje anterior** al crear uno nuevo |
 | — | Cierre de viaje | **Se cierra pero es reabrible** (sin candado; resumen + liquidación) |
 | — | Tono de estadísticas | **Gamberras pero opt-in** (las que señalan se activan por viaje) |
+| — | Pagadores | **Uno o varios** por gasto (reserva a medias) |
+| — | Redondeo | **Reparto automático del sobrante**, avisando a quién le tocó el céntimo |
+| — | Categorías de gasto | **Lista fija con iconos** (comida/aloj./transporte/ocio/varios) |
+| — | Fotos | **Sin fotos en v1** (pesan y complican el offline); a v2 |
 
 ### 🟡 Aún abiertas (recomendación entre paréntesis)
 | # | Decisión | Recomendación |
