@@ -305,8 +305,9 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 
 - **Logo: una ballena** (ballenita — encaja con el repo `ballenita-ops`).
 - **Inspiración:** el viaje del grupo es a **Camping La Ballena Alegre** (Sant Pere Pescador, Costa Brava). La mascota es una **ballena azul, sonriente y alegre**, en homenaje a ese sitio.
-- **⚠️ Ojo legal:** el logo del camping es **marca registrada de una empresa real**. La app usa una **ballena propia y original** inspirada en el espíritu (azul, sonriente), **no** una copia del logo del camping. Nada de dar a entender afiliación oficial con el camping.
-- Dirección visual: ballena redondeada, simpática, azul, con **sonrisa clara**; puede "escupir" un chorro que sean monedas/iconos según la sección.
+- **Referencia real:** la ballena del camping es azul, **saltando en diagonal**, con una **sonrisa dentona muy marcada** y un **chorro de gotas** sobre la cabeza, sobre fondo azul marino, acompañada del rótulo manuscrito "la ballena alegre / Costa Brava".
+- **⚠️ Ojo legal:** ese logo (silueta + rótulo "la ballena alegre / Costa Brava") es **marca registrada de una empresa real**. La app usa una **ballena propia y original** que evoca el espíritu (azul, sonrisa dentona, chorro de gotas) **sin** copiar la silueta exacta y **sin** el rótulo del camping. Nada de dar a entender afiliación oficial.
+- Dirección visual: ballena redondeada, azul, con **gran sonrisa con dientes** y **chorro de gotas**; el chorro puede ser de monedas/iconos según la sección.
 - Mascota con voz en el microcopy (comenta en momentos clave, §0).
 
 ---
