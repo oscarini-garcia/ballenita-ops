@@ -14,7 +14,7 @@
 ## 0. Filosofía y tono
 
 - **Todo vive dentro de un viaje.** No hay entidades globales "sueltas" desde el punto de vista del usuario: entras, eliges/creas un viaje, y ahí dentro pasa todo (gastos, comidas, planes, bungalows, gente). El viaje es el contenedor raíz.
-- **Tono con humor.** Microcopy gamberro, estados vacíos con gracia, la ballena como mascota. **✅ La ballenita comenta en momentos clave** (estados vacíos, avisos, estadísticas) con gracia, pero **no molesta** — personalidad sin cansar, no está en todas las pantallas soltando frases.
+- **Tono con humor.** Microcopy gamberro, estados vacíos con gracia, la ballena como mascota. **✅ La ballenita comenta en momentos clave** (estados vacíos, avisos, estadísticas) con gracia, pero **no molesta** — personalidad sin cansar, no está en todas las pantallas soltando frases. Su **resumen diario llega por la mañana** ("buenos días: el plan de hoy, a quién le toca cenar dónde, y cómo van las cuentas").
 - **✅ Todo gasto vive dentro de un viaje.** No hay "botes" ni cajas comunes que crucen viajes: cada gasto pertenece a un viaje y se salda al cerrarlo. Coherente con el principio raíz.
 - **Mobile-first.** Esto se usa con el móvil en la mano, en chanclas, con mala cobertura. Debe funcionar rápido y, a poder ser, offline-tolerante.
 - **Idioma: solo español** (✅ decidido). El grupo es español; una sola lengua, con los textos con gracia bien cuidados. El humor se escribe, no se traduce. Sin i18n en v1 (no es tanto trabajo dejarlo medianamente ordenado por si acaso, pero no es objetivo).
@@ -243,8 +243,8 @@ Aclarado el modelo real (corrige la versión anterior):
 - **Quién es "mayor" aquí** sale del flag `come_con_mayores` de cada persona (§5), no de la edad directamente. Así un adolescente marcado como niño pero que come con los adultos cae en la mesa correcta sin excepciones a mano.
 - **Granularidad:** por defecto la asignación del día vale para todas las comidas de ese día; se puede afinar por comida si un día hace falta (p. ej. la cena especial donde comen todos juntos en un solo bunga).
 
-### 6.5 Preguntas abiertas de comidas
-- **Quién cocina es distinto de quién acoge** (§6.4). ¿Se modela como campo estructurado (asignar familia/personas) o va en el texto libre de "qué se hace"? Propuesta: empezar libre, estructurar si duele. ¿Se balancea también el turno de cocina, o eso ya os lo montáis a mano? (pendiente)
+### 6.5 Notas de cenas
+- **✅ Quién cocina NO se registra** como campo estructurado ni se balancea. Va en el **texto libre "qué se hace"** de la cena, si acaso. Lo único que se balancea es el **bunga anfitrión** (el espacio, §6.4).
 - ¿Las comidas generan gasto automáticamente (la compra) o el gasto va por libre en §3? Propuesta: desacoplado en v1, con enlace manual opcional.
 - **✅ Lista de la compra: manual en v1, agregada en v2.** En v1 las cantidades son **texto libre por comida**; agregar todo en una lista de la compra global del viaje (sumando cantidades) se deja para **v2** (requiere cantidades estructuradas).
 
@@ -318,7 +318,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 ## 12. Notificaciones y sincronización
 
 ### 12.1 Notificaciones push
-- **✅ Decidido: push a tope + resumen diario.** Se notifica bastante (te añaden a un gasto, te toca de anfitrión, alguien propone/vota un plan, se cierra el viaje…) y además un **resumen diario** ("lo que pasó ayer en el viaje", con la ballenita de narradora).
+- **✅ Decidido: push a tope + resumen diario (por la mañana).** Se notifica bastante (te añaden a un gasto, te toca de anfitrión, alguien propone/vota un plan, se cierra el viaje…) y además un **resumen diario que llega por la mañana** ("buenos días: el plan de hoy, quién cena en qué bunga, cómo van las cuentas"), con la ballenita de narradora.
 - **⚠️ Riesgo (yo recomendaba "mínimas"):** notificar mucho cansa y la gente silencia la app. Mitigación imprescindible: **preferencias por categoría** (que cada uno apague lo que no quiera) y el resumen diario como digest agrupado en vez de 20 pings sueltos. Sin esos controles, "push a tope" se vuelve en contra.
 - Requiere permiso de notificaciones del sistema y un backend que sepa a quién avisar de qué.
 
@@ -329,6 +329,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
   - **IDs generados en cliente** para no chocar al subir.
   - **La API de tipos de cambio no está disponible offline** (§3.6): si metes un gasto en divisa sin red, hay que permitir tipo manual o dejarlo pendiente de completar al reconectar.
   - Encaja bien con "todos editan todo", pero sube el listón de ingeniería del MVP. Merece una nota de riesgo en la planificación.
+- **✅ Decidido: offline COMPLETO ya en la Fase 1 (PWA).** No se recorta el offline en web: apuntar todo sin red y sincronizar al reconectar, desde el día 1. Es lo ideal para el camping. **⚠️ Es el camino más caro** (Service Worker + IndexedDB + last-write-wins bien hecho): hay que presupuestarlo como pieza central del MVP, no como extra.
 
 ---
 
@@ -392,11 +393,15 @@ Cerrado: unidad de deuda = **familia**; Family/Person = **globales, congeladas p
 | — | Confirmar un plan | **Lo decide quien propone** (la votación orienta) |
 | — | Día de un plan | **Opcional desde el principio** (con día o "a decidir") |
 | — | Saldar deuda | **Apuntar "pagado" a mano**; la app no mueve dinero (Bizum a v2) |
+| — | Turno de cocina | **No se registra** (va en el texto libre); solo se balancea el bunga |
+| — | Offline Fase 1 (PWA) | **Completo desde el día 1** (asumido como pieza central y cara) |
+| — | Resumen diario | **Por la mañana** |
+| — | Logo | Ballena **saltando en diagonal**, sonriente, con chorro |
 
-### 🟡 Aún abiertas (recomendación entre paréntesis)
+### 🟡 Aún abiertas (nivel implementación, no bloquean producto)
 | # | Decisión | Recomendación |
 |---|---|---|
-| — | Turno de cocina: ¿se balancea o va a mano? (§6.5) | A mano en v1 |
-| — | Proveedor de la API de tipos de cambio + fallback (§3.6) | Por decidir (nivel implementación) |
-| — | Alcance del offline en Fase 1 PWA (§13): ¿completo o limitado? | Limitado en PWA, completo en nativo |
+| — | Proveedor concreto de la API de tipos de cambio + su fallback offline (§3.6) | A elegir al implementar |
+
+*(A nivel de producto no queda ninguna decisión abierta. Lo único pendiente es técnico y se resuelve en la fase de implementación.)*
 ```
