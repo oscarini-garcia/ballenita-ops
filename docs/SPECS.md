@@ -443,7 +443,46 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 ---
 
-## 14. Registro de decisiones
+## 14. Arquitectura técnica (Fase 1 · PWA)
+
+> **Propuesta**, no cerrada. Pendiente de contrastar con el stack de **`counter-ops`** (lo que ya funciona bien al autor) — si allí hay algo probado, se hereda en vez de reinventar.
+
+### 14.1 Stack recomendado
+| Capa | Elección | Por qué |
+|---|---|---|
+| **Frontend** | **React + Vite + TypeScript** con `vite-plugin-pwa` (Workbox) | Ecosistema y SDKs de sync más amplios; PWA instalable con service worker/manifest de serie. |
+| **Datos offline + sync** | **PowerSync** (SQLite local en WASM + OPFS) | Lo más battle-tested en offline real; mantiene una SQLite completa en el dispositivo y sincroniza al reconectar. **Tiene SDK Swift** → puente directo a la Fase 2 nativa. |
+| **Backend** | **Supabase** (Postgres + Auth + Storage) | Postgres gestionado; **Auth con Apple + Google + email**; Storage para las fotos de v2. Encaja con PowerSync (patrón Supabase + PowerSync documentado). |
+| **Hosting** | **Cloudflare Pages** (frontend estático) | Rápido, gratis de sobra para el grupo; el resto (Supabase + PowerSync) es gestionado → cero servidores que mantener. |
+| **Push** | **Web Push (VAPID)** vía service worker | Con las salvedades de iOS de §14.3. |
+
+### 14.2 Cómo encaja con lo ya decidido
+- **Offline completo (§12.2)** → SQLite local de PowerSync; ya no hay que construir a mano el motor de sync.
+- **LWW + historial (§9)** → modo last-write-wins de PowerSync + tabla `AuditLog` para recuperar lo pisado.
+- **IDs en cliente** → UUID generados en local (encaja con el patrón de sync).
+- **Reparto por familias** → toda la lógica de saldos vive en el cliente sobre la SQLite local; el servidor solo almacena y sincroniza.
+- **Multi-moneda (§3.6)** → llamada online que congela el tipo; offline usa tipo manual o queda pendiente.
+
+### 14.3 ⚠️ Safari iOS — lo que hay que saber (crítico)
+La app **corre en Safari iOS**, pero WebKit impone reglas propias:
+- **Service Workers** ✅ (desde iOS 11.3) · **SQLite WASM + OPFS** ✅ (Safari **17+**) → PowerSync funciona en Safari iOS.
+- **⚠️ Sin Background Sync:** en iOS no se sincroniza con la app cerrada. La **sync ocurre al abrir/enfocar la app**. Suficiente para el uso real (abres la app en el camping), pero hay que asumirlo.
+- **⚠️ Web Push solo si está "en pantalla de inicio":** desde iOS 16.4, las notificaciones push web **solo funcionan si el usuario ha añadido la PWA a la pantalla de inicio**. Sin instalar → no hay push en iPhone.
+- **⚠️ Desalojo de almacenamiento:** Safari puede **borrar los datos locales tras ~7 días de inactividad** si la web **no** está en la pantalla de inicio. Mitigación: instalar en pantalla de inicio (persistencia mucho mayor) + el **servidor es la fuente de verdad** (se re-sincroniza). Solo se perdería una escritura hecha offline y aún no subida si además se desaloja antes de reconectar (raro, pero se asume).
+
+### 14.4 Onboarding: "Añadir a pantalla de inicio" (iOS)
+- **"Añadir a pantalla de inicio"** (Add to Home Screen) NO es un simple marcador: iOS trata la PWA como una **app instalada** → pantalla completa, **almacenamiento persistente** y **push habilitado**.
+- La primera vez en iOS, la app muestra un **aviso guiado**: menú Compartir (icono ↑) → "Añadir a pantalla de inicio", explicando el porqué (offline persistente + notificaciones + pantalla completa). Son dos toques.
+- **Detección:** `navigator.standalone` / `display-mode: standalone` para saber si ya está instalada y **no repetir** el aviso.
+- Sin este paso, en iPhone no hay push y el offline es frágil (por §14.3). Es un pasito de onboarding, pero desbloquea lo importante (WhatsApp Web, Splitwise, etc. hacen lo mismo).
+
+### 14.5 Fase 2 (iOS nativo, SwiftUI)
+- Reaprovecha **Supabase (SDK Swift)** y **PowerSync (SDK Swift)** → **mismo backend y motor de sync**, no se rehace la capa difícil.
+- Gana lo que Safari no da: **background sync**, **push nativo**, **Sign in with Apple** de primera y sin caveats de almacenamiento.
+
+---
+
+## 15. Registro de decisiones
 
 ### ✅ Cerradas
 | # | Decisión | Resolución |
@@ -483,6 +522,8 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Unirse a un evento | **Enlace / QR** + elegir familia |
 | — | Bunga↔familia | **1 familia = 1 bunga** en v1 (casos raros a mano) |
 | — | Plataforma | **PWA primero → iOS nativo (SwiftUI) después** |
+| — | Stack Fase 1 (propuesta) | **React+Vite (PWA) · PowerSync · Supabase · Cloudflare Pages** — pendiente contrastar con `counter-ops` (§14) |
+| — | Safari iOS | **Funciona**; requiere **"añadir a pantalla de inicio"** para push + persistencia; **sin background sync** (sync al abrir) (§14.3–14.4) |
 | — | Ambición | **Solo para el grupo** (sin escalar ni monetizar) |
 | — | La ballenita | **Comenta en momentos clave**, sin cansar |
 | — | Lista de la compra | **Manual (texto) en v1**, agregada en v2 |
