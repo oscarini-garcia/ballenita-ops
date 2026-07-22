@@ -490,7 +490,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 > **⚠️ Tensión a resolver (la señalo, no la escondo):** elegiste **login real** (#1) **y** a la vez **el doc con clave en cliente** (#2). Ojo: con ese modelo, cualquiera que tenga la clave del doc **lee/escribe los datos aunque no haya iniciado sesión** — es decir, **el login identifica pero NO protege el dinero** (no es control de acceso, solo "quién eres" para mostrar y para el historial). Dos caminos coherentes:
 > - **(A) Login como identidad/comodidad** + aceptar el modelo simple → válido si confías en el grupo y te vale que el login sea "cosmético" para seguridad. Es barato y encaja con counter-ops.
 > - **(B) Login como control de acceso real** → entonces el dato debe vivir tras ese login (Supabase con RLS o un proxy que valide el token), no en un doc de clave compartida. Más seguro, más cerca del stack "grande".
-> Recomendación: si el login lo quieres sobre todo por **Sign in with Apple y comodidad**, quédate en (A) para arrancar; si de verdad quieres que **nadie ajeno toque las cuentas**, ve a (B). **Pendiente de que elijas A o B.**
+> **✅ Decidido: opción (A).** El login es **identidad y comodidad** (Sign in with Apple, saber quién es quién, historial), **no control de acceso**. Se acepta que quien tenga la clave del doc puede tocar los datos — grupo de confianza. Si algún día preocupa de verdad, la vía de subida es (B) → Supabase con RLS (§14.8).
 
 ### 14.7 ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops?
 
@@ -558,7 +558,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Bunga↔familia | **1 familia = 1 bunga** en v1 (casos raros a mano) |
 | — | Plataforma | **PWA primero → iOS nativo (SwiftUI) después** |
 | — | Stack Fase 1 (propuesta) | **Heredar counter-ops:** React+Vite (PWA) · **IndexedDB + doc compartido por evento + merge tombstone/LWW** · **con login** (§2.1). PowerSync+Supabase = vía de mejora (§14) |
-| — | Forks vs counter-ops | Auth **con login** · backend **modelo simple (clave en cliente)** · **IndexedDB** desde el día 1 · fotos **v2**. ⚠️ Tensión auth↔privacidad pendiente: elegir **A** (login cosmético) o **B** (login = control de acceso real) (§14.6) |
+| — | Forks vs counter-ops | Auth **con login** · backend **modelo simple (clave en cliente)** · **IndexedDB** desde el día 1 · fotos **v2**. **opción A** decidida: login = identidad/comodidad, no control de acceso (§14.6) |
 | — | Safari iOS | **Funciona**; requiere **"añadir a pantalla de inicio"** para push + persistencia; **sin background sync** (sync al abrir) (§14.3–14.4) |
 | — | Ambición | **Solo para el grupo** (sin escalar ni monetizar) |
 | — | La ballenita | **Comenta en momentos clave**, sin cansar |
