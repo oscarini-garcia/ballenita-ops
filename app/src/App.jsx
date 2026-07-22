@@ -23,13 +23,14 @@ export default function App() {
   const [activeId, setActiveId] = useState(() => localStorage.getItem(ACTIVE_KEY) || null)
   const [tab, setTab] = useState('gastos')
 
-  const event = useLiveQuery(() => (activeId ? getEvent(activeId) : null), [activeId])
-
-  // Si el evento activo desaparece (borrado), volver a la lista.
-  useEffect(() => {
-    if (activeId && event === undefined) return // cargando
-    if (activeId && event === null) pick(null)
-  }, [event, activeId])
+  // El resultado se etiqueta con el id consultado, para distinguir un valor "stale"
+  // (de un activeId anterior, aún sin resolver) de un "el evento no existe" real.
+  const result = useLiveQuery(
+    async () => ({ forId: activeId, ev: activeId ? ((await getEvent(activeId)) ?? null) : null }),
+    [activeId],
+  )
+  const resolvedForActive = result && result.forId === activeId
+  const event = resolvedForActive ? result.ev : undefined // undefined = cargando/stale
 
   function pick(id) {
     if (id) localStorage.setItem(ACTIVE_KEY, id)
@@ -38,10 +39,23 @@ export default function App() {
     setTab('gastos')
   }
 
-  if (!activeId || !event) {
+  // Solo si el evento activo se ha resuelto a "no existe" (borrado), volver a la lista.
+  useEffect(() => {
+    if (activeId && resolvedForActive && event === null) pick(null)
+  }, [activeId, resolvedForActive, event])
+
+  if (!activeId) {
     return (
       <div className="app">
         <EventsScreen onPick={pick} />
+      </div>
+    )
+  }
+
+  if (!event) {
+    return (
+      <div className="app">
+        <div className="body"><div className="empty"><span className="e">🐋</span>Cargando…</div></div>
       </div>
     )
   }

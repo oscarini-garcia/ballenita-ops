@@ -24,10 +24,26 @@ login por email mágico, cenas, planes, estadísticas y avatares con foto.
 
 ```bash
 npm install
-npm run dev      # servidor local
-npm test         # tests del motor de reparto y de merge
-npm run build    # build de producción (PWA)
+npm run dev         # servidor local
+npm test            # toda la suite, una vez
+npm run test:watch  # tests en marcha mientras editas (recomendado)
+npm run build       # build de producción (PWA)
 ```
+
+### Tests
+
+Entorno: **Vitest** + **jsdom** + **Testing Library**, con **fake-indexeddb** para
+que Dexie funcione sin navegador. Cada test arranca con la base de datos y el
+`localStorage` limpios (`src/test/setup.js`).
+
+- `src/lib/reparto.test.js` — motor de reparto (pesos, sobrante al céntimo, saldos, simplificación).
+- `src/lib/merge.test.js` — merge LWW + tombstones (convergencia entre dispositivos).
+- `src/db.test.js` — CRUD + **flujo real gasto → saldo** sobre IndexedDB, y coherencia del ejemplo.
+- `src/App.test.jsx` — render de la app y navegación (pilló un bug de transición real).
+
+**Al añadir una feature, añade su test:** lógica pura → un `.test.js` junto al módulo;
+algo que toque datos → un test de `db`; algo de UI → un test de componente. Corre
+`npm run test:watch` mientras trabajas.
 
 ## Arquitectura (resumen)
 
