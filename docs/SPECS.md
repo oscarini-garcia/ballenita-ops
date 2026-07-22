@@ -45,8 +45,8 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 
 ### 2.1 Autenticación
 
-- **Login con Apple ID (Sign in with Apple)** como método **principal**.
-- **✅ Decidido (Q1):** además de Apple ID, hay **fallback** (Google y/o email con enlace mágico) para no dejar fuera a los amigos con Android o sin dispositivo Apple.
+- **✅ Decidido (Q1, revisado): login con Google + email (enlace mágico). Sin Apple.** El grupo no quiere depender de Apple ni de su cuenta de desarrollador de pago, y esto es una **PWA** (no hay app iOS nativa). Google OAuth + email mágico cubren a todos (iPhone y Android).
+- El login es **identidad/comodidad**, no control de acceso (opción A, §14.6): sirve para saber quién es quién y alimentar el historial, no para proteger los datos.
 - Perfil mínimo: nombre visible, avatar (opcional), método de login.
 - **Cuentas por familia:** cada familia tiene **mínimo un login**. Desde ese login se pueden crear **perfiles-nombre gestionados** (niños, el cuñado que no se instala nada) o pueden entrar más **usuarios completos** asignados a esa familia. Modelo detallado en §5.1.
 
@@ -187,7 +187,7 @@ En la parte de evento, por cada persona se define:
 ### 5.1 Modelo de cuentas y pertenencia (aclarado) ⭐
 - **Cada familia tiene como mínimo un login.** Ese login es quien puede saldar cuentas y gestionar la familia (encaja con "la deuda se salda entre familias", §3).
 - Una persona puede ser:
-  1. **Usuario completo:** se autentica (Apple/Google/email), **elige a qué familia pertenece** y participa por sí mismo.
+  1. **Usuario completo:** se autentica (Google/email), **elige a qué familia pertenece** y participa por sí mismo.
   2. **Perfil-nombre gestionado ("fantasma"):** no tiene login; lo crea el login de una familia (típico para niños o para el cuñado que no se instala nada). Cuenta para comidas, bungas y reparto, pero no entra solo.
 - Un perfil gestionado puede **"ascender" a usuario completo** más adelante si esa persona acaba instalando la app.
 - **⚠️ Ojo (auto-asignación de familia):** si cada uno elige su familia libremente, alguien podría meterse en la familia equivocada y descuadrar el reparto. Propuesta: la elección es libre pero **visible para todos** en el evento; sin aprobación formal (grupo de confianza), pero con el historial (§9) para detectar líos.
@@ -282,7 +282,7 @@ Ideas de métricas (con la ballena troleando):
 ## 8. Modelo de datos (borrador de alto nivel)
 
 ```
-User (login: Apple/Google/email) 1─* Membership *─1 Event
+User (login: Google/email) 1─* Membership *─1 Event
 Event 1─1 lugar, monedaBase, fechaInicio, fechaFin, estado(planificando|activo|cerrado)
 Event 1─* Family        (Family 1─1 Bunga)
 Event 1─* Bunga         (Bunga 1─1 Family)
@@ -313,7 +313,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 **User** (login)
 - `nombre`
-- `metodoLogin` (`apple` | `google` | `email`)
+- `metodoLogin` (`google` | `email`)
 - `avatar` ({ `tipo`: `emoji`|`imagen`|`foto`, `valor` }) · `estado` ({ `texto`?, `emoji`?, `media`? }) — ver §5.2
 
 **Media** (tipo reutilizable para avatar/estado)
@@ -396,7 +396,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 **✅ Decidido (Q8): priorizar gastos + gente.** El MVP no intenta cubrir las cinco áreas a la vez.
 
-- **v1 (MVP, foco):** Auth (Apple ID + fallback), eventos con fechas, **personas/familias/bungas**, **gastos estilo Splitwise con reparto por familia + liquidación entre familias**. Es el núcleo de valor y lo más difícil de acertar.
+- **v1 (MVP, foco):** Auth (Google + email mágico), eventos con fechas, **personas/familias/bungas**, **gastos estilo Splitwise con reparto por familia + liquidación entre familias**. Es el núcleo de valor y lo más difícil de acertar.
 - **v1.5:** comidas (platos, clasificación, bungas mayores/niños) y planes básicos.
 - **v2:** estadísticas ricas, lista de la compra agregada, multi-moneda, notificaciones, histórico entre eventos, votaciones ricas en planes.
 - Las áreas de comidas/planes/estadísticas se **especifican** en este doc pero **no se implementan** hasta cerrar el núcleo económico.
@@ -428,22 +428,21 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
   - **IDs generados en cliente** para no chocar al subir.
   - **La API de tipos de cambio no está disponible offline** (§3.6): si metes un gasto en divisa sin red, hay que permitir tipo manual o dejarlo pendiente de completar al reconectar.
   - Encaja bien con "todos editan todo", pero sube el listón de ingeniería del MVP. Merece una nota de riesgo en la planificación.
-- **✅ Decidido: offline COMPLETO ya en la Fase 1 (PWA).** No se recorta el offline en web: apuntar todo sin red y sincronizar al reconectar, desde el día 1. Es lo ideal para el camping. **⚠️ Es el camino más caro** (Service Worker + IndexedDB + last-write-wins bien hecho): hay que presupuestarlo como pieza central del MVP, no como extra.
+- **✅ Decidido: offline COMPLETO desde el día 1.** No se recorta el offline: apuntar todo sin red y sincronizar al reconectar. Es lo ideal para el camping. Se resuelve con el **enfoque de counter-ops** (§14: IndexedDB + doc compartido + merge tombstone/LWW), que **rebaja mucho el coste** que temíamos — no hace falta un motor de sync pesado.
 
 ---
 
 ## 13. Tecnología y ambición
 
 - **✅ Ambición: solo para el grupo de amigos.** No aspira a escalar ni a monetizar. Esto **simplifica muchísimo**: nada de onboarding pulido para desconocidos, ni políticas de privacidad complejas, ni soporte, ni panel de admin. Se optimiza para *nosotros*, con nombres y bromas internas.
-- **✅ Plataforma: empezar como PWA (web app), migrar a iOS nativo con el tiempo.** Estrategia por fases:
-  - **Fase 1 — PWA:** funciona en cualquier móvil desde el navegador, instalable, rápida de repartir por un enlace (encaja con el "unirse por QR/enlace"). No hay que pasar por la App Store para que la use el grupo.
-  - **Fase 2 — iOS nativo (SwiftUI):** cuando compense, se va a nativo para un Sign in with Apple y un offline más finos y una sensación más pulida.
-  - **⚠️ Tensión a tener presente:** hemos decidido **offline-first** (§12.2) y **PWA** a la vez. El offline en PWA es posible (Service Worker + IndexedDB) pero es **de lo más difícil de hacer bien** en web; hay que asumir ese coste desde el principio o aceptar un offline más limitado en Fase 1 y completo en Fase 2. Conviene decidirlo explícitamente al planificar.
-  - Sign in with Apple **funciona en web**, así que el login con Apple no obliga a nativo desde el día 1.
+- **✅ Plataforma: PWA únicamente. No hay app iOS nativa.** Una web instalable que corre en cualquier móvil (iPhone y Android) desde el navegador y se reparte por enlace/QR. No se pasa por la App Store, no hay Xcode ni SwiftUI, no hay cuenta de desarrollador de Apple.
+  - Encaja con "unirse por QR/enlace" (§2.5) y con el hosting en GitHub Pages (§14).
+  - El offline-first (§12.2) se resuelve con el enfoque de counter-ops (§14), no con un motor pesado. Ya no es "lo más caro": counter-ops demuestra que un merge de ~150 líneas basta.
+  - Si algún día el modelo simple se queda corto, la vía de mejora es subir la parte de sync (sigue siendo PWA), no hacer una app nativa (§14.8).
 
 ---
 
-## 14. Arquitectura técnica (Fase 1 · PWA)
+## 14. Arquitectura técnica (PWA)
 
 > **Contrastado con `counter-ops`** — la PWA de "contar consumiciones" que el grupo **ya usa en el iPhone** y le funciona. Conclusión: su enfoque (mucho más simple que un motor de sync) es la mejor **base de partida** para Ballena Ops. PowerSync + Supabase pasa a ser **vía de mejora**, no el punto de partida.
 
@@ -460,7 +459,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | **Frontend** | **React + Vite + `vite-plugin-pwa`** (+ TypeScript) | Igual que counter-ops. PWA instalable. |
 | **Datos** | **IndexedDB desde el principio** (Dexie / `idb-keyval`) | ✅ Sin límite práctico; listo para varios eventos y fotos futuras. Merge tombstone/LWW por encima. |
 | **Sync** | **Un documento compartido por evento** + **merge tombstone/LWW** | Reutiliza el merge de counter-ops — **es exactamente nuestro LWW + historial**. Un doc por evento acota tamaño y compartición. |
-| **Identidad / Auth** | **Login Apple/Google/email** (§2.1) + **unirse por enlace/QR** (§2.5) | ✅ Se mantiene el login; NO se adopta el "sin login" de counter-ops. Ver tensión auth↔privacidad en §14.6. |
+| **Identidad / Auth** | **Login Google + email mágico** (§2.1) + **unirse por enlace/QR** (§2.5) | ✅ Sin Apple. Login = identidad, no control de acceso (§14.6). |
 | **Push** | Web Push (VAPID) | Con las salvedades iOS de §14.3. |
 | **Hosting** | **GitHub Pages** (estático, vía GitHub Actions) | ✅ Igual que counter-ops. HTTPS de serie (obligatorio para PWA/service worker). El "backend" es el servicio del doc JSON. Cero servidores propios. |
 
@@ -489,7 +488,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - **⚠️ Setup a tener en cuenta:** GitHub Pages en un **repo privado** requiere plan **Pro/Team**. Si el repo es privado y estás en plan free, hay que **hacerlo público** o subir de plan para que Pages publique.
 
 ### 14.6 Forks resueltos (dónde Ballena Ops difiere de counter-ops)
-1. **✅ Auth: SÍ hay login (Apple/Google/email).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
+1. **✅ Auth: SÍ hay login (Google + email mágico, sin Apple).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
 2. **✅ Privacidad del backend: se acepta el modelo simple** (clave del doc en el cliente, como counter-ops). Grupo de confianza, doc no público.
 3. **✅ Almacenamiento: IndexedDB desde el principio** (Dexie / `idb-keyval`). Sin límite práctico, listo para varios eventos y para fotos más adelante. Mismo patrón de merge tombstone/LWW por encima.
 4. **✅ Fotos: emoji/preset en v1, fotos a v2** (avatar y ticket). Mantiene el doc de sync ligero.
@@ -497,7 +496,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 > **⚠️ Tensión a resolver (la señalo, no la escondo):** elegiste **login real** (#1) **y** a la vez **el doc con clave en cliente** (#2). Ojo: con ese modelo, cualquiera que tenga la clave del doc **lee/escribe los datos aunque no haya iniciado sesión** — es decir, **el login identifica pero NO protege el dinero** (no es control de acceso, solo "quién eres" para mostrar y para el historial). Dos caminos coherentes:
 > - **(A) Login como identidad/comodidad** + aceptar el modelo simple → válido si confías en el grupo y te vale que el login sea "cosmético" para seguridad. Es barato y encaja con counter-ops.
 > - **(B) Login como control de acceso real** → entonces el dato debe vivir tras ese login (Supabase con RLS o un proxy que valide el token), no en un doc de clave compartida. Más seguro, más cerca del stack "grande".
-> **✅ Decidido: opción (A).** El login es **identidad y comodidad** (Sign in with Apple, saber quién es quién, historial), **no control de acceso**. Se acepta que quien tenga la clave del doc puede tocar los datos — grupo de confianza. Si algún día preocupa de verdad, la vía de subida es (B) → Supabase con RLS (§14.8).
+> **✅ Decidido: opción (A).** El login (Google/email) es **identidad y comodidad** (saber quién es quién, alimentar el historial), **no control de acceso**. Se acepta que quien tenga la clave del doc puede tocar los datos — grupo de confianza. Si algún día preocupa de verdad, la vía de subida es (B) → Supabase con RLS (§14.8).
 
 ### 14.7 ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops?
 
@@ -518,9 +517,9 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 **Conclusión:** el modelo de counter-ops es **viable y recomendado** para Ballena Ops. La única regla de oro añadida es *"sincroniza hechos, calcula saldos en local"*, que además es como ya está pensado el motor de reparto (§3, «Lógica»).
 
-### 14.8 Fase 2 (iOS nativo, SwiftUI) — vía de mejora, no de partida
-- Solo **si el modelo simple se queda corto** (datos grandes, sync más robusto, push/offline de primera): subir a **PowerSync + Supabase** (ambos con SDK Swift) para la app nativa.
-- Antes sería **sobre-ingeniería** para lo que el grupo necesita hoy. El enfoque de counter-ops es el punto de partida sensato.
+### 14.8 Vía de mejora (sigue siendo PWA, no app nativa)
+- Solo **si el modelo simple se queda corto** (muchos eventos, datos grandes, sync más robusto o control de acceso real): subir la capa de sync/backend a **PowerSync + Supabase** (con RLS) — **sin dejar de ser una PWA**.
+- Antes sería **sobre-ingeniería** para lo que el grupo necesita hoy. El enfoque de counter-ops es el punto de partida sensato. **No se contempla app iOS nativa.**
 
 ---
 
@@ -529,7 +528,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 ### ✅ Cerradas
 | # | Decisión | Resolución |
 |---|---|---|
-| Q1 | Autenticación | **Apple ID + fallback** (Google / email con enlace mágico) |
+| Q1 | Autenticación | **Google + email mágico** (sin Apple); login = identidad, no control de acceso |
 | Q2 | Familias/personas | **Globales**, composición **congelada por evento** |
 | Q3 | Unidad de deuda | **Entre familias** (familia = cartera; persona sin familia = familia de uno) |
 | Q4 | Rol de persona | **Dos ejes:** edad (`adulto`/`niño`) + flags (`come_con_mayores`, `cuenta_como_adulto_reparto`) |
@@ -563,7 +562,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Multi-evento | **Varios a la vez, con uno "activo"** resaltado |
 | — | Unirse a un evento | **Enlace / QR** + elegir familia |
 | — | Bunga↔familia | **1 familia = 1 bunga** en v1 (casos raros a mano) |
-| — | Plataforma | **PWA primero → iOS nativo (SwiftUI) después** |
+| — | Plataforma | **PWA únicamente** (sin app iOS nativa) |
 | — | Stack Fase 1 (propuesta) | **Heredar counter-ops:** React+Vite (PWA) · **IndexedDB + doc compartido por evento + merge tombstone/LWW** · **GitHub Pages** (Actions). PowerSync+Supabase = vía de mejora (§14) |
 | — | Forks vs counter-ops | Auth **con login** · backend **modelo simple (clave en cliente)** · **IndexedDB** desde el día 1 · fotos **v2**. **opción A** decidida: login = identidad/comodidad, no control de acceso (§14.6) |
 | — | Safari iOS | **Funciona**; requiere **"añadir a pantalla de inicio"** para push + persistencia; **sin background sync** (sync al abrir) (§14.3–14.4) |
@@ -577,7 +576,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Día de un plan | **Opcional desde el principio** (con día o "a decidir") |
 | — | Saldar deuda | **Apuntar "pagado" a mano**; la app no mueve dinero (Bizum a v2) |
 | — | Turno de cocina | **No se registra** (va en el texto libre); solo se balancea el bunga |
-| — | Offline Fase 1 (PWA) | **Completo desde el día 1** (asumido como pieza central y cara) |
+| — | Offline (PWA) | **Completo desde el día 1** (enfoque counter-ops: merge local, no motor pesado) |
 | — | Resumen diario | **Por la mañana** |
 | — | Logo | Ballena **saltando en diagonal**, sonriente, con chorro |
 | — | Entidad raíz | **Evento** (antes "viaje") — suele ser un viaje, pero puede ser cualquier plan con fechas |
