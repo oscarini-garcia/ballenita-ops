@@ -45,7 +45,7 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 
 ### 2.1 Autenticación
 
-- **✅ Decidido (Q1, revisado): login con Google + email (enlace mágico). Sin Apple.** El grupo no quiere depender de Apple ni de su cuenta de desarrollador de pago, y esto es una **PWA** (no hay app iOS nativa). Google OAuth + email mágico cubren a todos (iPhone y Android).
+- **✅ Decidido (Q1, revisado): login con email (enlace mágico). Sin Apple, y de momento sin Google.** El grupo no quiere depender de Apple ni de su cuenta de desarrollador de pago, y esto es una **PWA** (no hay app iOS nativa). El **email mágico** basta para el MVP y funciona en iPhone y Android; **Google se puede añadir más adelante** si hace falta.
 - El login es **identidad/comodidad**, no control de acceso (opción A, §14.6): sirve para saber quién es quién y alimentar el historial, no para proteger los datos.
 - Perfil mínimo: nombre visible, avatar (opcional), método de login.
 - **Cuentas por familia:** cada familia tiene **mínimo un login**. Desde ese login se pueden crear **perfiles-nombre gestionados** (niños, el cuñado que no se instala nada) o pueden entrar más **usuarios completos** asignados a esa familia. Modelo detallado en §5.1.
@@ -187,7 +187,7 @@ En la parte de evento, por cada persona se define:
 ### 5.1 Modelo de cuentas y pertenencia (aclarado) ⭐
 - **Cada familia tiene como mínimo un login.** Ese login es quien puede saldar cuentas y gestionar la familia (encaja con "la deuda se salda entre familias", §3).
 - Una persona puede ser:
-  1. **Usuario completo:** se autentica (Google/email), **elige a qué familia pertenece** y participa por sí mismo.
+  1. **Usuario completo:** se autentica (email mágico), **elige a qué familia pertenece** y participa por sí mismo.
   2. **Perfil-nombre gestionado ("fantasma"):** no tiene login; lo crea el login de una familia (típico para niños o para el cuñado que no se instala nada). Cuenta para comidas, bungas y reparto, pero no entra solo.
 - Un perfil gestionado puede **"ascender" a usuario completo** más adelante si esa persona acaba instalando la app.
 - **⚠️ Ojo (auto-asignación de familia):** si cada uno elige su familia libremente, alguien podría meterse en la familia equivocada y descuadrar el reparto. Propuesta: la elección es libre pero **visible para todos** en el evento; sin aprobación formal (grupo de confianza), pero con el historial (§9) para detectar líos.
@@ -282,7 +282,7 @@ Ideas de métricas (con la ballena troleando):
 ## 8. Modelo de datos (borrador de alto nivel)
 
 ```
-User (login: Google/email) 1─* Membership *─1 Event
+User (login: email mágico; Google futuro) 1─* Membership *─1 Event
 Event 1─1 lugar, monedaBase, fechaInicio, fechaFin, estado(planificando|activo|cerrado)
 Event 1─* Family        (Family 1─1 Bunga)
 Event 1─* Bunga         (Bunga 1─1 Family)
@@ -313,7 +313,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 **User** (login)
 - `nombre`
-- `metodoLogin` (`google` | `email`)
+- `metodoLogin` (`email`; `google` futuro)
 - `avatar` ({ `tipo`: `emoji`|`imagen`|`foto`, `valor` }) · `estado` ({ `texto`?, `emoji`?, `media`? }) — ver §5.2
 
 **Media** (tipo reutilizable para avatar/estado)
@@ -396,7 +396,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 **✅ Decidido (Q8): priorizar gastos + gente.** El MVP no intenta cubrir las cinco áreas a la vez.
 
-- **v1 (MVP, foco):** Auth (Google + email mágico), eventos con fechas, **personas/familias/bungas**, **gastos estilo Splitwise con reparto por familia + liquidación entre familias**. Es el núcleo de valor y lo más difícil de acertar.
+- **v1 (MVP, foco):** Auth (email mágico), eventos con fechas, **personas/familias/bungas**, **gastos estilo Splitwise con reparto por familia + liquidación entre familias**. Es el núcleo de valor y lo más difícil de acertar.
 - **v1.5:** comidas (platos, clasificación, bungas mayores/niños) y planes básicos.
 - **v2:** estadísticas ricas, lista de la compra agregada, multi-moneda, notificaciones, histórico entre eventos, votaciones ricas en planes.
 - Las áreas de comidas/planes/estadísticas se **especifican** en este doc pero **no se implementan** hasta cerrar el núcleo económico.
@@ -459,7 +459,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | **Frontend** | **React + Vite + `vite-plugin-pwa`** (+ TypeScript) | Igual que counter-ops. PWA instalable. |
 | **Datos** | **IndexedDB desde el principio** (Dexie / `idb-keyval`) | ✅ Sin límite práctico; listo para varios eventos y fotos futuras. Merge tombstone/LWW por encima. |
 | **Sync** | **Un documento compartido por evento** + **merge tombstone/LWW** | Reutiliza el merge de counter-ops — **es exactamente nuestro LWW + historial**. Un doc por evento acota tamaño y compartición. |
-| **Identidad / Auth** | **Login Google + email mágico** (§2.1) + **unirse por enlace/QR** (§2.5) | ✅ Sin Apple. Login = identidad, no control de acceso (§14.6). |
+| **Identidad / Auth** | **Login email mágico** (§2.1) + **unirse por enlace/QR** (§2.5) | ✅ Sin Apple, sin Google por ahora. Login = identidad, no control de acceso (§14.6). |
 | **Push** | Web Push (VAPID) | Con las salvedades iOS de §14.3. |
 | **Hosting** | **GitHub Pages** (estático, vía GitHub Actions) | ✅ Igual que counter-ops. HTTPS de serie (obligatorio para PWA/service worker). El "backend" es el servicio del doc JSON. Cero servidores propios. |
 
@@ -488,7 +488,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - **⚠️ Setup a tener en cuenta:** GitHub Pages en un **repo privado** requiere plan **Pro/Team**. Si el repo es privado y estás en plan free, hay que **hacerlo público** o subir de plan para que Pages publique.
 
 ### 14.6 Forks resueltos (dónde Ballena Ops difiere de counter-ops)
-1. **✅ Auth: SÍ hay login (Google + email mágico, sin Apple).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
+1. **✅ Auth: SÍ hay login (email mágico; sin Apple, sin Google por ahora).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
 2. **✅ Privacidad del backend: se acepta el modelo simple** (clave del doc en el cliente, como counter-ops). Grupo de confianza, doc no público.
 3. **✅ Almacenamiento: IndexedDB desde el principio** (Dexie / `idb-keyval`). Sin límite práctico, listo para varios eventos y para fotos más adelante. Mismo patrón de merge tombstone/LWW por encima.
 4. **✅ Fotos: emoji/preset en v1, fotos a v2** (avatar y ticket). Mantiene el doc de sync ligero.
@@ -496,7 +496,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 > **⚠️ Tensión a resolver (la señalo, no la escondo):** elegiste **login real** (#1) **y** a la vez **el doc con clave en cliente** (#2). Ojo: con ese modelo, cualquiera que tenga la clave del doc **lee/escribe los datos aunque no haya iniciado sesión** — es decir, **el login identifica pero NO protege el dinero** (no es control de acceso, solo "quién eres" para mostrar y para el historial). Dos caminos coherentes:
 > - **(A) Login como identidad/comodidad** + aceptar el modelo simple → válido si confías en el grupo y te vale que el login sea "cosmético" para seguridad. Es barato y encaja con counter-ops.
 > - **(B) Login como control de acceso real** → entonces el dato debe vivir tras ese login (Supabase con RLS o un proxy que valide el token), no en un doc de clave compartida. Más seguro, más cerca del stack "grande".
-> **✅ Decidido: opción (A).** El login (Google/email) es **identidad y comodidad** (saber quién es quién, alimentar el historial), **no control de acceso**. Se acepta que quien tenga la clave del doc puede tocar los datos — grupo de confianza. Si algún día preocupa de verdad, la vía de subida es (B) → Supabase con RLS (§14.8).
+> **✅ Decidido: opción (A).** El login (email mágico) es **identidad y comodidad** (saber quién es quién, alimentar el historial), **no control de acceso**. Se acepta que quien tenga la clave del doc puede tocar los datos — grupo de confianza. Si algún día preocupa de verdad, la vía de subida es (B) → Supabase con RLS (§14.8).
 
 ### 14.7 ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops?
 
@@ -528,7 +528,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 ### ✅ Cerradas
 | # | Decisión | Resolución |
 |---|---|---|
-| Q1 | Autenticación | **Google + email mágico** (sin Apple); login = identidad, no control de acceso |
+| Q1 | Autenticación | **Email mágico** (sin Apple, sin Google por ahora); login = identidad, no control de acceso |
 | Q2 | Familias/personas | **Globales**, composición **congelada por evento** |
 | Q3 | Unidad de deuda | **Entre familias** (familia = cartera; persona sin familia = familia de uno) |
 | Q4 | Rol de persona | **Dos ejes:** edad (`adulto`/`niño`) + flags (`come_con_mayores`, `cuenta_como_adulto_reparto`) |
