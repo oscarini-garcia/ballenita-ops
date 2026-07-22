@@ -262,7 +262,7 @@ Aclarado el modelo real (corrige la versión anterior):
 ### 6.5 Notas de cenas
 - **✅ Quién cocina NO se registra** como campo estructurado ni se balancea. Va en el **texto libre "qué se hace"** de la cena, si acaso. Lo único que se balancea es el **bunga anfitrión** (el espacio, §6.4).
 - ¿Las comidas generan gasto automáticamente (la compra) o el gasto va por libre en §3? Propuesta: desacoplado en v1, con enlace manual opcional.
-- **✅ Lista de la compra: manual en v1, agregada en v2.** En v1 las cantidades son **texto libre por comida**; agregar todo en una lista de la compra global del evento (sumando cantidades) se deja para **v2** (requiere cantidades estructuradas).
+- **✅ Lista de la compra: manual en v1, agregada en v2.** En v1 las cantidades son **texto libre por comida**; agregar todo en una lista de la compra global del evento se deja para **v2**, apoyándose en los **`ingredientes[]` del plato** (§8.1) para sumar automáticamente.
 
 ---
 
@@ -283,7 +283,7 @@ Ideas de métricas (con la ballena troleando):
 
 ```
 User (login: Apple/Google/email) 1─* Membership *─1 Event
-Event 1─1 monedaBase, fechaInicio, fechaFin, estado(planificando|activo|cerrado)
+Event 1─1 lugar, monedaBase, fechaInicio, fechaFin, estado(planificando|activo|cerrado)
 Event 1─* Family        (Family 1─1 Bunga)
 Event 1─* Bunga         (Bunga 1─1 Family)
 Event 1─* Person        (Person → Family; edad, come_con_mayores, cuenta_como_adulto_reparto, peso_reparto;
@@ -294,7 +294,7 @@ Event 1─* Settlement    (pago apuntado a mano: FamiliaA → FamiliaB, importe)
 Event 1─* SplitTemplate (por persona | solo mayores | por familia | personalizado)
 Event 1─* Plan          (estado, día opcional, votos[Person: 👍/🤷/👎])
 Event 1─* Cena          (1 por día: → Dish[], bungaMayores→Bunga, bungaNiños→Bunga, qué_se_hace, cantidades)
-Dish  *─* Category     (aperitivo|entrante|principal|acompañamiento|postre)   [catálogo GLOBAL + favoritos]
+Dish  *─* Category     (aperitivo|entrante|principal|acompañamiento|postre)   [catálogo GLOBAL + favoritos + ingredientes[]]
 Event 1─* AuditLog      (historial: quién tocó qué y cuándo — obligatorio, §9)
 ```
 
@@ -305,7 +305,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 > Borrador de esquema. `id` y timestamps (`creadoEn`, `actualizadoEn`) se dan por supuestos en todos. `→` = referencia.
 
 **Event** (el contenedor raíz; antes "viaje")
-- `nombre` · `fechaInicio` (date) · `fechaFin` (date)
+- `nombre` · `lugar` (ubicación, p. ej. "Camping La Ballena Alegre") · `fechaInicio` (date) · `fechaFin` (date)
 - `monedaBase` (ISO 4217, p. ej. EUR)
 - `estado` (`planificando` | `activo` | `cerrado`)
 - `creadoPor` (→User) · `statsPicanteHabilitado` (bool, §7)
@@ -329,11 +329,11 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - `bungaId` (→Bunga, 1:1)
 
 **Bunga**
-- `eventId` (→Event) · `nombre` · `capacidad` (int, opcional)
+- `eventId` (→Event) · `nombre` · `alias` (mote: "el de la piscina", opcional) · `parcela` (número/identificador, opcional) · `capacidad` (int, opcional)
 - `familiaId` (→Family, 1:1)
 
 **Person**
-- `eventId` (→Event) · `nombre`
+- `eventId` (→Event) · `nombre` · `apodo` (mote del grupo, opcional)
 - `avatar` (Media) · `estado` ({ `texto`?, `emoji`?, `media`? }) — ver §5.2
 - `familiaId` (→Family)
 - `edad` (`adulto` | `niño`)
@@ -360,7 +360,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 **Plan**
 - `eventId` (→Event) · `titulo` · `descripcion` (opcional)
-- `dia` (date, **opcional**) · `costeEstimado` (opcional) · `ubicacion` (opcional)
+- `dia` (date, **opcional**) · `costeEstimado` (opcional) · `ubicacion` (opcional) · `enlace` (URL, opcional)
 - `estado` (`propuesto` | `votando` | `confirmado` | `hecho` | `cancelado`)
 - `votos[]` ({ `personaId`, `voto`: `👍` | `🤷` | `👎` }) · `propuestoPor` (→User)
 
@@ -373,6 +373,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 **Dish** (plato — catálogo **global**)
 - `nombre` · `categorias[]` (`aperitivo` | `entrante` | `principal` | `acompañamiento` | `postre`)
 - `esFavorito` (bool)
+- `ingredientes[]` (lista base, opcional) — **habilita la lista de la compra agregada de v2** (§6.5)
 
 **AuditLog** (historial — obligatorio, §9)
 - `eventId` (→Event) · `entidad` · `entidadId` · `accion` (`crear` | `editar` | `borrar`)
@@ -499,6 +500,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Perfil personalizable | **Persona y familia:** avatar/logo + estado con **emoji/imagen** (v1) o **foto** (v2, mismo coste que fotos de gasto) |
 | — | Platos por cena | **Varios por tipo** (p. ej. 2-3 guarniciones); `platos[]` sin límite por categoría |
 | — | Día de un plan | **Poner / cambiar / quitar** el día; y **borrar** el plan (queda en historial) |
+| — | Campos extra por objeto | Evento **+lugar** · Persona **+apodo** · Plan **+enlace** · Bunga **+parcela/alias** · Plato **+ingredientes** (gasto/cena/familia: sin cambios) |
 
 ### 🟡 Aún abiertas (nivel implementación, no bloquean producto)
 | # | Decisión | Recomendación |
