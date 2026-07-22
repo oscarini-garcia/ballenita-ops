@@ -458,9 +458,9 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | Capa | Elección | Nota |
 |---|---|---|
 | **Frontend** | **React + Vite + `vite-plugin-pwa`** (+ TypeScript) | Igual que counter-ops. PWA instalable. |
-| **Datos** | **JSON local** (`localStorage`; **IndexedDB** vía Dexie/`idb-keyval` si crece) | Un evento son pocos cientos de registros → cabe. IndexedDB si se acerca al límite (~5 MB) o hay fotos. |
-| **Sync** | **Un documento JSON compartido por evento** + **merge tombstone/LWW** | Reutiliza el merge de counter-ops — **es exactamente nuestro LWW + historial**. Un doc por evento acota tamaño y compartición. |
-| **Identidad** | **Enlace / QR por persona** (como counter-ops) | Ya decidido para "unirse" (§2.5). Ver fork de auth en §14.6. |
+| **Datos** | **IndexedDB desde el principio** (Dexie / `idb-keyval`) | ✅ Sin límite práctico; listo para varios eventos y fotos futuras. Merge tombstone/LWW por encima. |
+| **Sync** | **Un documento compartido por evento** + **merge tombstone/LWW** | Reutiliza el merge de counter-ops — **es exactamente nuestro LWW + historial**. Un doc por evento acota tamaño y compartición. |
+| **Identidad / Auth** | **Login Apple/Google/email** (§2.1) + **unirse por enlace/QR** (§2.5) | ✅ Se mantiene el login; NO se adopta el "sin login" de counter-ops. Ver tensión auth↔privacidad en §14.6. |
 | **Push** | Web Push (VAPID) | Con las salvedades iOS de §14.3. |
 | **Hosting** | **Cloudflare Pages / Vercel** (estático) | El "backend" es el servicio del doc JSON. Cero servidores propios. |
 
@@ -481,11 +481,16 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - **IDs en cliente** → ya es el patrón.
 - **Reparto por familias, multi-moneda** → todo cálculo en cliente sobre el JSON local; el doc compartido solo almacena y sincroniza.
 
-### 14.6 Forks abiertos (dónde Ballena Ops difiere de counter-ops)
-1. **Auth:** counter-ops **no tiene login** (identidad por URL). ¿Mantenemos Apple/Google/email (§2.1) o **simplificamos a enlace/QR** como counter-ops? La segunda quita muchísima complejidad y encaja con "unirse por QR". Contra: hay dinero de por medio y decidimos "≥1 login por familia para saldar". **Decisión pendiente.**
-2. **Privacidad del backend:** el doc JSON con clave incrustada en el cliente vale para contar helados; para **importes entre familias** es algo más sensible. Opciones: (a) aceptarlo (grupo de confianza, la clave no es pública) como counter-ops; (b) un proxy serverless mínimo o Supabase con RLS para no exponer la clave. **Decisión pendiente.**
-3. **Tamaño de datos:** localStorage (~5 MB) va sobrado para counter-ops; con varios eventos + avatares, plan B **IndexedDB** (mismo merge).
-4. **Fotos:** counter-ops **sí** usa imágenes (comprimidas). Reabre "sin fotos v1": **avatares comprimidos** podrían caber ya en v1 (ojo al tamaño del doc de sync); tickets de gasto siguen pesando → v2.
+### 14.6 Forks resueltos (dónde Ballena Ops difiere de counter-ops)
+1. **✅ Auth: SÍ hay login (Apple/Google/email).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
+2. **✅ Privacidad del backend: se acepta el modelo simple** (clave del doc en el cliente, como counter-ops). Grupo de confianza, doc no público.
+3. **✅ Almacenamiento: IndexedDB desde el principio** (Dexie / `idb-keyval`). Sin límite práctico, listo para varios eventos y para fotos más adelante. Mismo patrón de merge tombstone/LWW por encima.
+4. **✅ Fotos: emoji/preset en v1, fotos a v2** (avatar y ticket). Mantiene el doc de sync ligero.
+
+> **⚠️ Tensión a resolver (la señalo, no la escondo):** elegiste **login real** (#1) **y** a la vez **el doc con clave en cliente** (#2). Ojo: con ese modelo, cualquiera que tenga la clave del doc **lee/escribe los datos aunque no haya iniciado sesión** — es decir, **el login identifica pero NO protege el dinero** (no es control de acceso, solo "quién eres" para mostrar y para el historial). Dos caminos coherentes:
+> - **(A) Login como identidad/comodidad** + aceptar el modelo simple → válido si confías en el grupo y te vale que el login sea "cosmético" para seguridad. Es barato y encaja con counter-ops.
+> - **(B) Login como control de acceso real** → entonces el dato debe vivir tras ese login (Supabase con RLS o un proxy que valide el token), no en un doc de clave compartida. Más seguro, más cerca del stack "grande".
+> Recomendación: si el login lo quieres sobre todo por **Sign in with Apple y comodidad**, quédate en (A) para arrancar; si de verdad quieres que **nadie ajeno toque las cuentas**, ve a (B). **Pendiente de que elijas A o B.**
 
 ### 14.7 ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops?
 
@@ -552,7 +557,8 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Unirse a un evento | **Enlace / QR** + elegir familia |
 | — | Bunga↔familia | **1 familia = 1 bunga** en v1 (casos raros a mano) |
 | — | Plataforma | **PWA primero → iOS nativo (SwiftUI) después** |
-| — | Stack Fase 1 (propuesta) | **Heredar counter-ops:** React+Vite (PWA) · **JSON local + doc compartido + merge tombstone/LWW** · identidad por enlace/QR. PowerSync+Supabase = vía de mejora (§14) |
+| — | Stack Fase 1 (propuesta) | **Heredar counter-ops:** React+Vite (PWA) · **IndexedDB + doc compartido por evento + merge tombstone/LWW** · **con login** (§2.1). PowerSync+Supabase = vía de mejora (§14) |
+| — | Forks vs counter-ops | Auth **con login** · backend **modelo simple (clave en cliente)** · **IndexedDB** desde el día 1 · fotos **v2**. ⚠️ Tensión auth↔privacidad pendiente: elegir **A** (login cosmético) o **B** (login = control de acceso real) (§14.6) |
 | — | Safari iOS | **Funciona**; requiere **"añadir a pantalla de inicio"** para push + persistencia; **sin background sync** (sync al abrir) (§14.3–14.4) |
 | — | Ambición | **Solo para el grupo** (sin escalar ni monetizar) |
 | — | La ballenita | **Comenta en momentos clave**, sin cansar |
