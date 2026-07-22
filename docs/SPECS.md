@@ -462,7 +462,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | **Sync** | **Un documento compartido por evento** + **merge tombstone/LWW** | Reutiliza el merge de counter-ops — **es exactamente nuestro LWW + historial**. Un doc por evento acota tamaño y compartición. |
 | **Identidad / Auth** | **Login Apple/Google/email** (§2.1) + **unirse por enlace/QR** (§2.5) | ✅ Se mantiene el login; NO se adopta el "sin login" de counter-ops. Ver tensión auth↔privacidad en §14.6. |
 | **Push** | Web Push (VAPID) | Con las salvedades iOS de §14.3. |
-| **Hosting** | **Cloudflare Pages / Vercel** (estático) | El "backend" es el servicio del doc JSON. Cero servidores propios. |
+| **Hosting** | **GitHub Pages** (estático, vía GitHub Actions) | ✅ Igual que counter-ops. HTTPS de serie (obligatorio para PWA/service worker). El "backend" es el servicio del doc JSON. Cero servidores propios. |
 
 ### 14.3 ⚠️ Safari iOS — confirmado por counter-ops
 - **Service Workers** ✅ · **localStorage/IndexedDB** ✅ · **instalable** ✅.
@@ -480,6 +480,13 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - **LWW + historial (§9)** → merge tombstone + `updatedAt` (ya escrito en counter-ops) + tabla `AuditLog`.
 - **IDs en cliente** → ya es el patrón.
 - **Reparto por familias, multi-moneda** → todo cálculo en cliente sobre el JSON local; el doc compartido solo almacena y sincroniza.
+
+### 14.5-bis Deploy en GitHub Pages (heredado de counter-ops)
+- **Subpath:** se sirve en `https://oscarini-garcia.github.io/ballenita-ops/` → hay que fijar `base: '/ballenita-ops/'` en `vite.config` y el `start_url`/`scope` del manifest a ese path (counter-ops lo hace igual con `/counter-ops/`).
+- **Deploy:** un **workflow de GitHub Actions** compila (`vite build`) y publica en Pages en cada push a `main`.
+- **Secrets:** el Bin ID / Master Key del doc de sync van como **secrets del repo**, inyectados en build como `VITE_...`. (Recordatorio: en el modelo simple —opción A— acaban en el bundle; se asume.)
+- **Rutas SPA:** GitHub Pages no hace fallback de rutas → usar **hash routing** o un `404.html` que redirija a `index.html`.
+- **⚠️ Setup a tener en cuenta:** GitHub Pages en un **repo privado** requiere plan **Pro/Team**. Si el repo es privado y estás en plan free, hay que **hacerlo público** o subir de plan para que Pages publique.
 
 ### 14.6 Forks resueltos (dónde Ballena Ops difiere de counter-ops)
 1. **✅ Auth: SÍ hay login (Apple/Google/email).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
@@ -557,7 +564,7 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 | — | Unirse a un evento | **Enlace / QR** + elegir familia |
 | — | Bunga↔familia | **1 familia = 1 bunga** en v1 (casos raros a mano) |
 | — | Plataforma | **PWA primero → iOS nativo (SwiftUI) después** |
-| — | Stack Fase 1 (propuesta) | **Heredar counter-ops:** React+Vite (PWA) · **IndexedDB + doc compartido por evento + merge tombstone/LWW** · **con login** (§2.1). PowerSync+Supabase = vía de mejora (§14) |
+| — | Stack Fase 1 (propuesta) | **Heredar counter-ops:** React+Vite (PWA) · **IndexedDB + doc compartido por evento + merge tombstone/LWW** · **GitHub Pages** (Actions). PowerSync+Supabase = vía de mejora (§14) |
 | — | Forks vs counter-ops | Auth **con login** · backend **modelo simple (clave en cliente)** · **IndexedDB** desde el día 1 · fotos **v2**. **opción A** decidida: login = identidad/comodidad, no control de acceso (§14.6) |
 | — | Safari iOS | **Funciona**; requiere **"añadir a pantalla de inicio"** para push + persistencia; **sin background sync** (sync al abrir) (§14.3–14.4) |
 | — | Ambición | **Solo para el grupo** (sin escalar ni monetizar) |
