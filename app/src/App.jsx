@@ -6,11 +6,15 @@ import EventsScreen from './screens/EventsScreen.jsx'
 import ExpensesScreen from './screens/ExpensesScreen.jsx'
 import BalancesScreen from './screens/BalancesScreen.jsx'
 import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
+import CenasScreen from './screens/CenasScreen.jsx'
+import PlanesScreen from './screens/PlanesScreen.jsx'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
 const TABS = [
   { id: 'gastos', label: 'Gastos', icon: 'M4 7h16M4 12h16M4 17h10' },
+  { id: 'cenas', label: 'Cenas', icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 8a4 4 0 100 8 4 4 0 000-8z' },
+  { id: 'planes', label: 'Planes', icon: 'M12 22s-7-6-7-12a7 7 0 1114 0c0 6-7 12-7 12z' },
   { id: 'saldos', label: 'Saldos', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
   { id: 'evento', label: 'Ajustes', icon: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 13a7.9 7.9 0 000-2l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1l-.3-2.5H9.9l-.3 2.5a7 7 0 00-1.7 1l-2.4-1-2 3.4L3.6 11a7.9 7.9 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1l.3 2.5h4.2l.3-2.5a7 7 0 001.7-1l2.4 1 2-3.4z' },
 ]
@@ -54,6 +58,8 @@ export default function App() {
       </header>
 
       {tab === 'gastos' && <ExpensesScreen eventId={activeId} event={event} />}
+      {tab === 'cenas' && <CenasScreen eventId={activeId} event={event} />}
+      {tab === 'planes' && <PlanesScreen eventId={activeId} event={event} />}
       {tab === 'saldos' && <BalancesScreen eventId={activeId} event={event} />}
       {tab === 'evento' && <EventSettingsScreen eventId={activeId} event={event} />}
 
