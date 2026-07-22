@@ -487,7 +487,26 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 3. **Tamaño de datos:** localStorage (~5 MB) va sobrado para counter-ops; con varios eventos + avatares, plan B **IndexedDB** (mismo merge).
 4. **Fotos:** counter-ops **sí** usa imágenes (comprimidas). Reabre "sin fotos v1": **avatares comprimidos** podrían caber ya en v1 (ojo al tamaño del doc de sync); tickets de gasto siguen pesando → v2.
 
-### 14.7 Fase 2 (iOS nativo, SwiftUI) — vía de mejora, no de partida
+### 14.7 ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops?
+
+**Sí, con una condición de diseño clave:** *sincronizar los hechos en bruto y calcular lo derivado en local.*
+
+**Por qué funciona (el paralelismo exacto):**
+- counter-ops nunca sincroniza el marcador; sincroniza las **entradas** y **recalcula** el leaderboard en cada dispositivo. En Ballena Ops, **los saldos son a los gastos lo que el leaderboard es a las entradas**: una **función pura** sobre un registro que crece (gastos + liquidaciones). No se sincroniza el saldo; se sincronizan gastos/pagos y **el motor de reparto recalcula** igual en todos los dispositivos.
+- Con `id` de cliente + merge (unión por id, `updatedAt` LWW, tombstones para borrados), **todos los dispositivos convergen al mismo conjunto de gastos → mismo saldo.** Eventualmente consistente y correcto.
+- Gastos = **append + editar + borrar**, y counter-ops ya hace las tres (edita miembros/contadores con `updatedAt`, borra con tombstones). El patrón traslada 1:1.
+
+**Dónde aprieta (y cómo se mitiga):**
+1. **Edición concurrente del MISMO gasto sin red** → LWW: gana el último, el otro cambio se pierde pero **se recupera del historial** (§9). Raro en un grupo pequeño; aceptable por la decisión LWW.
+2. **Integridad referencial en borrados** (borrar una familia que tiene gastos, o un plato usado en una cena) → reglas de merge/UI: bloquear el borrado si está referenciado, o mostrar "familia eliminada". Solvable, no bloqueante.
+3. **Fotos en el doc de sync** → base64 en el JSON compartido lo infla rápido. Regla: **las fotos NO van en el doc de sync** (avatares emoji/preset en v1; fotos comprimidas o almacenamiento aparte si se activan).
+4. **Tamaño** → un doc **por evento** (no todo en uno) mantiene cada JSON pequeño; IndexedDB como plan B si crece.
+
+**Dónde NO serviría (para tener el límite claro):** si esto creciera a muchos grupos, datos grandes, o hiciera falta **consistencia fuerte** (que un saldo no pueda estar nunca desactualizado ni un segundo) — ahí sí tocaría PowerSync/Supabase. **No es el caso** de un grupo de amigos.
+
+**Conclusión:** el modelo de counter-ops es **viable y recomendado** para Ballena Ops. La única regla de oro añadida es *"sincroniza hechos, calcula saldos en local"*, que además es como ya está pensado el motor de reparto (§3, «Lógica»).
+
+### 14.8 Fase 2 (iOS nativo, SwiftUI) — vía de mejora, no de partida
 - Solo **si el modelo simple se queda corto** (datos grandes, sync más robusto, push/offline de primera): subir a **PowerSync + Supabase** (ambos con SDK Swift) para la app nativa.
 - Antes sería **sobre-ingeniería** para lo que el grupo necesita hoy. El enfoque de counter-ops es el punto de partida sensato.
 
