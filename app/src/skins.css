@@ -12,7 +12,7 @@
   --line: rgba(255,255,255,.14); --line-soft: rgba(255,255,255,.08);
   --spout: #1f9fd0; --spout-deep: #7fdcf0; --abyss: #071a2b; --gold: #ffc24b;
   --owe: #ff8a7a; --owe-bg: rgba(255,122,102,.16); --owed: #5ee0a0; --owed-bg: rgba(94,224,160,.16);
-  --appbar-bg: linear-gradient(150deg, #0b3a58, #0a2438); --appbar-ink: #eaf6fb;
+  --appbar-bg: linear-gradient(150deg, #0b3a58, #0a2438); --appbar-ink: #eaf6fb; --whale: #38c6e8;
 }
 :root[data-skin="abisal"] .appbar::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
@@ -32,7 +32,7 @@
   --line: #efdfd0; --line-soft: #f4ece2;
   --spout: #0fa3a3; --spout-deep: #0c8484; --abyss: #41262b; --gold: #d9662f;
   --owe: #d24b42; --owe-bg: #fbe4e0; --owed: #1f8a5b; --owed-bg: #d7efe0;
-  --appbar-bg: linear-gradient(150deg, #41262b, #5a3238); --appbar-ink: #fdf3ea;
+  --appbar-bg: linear-gradient(150deg, #41262b, #5a3238); --appbar-ink: #fdf3ea; --whale: #ffc061;
 }
 :root[data-skin="chiringuito"] .card { box-shadow: 0 8px 20px -12px rgba(120,50,40,.3); }
 
@@ -46,7 +46,7 @@
   --line: rgba(120,90,255,.32); --line-soft: rgba(120,90,255,.18);
   --spout: #c840ff; --spout-deep: #31e0ff; --abyss: #080611; --gold: #ffe15a;
   --owe: #ff6b8a; --owe-bg: rgba(255,61,120,.16); --owed: #39ff96; --owed-bg: rgba(57,255,150,.14);
-  --appbar-bg: linear-gradient(120deg, #170b30, #0a1430); --appbar-ink: #eafcff;
+  --appbar-bg: linear-gradient(120deg, #170b30, #0a1430); --appbar-ink: #eafcff; --whale: #31e0ff;
 }
 :root[data-skin="verbena"] .card { box-shadow: 0 0 20px -6px rgba(120,60,255,.4); }
 :root[data-skin="verbena"] .appbar .ti { text-shadow: 0 0 14px rgba(49,224,255,.5); }
@@ -59,7 +59,7 @@
   --line: #e7dfc9; --line-soft: #efe8d6;
   --spout: #e0662f; --spout-deep: #b6491a; --abyss: #2f6f7a; --gold: #b6791b;
   --owe: #c0492f; --owe-bg: #f6e2d8; --owed: #3c7a2f; --owed-bg: #dcecd2;
-  --appbar-bg: linear-gradient(150deg, #2f6f7a, #25596a); --appbar-ink: #fdf7e6;
+  --appbar-bg: linear-gradient(150deg, #2f6f7a, #25596a); --appbar-ink: #fdf7e6; --whale: #ffd166;
 }
 :root[data-skin="cuaderno"] .card { box-shadow: 2px 3px 0 rgba(51,48,42,.1); }
 
@@ -71,7 +71,7 @@
   --line: rgba(255,255,255,.3); --line-soft: rgba(255,255,255,.2);
   --spout: #0e6fb0; --spout-deep: #eafffb; --abyss: #0b3a72; --gold: #ffe06a;
   --owe: #ffd0c8; --owe-bg: rgba(255,120,100,.22); --owed: #d6ffe8; --owed-bg: rgba(120,255,190,.22);
-  --appbar-bg: linear-gradient(150deg, rgba(11,58,114,.5), rgba(18,70,184,.4)); --appbar-ink: #ffffff;
+  --appbar-bg: linear-gradient(150deg, rgba(11,58,114,.5), rgba(18,70,184,.4)); --appbar-ink: #ffffff; --whale: #eafffb;
 }
 :root[data-skin="aqua"] .card,
 :root[data-skin="aqua"] input,

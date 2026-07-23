@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { getPref, setPref, currentSkin, rollRandom, applySkin, POOL } from './skins.js'
 
 describe('skins', () => {
-  it('por defecto es "sistema"', () => {
-    expect(getPref()).toBe('sistema')
+  it('por defecto es "abisal" (azul festivo)', () => {
+    expect(getPref()).toBe('abisal')
   })
 
   it('elegir un tema concreto se resuelve tal cual', () => {

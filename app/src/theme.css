@@ -9,6 +9,7 @@
   --app-bg: var(--foam);
   --appbar-bg: linear-gradient(150deg, var(--abyss), #0d2d3c);
   --appbar-ink: #eaf6fb;
+  --whale: #3cbdea;
 }
 @media (prefers-color-scheme: dark) {
   :root {

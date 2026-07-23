@@ -13,10 +13,16 @@ export const SKINS = [
 export const POOL = ['abisal', 'chiringuito', 'verbena', 'cuaderno', 'aqua']
 const PREF_KEY = 'ballena.skin'
 const RND_KEY = 'ballena.skin.random'
-const ROTATE_MS = 1000 * 60 * 30 // el sistema "tira los dados" cada 30 min
+const DEFAULT_SKIN = 'abisal' // el azul festivo de la marca por defecto
+
+// El modo aleatorio "tira los dados" una vez al día (por día natural local).
+function todayKey() {
+  const d = new Date()
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+}
 
 export function getPref() {
-  return localStorage.getItem(PREF_KEY) || 'sistema'
+  return localStorage.getItem(PREF_KEY) || DEFAULT_SKIN
 }
 export function setPref(p) {
   localStorage.setItem(PREF_KEY, p)
@@ -29,13 +35,13 @@ function pickDifferent(from) {
   return next
 }
 
-// Devuelve el skin concreto del modo aleatorio, rotándolo si toca (o si `force`).
+// Devuelve el skin del modo aleatorio; cambia al girar el día (o si `force`).
 export function rollRandom(force = false) {
   let cur = null
   try { cur = JSON.parse(localStorage.getItem(RND_KEY)) } catch { /* ignore */ }
-  const now = Date.now()
-  if (force || !cur?.id || now - (cur.t ?? 0) > ROTATE_MS) {
-    cur = { id: pickDifferent(cur?.id ?? null), t: now }
+  const day = todayKey()
+  if (force || !cur?.id || cur.day !== day) {
+    cur = { id: pickDifferent(cur?.id ?? null), day }
     localStorage.setItem(RND_KEY, JSON.stringify(cur))
   }
   return cur.id

@@ -24,11 +24,11 @@ function AspectoSection() {
         <button className={`chip${pref === 'random' ? ' on' : ''}`} onClick={() => choose('random')}>🎲 Aleatorio</button>
       </div>
       {pref === 'random' ? (
-        <div className="note">🎲 Modo aleatorio: ahora mismo <b>{currentName}</b>. El sistema cambia de tema solo cada cierto tiempo.
+        <div className="note">🎲 Modo aleatorio: hoy toca <b>{currentName}</b>. El sistema cambia de tema solo <b>cada día</b>.
           <div style={{ marginTop: 8 }}><button className="btn sm" onClick={reroll}>🎲 Tirar otra vez</button></div>
         </div>
       ) : (
-        <div className="note">Elige el tema del grupo. «Sistema» sigue el claro/oscuro del móvil; «Aleatorio» los va rotando con el tiempo.</div>
+        <div className="note">Elige el tema del grupo (se guarda en tu móvil). «Sistema» sigue el claro/oscuro; «Aleatorio» cambia de tema cada día.</div>
       )}
     </>
   )
