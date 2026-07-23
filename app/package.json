@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:app": "vite build",
-    "sync:ios": "npm run build:app && cap sync ios",
+    "sync:ios": "npm run build:app && cap sync ios && npm run patch:ios",
+    "patch:ios": "node scripts/patch-ios.mjs",
     "open:ios": "cap open ios"
   },
   "dependencies": {
