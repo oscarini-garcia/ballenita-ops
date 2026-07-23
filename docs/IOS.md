@@ -85,15 +85,18 @@ npm run open:ios     # abre Xcode
 
 A partir de aquí, los cambios de web/JS **no** necesitan repetir esto: van por OTA.
 
-## Fase D — Publicar una actualización OTA (el día a día)
+## Fase D — Publicar una actualización OTA (el día a día) — automático
 
-1. Sube la versión en `app/package.json` (p. ej. `0.1.0` → `0.1.1`).
-2. Lanza el workflow **Publish OTA bundle** (pestaña *Actions* → *Run workflow*, o crea el tag
-   `ota-v0.1.1`).
-3. El workflow compila (`base '/'`), empaqueta `dist/` en `bundle.zip`, calcula el `sha256`,
-   genera `latest.json` y crea el *release* `ota-vX.Y.Z`.
-4. Las apps, al abrir, leen `releases/latest/download/latest.json`; si la versión es más nueva,
+**Basta con subir la versión y mergear:**
+
+1. Sube la versión en `app/package.json` (p. ej. `0.1.1` → `0.1.2`).
+2. Merge a `main`. El workflow **Publish OTA bundle** salta solo: si esa versión aún no tiene
+   release, compila (`base '/'`), empaqueta `dist/` en `bundle.zip`, calcula el `sha256`, genera
+   `latest.json` y crea el *release* `ota-vX.Y.Z`. **Si no cambias la versión, no publica nada.**
+3. Las apps, al abrir, leen `releases/latest/download/latest.json`; si la versión es más nueva,
    descargan y aplican el bundle en la siguiente apertura.
+
+> También puedes lanzarlo a mano: *Actions → Publish OTA bundle → Run workflow*.
 
 > **Validar en dispositivo:** el ciclo OTA no se puede probar sin un build nativo. En la primera
 > release comprueba en un iPhone real que la app coge la actualización. Si `@capgo/capacitor-updater`

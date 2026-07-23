@@ -4,12 +4,16 @@ name: Publish OTA bundle
 # La app lee el manifiesto en releases/latest/download/latest.json y, si la versión
 # es más nueva que el bundle instalado, descarga bundle.zip y lo aplica.
 #
-# Uso: sube la versión en app/package.json y lanza este workflow (manual). Ver docs/IOS.md.
+# Automático: en cada push a main, si la versión de app/package.json aún NO tiene
+# release `ota-v<version>`, se publica. Es decir: para lanzar un OTA basta con SUBIR
+# la versión en package.json y mergear. Si no cambias la versión, no se publica nada.
+# También se puede lanzar a mano (workflow_dispatch). Ver docs/IOS.md.
 
 on:
   workflow_dispatch:
   push:
-    tags: ['ota-v*']
+    branches: [main]
+    paths: ['app/**']
 
 permissions:
   contents: write # crear el release
@@ -29,11 +33,31 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
 
-      - run: npm ci
-      - run: npm test
+      # ¿La versión de package.json ya tiene release? Si sí, no publicamos (evita
+      # duplicar en cada merge). Sube la versión para disparar un OTA nuevo.
+      - name: ¿Versión nueva?
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "ota-v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ ota-v$VERSION ya existe → no publico. Sube la versión en package.json para un OTA nuevo."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "✅ ota-v$VERSION es nueva → publico OTA."
+          fi
+
+      - if: steps.check.outputs.publish == 'true'
+        run: npm ci
+      - if: steps.check.outputs.publish == 'true'
+        run: npm test
 
       # Build para la app: base '/' (NO el subpath de Pages).
-      - run: npm run build:app
+      - if: steps.check.outputs.publish == 'true'
+        run: npm run build:app
         env:
           VITE_JSONBIN_ID: ${{ secrets.VITE_JSONBIN_ID }}
           VITE_JSONBIN_KEY: ${{ secrets.VITE_JSONBIN_KEY }}
@@ -41,10 +65,9 @@ jobs:
           VITE_PUSH_ENDPOINT: ${{ secrets.VITE_PUSH_ENDPOINT }}
 
       - name: Empaquetar bundle + manifiesto
-        id: pack
+        if: steps.check.outputs.publish == 'true'
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          VERSION="${{ steps.check.outputs.version }}"
           # El zip debe llevar index.html en la raíz (contenido de dist/, no la carpeta).
           (cd dist && zip -qr ../bundle.zip .)
           CHECKSUM=$(sha256sum bundle.zip | awk '{print $1}')
@@ -55,10 +78,11 @@ jobs:
           echo "Manifiesto:"; cat latest.json
 
       - name: Crear release OTA
+        if: steps.check.outputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ota-v${{ steps.pack.outputs.version }}
-          name: OTA v${{ steps.pack.outputs.version }}
+          tag_name: ota-v${{ steps.check.outputs.version }}
+          name: OTA v${{ steps.check.outputs.version }}
           body: Actualización OTA (JS/web) para la app iOS. No requiere review de Apple.
           files: |
             app/bundle.zip
