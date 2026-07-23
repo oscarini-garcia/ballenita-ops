@@ -66,10 +66,14 @@ npm run open:ios     # abre Xcode
 
 - **Signing & Capabilities** → selecciona tu *Team*; deja el bundle id `com.oscarini.ballenaops`.
 - Añade la capacidad **Push Notifications** (para la fase de push).
-- **Iconos / splash**: la forma fácil es `@capacitor/assets`:
+- **Iconos / splash**: las imágenes fuente ya están en `app/assets/` (`icon.png` 1024×1024
+  cuadrado y opaco, y `splash.png` 2732×2732). Genera todos los tamaños con:
   ```bash
-  npx @capacitor/assets generate --ios   # a partir de un icon.png de 1024×1024 y un splash
+  npx @capacitor/assets generate --ios   # usa app/assets/icon.png y splash.png
   ```
+  > El icono usa la ballena del emoji (variante Noto, la que se ve en el render), no la de
+  > Apple: el dibujo propietario de Apple no se puede empaquetar en un asset. Si algún día
+  > quieres otro dibujo, sustituye `app/assets/icon.png` y vuelve a generar.
 
 ## Fase C — Primer build y subida (Xcode, solo esta vez)
 
