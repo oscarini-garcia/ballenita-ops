@@ -4,6 +4,7 @@ import {
   expensesOf, personsOf, familiesOf,
   addSettlement, settlementsOf,
   seedExample, listEvents, dinnersOf, plansOf, listDishes, bungasOf,
+  addShopItem, shopItemsOf, updateShopItem, removeShopItem, clearBoughtShopItems,
 } from './db.js'
 import { computeFamilyBalances, simplifyDebts } from './lib/reparto.js'
 
@@ -91,6 +92,51 @@ describe('DB + reparto — flujo real gasto → saldo', () => {
   })
 })
 
+describe('Lista de la compra — apuntar, marcar y limpiar', () => {
+  it('apunta ítems y los marca como comprados', async () => {
+    const ev = await createEvent({ name: 'C', currency: 'EUR' })
+    const hielo = await addShopItem(ev, { texto: 'Hielos', categoria: 'hielo' })
+    await addShopItem(ev, { texto: 'Vino', categoria: 'bebida' })
+
+    let items = await shopItemsOf(ev)
+    expect(items.length).toBe(2)
+    expect(items.every((x) => x.comprado === false)).toBe(true)
+
+    await updateShopItem(hielo, { comprado: true })
+    items = await shopItemsOf(ev)
+    expect(items.find((x) => x.id === hielo).comprado).toBe(true)
+  })
+
+  it('categoría por defecto "otros" si no se indica', async () => {
+    const ev = await createEvent({ name: 'C', currency: 'EUR' })
+    await addShopItem(ev, { texto: 'Bolsas' })
+    const [it] = await shopItemsOf(ev)
+    expect(it.categoria).toBe('otros')
+  })
+
+  it('limpiar comprados borra solo lo marcado y deja tombstone', async () => {
+    const ev = await createEvent({ name: 'C', currency: 'EUR' })
+    const a = await addShopItem(ev, { texto: 'Fruta', categoria: 'fruta' })
+    const b = await addShopItem(ev, { texto: 'Cerveza', categoria: 'bebida' })
+    await updateShopItem(a, { comprado: true })
+
+    const borrados = await clearBoughtShopItems(ev)
+    expect(borrados).toBe(1)
+    const items = await shopItemsOf(ev)
+    expect(items.map((x) => x.id)).toEqual([b])
+
+    const { db } = await import('./db.js')
+    expect(await db.tombstones.get(`shop:${a}`)).toBeTruthy()
+  })
+
+  it('removeShopItem elimina el ítem', async () => {
+    const ev = await createEvent({ name: 'C', currency: 'EUR' })
+    const id = await addShopItem(ev, { texto: 'Hielo', categoria: 'hielo' })
+    await removeShopItem(id)
+    expect((await shopItemsOf(ev)).length).toBe(0)
+  })
+})
+
 describe('seedExample — datos de ejemplo coherentes', () => {
   it('crea el evento con familias, gente, cena y planes', async () => {
     const ev = await seedExample()
@@ -99,6 +145,7 @@ describe('seedExample — datos de ejemplo coherentes', () => {
     expect((await dinnersOf(ev)).length).toBe(1)
     expect((await plansOf(ev)).length).toBe(3)
     expect((await listDishes()).length).toBeGreaterThanOrEqual(6)
+    expect((await shopItemsOf(ev)).length).toBe(4)
   })
 
   it('la cena de ejemplo referencia platos y bungas válidos', async () => {

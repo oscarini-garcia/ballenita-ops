@@ -2,5 +2,5 @@
 // El catálogo de platos (dishes) es global; el resto cuelga de eventos.
 export const SYNC_TABLES = [
   'events', 'families', 'bungas', 'persons',
-  'expenses', 'settlements', 'dishes', 'dinners', 'plans',
+  'expenses', 'settlements', 'dishes', 'dinners', 'plans', 'shop',
 ]
