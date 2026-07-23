@@ -21,6 +21,10 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
+/* El fondo del tema va también en <html> para que las safe-areas de iOS en modo
+   PWA (barra de estado arriba, indicador de home abajo) se pinten con el tema y
+   no asome el blanco del root — se veía una franja blanca bajo la tabbar. */
+html { background: var(--app-bg) fixed; }
 body {
   margin: 0; font-family: var(--font); color: var(--ink);
   background: var(--app-bg) fixed;
@@ -34,14 +38,20 @@ button, input, select { font: inherit; color: inherit; }
   background: transparent; }
 
 .appbar { position: sticky; top: 0; z-index: 5; background: var(--appbar-bg);
-  color: var(--appbar-ink); padding: 14px 16px 12px; display: flex; align-items: center; gap: 11px; }
+  color: var(--appbar-ink); display: flex; align-items: center; gap: 11px;
+  /* Compensa la barra de estado (status-bar-style black-translucent) y el notch
+     en horizontal, para que el contenido no se solape con la hora/batería. */
+  padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
+           12px calc(16px + env(safe-area-inset-left)); }
 .appbar .logo { width: 34px; height: 34px; flex: none; }
 .appbar .ti { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
 .appbar .su { font-size: 11.5px; color: #a9cede; }
 .appbar .switch { margin-left: auto; background: rgba(255,255,255,.12); border: none; color: #eaf6fb;
   border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
-.body { flex: 1; padding: 14px 14px 84px; display: flex; flex-direction: column; gap: 12px; }
+.body { flex: 1; display: flex; flex-direction: column; gap: 12px;
+  /* Laterales con safe-area para el notch en horizontal. */
+  padding: 14px calc(14px + env(safe-area-inset-right)) 84px calc(14px + env(safe-area-inset-left)); }
 
 .sec-h { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
   color: var(--ink-faint); margin: 4px 2px 0; display: flex; align-items: center; justify-content: space-between; }
@@ -87,7 +97,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 
 .tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px;
   display: flex; justify-content: space-around; background: var(--foam-2); border-top: 1px solid var(--line-soft);
-  padding: 8px 4px calc(10px + env(safe-area-inset-bottom)); z-index: 6; }
+  padding: 8px calc(4px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom))
+           calc(4px + env(safe-area-inset-left)); z-index: 6; }
 .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-faint);
   background: none; border: none; cursor: pointer; }
 .tab svg { width: 21px; height: 21px; }
@@ -108,7 +119,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .empty .e { font-size: 40px; display: block; margin-bottom: 8px; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.fab { position: fixed; right: max(16px, calc(50% - 244px)); bottom: 78px; width: 52px; height: 52px;
+.fab { position: fixed; right: max(calc(16px + env(safe-area-inset-right)), calc(50% - 244px));
+  bottom: calc(78px + env(safe-area-inset-bottom)); width: 52px; height: 52px;
   border-radius: 17px; background: var(--spout); color: #fff; border: none; font-size: 27px; cursor: pointer;
   box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--spout) 70%, transparent); z-index: 6; }
 .modal-bg { position: fixed; inset: 0; background: rgba(4,18,26,.5); z-index: 20; display: flex; align-items: flex-end;
