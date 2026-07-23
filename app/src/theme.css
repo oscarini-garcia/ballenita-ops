@@ -3,7 +3,7 @@
   --line: #d5e1e6; --line-soft: #e4ecef; --spout: #1fa6d6; --spout-deep: #0e7ca6;
   --abyss: #08202c; --gold: #e7a33e;
   --owe: #e5544b; --owe-bg: #fce9e7; --owed: #2e9e6b; --owed-bg: #e4f3ec;
-  --r: 14px;
+  --r: 7px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   /* Superficies que los temas (skins) pueden repintar. */
   --app-bg: var(--foam);
@@ -57,10 +57,34 @@ button, input, select { font: inherit; color: inherit; }
   padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
            12px calc(16px + env(safe-area-inset-left)); }
 .appbar .logo { width: 34px; height: 34px; flex: none; }
-.appbar .ti { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
-.appbar .su { font-size: 11.5px; color: #a9cede; }
-.appbar .switch { margin-left: auto; background: rgba(255,255,255,.12); border: none; color: #eaf6fb;
-  border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.appbar .grow { flex: 1 1 auto; min-width: 0; }
+.appbar .ti { font-weight: 800; font-size: 17px; letter-spacing: -.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appbar .su { font-size: 11.5px; color: var(--appbar-ink); opacity: .72;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Botón redondeado genérico de la cabecera (⚙️, etc.). */
+.appbar .iconbtn { flex: none; background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink);
+  border-radius: 7px; padding: 7px 9px; font-size: 16px; line-height: 1; cursor: pointer; }
+.appbar .iconbtn:active { transform: translateY(1px); }
+
+/* Punto de estado de conexión/sync. Verde al día · amarillo con cola · rojo sin red. */
+.appbar .sync-dot { flex: none; background: rgba(255,255,255,.12); border: none; border-radius: 7px;
+  padding: 9px; cursor: pointer; display: grid; place-items: center; }
+.appbar .sync-dot:active { transform: translateY(1px); }
+.appbar .sync-dot .d { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.appbar .sync-dot.checking .d { animation: syncpulse .8s ease-in-out infinite; }
+@keyframes syncpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.65); } }
+
+/* Indicador de usuario (quién eres). */
+.appbar .userbadge { flex: none; display: flex; align-items: center; gap: 7px; max-width: 128px;
+  background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink); border-radius: 7px;
+  padding: 4px 9px 4px 4px; cursor: pointer; }
+.appbar .userbadge:active { transform: translateY(1px); }
+.appbar .userbadge .uav { flex: none; width: 26px; height: 26px; border-radius: 6px; display: grid;
+  place-items: center; font-size: 15px; background: rgba(255,255,255,.16); }
+.appbar .userbadge .un { font-size: 12px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .body { flex: 1; display: flex; flex-direction: column; gap: 12px;
   /* Laterales con safe-area para el notch en horizontal. */
@@ -80,20 +104,20 @@ button, input, select { font: inherit; color: inherit; }
 .row .amt { font-weight: 750; white-space: nowrap; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
-.av { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center;
+.av { width: 34px; height: 34px; border-radius: 7px; flex: none; display: grid; place-items: center;
   font-size: 17px; color: #fff; }
 
-.btn { border: none; border-radius: 11px; padding: 12px 16px; font-weight: 750; font-size: 15px;
+.btn { border: none; border-radius: 7px; padding: 12px 16px; font-weight: 750; font-size: 15px;
   cursor: pointer; background: var(--spout); color: #fff; }
 .btn:active { transform: translateY(1px); }
 .btn.block { width: 100%; }
 .btn.ghost { background: transparent; color: var(--spout-deep); border: 1px solid var(--line); }
-.btn.sm { padding: 7px 12px; font-size: 13px; border-radius: 9px; }
+.btn.sm { padding: 7px 12px; font-size: 13px; border-radius: 6px; }
 .btn.danger { background: var(--owe); }
 
 label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin: 10px 2px 4px; }
 input[type=text], input[type=number], input[type=date], input[type=email], select, textarea {
-  width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 10px;
+  width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
   padding: 11px 12px; font-size: 16px; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); outline-offset: 1px; }
@@ -126,7 +150,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .balance-hero .s { font-size: 12px; color: #a9cede; }
 
 .note { font-size: 12.5px; color: var(--ink-soft); background: color-mix(in srgb, var(--spout) 7%, var(--foam-2));
-  border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; }
+  border: 1px dashed var(--line); border-radius: 7px; padding: 10px 12px; }
 .note b { color: var(--ink); }
 
 .empty { text-align: center; color: var(--ink-faint); padding: 30px 16px; font-size: 14px; }
@@ -135,11 +159,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .fab { position: fixed; right: max(calc(16px + env(safe-area-inset-right)), calc(50% - 244px));
   bottom: calc(78px + env(safe-area-inset-bottom)); width: 52px; height: 52px;
-  border-radius: 17px; background: var(--spout); color: #fff; border: none; font-size: 27px; cursor: pointer;
+  border-radius: 10px; background: var(--spout); color: #fff; border: none; font-size: 27px; cursor: pointer;
   box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--spout) 70%, transparent); z-index: 6; }
 .modal-bg { position: fixed; inset: 0; background: rgba(4,18,26,.5); z-index: 20; display: flex; align-items: flex-end;
   justify-content: center; }
-.modal { background: var(--foam); width: 100%; max-width: 520px; border-radius: 20px 20px 0 0; padding: 16px 16px 26px;
+.modal { background: var(--foam); width: 100%; max-width: 520px; border-radius: 12px 12px 0 0; padding: 16px 16px 26px;
   max-height: 92vh; overflow-y: auto; }
 .modal h2 { margin: 4px 0 2px; font-size: 19px; }
 .modal .x { float: right; background: none; border: none; font-size: 22px; color: var(--ink-faint); cursor: pointer; }

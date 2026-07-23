@@ -43,8 +43,33 @@ export async function syncNow() {
 // Hook que orquesta la sync: al montar, al volver online, al volver a foreground,
 // tras un cambio (con debounce) y cada 90 s con la app visible. Sin background sync
 // real en iOS — este patrón es el de counter-ops (§14.3).
+//
+// Además expone lo que necesita el indicador de la cabecera (§ barra superior):
+//   · `online`  → hay conexión de red (rojo si no).
+//   · `dirty`   → hay cambios locales encolados sin subir (amarillo).
+//   · `recheck` → fuerza recomprobar red + sincronizar (al tocar el punto).
 export function useSyncEngine() {
   const [state, setState] = useState({ status: remote.isConfigured() ? 'idle' : 'no-config' })
+  const [dirty, setDirty] = useState(false)
+  const [online, setOnline] = useState(
+    typeof navigator === 'undefined' ? true : navigator.onLine !== false,
+  )
+
+  // Estado de red y cola local: se siguen aunque no haya sync configurada, para
+  // que el punto de la cabecera reaccione igual (rojo sin red).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onNet = () => setOnline(navigator.onLine !== false)
+    const onChangedDirty = () => setDirty(true)
+    window.addEventListener('online', onNet)
+    window.addEventListener('offline', onNet)
+    window.addEventListener('ballena:changed', onChangedDirty)
+    return () => {
+      window.removeEventListener('online', onNet)
+      window.removeEventListener('offline', onNet)
+      window.removeEventListener('ballena:changed', onChangedDirty)
+    }
+  }, [])
 
   useEffect(() => {
     if (!remote.isConfigured()) return
@@ -53,7 +78,9 @@ export function useSyncEngine() {
     const go = async () => {
       setState((s) => ({ ...s, status: 'syncing' }))
       const r = await syncNow()
-      if (alive) setState(r)
+      if (!alive) return
+      setState(r)
+      if (r.status === 'synced') setDirty(false)
     }
     go()
     const onOnline = () => go()
@@ -72,5 +99,17 @@ export function useSyncEngine() {
     }
   }, [])
 
-  return { ...state, isConfigured: remote.isConfigured(), sync: syncNow }
+  // Recheck manual (al tocar el punto de la cabecera): revalida la red y fuerza
+  // un ciclo de sincronización.
+  const recheck = async () => {
+    if (typeof navigator !== 'undefined') setOnline(navigator.onLine !== false)
+    if (!remote.isConfigured()) return { status: 'no-config' }
+    setState((s) => ({ ...s, status: 'syncing' }))
+    const r = await syncNow()
+    setState(r)
+    if (r.status === 'synced') setDirty(false)
+    return r
+  }
+
+  return { ...state, dirty, online, isConfigured: remote.isConfigured(), sync: syncNow, recheck }
 }

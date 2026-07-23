@@ -12,6 +12,27 @@ import { forzarActualizacion } from '../lib/pwa.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
+// Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en tests).
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
+
+function EventoSection({ event, onChangeEvent }) {
+  return (
+    <>
+      <div className="sec-h">Evento</div>
+      <div className="card tight">
+        <div className="row">
+          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐋</div>
+          <div className="main">
+            <div className="n">{event?.name || 'Evento'}</div>
+            <div className="sub">{event?.lugar || 'Ballena Ops'}</div>
+          </div>
+          {onChangeEvent && <button className="btn sm ghost" onClick={onChangeEvent}>↔ Cambiar</button>}
+        </div>
+      </div>
+    </>
+  )
+}
+
 function SyncSection() {
   const [state, setState] = useState(null)
   const configured = isConfigured()
@@ -50,6 +71,7 @@ function AppSection() {
             {busy ? '🐋 actualizando…' : '🔄 Buscar actualización y recargar'}
           </button>
         </div>
+        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-faint)' }}>Versión {APP_VERSION}</div>
       </div>
     </>
   )
@@ -80,7 +102,7 @@ function AspectoSection() {
   )
 }
 
-export default function EventSettingsScreen({ eventId }) {
+export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
@@ -90,6 +112,7 @@ export default function EventSettingsScreen({ eventId }) {
 
   return (
     <div className="body">
+      <EventoSection event={event} onChangeEvent={onChangeEvent} />
       <AspectoSection />
       <SyncSection />
       <AppSection />
