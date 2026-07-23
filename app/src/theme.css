@@ -21,6 +21,10 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
+/* El fondo del tema va también en <html> para que las safe-areas de iOS en modo
+   PWA (barra de estado arriba, indicador de home abajo) se pinten con el tema y
+   no asome el blanco del root — se veía una franja blanca bajo la tabbar. */
+html { background: var(--app-bg) fixed; }
 body {
   margin: 0; font-family: var(--font); color: var(--ink);
   background: var(--app-bg) fixed;
@@ -34,7 +38,11 @@ button, input, select { font: inherit; color: inherit; }
   background: transparent; }
 
 .appbar { position: sticky; top: 0; z-index: 5; background: var(--appbar-bg);
-  color: var(--appbar-ink); padding: 14px 16px 12px; display: flex; align-items: center; gap: 11px; }
+  color: var(--appbar-ink); display: flex; align-items: center; gap: 11px;
+  /* Compensa la barra de estado (status-bar-style black-translucent) y el notch
+     en horizontal, para que el contenido no se solape con la hora/batería. */
+  padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
+           12px calc(16px + env(safe-area-inset-left)); }
 .appbar .logo { width: 34px; height: 34px; flex: none; }
 .appbar .ti { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
 .appbar .su { font-size: 11.5px; color: #a9cede; }
