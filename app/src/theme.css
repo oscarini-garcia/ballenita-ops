@@ -169,9 +169,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   justify-content: center; }
 .modal { background: var(--foam); width: 100%; max-width: 520px; border-radius: 12px 12px 0 0; padding: 16px 16px 26px;
   max-height: 92vh; overflow-y: auto; }
-/* Variante centrada (~90% de la pantalla, con scroll) para la edición de usuario. */
-.modal-bg.center { align-items: center; padding: 16px; }
-.modal.center { width: 90%; max-width: 460px; max-height: 90vh; border-radius: 12px;
-  padding: 18px 16px 22px; }
+/* Variante centrada para la edición de usuario. El alto se limita a ~78vh (y respeta
+   las safe-areas) para que no se solape con la barra superior; el contenido hace
+   scroll dentro del propio modal. */
+.modal-bg.center { align-items: center;
+  padding: calc(12px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom)); }
+.modal.center { width: 90%; max-width: 460px; border-radius: 12px; padding: 18px 16px 22px;
+  max-height: min(78vh, calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .modal h2 { margin: 4px 0 2px; font-size: 19px; }
 .modal .x { float: right; background: none; border: none; font-size: 22px; color: var(--ink-faint); cursor: pointer; }
