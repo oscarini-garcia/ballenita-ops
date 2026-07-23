@@ -32,7 +32,50 @@ if (!existsSync(vcPath) || readFileSync(vcPath, 'utf8') !== vcSource) {
   console.log('[patch-ios] MainViewController.swift ya al día.')
 }
 
-// 2) Apuntar el storyboard al MainViewController (en vez del CAPBridgeViewController).
+// 2) Registrar MainViewController.swift en el proyecto Xcode. Si no, el .swift existe
+//    en disco pero no se compila → el storyboard no encuentra la clase en runtime →
+//    pantalla negra. Anclamos en las entradas de AppDelegate.swift, que siempre existen.
+const pbxPath = 'ios/App/App.xcodeproj/project.pbxproj'
+if (existsSync(pbxPath)) {
+  let pbx = readFileSync(pbxPath, 'utf8')
+  if (pbx.includes('MainViewController.swift')) {
+    console.log('[patch-ios] MainViewController.swift ya está en el proyecto Xcode.')
+  } else {
+    const BUILDID = 'BA11EA0000000000000000A1'
+    const FILEID = 'BA11EA0000000000000000A2'
+    pbx = pbx.replace(
+      /(\w{24} \/\* AppDelegate\.swift in Sources \*\/ = \{isa = PBXBuildFile;[^\n]*\};\n)/,
+      `$1\t\t${BUILDID} /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ${FILEID} /* MainViewController.swift */; };\n`,
+    )
+    pbx = pbx.replace(
+      /(\w{24} \/\* AppDelegate\.swift \*\/ = \{isa = PBXFileReference;[^\n]*\};\n)/,
+      `$1\t\t${FILEID} /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };\n`,
+    )
+    pbx = pbx.replace(
+      /(\w{24} \/\* AppDelegate\.swift \*\/,\n)/,
+      `$1\t\t\t\t${FILEID} /* MainViewController.swift */,\n`,
+    )
+    pbx = pbx.replace(
+      /(\w{24} \/\* AppDelegate\.swift in Sources \*\/,\n)/,
+      `$1\t\t\t\t${BUILDID} /* MainViewController.swift in Sources */,\n`,
+    )
+    // Solo escribimos si TODAS las anclas entraron (BUILDID x2, FILEID x3): un
+    // .pbxproj a medias corrompería el proyecto.
+    const okBuild = pbx.split(BUILDID).length - 1 === 2
+    const okFile = pbx.split(FILEID).length - 1 === 3
+    if (okBuild && okFile) {
+      writeFileSync(pbxPath, pbx)
+      console.log('[patch-ios] MainViewController.swift añadido al proyecto Xcode ✅')
+    } else {
+      console.warn('[patch-ios] ⚠ No pude registrarlo en el .pbxproj automáticamente.')
+      console.warn('[patch-ios]   Añádelo a mano: en Xcode, clic derecho en la carpeta App → Add Files to "App" → target App.')
+    }
+  }
+} else {
+  console.warn('[patch-ios] ⚠ No encuentro project.pbxproj; revisa docs/IOS.md.')
+}
+
+// 3) Apuntar el storyboard al MainViewController (en vez del CAPBridgeViewController).
 const sbPath = join(IOS_APP, 'Base.lproj', 'Main.storyboard')
 if (!existsSync(sbPath)) {
   console.warn('[patch-ios] ⚠ No encuentro Main.storyboard. Pon la clase de la vista a "MainViewController" a mano en Xcode (ver docs/IOS.md).')

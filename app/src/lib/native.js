@@ -91,27 +91,18 @@ export async function checkForOtaUpdate() {
 // --- Registro de push (OneSignal) ------------------------------------------
 // Inicializa OneSignal y suscribe el dispositivo. Con esto ya puedes enviar
 // avisos a mano desde el panel de OneSignal. El envío automático es fase aparte
-// (ver notifyGroup + docs/IOS.md). Devuelve 'onesignal' | 'apns' | null.
+// (ver notifyGroup + docs/IOS.md). Devuelve 'onesignal' | null.
 export async function registerPush() {
   if (!isNative()) return null
-  // Camino recomendado: OneSignal (gestiona APNs por ti).
-  if (ONESIGNAL_APP_ID) {
-    try {
-      const OneSignal = (await import('onesignal-cordova-plugin')).default
-      OneSignal.initialize(ONESIGNAL_APP_ID)
-      await OneSignal.Notifications.requestPermission(true)
-      return 'onesignal'
-    } catch {
-      /* cae al registro APNs crudo */
-    }
-  }
-  // Fallback sin OneSignal: registro APNs crudo (solo obtiene el token).
+  // Sin proveedor de push configurado NO pedimos permiso: un prompt sin nada
+  // detrás es mala UX (y si el usuario deniega, cuesta recuperarlo). Se activa
+  // solo cuando pongas VITE_ONESIGNAL_APP_ID (ver docs/IOS.md).
+  if (!ONESIGNAL_APP_ID) return null
   try {
-    const { PushNotifications } = await import('@capacitor/push-notifications')
-    const perm = await PushNotifications.requestPermissions()
-    if (perm.receive !== 'granted') return null
-    await PushNotifications.register()
-    return 'apns'
+    const OneSignal = (await import('onesignal-cordova-plugin')).default
+    OneSignal.initialize(ONESIGNAL_APP_ID)
+    await OneSignal.Notifications.requestPermission(true)
+    return 'onesignal'
   } catch {
     return null
   }
