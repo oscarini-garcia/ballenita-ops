@@ -54,7 +54,10 @@ export default function UserBadge({ eventId, persons }) {
         aria-label={me ? `Usuario: ${me.name}` : 'Elegir quién eres'}
       >
         <span className="uav">{me ? me.avatar : '🐋'}</span>
-        <span className="un">{me ? (me.apodo || me.name) : '¿Quién eres?'}</span>
+        <span className="utxt">
+          <span className="un">{me ? (me.apodo || me.name) : '¿Quién eres?'}</span>
+          {me && me.estado && <span className="ust">{me.estado}</span>}
+        </span>
       </button>
       {open && (
         <UserSheet
@@ -86,8 +89,8 @@ function UserSheet({ persons, me, onChoose, onSalir, onClose }) {
   }
 
   return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-bg center" onClick={onClose}>
+      <div className="modal center" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose}>×</button>
         {me ? (
           <>
@@ -100,7 +103,8 @@ function UserSheet({ persons, me, onChoose, onSalir, onClose }) {
                 <button key={a} className={`chip${avatar === a ? ' on' : ''}`} onClick={() => { tap(); setAvatar(a) }}>{a}</button>
               ))}
             </div>
-            <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} style={{ marginTop: 8 }} />
+            <label>O escribe el que quieras</label>
+            <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} placeholder="🙂" />
 
             <label>Tu estado</label>
             <div className="chips">
