@@ -1,0 +1,18 @@
+{
+  "appId": "com.oscarini.ballenaops",
+  "appName": "Ballena Ops",
+  "webDir": "dist",
+  "ios": {
+    "scrollEnabled": true,
+    "contentInset": "never"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": false,
+      "resetWhenUpdate": true
+    }
+  }
+}
