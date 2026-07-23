@@ -14,11 +14,23 @@ Funciona **en local** (IndexedDB), sin backend todavía:
 - ✅ **Gastos**: importe, multi-moneda con tipo congelado, categoría, pagador,
   y reparto por persona (con atajo «solo mayores»).
 - ✅ **Saldos entre familias** + **liquidación simplificada** + «marcar pagado».
+- ✅ **Cenas, Planes, Agenda y Estadísticas.**
+- ✅ **Temas** (5 skins + Sistema + Aleatorio diario) en Ajustes.
 - ✅ **Motor de reparto** (`src/lib/reparto.js`) y **de merge LWW/tombstone**
   (`src/lib/merge.js`), ambos con tests (`npm test`).
+- ✅ **Sincronización** (`src/sync/`): snapshot completo + merge LWW/tombstones +
+  transporte JSONBin. Se activa con las variables `VITE_JSONBIN_*`; sin ellas la app
+  es solo local. PUT solo si hay cambios; sync al abrir, al volver online/foreground
+  y cada 90 s (patrón counter-ops, §14.3).
 
-Pendiente (siguientes fases): sincronización del documento compartido (JSONBin),
-login por email mágico, cenas, planes, estadísticas y avatares con foto.
+Pendiente (siguientes fases): login por email mágico y avatares con foto.
+
+### Sincronización — cómo se activa
+
+1. Crea un bin en [JSONBin.io](https://jsonbin.io) y copia su **Bin ID** y **Master Key**.
+2. Ponlos en `.env` (ver `.env.example`): `VITE_JSONBIN_ID` y `VITE_JSONBIN_KEY`.
+   En GitHub Pages, como **secrets** del repo (inyectados en el build).
+3. Listo: los móviles del grupo comparten el mismo documento y convergen (LWW + historial).
 
 ## Desarrollo
 

@@ -1,5 +1,6 @@
 import Dexie from 'dexie'
 import { uid, now } from './lib/ids.js'
+import { SYNC_TABLES } from './sync/tables.js'
 
 // IndexedDB desde el día 1 (§14). Cada tabla guarda registros con `id` de cliente
 // y `updatedAt` para el merge. Aquí, en Fase 0, la app es local; la sincronización
@@ -22,7 +23,58 @@ db.version(2).stores({
   plans: '&id, eventId, dia',
 })
 
+// v3: tombstones para propagar borrados en la sincronización (§14).
+db.version(3).stores({
+  tombstones: '&key', // key = `${tabla}:${id}`
+})
+
 const stamp = (obj) => ({ ...obj, updatedAt: now() })
+
+// ── Señal de cambios locales (para disparar la sync) ──
+let applyingRemote = false
+export function setApplyingRemote(v) { applyingRemote = v }
+function bump() {
+  if (applyingRemote || typeof window === 'undefined') return
+  window.dispatchEvent(new Event('ballena:changed'))
+}
+for (const t of SYNC_TABLES) {
+  db[t].hook('creating', () => { bump() })
+  db[t].hook('updating', () => { bump() })
+  db[t].hook('deleting', () => { bump() })
+}
+
+// Borrado con tombstone: se elimina la fila y se anota el borrado para que
+// la sincronización no la resucite desde otro dispositivo (§14, LWW + tombstones).
+export async function removeRow(table, id) {
+  await db.transaction('rw', db[table], db.tombstones, async () => {
+    await db[table].delete(id)
+    await db.tombstones.put({ key: `${table}:${id}`, table, rowId: id, ts: now() })
+  })
+}
+
+// ── Snapshot completo (para sincronizar el documento compartido) ──
+export async function exportSnapshot() {
+  const tables = {}
+  for (const t of SYNC_TABLES) tables[t] = await db[t].toArray()
+  const tombstones = await db.tombstones.toArray()
+  return { v: 1, tables, tombstones }
+}
+
+export async function importSnapshot(snap) {
+  setApplyingRemote(true)
+  try {
+    await db.transaction('rw', [...SYNC_TABLES.map((t) => db[t]), db.tombstones], async () => {
+      if (snap.tombstones?.length) await db.tombstones.bulkPut(snap.tombstones)
+      for (const t of SYNC_TABLES) {
+        if (snap.tables?.[t]?.length) await db[t].bulkPut(snap.tables[t])
+        const del = (snap.tombstones ?? []).filter((x) => x.table === t).map((x) => x.rowId)
+        if (del.length) await db[t].bulkDelete(del)
+      }
+    })
+  } finally {
+    setApplyingRemote(false)
+  }
+}
 
 // ── Eventos ──
 export async function createEvent({ name, lugar = '', currency = 'EUR', startDate, endDate }) {
@@ -42,7 +94,7 @@ export async function addFamily(eventId, { name, color = '#1FA6D6', avatar = '�
 }
 export const familiesOf = (eventId) => db.families.where({ eventId }).toArray()
 export const updateFamily = (id, patch) => db.families.update(id, stamp(patch))
-export const removeFamily = (id) => db.families.delete(id)
+export const removeFamily = (id) => removeRow('families', id)
 
 // ── Bungas ──
 export async function addBunga(eventId, { name, alias = '', familyId = null }) {
@@ -52,7 +104,7 @@ export async function addBunga(eventId, { name, alias = '', familyId = null }) {
 }
 export const bungasOf = (eventId) => db.bungas.where({ eventId }).toArray()
 export const updateBunga = (id, patch) => db.bungas.update(id, stamp(patch))
-export const removeBunga = (id) => db.bungas.delete(id)
+export const removeBunga = (id) => removeRow('bungas', id)
 
 // ── Personas ──
 export async function addPerson(eventId, p) {
@@ -77,7 +129,7 @@ export async function addPerson(eventId, p) {
 }
 export const personsOf = (eventId) => db.persons.where({ eventId }).toArray()
 export const updatePerson = (id, patch) => db.persons.update(id, stamp(patch))
-export const removePerson = (id) => db.persons.delete(id)
+export const removePerson = (id) => removeRow('persons', id)
 
 // ── Gastos ──
 export async function addExpense(eventId, e) {
@@ -87,7 +139,7 @@ export async function addExpense(eventId, e) {
 }
 export const expensesOf = (eventId) => db.expenses.where({ eventId }).reverse().sortBy('dateISO')
 export const updateExpense = (id, patch) => db.expenses.update(id, stamp(patch))
-export const removeExpense = (id) => db.expenses.delete(id)
+export const removeExpense = (id) => removeRow('expenses', id)
 
 // ── Liquidaciones ──
 export async function addSettlement(eventId, s) {
@@ -96,7 +148,7 @@ export async function addSettlement(eventId, s) {
   return id
 }
 export const settlementsOf = (eventId) => db.settlements.where({ eventId }).toArray()
-export const removeSettlement = (id) => db.settlements.delete(id)
+export const removeSettlement = (id) => removeRow('settlements', id)
 
 // ── Platos (catálogo global, §6.2) ──
 export const DISH_CATEGORIES = [
@@ -113,7 +165,7 @@ export async function addDish({ name, categorias = [], esFavorito = false, ingre
 }
 export const listDishes = () => db.dishes.toArray()
 export const updateDish = (id, patch) => db.dishes.update(id, stamp(patch))
-export const removeDish = (id) => db.dishes.delete(id)
+export const removeDish = (id) => removeRow('dishes', id)
 
 // ── Cenas (§6) — una por día ──
 export async function addDinner(eventId, d) {
@@ -130,7 +182,7 @@ export async function addDinner(eventId, d) {
 }
 export const dinnersOf = (eventId) => db.dinners.where({ eventId }).sortBy('dia')
 export const updateDinner = (id, patch) => db.dinners.update(id, stamp(patch))
-export const removeDinner = (id) => db.dinners.delete(id)
+export const removeDinner = (id) => removeRow('dinners', id)
 
 // ── Planes (§4) ──
 export async function addPlan(eventId, p) {
@@ -150,7 +202,7 @@ export async function addPlan(eventId, p) {
 }
 export const plansOf = (eventId) => db.plans.where({ eventId }).toArray()
 export const updatePlan = (id, patch) => db.plans.update(id, stamp(patch))
-export const removePlan = (id) => db.plans.delete(id)
+export const removePlan = (id) => removeRow('plans', id)
 
 // ── Semilla de ejemplo (Ballenita 2026) para probar rápido ──
 export async function seedExample() {

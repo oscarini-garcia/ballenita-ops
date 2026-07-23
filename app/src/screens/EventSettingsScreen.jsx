@@ -6,8 +6,37 @@ import {
   personsOf, addPerson, removePerson, updatePerson,
 } from '../db.js'
 import { useSkin, SKINS } from '../lib/skins.js'
+import { syncNow } from '../sync/engine.js'
+import { isConfigured } from '../sync/jsonbin.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
+
+function SyncSection() {
+  const [state, setState] = useState(null)
+  const configured = isConfigured()
+  async function run() {
+    setState({ status: 'syncing' })
+    setState(await syncNow())
+  }
+  return (
+    <>
+      <div className="sec-h">Sincronización</div>
+      {configured ? (
+        <>
+          <div className="note">Los cambios se sincronizan solos entre los móviles del grupo (al abrir, al volver la conexión y cada poco). Todo funciona sin cobertura y cuadra al reconectar.</div>
+          <div style={{ marginTop: 8 }}>
+            <button className="btn sm" onClick={run}>↻ Sincronizar ahora</button>
+            {state && <span style={{ marginLeft: 10, fontSize: 12, color: 'var(--ink-faint)' }}>
+              {state.status === 'syncing' ? 'sincronizando…' : state.status === 'synced' ? '✓ al día' : state.status}
+            </span>}
+          </div>
+        </>
+      ) : (
+        <div className="note">Ahora mismo la app es <b>solo local</b> (este móvil). Para sincronizar con el grupo, configura <code>VITE_JSONBIN_ID</code> y <code>VITE_JSONBIN_KEY</code> (ver <code>app/.env.example</code>). Sin eso, todo funciona igual pero no se comparte.</div>
+      )}
+    </>
+  )
+}
 
 function AspectoSection() {
   const { pref, current, choose, reroll } = useSkin()
@@ -45,6 +74,7 @@ export default function EventSettingsScreen({ eventId }) {
   return (
     <div className="body">
       <AspectoSection />
+      <SyncSection />
 
       <div className="sec-h">Familias <button className="btn sm ghost" onClick={() => setModal('familia')}>+ añadir</button></div>
       <div className="card tight">

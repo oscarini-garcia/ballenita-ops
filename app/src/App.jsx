@@ -10,8 +10,14 @@ import CenasScreen from './screens/CenasScreen.jsx'
 import PlanesScreen from './screens/PlanesScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
 import StatsScreen from './screens/StatsScreen.jsx'
+import { useSyncEngine } from './sync/engine.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
+
+const SYNC_LABEL = {
+  'no-config': '● local', syncing: '↻ …', synced: '✓ sync', offline: '⚠ sin red',
+  error: '⚠ error', busy: '↻ …', idle: '● local',
+}
 
 const TABS = [
   { id: 'agenda', label: 'Agenda', icon: 'M4 5h16v16H4zM4 9h16M9 3v4M15 3v4' },
@@ -25,6 +31,7 @@ const TABS = [
 export default function App() {
   const [activeId, setActiveId] = useState(() => localStorage.getItem(ACTIVE_KEY) || null)
   const [tab, setTab] = useState('agenda')
+  const sync = useSyncEngine()
 
   // El resultado se etiqueta con el id consultado, para distinguir un valor "stale"
   // (de un activeId anterior, aún sin resolver) de un "el evento no existe" real.
@@ -71,7 +78,8 @@ export default function App() {
           <div className="ti">{event.name}</div>
           <div className="su">{event.lugar || 'Ballena Ops'}</div>
         </div>
-        <button className="switch" title="Ajustes del evento" aria-label="Ajustes" onClick={() => setTab('evento')} style={{ marginLeft: 'auto', padding: '6px 10px' }}>⚙️</button>
+        <span title={`Sincronización: ${sync.status}`} style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, opacity: .8, whiteSpace: 'nowrap' }}>{SYNC_LABEL[sync.status] ?? ''}</span>
+        <button className="switch" title="Ajustes del evento" aria-label="Ajustes" onClick={() => setTab('evento')} style={{ padding: '6px 10px' }}>⚙️</button>
         <button className="switch" onClick={() => pick(null)}>Cambiar</button>
       </header>
 
