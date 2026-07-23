@@ -487,6 +487,30 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - **Rutas SPA:** GitHub Pages no hace fallback de rutas → usar **hash routing** o un `404.html` que redirija a `index.html`.
 - **⚠️ Setup a tener en cuenta:** GitHub Pages en un **repo privado** requiere plan **Pro/Team**. Si el repo es privado y estás en plan free, hay que **hacerlo público** o subir de plan para que Pages publique.
 
+### 14.5-ter Coste de sincronización — ¿se mueven muchos datos? (medido)
+
+**No.** Medido sobre un documento de evento **grande y realista** (12 personas, 4 familias/bungas, **60 gastos**, 7 cenas, 20 planes, 8 pagos):
+
+| | Tamaño |
+|---|---|
+| Documento del evento (JSON crudo) | **~83 KB** |
+| Documento **gzip** | **~5 KB** |
+| Un ciclo de sync (GET + PUT), crudo | ~166 KB |
+| Un ciclo de sync, gzip | **~10 KB** |
+
+- Un evento pesa como **una imagen pequeña**. El JSON comprime muchísimo (≈16×) por claves e IDs repetidos.
+- **Lo que infla** (y escala con gente × ítems): los `participantIds` de cada gasto (lista todos los UUID) y los `votos` de cada plan. Aun así, marginal.
+- **El modelo de counter-ops sincroniza el documento entero** (no deltas): cada sync mueve todo el evento. A este tamaño da igual; importaría solo con miles de registros.
+
+**La preocupación real no es el tamaño, es la frecuencia y la cuota de peticiones.** Mitigaciones (a aplicar al enchufar la sync):
+1. **PUT solo si hay cambios locales** (dirty flag). counter-ops sube en cada ciclo; nosotros nos lo saltamos si no hay nada nuevo → recorta el grueso de la escritura.
+2. **Polling más suave** (3–5 min, o solo tras un cambio / al volver a foreground) en vez de cada 60 s.
+3. **Un doc por evento** (ya decidido): no se sincronizan eventos cerrados/inactivos.
+4. **Cuota, no ancho de banda:** el plan gratis de JSONBin limita **peticiones/mes**; con varios dispositivos polleando puede ser el primer techo. Si aprieta: subir el intervalo, o mover el doc a un KV propio (Cloudflare Workers KV) — sigue siendo el mismo patrón.
+5. gzip apenas hace falta a estos tamaños; no merece ingeniería.
+
+**Veredicto:** para un grupo de amigos, el tráfico es trivial. El diseño aguanta de sobra; solo hay que **no hacer PUT en vano** y **no pollear demasiado**.
+
 ### 14.6 Forks resueltos (dónde Ballena Ops difiere de counter-ops)
 1. **✅ Auth: SÍ hay login (email mágico; sin Apple, sin Google por ahora).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
 2. **✅ Privacidad del backend: se acepta el modelo simple** (clave del doc en el cliente, como counter-ops). Grupo de confianza, doc no público.
