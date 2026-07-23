@@ -14,6 +14,8 @@ import { useSyncEngine } from './sync/engine.js'
 import { tap, share } from './lib/native.js'
 
 const APP_URL = 'https://oscarini-garcia.github.io/ballenita-ops/'
+// Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en algún test).
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
@@ -79,7 +81,7 @@ export default function App() {
         <WhaleLogo className="logo" />
         <div>
           <div className="ti">{event.name}</div>
-          <div className="su">{event.lugar || 'Ballena Ops'}</div>
+          <div className="su">{event.lugar || 'Ballena Ops'} · v{APP_VERSION}</div>
         </div>
         <span title={`Sincronización: ${sync.status}`} style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, opacity: .8, whiteSpace: 'nowrap' }}>{SYNC_LABEL[sync.status] ?? ''}</span>
         <button className="switch" title="Compartir" aria-label="Compartir" onClick={() => { tap(); share({ title: event.name, text: `Estamos organizando "${event.name}" con Ballena Ops 🐋`, url: APP_URL, dialogTitle: 'Compartir evento' }) }} style={{ padding: '6px 10px' }}>📤</button>

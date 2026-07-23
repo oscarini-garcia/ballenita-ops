@@ -1,13 +1,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { readFileSync } from 'node:fs'
 
 // Servida en GitHub Pages bajo /ballenita-ops/ (§14 del spec).
 // En local, base '/' para que el dev server funcione sin subpath.
 const base = process.env.GITHUB_PAGES ? '/ballenita-ops/' : '/'
 
+// Versión desde package.json, inyectada como global. Útil para ver qué bundle
+// está vivo (sirve de prueba visual del OTA: al actualizar, cambia el número).
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url)))
+
 export default defineConfig({
   base,
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),
     VitePWA({
