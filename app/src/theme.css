@@ -19,7 +19,7 @@
   }
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #root { height: 100%; }
 /* El fondo del tema va también en <html> para que las safe-areas de iOS en modo
    PWA (barra de estado arriba, indicador de home abajo) se pinten con el tema y
@@ -29,7 +29,20 @@ body {
   margin: 0; font-family: var(--font); color: var(--ink);
   background: var(--app-bg) fixed;
   -webkit-font-smoothing: antialiased; line-height: 1.5;
-  overscroll-behavior-y: contain;
+  /* Tacto tipo app: sin rebote al llegar al final del scroll, sin doble-tap-zoom,
+     y sin selección accidental de texto ni menú del long-press. En Safari algunos
+     de estos son "best effort"; dentro de la cáscara nativa (WKWebView) se cumplen
+     al 100% (además el rebote se remata con scrollView.bounces=false). */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Reactiva selección y callout donde sí tiene sentido: campos y texto marcado
+   como copiable (p. ej. un importe con la clase .selectable). */
+input, textarea, [contenteditable="true"], .selectable {
+  -webkit-user-select: text; user-select: text;
+  -webkit-touch-callout: default;
 }
 button, input, select { font: inherit; color: inherit; }
 .tnum { font-variant-numeric: tabular-nums; }
@@ -81,7 +94,8 @@ button, input, select { font: inherit; color: inherit; }
 label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin: 10px 2px 4px; }
 input[type=text], input[type=number], input[type=date], input[type=email], select, textarea {
   width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 10px;
-  padding: 11px 12px; font-size: 15px; }
+  /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
+  padding: 11px 12px; font-size: 16px; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); outline-offset: 1px; }
 
 .pill { font-size: 11px; font-weight: 750; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }

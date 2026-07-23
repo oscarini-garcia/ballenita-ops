@@ -11,6 +11,9 @@ import PlanesScreen from './screens/PlanesScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
 import StatsScreen from './screens/StatsScreen.jsx'
 import { useSyncEngine } from './sync/engine.js'
+import { tap, share } from './lib/native.js'
+
+const APP_URL = 'https://oscarini-garcia.github.io/ballenita-ops/'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
@@ -79,7 +82,8 @@ export default function App() {
           <div className="su">{event.lugar || 'Ballena Ops'}</div>
         </div>
         <span title={`Sincronización: ${sync.status}`} style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, opacity: .8, whiteSpace: 'nowrap' }}>{SYNC_LABEL[sync.status] ?? ''}</span>
-        <button className="switch" title="Ajustes del evento" aria-label="Ajustes" onClick={() => setTab('evento')} style={{ padding: '6px 10px' }}>⚙️</button>
+        <button className="switch" title="Compartir" aria-label="Compartir" onClick={() => { tap(); share({ title: event.name, text: `Estamos organizando "${event.name}" con Ballena Ops 🐋`, url: APP_URL, dialogTitle: 'Compartir evento' }) }} style={{ padding: '6px 10px' }}>📤</button>
+        <button className="switch" title="Ajustes del evento" aria-label="Ajustes" onClick={() => { tap(); setTab('evento') }} style={{ padding: '6px 10px' }}>⚙️</button>
         <button className="switch" onClick={() => pick(null)}>Cambiar</button>
       </header>
 
@@ -93,7 +97,7 @@ export default function App() {
 
       <nav className="tabbar">
         {TABS.map((t) => (
-          <button key={t.id} className={`tab${tab === t.id ? ' on' : ''}`} onClick={() => setTab(t.id)}>
+          <button key={t.id} className={`tab${tab === t.id ? ' on' : ''}`} onClick={() => { tap(); setTab(t.id) }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d={t.icon} />
             </svg>

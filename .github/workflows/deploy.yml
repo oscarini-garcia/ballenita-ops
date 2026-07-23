@@ -35,6 +35,8 @@ jobs:
           GITHUB_PAGES: 'true'
           VITE_JSONBIN_ID: ${{ secrets.VITE_JSONBIN_ID }}
           VITE_JSONBIN_KEY: ${{ secrets.VITE_JSONBIN_KEY }}
+          VITE_ONESIGNAL_APP_ID: ${{ secrets.VITE_ONESIGNAL_APP_ID }}
+          VITE_PUSH_ENDPOINT: ${{ secrets.VITE_PUSH_ENDPOINT }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist

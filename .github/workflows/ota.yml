@@ -1,0 +1,65 @@
+name: Publish OTA bundle
+
+# Publica una actualización OTA (JS/web) para la app iOS SIN pasar por Apple.
+# La app lee el manifiesto en releases/latest/download/latest.json y, si la versión
+# es más nueva que el bundle instalado, descarga bundle.zip y lo aplica.
+#
+# Uso: sube la versión en app/package.json y lanza este workflow (manual). Ver docs/IOS.md.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['ota-v*']
+
+permissions:
+  contents: write # crear el release
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+      - run: npm test
+
+      # Build para la app: base '/' (NO el subpath de Pages).
+      - run: npm run build:app
+        env:
+          VITE_JSONBIN_ID: ${{ secrets.VITE_JSONBIN_ID }}
+          VITE_JSONBIN_KEY: ${{ secrets.VITE_JSONBIN_KEY }}
+          VITE_ONESIGNAL_APP_ID: ${{ secrets.VITE_ONESIGNAL_APP_ID }}
+          VITE_PUSH_ENDPOINT: ${{ secrets.VITE_PUSH_ENDPOINT }}
+
+      - name: Empaquetar bundle + manifiesto
+        id: pack
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # El zip debe llevar index.html en la raíz (contenido de dist/, no la carpeta).
+          (cd dist && zip -qr ../bundle.zip .)
+          CHECKSUM=$(sha256sum bundle.zip | awk '{print $1}')
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/ota-v${VERSION}/bundle.zip"
+          cat > latest.json <<EOF
+          { "version": "${VERSION}", "url": "${URL}", "checksum": "${CHECKSUM}" }
+          EOF
+          echo "Manifiesto:"; cat latest.json
+
+      - name: Crear release OTA
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ota-v${{ steps.pack.outputs.version }}
+          name: OTA v${{ steps.pack.outputs.version }}
+          body: Actualización OTA (JS/web) para la app iOS. No requiere review de Apple.
+          files: |
+            app/bundle.zip
+            app/latest.json
