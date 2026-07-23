@@ -51,8 +51,9 @@ npm run sync:ios     # build web + copia a ios/
 El CSS ya pone `overscroll-behavior: none` (cubre la mayoría). Para eliminarlo del todo en el
 WKWebView hay que subclasear el controller y desactivar `scrollView.bounces` — pero **no hace
 falta tocar Xcode a mano**: `npm run sync:ios` ejecuta `scripts/patch-ios.mjs`, que crea
-`ios/App/App/MainViewController.swift` y reapunta el storyboard automáticamente. Es idempotente,
-así que se aplica cada vez que sincronizas.
+`ios/App/App/MainViewController.swift`, lo **registra en el proyecto Xcode** (si no, el `.swift`
+no se compila y el arranque sale en negro) y reapunta el storyboard. Es idempotente, así que se
+aplica cada vez que sincronizas.
 
 > Si el script avisa de que no reconoce el view controller (una versión de Capacitor con otro
 > template), ponlo a mano: en `Main.storyboard`, clase de la vista → `MainViewController`. El
@@ -109,6 +110,10 @@ estilo de `VITE_JSONBIN_*`:
 | --- | --- | --- |
 | `VITE_ONESIGNAL_APP_ID` | App ID de OneSignal (suscribe el dispositivo) | ✅ Sí, es pública |
 | `VITE_PUSH_ENDPOINT` | URL de **tu** función serverless para el envío automático | ✅ Sí (no lleva la key) |
+
+> Hasta que no pongas `VITE_ONESIGNAL_APP_ID`, `registerPush()` **no pide permiso** de
+> notificaciones (evita el prompt prematuro sin nada detrás). El permiso se solicita solo
+> cuando OneSignal está configurado.
 
 > ⚠️ **Nunca** metas la **REST API key** de OneSignal en el build: el repo es público (Pages) y
 > los bundles OTA también → quedaría expuesta y cualquiera podría mandar push a tu grupo.
