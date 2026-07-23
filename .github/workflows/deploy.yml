@@ -33,6 +33,8 @@ jobs:
       - run: npm run build
         env:
           GITHUB_PAGES: 'true'
+          VITE_JSONBIN_ID: ${{ secrets.VITE_JSONBIN_ID }}
+          VITE_JSONBIN_KEY: ${{ secrets.VITE_JSONBIN_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist
