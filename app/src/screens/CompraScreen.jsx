@@ -27,11 +27,9 @@ export default function CompraScreen({ eventId }) {
   const [texto, setTexto] = useState('')
   const [categoria, setCategoria] = useState('otros')
 
-  // Identidad ligera para registrar quién compra (mismo patrón que Planes, §14).
-  const key = `ballena.person.${eventId}`
-  const [me, setMe] = useState(() => localStorage.getItem(key) || '')
-  const [editMe, setEditMe] = useState(false)
-  function pickMe(id) { localStorage.setItem(key, id); setMe(id); setEditMe(false) }
+  // Identidad ligera ya ligada globalmente (se elige en Planes, §14). Aquí solo se lee
+  // para firmar la compra con quién la marca.
+  const me = localStorage.getItem(`ballena.person.${eventId}`) || ''
   const nameOf = (id) => persons.find((p) => p.id === id)?.name ?? 'alguien'
 
   async function add() {
@@ -83,24 +81,6 @@ export default function CompraScreen({ eventId }) {
           ))}
         </div>
       </div>
-
-      {(!me || editMe)
-        ? (
-          <div className="card tight" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Eres:</span>
-            <select value={me} onChange={(e) => pickMe(e.target.value)} style={{ padding: '7px 10px' }} autoFocus={editMe}>
-              <option value="">— elígete para firmar la compra —</option>
-              {persons.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-            {me && <button className="btn sm ghost" onClick={() => setEditMe(false)}>cancelar</button>}
-          </div>
-        )
-        : (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 6, margin: '-2px 2px 2px', fontSize: 11.5, color: 'var(--ink-faint)' }}>
-            <span>Compras como <b>{nameOf(me)}</b></span>
-            <button className="btn sm ghost" style={{ padding: '2px 8px' }} onClick={() => { tap(); setEditMe(true) }}>cambiar</button>
-          </div>
-        )}
 
       {items.length === 0 && (
         <div className="empty"><span className="e">🛒</span>La lista está vacía.<br />Apunta lo que haga falta comprar arriba.</div>
