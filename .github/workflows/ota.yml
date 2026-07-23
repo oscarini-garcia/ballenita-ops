@@ -37,6 +37,8 @@ jobs:
         env:
           VITE_JSONBIN_ID: ${{ secrets.VITE_JSONBIN_ID }}
           VITE_JSONBIN_KEY: ${{ secrets.VITE_JSONBIN_KEY }}
+          VITE_ONESIGNAL_APP_ID: ${{ secrets.VITE_ONESIGNAL_APP_ID }}
+          VITE_PUSH_ENDPOINT: ${{ secrets.VITE_PUSH_ENDPOINT }}
 
       - name: Empaquetar bundle + manifiesto
         id: pack

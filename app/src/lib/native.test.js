@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isNative, tap, share, checkForOtaUpdate, registerPush, initNative } from './native.js'
+import { isNative, tap, share, checkForOtaUpdate, registerPush, notifyGroup, initNative } from './native.js'
 
 // En el entorno de test (jsdom) NO estamos dentro de la cáscara nativa, así que
 // todo debe degradar con elegancia: no-op o equivalente web, nunca un throw.
@@ -24,6 +24,10 @@ describe('native (fuera de la cáscara iOS)', () => {
 
   it('registerPush() devuelve null en web', async () => {
     await expect(registerPush()).resolves.toBeNull()
+  })
+
+  it('notifyGroup() es no-op (false) sin endpoint configurado', async () => {
+    await expect(notifyGroup({ title: 'x', message: 'y' })).resolves.toBe(false)
   })
 
   it('initNative() no hace nada ni lanza en web', async () => {

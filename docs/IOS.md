@@ -101,15 +101,42 @@ A partir de aquí, los cambios de web/JS **no** necesitan repetir esto: van por 
 > reclama firma del bundle, se activa el firmado (par de claves) — ver su documentación; el
 > `checksum` sha256 ya va en el manifiesto.
 
-## Pendiente — Envío de push
+## Push con OneSignal
 
-El registro (permiso + token APNs) ya está en `registerPush()`. Falta el **emisor**: algo que
-mande la notificación cuando pasa algo (nuevo gasto, plan votado…). Como no hay backend propio,
-las opciones son:
+Elegido **OneSignal** (capa gratuita): gestiona APNs por ti. El cliente ya está cableado en
+`registerPush()` (plugin `onesignal-cordova-plugin`), gobernado por variables de entorno al
+estilo de `VITE_JSONBIN_*`:
 
-- **OneSignal** (capa gratuita): gestiona APNs por ti; se dispara desde su panel o API.
-- **Notificaciones locales** (`@capacitor/local-notifications`): sin servidor, pero solo avisos
-  programados en el propio dispositivo (no "otro añadió un gasto").
-- Un **emisor propio** (Cloud Function) que, al detectar cambios en el doc de JSONBin, llame a APNs.
+| Variable | Qué es | ¿Segura en el cliente? |
+| --- | --- | --- |
+| `VITE_ONESIGNAL_APP_ID` | App ID de OneSignal (suscribe el dispositivo) | ✅ Sí, es pública |
+| `VITE_PUSH_ENDPOINT` | URL de **tu** función serverless para el envío automático | ✅ Sí (no lleva la key) |
 
-Decisión y montaje: fase aparte.
+> ⚠️ **Nunca** metas la **REST API key** de OneSignal en el build: el repo es público (Pages) y
+> los bundles OTA también → quedaría expuesta y cualquiera podría mandar push a tu grupo.
+
+### Puesta en marcha (una vez)
+
+1. Crea una app en **OneSignal** y elige la plataforma **iOS (APNs)**.
+2. Sube tu **APNs Auth Key (.p8)** al panel de OneSignal (la generas en el portal de Apple
+   Developer → *Keys*). OneSignal se encarga del resto de APNs.
+3. Copia la **App ID** y ponla como secret del repo `VITE_ONESIGNAL_APP_ID` (se inyecta en el
+   build de Pages y en el workflow OTA, junto a `VITE_JSONBIN_*`).
+4. En Xcode, capacidad **Push Notifications** activada (Fase B).
+
+Con esto, cada dispositivo queda **suscrito** y ya puedes **enviar avisos a mano desde el panel
+de OneSignal** (o su API), sin exponer nada.
+
+### Envío automático ("otro añadió un gasto → aviso")
+
+Para disparar el push solo cuando pasa algo, hace falta la **REST key en un sitio no público**:
+
+1. Crea una mini **función serverless** (Cloudflare Workers / Vercel / Netlify Functions) que
+   guarde la REST key como secret y, al recibir un POST `{ title, message, url }`, llame a la API
+   de OneSignal (`/notifications`) para avisar al grupo.
+2. Pon su URL en `VITE_PUSH_ENDPOINT`.
+3. Llama a `notifyGroup({ title, message })` desde el código tras sincronizar un hecho nuevo
+   (p. ej. al guardar un gasto). Ya está listo en `native.js`; solo falta el punto de llamada.
+
+> Sin `VITE_PUSH_ENDPOINT`, `notifyGroup()` es no-op: la app funciona igual y los avisos se
+> mandan a mano desde el panel.

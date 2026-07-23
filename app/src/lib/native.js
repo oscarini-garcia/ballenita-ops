@@ -8,6 +8,13 @@ import { Capacitor } from '@capacitor/core'
 const OTA_MANIFEST_URL =
   'https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json'
 
+// Push vía OneSignal. La App ID es pública (segura en el cliente). El envío se hace
+// desde el panel de OneSignal (manual) o desde un endpoint serverless propio que
+// guarde la REST key (VITE_PUSH_ENDPOINT); NUNCA se incrusta la REST key aquí. Sin
+// VITE_ONESIGNAL_APP_ID, la app funciona igual pero sin push (como el modo local).
+const ONESIGNAL_APP_ID = import.meta.env?.VITE_ONESIGNAL_APP_ID
+const PUSH_ENDPOINT = import.meta.env?.VITE_PUSH_ENDPOINT
+
 export function isNative() {
   try {
     return Capacitor?.isNativePlatform?.() === true
@@ -81,26 +88,51 @@ export async function checkForOtaUpdate() {
   }
 }
 
-// --- Registro de push ------------------------------------------------------
-// Pide permiso y registra el token en APNs. El ENVÍO de notificaciones es una
-// fase aparte (requiere APNs + un emisor; ver docs/IOS.md). Devuelve el token
-// o null.
+// --- Registro de push (OneSignal) ------------------------------------------
+// Inicializa OneSignal y suscribe el dispositivo. Con esto ya puedes enviar
+// avisos a mano desde el panel de OneSignal. El envío automático es fase aparte
+// (ver notifyGroup + docs/IOS.md). Devuelve 'onesignal' | 'apns' | null.
 export async function registerPush() {
   if (!isNative()) return null
+  // Camino recomendado: OneSignal (gestiona APNs por ti).
+  if (ONESIGNAL_APP_ID) {
+    try {
+      const OneSignal = (await import('onesignal-cordova-plugin')).default
+      OneSignal.initialize(ONESIGNAL_APP_ID)
+      await OneSignal.Notifications.requestPermission(true)
+      return 'onesignal'
+    } catch {
+      /* cae al registro APNs crudo */
+    }
+  }
+  // Fallback sin OneSignal: registro APNs crudo (solo obtiene el token).
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications')
     const perm = await PushNotifications.requestPermissions()
     if (perm.receive !== 'granted') return null
     await PushNotifications.register()
-    return await new Promise((resolve) => {
-      const to = setTimeout(() => resolve(null), 8000)
-      PushNotifications.addListener('registration', (t) => {
-        clearTimeout(to)
-        resolve(t?.value ?? null)
-      })
-    })
+    return 'apns'
   } catch {
     return null
+  }
+}
+
+// --- Aviso al grupo (envío automático, opcional) ---------------------------
+// Pide a TU endpoint serverless (que guarda la REST key de OneSignal) que mande
+// un push al grupo. No-op si no hay VITE_PUSH_ENDPOINT configurado. Así la REST
+// key nunca vive en el cliente público. Pensado para llamarlo tras sincronizar
+// un hecho nuevo (p. ej. un gasto). Devuelve true si se aceptó el envío.
+export async function notifyGroup({ title, message, url } = {}) {
+  if (!PUSH_ENDPOINT) return false
+  try {
+    const res = await fetch(PUSH_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, message, url }),
+    })
+    return res.ok
+  } catch {
+    return false
   }
 }
 
