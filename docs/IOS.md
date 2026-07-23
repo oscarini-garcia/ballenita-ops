@@ -46,23 +46,17 @@ npm run sync:ios     # build web + copia a ios/
 > El proyecto `ios/` lo generas aquí, en el Mac. No está en el repo a propósito: `pod install`
 > necesita macOS y no se puede verificar desde el entorno de desarrollo en la nube.
 
-### Quitar el rebote del scroll (rubber-band) al 100 %
+### Quitar el rebote del scroll (rubber-band) al 100 % — automático
 
 El CSS ya pone `overscroll-behavior: none` (cubre la mayoría). Para eliminarlo del todo en el
-WKWebView, subclasea el controller. En `ios/App/App/` crea `MainViewController.swift`:
+WKWebView hay que subclasear el controller y desactivar `scrollView.bounces` — pero **no hace
+falta tocar Xcode a mano**: `npm run sync:ios` ejecuta `scripts/patch-ios.mjs`, que crea
+`ios/App/App/MainViewController.swift` y reapunta el storyboard automáticamente. Es idempotente,
+así que se aplica cada vez que sincronizas.
 
-```swift
-import Capacitor
-
-class MainViewController: CAPBridgeViewController {
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        webView?.scrollView.bounces = false
-    }
-}
-```
-
-Y en `Main.storyboard` cambia la clase del *Bridge View Controller* a `MainViewController`.
+> Si el script avisa de que no reconoce el view controller (una versión de Capacitor con otro
+> template), ponlo a mano: en `Main.storyboard`, clase de la vista → `MainViewController`. El
+> `.swift` ya te lo habrá dejado creado.
 
 ## Fase B — Firma, iconos y capacidades (Xcode)
 
