@@ -8,6 +8,7 @@ import {
 import { useSkin, SKINS } from '../lib/skins.js'
 import { syncNow } from '../sync/engine.js'
 import { isConfigured } from '../sync/jsonbin.js'
+import { forzarActualizacion } from '../lib/pwa.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -34,6 +35,22 @@ function SyncSection() {
       ) : (
         <div className="note">Ahora mismo la app es <b>solo local</b> (este móvil). Para sincronizar con el grupo, configura <code>VITE_JSONBIN_ID</code> y <code>VITE_JSONBIN_KEY</code> (ver <code>app/.env.example</code>). Sin eso, todo funciona igual pero no se comparte.</div>
       )}
+    </>
+  )
+}
+
+function AppSection() {
+  const [busy, setBusy] = useState(false)
+  return (
+    <>
+      <div className="sec-h">App</div>
+      <div className="note">¿No ves los últimos cambios? Fuerza que la ballena traiga la <b>versión más reciente</b> sin tener que quitarla y volver a añadirla a la pantalla de inicio.
+        <div style={{ marginTop: 8 }}>
+          <button className="btn sm" disabled={busy} onClick={() => { setBusy(true); forzarActualizacion() }}>
+            {busy ? '🐋 actualizando…' : '🔄 Buscar actualización y recargar'}
+          </button>
+        </div>
+      </div>
     </>
   )
 }
@@ -75,6 +92,7 @@ export default function EventSettingsScreen({ eventId }) {
     <div className="body">
       <AspectoSection />
       <SyncSection />
+      <AppSection />
 
       <div className="sec-h">Familias <button className="btn sm ghost" onClick={() => setModal('familia')}>+ añadir</button></div>
       <div className="card tight">
