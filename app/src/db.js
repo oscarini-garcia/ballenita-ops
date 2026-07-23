@@ -220,12 +220,17 @@ export const SHOP_CATEGORIES = [
 ]
 export async function addShopItem(eventId, { texto, categoria = 'otros' }) {
   const id = uid('shop')
-  await db.shop.add(stamp({ id, eventId, texto, categoria, comprado: false }))
+  await db.shop.add(stamp({ id, eventId, texto, categoria, comprado: false, compradoPor: null, compradoEn: null }))
   return id
 }
 export const shopItemsOf = (eventId) => db.shop.where({ eventId }).toArray()
 export const updateShopItem = (id, patch) => db.shop.update(id, stamp(patch))
 export const removeShopItem = (id) => removeRow('shop', id)
+// Marcar/desmarcar comprado registrando quién (personId) y cuándo.
+export const markBought = (id, personId = null) =>
+  updateShopItem(id, { comprado: true, compradoPor: personId, compradoEn: now() })
+export const unmarkBought = (id) =>
+  updateShopItem(id, { comprado: false, compradoPor: null, compradoEn: null })
 // Vacía lo ya comprado para dejar la lista limpia (cada borrado deja tombstone).
 export async function clearBoughtShopItems(eventId) {
   const done = (await db.shop.where({ eventId }).toArray()).filter((x) => x.comprado)

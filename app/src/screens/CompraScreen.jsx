@@ -1,17 +1,37 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
-  shopItemsOf, addShopItem, updateShopItem, removeShopItem,
-  clearBoughtShopItems, SHOP_CATEGORIES,
+  shopItemsOf, addShopItem, removeShopItem, markBought, unmarkBought,
+  clearBoughtShopItems, SHOP_CATEGORIES, personsOf,
 } from '../db.js'
 import { tap } from '../lib/native.js'
 
 const catOf = (id) => SHOP_CATEGORIES.find((c) => c.id === id) ?? SHOP_CATEGORIES.at(-1)
 
+// "hoy 18:30", "ayer 9:05" o "5 ago 18:30" — corto para la fila.
+function fmtWhen(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const dia = new Date(d); dia.setHours(0, 0, 0, 0)
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0)
+  const difDias = Math.round((hoy - dia) / 86400000)
+  if (difDias === 0) return `hoy ${hora}`
+  if (difDias === 1) return `ayer ${hora}`
+  return `${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} ${hora}`
+}
+
 export default function CompraScreen({ eventId }) {
   const items = useLiveQuery(() => shopItemsOf(eventId), [eventId], [])
+  const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const [texto, setTexto] = useState('')
   const [categoria, setCategoria] = useState('otros')
+
+  // Identidad ligera para registrar quién compra (mismo patrón que Planes, §14).
+  const key = `ballena.person.${eventId}`
+  const [me, setMe] = useState(() => localStorage.getItem(key) || '')
+  function pickMe(id) { localStorage.setItem(key, id); setMe(id) }
+  const nameOf = (id) => persons.find((p) => p.id === id)?.name ?? 'alguien'
 
   async function add() {
     const t = texto.trim()
@@ -20,10 +40,16 @@ export default function CompraScreen({ eventId }) {
     await addShopItem(eventId, { texto: t, categoria })
     setTexto('')
   }
-  function toggle(it) { tap(); updateShopItem(it.id, { comprado: !it.comprado }) }
+  function toggle(it) {
+    tap()
+    if (it.comprado) unmarkBought(it.id)
+    else markBought(it.id, me || null)
+  }
 
   const pendientes = items.filter((x) => !x.comprado)
-  const comprados = items.filter((x) => x.comprado)
+  const comprados = items
+    .filter((x) => x.comprado)
+    .sort((a, b) => (b.compradoEn || '').localeCompare(a.compradoEn || ''))
 
   // Pendientes agrupados por categoría (en el orden de SHOP_CATEGORIES).
   const grupos = SHOP_CATEGORIES
@@ -55,6 +81,14 @@ export default function CompraScreen({ eventId }) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="card tight" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Eres:</span>
+        <select value={me} onChange={(e) => pickMe(e.target.value)} style={{ padding: '7px 10px' }}>
+          <option value="">— elígete para firmar la compra —</option>
+          {persons.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
       </div>
 
       {items.length === 0 && (
@@ -98,10 +132,17 @@ export default function CompraScreen({ eventId }) {
                 key={it.id}
                 className="row"
                 onClick={() => toggle(it)}
-                style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', opacity: .55, borderTop: i ? '1px solid var(--line-soft)' : 'none' }}
+                style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', opacity: .6, borderTop: i ? '1px solid var(--line-soft)' : 'none' }}
               >
                 <div className="av" style={{ background: 'var(--spout)', color: '#fff' }}>✓</div>
-                <div className="main"><div className="n" style={{ textDecoration: 'line-through' }}>{it.texto}</div><div className="sub">{catOf(it.categoria).label}</div></div>
+                <div className="main">
+                  <div className="n" style={{ textDecoration: 'line-through' }}>{it.texto}</div>
+                  <div className="sub">
+                    {catOf(it.categoria).label}
+                    {it.compradoPor ? ` · ${nameOf(it.compradoPor)}` : ''}
+                    {it.compradoEn ? ` · ${fmtWhen(it.compradoEn)}` : ''}
+                  </div>
+                </div>
               </button>
             ))}
           </div>

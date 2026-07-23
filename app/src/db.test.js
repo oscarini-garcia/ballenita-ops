@@ -5,6 +5,7 @@ import {
   addSettlement, settlementsOf,
   seedExample, listEvents, dinnersOf, plansOf, listDishes, bungasOf,
   addShopItem, shopItemsOf, updateShopItem, removeShopItem, clearBoughtShopItems,
+  markBought, unmarkBought,
 } from './db.js'
 import { computeFamilyBalances, simplifyDebts } from './lib/reparto.js'
 
@@ -105,6 +106,39 @@ describe('Lista de la compra — apuntar, marcar y limpiar', () => {
     await updateShopItem(hielo, { comprado: true })
     items = await shopItemsOf(ev)
     expect(items.find((x) => x.id === hielo).comprado).toBe(true)
+  })
+
+  it('markBought registra quién y cuándo; unmarkBought lo limpia', async () => {
+    const ev = await createEvent({ name: 'C', currency: 'EUR' })
+    const A = await addFamily(ev, { name: 'A' })
+    const curro = await addPerson(ev, { name: 'Curro', familyId: A, edad: 'adulto' })
+    const id = await addShopItem(ev, { texto: 'Hielos', categoria: 'hielo' })
+
+    const nuevo = (await shopItemsOf(ev)).find((x) => x.id === id)
+    expect(nuevo.compradoPor).toBe(null)
+    expect(nuevo.compradoEn).toBe(null)
+
+    await markBought(id, curro)
+    let it = (await shopItemsOf(ev)).find((x) => x.id === id)
+    expect(it.comprado).toBe(true)
+    expect(it.compradoPor).toBe(curro)
+    expect(typeof it.compradoEn).toBe('string')
+
+    await unmarkBought(id)
+    it = (await shopItemsOf(ev)).find((x) => x.id === id)
+    expect(it.comprado).toBe(false)
+    expect(it.compradoPor).toBe(null)
+    expect(it.compradoEn).toBe(null)
+  })
+
+  it('markBought sin persona (anónimo) marca comprado igualmente', async () => {
+    const ev = await createEvent({ name: 'C', currency: 'EUR' })
+    const id = await addShopItem(ev, { texto: 'Vino', categoria: 'bebida' })
+    await markBought(id)
+    const it = (await shopItemsOf(ev)).find((x) => x.id === id)
+    expect(it.comprado).toBe(true)
+    expect(it.compradoPor).toBe(null)
+    expect(typeof it.compradoEn).toBe('string')
   })
 
   it('categoría por defecto "otros" si no se indica', async () => {
