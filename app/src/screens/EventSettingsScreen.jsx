@@ -5,8 +5,34 @@ import {
   bungasOf, addBunga, removeBunga,
   personsOf, addPerson, removePerson, updatePerson,
 } from '../db.js'
+import { useSkin, SKINS } from '../lib/skins.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
+
+function AspectoSection() {
+  const { pref, current, choose, reroll } = useSkin()
+  const currentName = SKINS.find((s) => s.id === current)?.name ?? current
+  return (
+    <>
+      <div className="sec-h">Aspecto</div>
+      <div className="chips">
+        {SKINS.map((s) => (
+          <button key={s.id} className={`chip${pref === s.id ? ' on' : ''}`} onClick={() => choose(s.id)}>
+            {s.emoji} {s.name}
+          </button>
+        ))}
+        <button className={`chip${pref === 'random' ? ' on' : ''}`} onClick={() => choose('random')}>🎲 Aleatorio</button>
+      </div>
+      {pref === 'random' ? (
+        <div className="note">🎲 Modo aleatorio: ahora mismo <b>{currentName}</b>. El sistema cambia de tema solo cada cierto tiempo.
+          <div style={{ marginTop: 8 }}><button className="btn sm" onClick={reroll}>🎲 Tirar otra vez</button></div>
+        </div>
+      ) : (
+        <div className="note">Elige el tema del grupo. «Sistema» sigue el claro/oscuro del móvil; «Aleatorio» los va rotando con el tiempo.</div>
+      )}
+    </>
+  )
+}
 
 export default function EventSettingsScreen({ eventId }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
@@ -18,6 +44,8 @@ export default function EventSettingsScreen({ eventId }) {
 
   return (
     <div className="body">
+      <AspectoSection />
+
       <div className="sec-h">Familias <button className="btn sm ghost" onClick={() => setModal('familia')}>+ añadir</button></div>
       <div className="card tight">
         {families.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin familias todavía.</div>}

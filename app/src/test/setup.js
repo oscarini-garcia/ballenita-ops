@@ -10,5 +10,6 @@ import { db } from '../db.js'
 afterEach(async () => {
   cleanup()
   localStorage.clear()
+  document.documentElement.removeAttribute('data-skin')
   await Promise.all(db.tables.map((t) => t.clear()))
 })

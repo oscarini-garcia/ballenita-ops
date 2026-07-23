@@ -5,6 +5,10 @@
   --owe: #e5544b; --owe-bg: #fce9e7; --owed: #2e9e6b; --owed-bg: #e4f3ec;
   --r: 14px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Superficies que los temas (skins) pueden repintar. */
+  --app-bg: var(--foam);
+  --appbar-bg: linear-gradient(150deg, var(--abyss), #0d2d3c);
+  --appbar-ink: #eaf6fb;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -17,7 +21,8 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
-  margin: 0; font-family: var(--font); color: var(--ink); background: var(--foam);
+  margin: 0; font-family: var(--font); color: var(--ink);
+  background: var(--app-bg) fixed;
   -webkit-font-smoothing: antialiased; line-height: 1.5;
   overscroll-behavior-y: contain;
 }
@@ -25,10 +30,10 @@ button, input, select { font: inherit; color: inherit; }
 .tnum { font-variant-numeric: tabular-nums; }
 
 .app { max-width: 520px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column;
-  background: var(--foam); }
+  background: transparent; }
 
-.appbar { position: sticky; top: 0; z-index: 5; background: linear-gradient(150deg, var(--abyss), #0d2d3c);
-  color: #eaf6fb; padding: 14px 16px 12px; display: flex; align-items: center; gap: 11px; }
+.appbar { position: sticky; top: 0; z-index: 5; background: var(--appbar-bg);
+  color: var(--appbar-ink); padding: 14px 16px 12px; display: flex; align-items: center; gap: 11px; }
 .appbar .logo { width: 34px; height: 34px; flex: none; }
 .appbar .ti { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
 .appbar .su { font-size: 11.5px; color: #a9cede; }

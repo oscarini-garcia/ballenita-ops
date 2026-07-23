@@ -1,0 +1,79 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Temas (skins) seleccionables. Cada uno pisa las variables del tema base.
+   `sistema` no tiene bloque: usa el claro/oscuro automático de theme.css.
+   Se activan con data-skin en <html> (ver lib/skins.js).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ══ 1 · ABISAL FIESTA — azul profundo festivo ══ */
+:root[data-skin="abisal"] {
+  --app-bg: radial-gradient(120% 80% at 80% -10%, #134b6b 0%, #0a2e46 45%, #071a2b 100%);
+  --foam: #071a2b; --foam-2: rgba(255,255,255,.07);
+  --ink: #eaf6fb; --ink-soft: #b6d2e0; --ink-faint: #8fb4c8;
+  --line: rgba(255,255,255,.14); --line-soft: rgba(255,255,255,.08);
+  --spout: #1f9fd0; --spout-deep: #7fdcf0; --abyss: #071a2b; --gold: #ffc24b;
+  --owe: #ff8a7a; --owe-bg: rgba(255,122,102,.16); --owed: #5ee0a0; --owed-bg: rgba(94,224,160,.16);
+  --appbar-bg: linear-gradient(150deg, #0b3a58, #0a2438); --appbar-ink: #eaf6fb;
+}
+:root[data-skin="abisal"] .appbar::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    radial-gradient(circle, #ffc24b 1.5px, transparent 2px),
+    radial-gradient(circle, #ff7a66 1.5px, transparent 2px),
+    radial-gradient(circle, #38c6e8 1.5px, transparent 2px);
+  background-size: 46px 46px, 62px 62px, 54px 54px;
+  background-position: 12px 8px, 34px 24px, 52px 12px;
+}
+
+/* ══ 2 · CHIRINGUITO — atardecer cálido ══ */
+:root[data-skin="chiringuito"] {
+  --app-bg: linear-gradient(160deg, #ff8f5e 0%, #ffc061 42%, #ff86a6 100%);
+  --foam: #ffd0a0; --foam-2: #fff7ee;
+  --ink: #41262b; --ink-soft: #7a4f49; --ink-faint: #a8817a;
+  --line: #efdfd0; --line-soft: #f4ece2;
+  --spout: #0fa3a3; --spout-deep: #0c8484; --abyss: #41262b; --gold: #d9662f;
+  --owe: #d24b42; --owe-bg: #fbe4e0; --owed: #1f8a5b; --owed-bg: #d7efe0;
+  --appbar-bg: linear-gradient(150deg, #41262b, #5a3238); --appbar-ink: #fdf3ea;
+}
+:root[data-skin="chiringuito"] .card { box-shadow: 0 8px 20px -12px rgba(120,50,40,.3); }
+
+/* ══ 3 · VERBENA NEÓN — noche de neón ══ */
+:root[data-skin="verbena"] {
+  --app-bg:
+    radial-gradient(90% 60% at 20% 0%, #2a1150 0%, transparent 55%),
+    radial-gradient(90% 60% at 90% 100%, #07304a 0%, transparent 55%), #080611;
+  --foam: #080611; --foam-2: rgba(20,16,42,.72);
+  --ink: #eafcff; --ink-soft: #aab4e6; --ink-faint: #7c86b8;
+  --line: rgba(120,90,255,.32); --line-soft: rgba(120,90,255,.18);
+  --spout: #c840ff; --spout-deep: #31e0ff; --abyss: #080611; --gold: #ffe15a;
+  --owe: #ff6b8a; --owe-bg: rgba(255,61,120,.16); --owed: #39ff96; --owed-bg: rgba(57,255,150,.14);
+  --appbar-bg: linear-gradient(120deg, #170b30, #0a1430); --appbar-ink: #eafcff;
+}
+:root[data-skin="verbena"] .card { box-shadow: 0 0 20px -6px rgba(120,60,255,.4); }
+:root[data-skin="verbena"] .appbar .ti { text-shadow: 0 0 14px rgba(49,224,255,.5); }
+
+/* ══ 4 · CUADERNO DE VIAJE — diario ══ */
+:root[data-skin="cuaderno"] {
+  --app-bg: repeating-linear-gradient(#f6f1e4 0 27px, #eae3d0 27px 28px);
+  --foam: #f6f1e4; --foam-2: #fffdf6;
+  --ink: #33302a; --ink-soft: #6f6a5c; --ink-faint: #8a8371;
+  --line: #e7dfc9; --line-soft: #efe8d6;
+  --spout: #e0662f; --spout-deep: #b6491a; --abyss: #2f6f7a; --gold: #b6791b;
+  --owe: #c0492f; --owe-bg: #f6e2d8; --owed: #3c7a2f; --owed-bg: #dcecd2;
+  --appbar-bg: linear-gradient(150deg, #2f6f7a, #25596a); --appbar-ink: #fdf7e6;
+}
+:root[data-skin="cuaderno"] .card { box-shadow: 2px 3px 0 rgba(51,48,42,.1); }
+
+/* ══ 5 · AQUA GLASS — cristal marino ══ */
+:root[data-skin="aqua"] {
+  --app-bg: linear-gradient(160deg, #12d0c4 0%, #1f9fe0 45%, #1246b8 100%);
+  --foam: #1f9fe0; --foam-2: rgba(255,255,255,.17);
+  --ink: #ffffff; --ink-soft: rgba(255,255,255,.82); --ink-faint: rgba(255,255,255,.66);
+  --line: rgba(255,255,255,.3); --line-soft: rgba(255,255,255,.2);
+  --spout: #0e6fb0; --spout-deep: #eafffb; --abyss: #0b3a72; --gold: #ffe06a;
+  --owe: #ffd0c8; --owe-bg: rgba(255,120,100,.22); --owed: #d6ffe8; --owed-bg: rgba(120,255,190,.22);
+  --appbar-bg: linear-gradient(150deg, rgba(11,58,114,.5), rgba(18,70,184,.4)); --appbar-ink: #ffffff;
+}
+:root[data-skin="aqua"] .card,
+:root[data-skin="aqua"] input,
+:root[data-skin="aqua"] select,
+:root[data-skin="aqua"] textarea { backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px); }
