@@ -174,6 +174,14 @@ export async function seedExample() {
   await addPerson(eventId, { name: 'Luis', familyId: perez, edad: 'adulto' })
   const pablo = await addPerson(eventId, { name: 'Pablo', familyId: solteros, edad: 'adulto' })
 
+  // Gastos de ejemplo (para que Saldos y Stats tengan datos).
+  const all = await personsOf(eventId)
+  const allPids = all.map((p) => p.id)
+  const soloMayores = all.filter((p) => p.cuentaComoAdultoReparto).map((p) => p.id)
+  await addExpense(eventId, { description: 'Compra grande Mercadona', amountCents: 14800, currency: 'EUR', amountOriginal: 148, rate: 1, category: 'compra_general', dateISO: now(), payers: [{ familyId: perez, amountCents: 14800 }], participantIds: allPids })
+  await addExpense(eventId, { description: 'Gasolina ida', amountCents: 6000, currency: 'EUR', category: 'varios', dateISO: now(), payers: [{ familyId: solteros, amountCents: 6000 }], participantIds: soloMayores })
+  await addExpense(eventId, { description: 'Hielo y birras 🍷', amountCents: 2430, currency: 'EUR', category: 'bebida', dateISO: now(), payers: [{ familyId: garcia, amountCents: 2430 }], participantIds: soloMayores })
+
   // Platos (catálogo global) — solo si está vacío, para no duplicar entre eventos.
   if ((await db.dishes.count()) === 0) {
     await addDish({ name: 'Aceitunas y altramuces', categorias: ['aperitivo'] })
