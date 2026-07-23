@@ -9,6 +9,7 @@ import BalancesScreen from './screens/BalancesScreen.jsx'
 import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
 import CenasScreen from './screens/CenasScreen.jsx'
 import PlanesScreen from './screens/PlanesScreen.jsx'
+import CompraScreen from './screens/CompraScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
 import StatsScreen from './screens/StatsScreen.jsx'
 import { useSyncEngine } from './sync/engine.js'
@@ -32,6 +33,7 @@ const TABS = [
   { id: 'gastos', label: 'Gastos', icon: 'M4 7h16M4 12h16M4 17h10' },
   { id: 'cenas', label: 'Cenas', icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 8a4 4 0 100 8 4 4 0 000-8z' },
   { id: 'planes', label: 'Planes', icon: 'M12 22s-7-6-7-12a7 7 0 1114 0c0 6-7 12-7 12z' },
+  { id: 'compra', label: 'Compra', icon: 'M3 4h2l2.4 11.2a1 1 0 001 .8h9.2a1 1 0 001-.8L21 8H6M9 20h.01M17 20h.01' },
   { id: 'saldos', label: 'Saldos', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
   { id: 'stats', label: 'Stats', icon: 'M4 20V4M4 20h16M8 20v-6M12 20V8M16 20v-9M20 20V6' },
 ]
@@ -108,6 +110,7 @@ export default function App() {
       {tab === 'gastos' && <ExpensesScreen eventId={activeId} event={event} />}
       {tab === 'cenas' && <CenasScreen eventId={activeId} event={event} />}
       {tab === 'planes' && <PlanesScreen eventId={activeId} event={event} />}
+      {tab === 'compra' && <CompraScreen eventId={activeId} event={event} />}
       {tab === 'saldos' && <BalancesScreen eventId={activeId} event={event} />}
       {tab === 'stats' && <StatsScreen eventId={activeId} event={event} />}
       {tab === 'evento' && <EventSettingsScreen eventId={activeId} event={event} onChangeEvent={() => pick(null)} />}

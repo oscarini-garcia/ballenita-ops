@@ -28,6 +28,12 @@ db.version(3).stores({
   tombstones: '&key', // key = `${tabla}:${id}`
 })
 
+// v4: lista de la compra compartida (§6.6). Ítems simples que cualquiera apunta
+// y el que va a comprar marca como hecho.
+db.version(4).stores({
+  shop: '&id, eventId, updatedAt',
+})
+
 const stamp = (obj) => ({ ...obj, updatedAt: now() })
 
 // ── Señal de cambios locales (para disparar la sync) ──
@@ -204,6 +210,34 @@ export const plansOf = (eventId) => db.plans.where({ eventId }).toArray()
 export const updatePlan = (id, patch) => db.plans.update(id, stamp(patch))
 export const removePlan = (id) => removeRow('plans', id)
 
+// ── Lista de la compra (§6.6) — ítems simples que cualquiera apunta ──
+export const SHOP_CATEGORIES = [
+  { id: 'bebida', label: 'Bebida', icon: '🍺' },
+  { id: 'fruta', label: 'Fruta y verdura', icon: '🍎' },
+  { id: 'comida', label: 'Comida', icon: '🥖' },
+  { id: 'hielo', label: 'Hielo y frío', icon: '🧊' },
+  { id: 'otros', label: 'Otros', icon: '🧺' },
+]
+export async function addShopItem(eventId, { texto, categoria = 'otros' }) {
+  const id = uid('shop')
+  await db.shop.add(stamp({ id, eventId, texto, categoria, comprado: false, compradoPor: null, compradoEn: null }))
+  return id
+}
+export const shopItemsOf = (eventId) => db.shop.where({ eventId }).toArray()
+export const updateShopItem = (id, patch) => db.shop.update(id, stamp(patch))
+export const removeShopItem = (id) => removeRow('shop', id)
+// Marcar/desmarcar comprado registrando quién (personId) y cuándo.
+export const markBought = (id, personId = null) =>
+  updateShopItem(id, { comprado: true, compradoPor: personId, compradoEn: now() })
+export const unmarkBought = (id) =>
+  updateShopItem(id, { comprado: false, compradoPor: null, compradoEn: null })
+// Vacía lo ya comprado para dejar la lista limpia (cada borrado deja tombstone).
+export async function clearBoughtShopItems(eventId) {
+  const done = (await db.shop.where({ eventId }).toArray()).filter((x) => x.comprado)
+  for (const it of done) await removeRow('shop', it.id)
+  return done.length
+}
+
 // ── Semilla de ejemplo (Ballenita 2026) para probar rápido ──
 export async function seedExample() {
   const eventId = await createEvent({
@@ -257,5 +291,11 @@ export async function seedExample() {
   await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado', ubicacion: 'Cala del sur', votos: { [curro]: '👍', [ana]: '👍', [pablo]: '👍' } })
   await addPlan(eventId, { titulo: 'Excursión a las cuevas', dia: '2026-08-12', costeEstimado: 1200, enlace: 'https://example.com/cuevas', votos: { [curro]: '👍', [ana]: '🤷' } })
   await addPlan(eventId, { titulo: 'Noche de juegos de mesa', votos: { [pablo]: '🤷' } })
+
+  // Lista de la compra de ejemplo (§6.6).
+  await addShopItem(eventId, { texto: 'Hielos', categoria: 'hielo' })
+  await addShopItem(eventId, { texto: 'Vino tinto', categoria: 'bebida' })
+  await addShopItem(eventId, { texto: 'Fruta variada', categoria: 'fruta' })
+  await addShopItem(eventId, { texto: 'Bolsas de basura', categoria: 'otros' })
   return eventId
 }

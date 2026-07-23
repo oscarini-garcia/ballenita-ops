@@ -264,6 +264,14 @@ Aclarado el modelo real (corrige la versión anterior):
 - ¿Las comidas generan gasto automáticamente (la compra) o el gasto va por libre en §3? Propuesta: desacoplado en v1, con enlace manual opcional.
 - **✅ Lista de la compra: manual en v1, agregada en v2.** En v1 las cantidades son **texto libre por comida**; agregar todo en una lista de la compra global del evento se deja para **v2**, apoyándose en los **`ingredientes[]` del plato** (§8.1) para sumar automáticamente.
 
+### 6.6 Lista de la compra compartida (manual) 🛒 ⭐
+- **✅ Sección propia por evento**, súper simple: cualquiera **apunta** lo que hace falta ("Hielos", "Vino", "Fruta") y **el que va a comprar lo marca como hecho**. Es una lista viva del grupo, no ligada a una cena concreta.
+- **Categorías simples y fijas:** 🍺 Bebida · 🍎 Fruta y verdura · 🥖 Comida · 🧊 Hielo y frío · 🧺 Otros. Por defecto **Otros** si no se elige.
+- **Interacción:** barra de alta rápida arriba (texto + chip de categoría), pendientes **agrupados por categoría**, y lo comprado tachado abajo (más reciente primero). **Tocar la fila** alterna comprado/pendiente; botón **"limpiar comprados"** para vaciar lo hecho.
+- **Quién y cuándo:** al marcar comprado se registra **quién** (la identidad del dispositivo, ya ligada globalmente y elegida en Planes §14 — aquí no hay selector propio) y **cuándo** (`compradoEn`), y se muestra en la fila ("Curro · hoy 18:30"). Sin identidad queda anónimo. Al desmarcar, se limpian ambos.
+- **Sincronización:** cada ítem es un **hecho** más (tabla `shop`, §14) con merge LWW + tombstones. Nada de saldos aquí; es puramente logística.
+- **Relación con §6.5:** es la versión **manual y transversal**. La lista **agregada automática desde `ingredientes[]`** sigue siendo v2 y podría, en el futuro, volcar sugerencias aquí.
+
 ---
 
 ## 7. Estadísticas 📊
