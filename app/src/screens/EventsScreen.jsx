@@ -13,14 +13,14 @@ export default function EventsScreen({ onPick }) {
         <WhaleLogo className="logo" />
         <div>
           <div className="ti">Ballena Ops</div>
-          <div className="su">Tus eventos 🐋</div>
+          <div className="su">Tus eventos 🐳</div>
         </div>
       </header>
 
       <div className="body">
         {events.length === 0 && (
           <div className="empty">
-            <span className="e">🐋</span>
+            <span className="e">🐳</span>
             Aún no hay ningún evento.<br />Crea uno o carga el de ejemplo.
           </div>
         )}

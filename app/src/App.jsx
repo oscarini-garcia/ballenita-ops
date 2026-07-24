@@ -76,7 +76,7 @@ export default function App() {
   if (!event) {
     return (
       <div className="app">
-        <div className="body"><div className="empty"><span className="e">🐋</span>Cargando…</div></div>
+        <div className="body"><div className="empty"><span className="e">🐳</span>Cargando…</div></div>
       </div>
     )
   }

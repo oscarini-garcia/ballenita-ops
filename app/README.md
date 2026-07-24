@@ -1,4 +1,4 @@
-# Ballena Ops 🐋 — app (PWA)
+# Ballena Ops 🐳 — app (PWA)
 
 Implementación (Fase 0) de la app descrita en [`../docs/SPECS.md`](../docs/SPECS.md).
 PWA offline-first para gestionar los eventos del grupo de amigos: gastos estilo

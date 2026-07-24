@@ -6,7 +6,7 @@ import App from './App.jsx'
 describe('App — smoke test', () => {
   it('sin evento activo muestra la lista de eventos', async () => {
     render(<App />)
-    expect(await screen.findByText('Tus eventos 🐋')).toBeInTheDocument()
+    expect(await screen.findByText('Tus eventos 🐳')).toBeInTheDocument()
     expect(screen.getByText('+ Nuevo evento')).toBeInTheDocument()
   })
 

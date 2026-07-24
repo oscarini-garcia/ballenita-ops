@@ -40,7 +40,7 @@ export default function BalancesScreen({ eventId, event }) {
 
           <div className="sec-h">Cómo saldar (menos transferencias)</div>
           {transfers.length === 0 ? (
-            <div className="note">🐋 No hay nada pendiente. La ballenita está satisfecha.</div>
+            <div className="note">🐳 No hay nada pendiente. La ballenita está satisfecha.</div>
           ) : (
             <div className="card tight">
               {transfers.map((t, i) => (

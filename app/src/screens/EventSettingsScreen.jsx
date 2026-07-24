@@ -21,7 +21,7 @@ function EventoSection({ event, onChangeEvent }) {
       <div className="sec-h">Evento</div>
       <div className="card tight">
         <div className="row">
-          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐋</div>
+          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐳</div>
           <div className="main">
             <div className="n">{event?.name || 'Evento'}</div>
             <div className="sub">{event?.lugar || 'Ballena Ops'}</div>
@@ -99,7 +99,7 @@ function AppSection() {
       {busy && (
         <div className="update-overlay" role="status" aria-live="polite">
           <div className="box">
-            <div className="whale" aria-hidden>🐋</div>
+            <div className="whale" aria-hidden>🐳</div>
             <div className="step">{UPDATE_STEPS[paso] ?? 'Actualizando…'}</div>
             <div className="prog"><i /></div>
             <div className="hint">No cierres la app, tarda un momento…</div>
@@ -189,7 +189,7 @@ export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
         ))}
       </div>
 
-      <div className="note">🐋 El <b>peso de reparto</b> define cuánto cuenta cada persona al dividir un gasto por cabezas (un bebé 0, un niño 0,5, un adulto 1).</div>
+      <div className="note">🐳 El <b>peso de reparto</b> define cuánto cuenta cada persona al dividir un gasto por cabezas (un bebé 0, un niño 0,5, un adulto 1).</div>
 
       {modal === 'familia' && <FamiliaModal eventId={eventId} onClose={() => setModal(null)} />}
       {modal === 'bunga' && <BungaModal eventId={eventId} families={families} onClose={() => setModal(null)} />}

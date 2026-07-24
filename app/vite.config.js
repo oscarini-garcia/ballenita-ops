@@ -26,7 +26,7 @@ export default defineConfig({
       manifest: {
         name: 'Ballena Ops',
         short_name: 'Ballena',
-        description: 'El gestor de los eventos del grupo — gastos, cenas y planes. 🐋',
+        description: 'El gestor de los eventos del grupo — gastos, cenas y planes. 🐳',
         lang: 'es',
         theme_color: '#0E7CA6',
         background_color: '#EDF3F5',
