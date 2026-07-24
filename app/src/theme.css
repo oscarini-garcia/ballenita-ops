@@ -189,3 +189,22 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .modal h2 { margin: 4px 0 2px; font-size: 19px; }
 .modal .x { float: right; background: none; border: none; font-size: 22px; color: var(--ink-faint); cursor: pointer; }
+
+/* Overlay de actualización: cubre la pantalla mientras se busca/descarga/aplica la
+   nueva versión, para que la recarga se sienta intencionada (no un salto a la home). */
+.update-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb;
+  padding: calc(16px + env(safe-area-inset-top)) 24px calc(16px + env(safe-area-inset-bottom)); }
+.update-overlay .box { text-align: center; max-width: 300px; }
+.update-overlay .whale { font-size: 58px; line-height: 1; animation: whalebob 1.7s ease-in-out infinite; }
+.update-overlay .step { margin-top: 16px; font-size: 15.5px; font-weight: 750; }
+.update-overlay .hint { margin-top: 8px; font-size: 12px; color: #a9cede; }
+.update-overlay .prog { margin: 16px auto 0; width: 190px; height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,.14); overflow: hidden; }
+.update-overlay .prog i { display: block; height: 100%; width: 42%; border-radius: 3px; background: var(--spout);
+  animation: progslide 1.15s ease-in-out infinite; }
+@keyframes progslide { 0% { transform: translateX(-110%); } 100% { transform: translateX(240%); } }
+@keyframes whalebob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@media (prefers-reduced-motion: reduce) {
+  .update-overlay .whale, .update-overlay .prog i { animation: none; }
+}

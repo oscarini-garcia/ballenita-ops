@@ -13,7 +13,22 @@
 export const UPDATE_STEPS = {
   checking: '🔎 Buscando actualización…',
   downloading: '⬇️ Descargando nueva versión…',
-  applying: '♻️ Aplicando y recargando…',
+  applying: '♻️ Aplicando la nueva versión…',
+}
+
+// Recargar la PWA reinicia la app y la deja en la home. Para no perder el sitio,
+// dejamos una marca en sessionStorage justo antes de recargar; al re-arrancar, la
+// app la lee para volver a Ajustes (donde estaba el botón) y enseñar el ✓. Se usa
+// sessionStorage a propósito: sobrevive a la recarga pero no a cerrar la app.
+const POST_UPDATE_KEY = 'ballena.postUpdate'
+export function marcarPostActualizacion() {
+  try { sessionStorage.setItem(POST_UPDATE_KEY, '1') } catch { /* sin sessionStorage: da igual */ }
+}
+export function veniaDeActualizar() {
+  try { return sessionStorage.getItem(POST_UPDATE_KEY) === '1' } catch { return false }
+}
+export function limpiarMarcaActualizacion() {
+  try { sessionStorage.removeItem(POST_UPDATE_KEY) } catch { /* da igual */ }
 }
 
 // onStatus(clave) recibe cada paso (claves de UPDATE_STEPS). `reload` se inyecta

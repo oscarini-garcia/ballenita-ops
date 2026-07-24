@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { forzarActualizacion, UPDATE_STEPS } from './pwa.js'
+import {
+  forzarActualizacion, UPDATE_STEPS,
+  marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion,
+} from './pwa.js'
 
 afterEach(() => {
   delete navigator.serviceWorker
   delete globalThis.caches
+  sessionStorage.clear()
 })
 
 describe('forzarActualizacion', () => {
@@ -47,5 +51,15 @@ describe('forzarActualizacion', () => {
     const reload = vi.fn()
     await forzarActualizacion(() => {}, { reload })
     expect(reload).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('marca post-actualización', () => {
+  it('marca, se lee y se limpia', () => {
+    expect(veniaDeActualizar()).toBe(false)
+    marcarPostActualizacion()
+    expect(veniaDeActualizar()).toBe(true)
+    limpiarMarcaActualizacion()
+    expect(veniaDeActualizar()).toBe(false)
   })
 })
