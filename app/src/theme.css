@@ -147,6 +147,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .tab span { font-size: 10px; font-weight: 650; }
 .tab.on { color: var(--spout); }
 
+/* Control segmentado bajo la cabecera (Dinero → Gastos/Saldos, Cenas → Cenas/Compra,
+   Más → Stats/Ajustes). Es lo que permite bajar la barra inferior a 5 destinos. */
+.subnav-wrap { padding: 12px 14px 0; }
+.subnav { display: flex; gap: 4px; background: var(--line-soft); padding: 4px; border-radius: 9px; }
+.subnav button { flex: 1; padding: 9px 6px; border: none; background: none; cursor: pointer;
+  border-radius: 6px; font-weight: 750; font-size: 14px; color: var(--ink-soft); }
+.subnav button.on { background: var(--foam-2); color: var(--spout-deep);
+  box-shadow: 0 1px 2px rgba(4, 18, 26, .10); }
+.subnav button:active { transform: translateY(1px); }
+
 .balance-hero { background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb; border: none;
   position: relative; overflow: hidden; }
 .balance-hero .l { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #7fc4e0; }

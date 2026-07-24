@@ -4,14 +4,11 @@ import { getEvent, personsOf } from './db.js'
 import WhaleLogo from './components/WhaleLogo.jsx'
 import UserBadge from './components/UserBadge.jsx'
 import EventsScreen from './screens/EventsScreen.jsx'
-import ExpensesScreen from './screens/ExpensesScreen.jsx'
-import BalancesScreen from './screens/BalancesScreen.jsx'
-import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
-import CenasScreen from './screens/CenasScreen.jsx'
-import PlanesScreen from './screens/PlanesScreen.jsx'
-import CompraScreen from './screens/CompraScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
-import StatsScreen from './screens/StatsScreen.jsx'
+import DineroScreen from './screens/DineroScreen.jsx'
+import CenasCompraScreen from './screens/CenasCompraScreen.jsx'
+import PlanesScreen from './screens/PlanesScreen.jsx'
+import MasScreen from './screens/MasScreen.jsx'
 import { useSyncEngine } from './sync/engine.js'
 import { tap } from './lib/native.js'
 
@@ -28,19 +25,19 @@ function syncDot(sync) {
   return { color: '#2e9e6b', title: 'Conectado y al día', checking: false }
 }
 
+// Opción A de UX: 5 destinos en la barra (≤5, iOS HIG / Material). Gastos+Saldos
+// se funden en «Dinero», la Compra entra en «Cenas» y Stats/Ajustes viven en «Más».
 const TABS = [
-  { id: 'agenda', label: 'Agenda', icon: 'M4 5h16v16H4zM4 9h16M9 3v4M15 3v4' },
-  { id: 'gastos', label: 'Gastos', icon: 'M4 7h16M4 12h16M4 17h10' },
+  { id: 'hoy', label: 'Hoy', icon: 'M4 5h16v16H4zM4 9h16M9 3v4M15 3v4' },
+  { id: 'dinero', label: 'Dinero', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
   { id: 'cenas', label: 'Cenas', icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 8a4 4 0 100 8 4 4 0 000-8z' },
   { id: 'planes', label: 'Planes', icon: 'M12 22s-7-6-7-12a7 7 0 1114 0c0 6-7 12-7 12z' },
-  { id: 'compra', label: 'Compra', icon: 'M3 4h2l2.4 11.2a1 1 0 001 .8h9.2a1 1 0 001-.8L21 8H6M9 20h.01M17 20h.01' },
-  { id: 'saldos', label: 'Saldos', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
-  { id: 'stats', label: 'Stats', icon: 'M4 20V4M4 20h16M8 20v-6M12 20V8M16 20v-9M20 20V6' },
+  { id: 'mas', label: 'Más', icon: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z' },
 ]
 
 export default function App() {
   const [activeId, setActiveId] = useState(() => localStorage.getItem(ACTIVE_KEY) || null)
-  const [tab, setTab] = useState('agenda')
+  const [tab, setTab] = useState('hoy')
   const sync = useSyncEngine()
   const persons = useLiveQuery(() => (activeId ? personsOf(activeId) : []), [activeId], [])
 
@@ -57,7 +54,7 @@ export default function App() {
     if (id) localStorage.setItem(ACTIVE_KEY, id)
     else localStorage.removeItem(ACTIVE_KEY)
     setActiveId(id)
-    setTab('agenda')
+    setTab('hoy')
   }
 
   // Solo si el evento activo se ha resuelto a "no existe" (borrado), volver a la lista.
@@ -103,17 +100,13 @@ export default function App() {
           )
         })()}
         <UserBadge eventId={activeId} persons={persons} />
-        <button className="iconbtn" title="Ajustes del evento" aria-label="Ajustes" onClick={() => { tap(); setTab('evento') }}>⚙️</button>
       </header>
 
-      {tab === 'agenda' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}
-      {tab === 'gastos' && <ExpensesScreen eventId={activeId} event={event} />}
-      {tab === 'cenas' && <CenasScreen eventId={activeId} event={event} />}
+      {tab === 'hoy' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}
+      {tab === 'dinero' && <DineroScreen eventId={activeId} event={event} />}
+      {tab === 'cenas' && <CenasCompraScreen eventId={activeId} event={event} />}
       {tab === 'planes' && <PlanesScreen eventId={activeId} event={event} />}
-      {tab === 'compra' && <CompraScreen eventId={activeId} event={event} />}
-      {tab === 'saldos' && <BalancesScreen eventId={activeId} event={event} />}
-      {tab === 'stats' && <StatsScreen eventId={activeId} event={event} />}
-      {tab === 'evento' && <EventSettingsScreen eventId={activeId} event={event} onChangeEvent={() => pick(null)} />}
+      {tab === 'mas' && <MasScreen eventId={activeId} event={event} onChangeEvent={() => pick(null)} />}
 
       <nav className="tabbar">
         {TABS.map((t) => (
