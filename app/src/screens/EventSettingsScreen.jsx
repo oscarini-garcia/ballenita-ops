@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, removeFamily,
@@ -8,7 +8,7 @@ import {
 import { useSkin, SKINS } from '../lib/skins.js'
 import { syncNow } from '../sync/engine.js'
 import { isConfigured } from '../sync/jsonbin.js'
-import { forzarActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
+import { forzarActualizacion, UPDATE_STEPS, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -64,17 +64,48 @@ function AppSection() {
   // null = en reposo · si no, la clave del paso actual (UPDATE_STEPS).
   const [paso, setPaso] = useState(null)
   const busy = paso !== null
+  // Si venimos de recargar por una actualización, enseñamos el ✓ y limpiamos la marca.
+  const [recienActualizada] = useState(veniaDeActualizar)
+  useEffect(() => { if (recienActualizada) limpiarMarcaActualizacion() }, [recienActualizada])
+
+  function actualizar() {
+    if (busy) return
+    marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
+    const inicio = Date.now()
+    forzarActualizacion(setPaso, {
+      // La recarga es inevitable (hay que cargar el JS nuevo), pero la retrasamos
+      // un poco para que el overlay de progreso se vea de verdad y no sea un parpadeo.
+      reload: async () => {
+        const resto = 1600 - (Date.now() - inicio)
+        if (resto > 0) await new Promise((r) => setTimeout(r, resto))
+        window.location.reload()
+      },
+    })
+  }
+
   return (
     <>
       <div className="sec-h">App</div>
       <div className="note">¿No ves los últimos cambios? Fuerza que la ballena traiga la <b>versión más reciente</b> sin tener que quitarla y volver a añadirla a la pantalla de inicio.
         <div style={{ marginTop: 8 }}>
-          <button className="btn sm" disabled={busy} onClick={() => forzarActualizacion(setPaso)}>
-            {busy ? `🐋 ${UPDATE_STEPS[paso] ?? 'actualizando…'}` : '🔄 Buscar actualización y recargar'}
-          </button>
+          <button className="btn sm" disabled={busy} onClick={actualizar}>🔄 Buscar actualización y recargar</button>
         </div>
+        {recienActualizada && (
+          <div className="pill owed" style={{ marginTop: 10, display: 'inline-block' }}>✓ Actualizada · v{APP_VERSION}</div>
+        )}
         <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-faint)' }}>Versión {APP_VERSION}</div>
       </div>
+
+      {busy && (
+        <div className="update-overlay" role="status" aria-live="polite">
+          <div className="box">
+            <div className="whale" aria-hidden>🐋</div>
+            <div className="step">{UPDATE_STEPS[paso] ?? 'Actualizando…'}</div>
+            <div className="prog"><i /></div>
+            <div className="hint">No cierres la app, tarda un momento…</div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

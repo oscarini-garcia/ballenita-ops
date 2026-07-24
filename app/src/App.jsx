@@ -11,6 +11,7 @@ import PlanesScreen from './screens/PlanesScreen.jsx'
 import MasScreen from './screens/MasScreen.jsx'
 import { useSyncEngine } from './sync/engine.js'
 import { tap } from './lib/native.js'
+import { veniaDeActualizar } from './lib/pwa.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
@@ -37,7 +38,9 @@ const TABS = [
 
 export default function App() {
   const [activeId, setActiveId] = useState(() => localStorage.getItem(ACTIVE_KEY) || null)
-  const [tab, setTab] = useState('hoy')
+  // Tras recargar por una actualización, volvemos a «Más» (donde vive Ajustes) en
+  // vez de a «Hoy», para no perder el sitio desde el que se pulsó el botón.
+  const [tab, setTab] = useState(() => (veniaDeActualizar() ? 'mas' : 'hoy'))
   const sync = useSyncEngine()
   const persons = useLiveQuery(() => (activeId ? personsOf(activeId) : []), [activeId], [])
 
