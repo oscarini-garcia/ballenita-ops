@@ -20,13 +20,13 @@ function setMeId(eventId, id) {
 // Estados de coña para tocar rápido (editables a mano igualmente).
 const ESTADOS = [
   '🍺 de resaca', '🏖️ tirado en la toalla', '😴 echando la siesta',
-  '🐋 avistando ballenas', '💸 sin blanca', '🍷 vino en mano',
+  '🐳 avistando ballenas', '💸 sin blanca', '🍷 vino en mano',
   '🔥 a la parrilla', '🤿 buceando', '🫥 desaparecido en combate',
   '🍤 en modo gamba', '🚗 haciendo de chófer', '🧴 poniéndome crema',
 ]
 
 // Iconos rápidos para el avatar (se puede escribir cualquier emoji igualmente).
-const AVATARES = ['🧑', '👩', '👨', '🧔', '👵', '👴', '🧒', '🐋', '🦑', '🦀', '🏄', '🕶️', '🍹', '🐙']
+const AVATARES = ['🧑', '👩', '👨', '🧔', '👵', '👴', '🧒', '🐳', '🦑', '🦀', '🏄', '🕶️', '🍹', '🐙']
 
 export default function UserBadge({ eventId, persons }) {
   const [meId, setMe] = useState(() => getMeId(eventId))
@@ -53,7 +53,7 @@ export default function UserBadge({ eventId, persons }) {
         title={me ? `Eres ${me.name}` : '¿Quién eres?'}
         aria-label={me ? `Usuario: ${me.name}` : 'Elegir quién eres'}
       >
-        <span className="uav">{me ? me.avatar : '🐋'}</span>
+        <span className="uav">{me ? me.avatar : '🐳'}</span>
         <span className="utxt">
           <span className="un">{me ? (me.apodo || me.name) : '¿Quién eres?'}</span>
           {me && me.estado && <span className="ust">{me.estado}</span>}
@@ -94,7 +94,7 @@ function UserSheet({ persons, me, onChoose, onSalir, onClose }) {
         <button className="x" onClick={onClose}>×</button>
         {me ? (
           <>
-            <h2>Eres {me.name} 🐋</h2>
+            <h2>Eres {me.name} 🐳</h2>
             <div className="note">Cambia tu icono y tu estado (se ven en todo el grupo). «Salir» olvida quién eres en este móvil para cambiar de persona.</div>
 
             <label>Tu icono</label>
@@ -121,7 +121,7 @@ function UserSheet({ persons, me, onChoose, onSalir, onClose }) {
           </>
         ) : (
           <>
-            <h2>¿Quién eres? 🐋</h2>
+            <h2>¿Quién eres? 🐳</h2>
             <div className="note">Elige quién eres en este evento (se guarda en tu móvil). Luego podrás cambiar tu estado y tu icono.</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
               {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en Ajustes ⚙️.</div>}
