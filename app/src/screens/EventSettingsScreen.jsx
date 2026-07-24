@@ -8,7 +8,7 @@ import {
 import { useSkin, SKINS } from '../lib/skins.js'
 import { syncNow } from '../sync/engine.js'
 import { isConfigured } from '../sync/jsonbin.js'
-import { forzarActualizacion } from '../lib/pwa.js'
+import { forzarActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -61,14 +61,16 @@ function SyncSection() {
 }
 
 function AppSection() {
-  const [busy, setBusy] = useState(false)
+  // null = en reposo · si no, la clave del paso actual (UPDATE_STEPS).
+  const [paso, setPaso] = useState(null)
+  const busy = paso !== null
   return (
     <>
       <div className="sec-h">App</div>
       <div className="note">¿No ves los últimos cambios? Fuerza que la ballena traiga la <b>versión más reciente</b> sin tener que quitarla y volver a añadirla a la pantalla de inicio.
         <div style={{ marginTop: 8 }}>
-          <button className="btn sm" disabled={busy} onClick={() => { setBusy(true); forzarActualizacion() }}>
-            {busy ? '🐋 actualizando…' : '🔄 Buscar actualización y recargar'}
+          <button className="btn sm" disabled={busy} onClick={() => forzarActualizacion(setPaso)}>
+            {busy ? `🐋 ${UPDATE_STEPS[paso] ?? 'actualizando…'}` : '🔄 Buscar actualización y recargar'}
           </button>
         </div>
         <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-faint)' }}>Versión {APP_VERSION}</div>
