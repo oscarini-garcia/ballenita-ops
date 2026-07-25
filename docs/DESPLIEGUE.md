@@ -24,8 +24,8 @@ Lo que **no** cambia: los saldos se siguen calculando en cada móvil
 - `wrangler` — viene con `npm install` dentro de `api/`.
 - Una cuenta del **Apple Developer Program** (99 €/año). Es imprescindible:
   sin ella no hay Sign in with Apple ni app de iOS.
-- Un dominio, si quieres uno propio. Con el `*.pages.dev` que da Cloudflare
-  también funciona todo.
+- Acceso al DNS de **`galoopa.store`** (panel de Squarespace Domains). La app
+  vive en `ballena-ops.galoopa.store`.
 
 > **Aviso que ya se dio y conviene tener presente:** el acceso es solo con Apple.
 > Quien no tenga un Apple ID no puede entrar, ni desde Android ni desde la web.
@@ -93,15 +93,17 @@ Otro identificador, esta vez de tipo **Services IDs**, con un valor distinto del
 anterior: `com.oscarini.ballenaops.web`. Actívale Sign in with Apple y, en
 *Configure*:
 
-- **Domains**: el dominio donde vive la PWA (`ballenita-ops.pages.dev` o el
-  tuyo propio). Sin `https://` ni barras.
-- **Return URLs**: la URL completa, con `https://` y **sin** barra final.
-  Tiene que ser **idéntica carácter a carácter** al campo `redireccion` de
-  `config.json`; si no, Apple responde `invalid_client`.
+- **Domains**: `ballena-ops.galoopa.store`. Sin `https://` ni barras.
+- **Return URLs**: `https://ballena-ops.galoopa.store`, con `https://` y **sin**
+  barra final. Tiene que ser **idéntica carácter a carácter** al campo
+  `redireccion` de `config.json`; si no, Apple responde `invalid_client`.
 
-Apple pedirá verificar el dominio descargando un fichero `.txt` que hay que
-servir bajo `/.well-known/`. Déjalo en `app/public/.well-known/` y se publicará
-con el resto del sitio.
+> **No hagas esto todavía** si aún no has montado el dominio (§4.2). Apple
+> intenta verificarlo en cuanto lo declaras, y si no hay certificado aún, falla
+> y hay que reintentarlo.
+
+Apple te dará un fichero `.txt` para verificar el dominio. Dónde va y cómo
+comprobar que se sirve de verdad: **§4.4**, que tiene truco.
 
 Los dos identificadores van a `api/wrangler.toml`:
 
@@ -138,7 +140,41 @@ Cada empujón a `main` reconstruye y republica. Las pruebas siguen corriendo en
 GitHub Actions (`.github/workflows/pruebas.yml`), que es lo que te avisa si algo
 se rompe antes de que llegue a producción.
 
-### 4.1 Rellena `config.json`
+### 4.2 Apuntar `ballena-ops.galoopa.store` a Pages
+
+`galoopa.store` **no está alojado en Cloudflare**: sus servidores de nombres son
+los de Google Cloud DNS, heredados de Google Domains, y el panel donde se editan
+los registros es hoy el de Squarespace Domains. Eso no impide usar el dominio —
+Pages admite dominios cuyo DNS vive fuera— y basta con un registro.
+
+> ⚠️ **El apex está ocupado.** `galoopa.store` resuelve a Shopify. No lo toques:
+> todo esto cuelga de un subdominio y la tienda sigue exactamente igual. Si
+> alguna vez se rompe la tienda después de tocar aquí, lo primero que hay que
+> mirar es si al añadir el CNAME se modificó por error el registro `A` del apex.
+
+1. En el proyecto de Pages: **Custom domains → Set up a custom domain** →
+   `ballena-ops.galoopa.store`. Como el dominio no está en Cloudflare, la
+   interfaz te dirá que crees tú el registro y te enseñará el destino.
+2. En el panel de DNS del dominio, **un único registro nuevo**:
+
+   | Tipo | Nombre | Valor | TTL |
+   |---|---|---|---|
+   | CNAME | `ballena-ops` | `<tu-proyecto>.pages.dev` | 300 mientras pruebas |
+
+3. Cloudflare detecta el CNAME, valida y emite el certificado solo. De unos
+   minutos a una hora. **No sigas** hasta que el dominio figure como **Active**
+   en *Custom domains*.
+
+Comprobación:
+
+```bash
+dig ballena-ops.galoopa.store CNAME +short    # debe devolver tu *.pages.dev
+curl -I https://ballena-ops.galoopa.store     # debe dar 200 con certificado válido
+```
+
+Solo cuando esto esté **Active** tiene sentido volver a Apple (§3.2).
+
+### 4.3 Rellena `config.json`
 
 `app/public/config.json` viene con un marcador `EJEMPLO`. Sustitúyelo:
 
@@ -146,10 +182,13 @@ se rompe antes de que llegue a producción.
 {
   "api": "https://ballena-ops-api.TU-SUBDOMINIO.workers.dev",
   "appleClienteWeb": "com.oscarini.ballenaops.web",
-  "redireccion": "https://ballenita-ops.pages.dev",
+  "redireccion": "https://ballena-ops.galoopa.store",
   "otaManifiesto": "https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json"
 }
 ```
+
+Lo único que queda por sustituir es `TU-SUBDOMINIO` en la dirección de la API;
+el resto ya está puesto.
 
 Este fichero se lee **en caliente** al arrancar la app, así que cambiarlo no
 obliga a reconstruir nada ni a publicar un OTA nuevo. Ahí no hay secretos: la
@@ -157,17 +196,49 @@ dirección de la API y el cliente de Apple son públicos por diseño.
 
 El workflow de OTA se niega a publicar si el marcador `EJEMPLO` sigue puesto.
 
-### 4.2 Los orígenes permitidos
+### 4.4 El fichero de verificación de Apple
+
+El `.txt` que te da Apple (§3.2) **sustituye** a `app/public/apple-dominio.txt`,
+que ahora mismo es un marcador. Se sirve en la ruta que Apple espera mediante la
+reescritura ya declarada en `app/public/_redirects`.
+
+> **¿Por qué no un directorio `.well-known/` normal?** Porque los despliegues de
+> Pages no siempre suben los directorios cuyo nombre empieza por punto. El
+> síntoma sería una verificación que falla sin decir por qué. La reescritura con
+> código 200 es una redirección **interna**: Apple ve el fichero donde lo
+> espera, con su content-type, y sin saltos por el camino (que también
+> rechazaría). Por eso se hace así desde el principio.
+
+Tras el empujón que lo publique:
+
+```bash
+curl -i https://ballena-ops.galoopa.store/.well-known/apple-developer-domain-association.txt
+```
+
+> ⚠️ **Mira el `content-type`, no solo el `200`.**
+>
+> - `text/plain` → el fichero se sirve de verdad. Adelante.
+> - `text/html` → el fichero **no** está; te están devolviendo una página. Apple
+>   fallará con un error que no explica nada.
+>
+> El cuerpo debe ser la cadena que entregó Apple, no `<!DOCTYPE html>`.
+
+El repositorio incluye un `app/public/404.html` justamente para que esta
+comprobación no dé un falso positivo: sin él, Pages responde `200` con el
+`index.html` de la aplicación para **cualquier** ruta inexistente, y parecería
+que el fichero está publicado cuando no lo está.
+
+### 4.5 Los orígenes permitidos
 
 En `api/wrangler.toml`, `ORIGENES_PERMITIDOS` tiene que incluir el dominio de la
 PWA. Sin coincidencia el Worker no emite cabeceras CORS y la app entra pero no
-ve datos:
+ve datos. Ya viene puesto:
 
 ```toml
-ORIGENES_PERMITIDOS = "https://ballenita-ops.pages.dev,http://localhost:5173"
+ORIGENES_PERMITIDOS = "https://ballena-ops.galoopa.store,https://ballenita-ops.pages.dev,http://localhost:5173"
 ```
 
-Vuelve a desplegar el Worker tras cambiarlo.
+Vuelve a desplegar el Worker si lo cambias (`npm run desplegar`).
 
 ---
 
@@ -253,6 +324,9 @@ en `app/package.json`, mergea a `main`, y el workflow publica el OTA.
 |---|---|
 | La web carga pero el botón de Apple no hace nada | El dominio no está verificado en el Services ID, o `appleClienteWeb` no coincide con él |
 | Apple responde `invalid_client` | La *Return URL* del Services ID y el campo `redireccion` de `config.json` no son idénticos. Compara carácter a carácter, incluida la barra final |
+| Apple no consigue verificar el dominio | El `.txt` no se está sirviendo. Lanza el `curl` de §4.4: si el `content-type` es `text/html`, el fichero no está donde crees |
+| El dominio no sale de «pending» en Pages | El CNAME no ha propagado o apunta a otro proyecto. `dig ballena-ops.galoopa.store CNAME +short` debe devolver tu `pages.dev` |
+| Se rompió la tienda de `galoopa.store` | Nada de este despliegue toca el apex. Mira si al añadir el CNAME se modificó por error el registro `A` que apunta a Shopify |
 | Entra pero no ve datos | `ORIGENES_PERMITIDOS` no incluye el dominio de la PWA, o `api` en `config.json` apunta a otro sitio |
 | «Todavía no tienes acceso» la primera vez | Es el comportamiento correcto: hay que darle de alta (§6) |
 | Todo da 401 de repente | Cambió `SESION_SECRETO`; hay que volver a entrar |

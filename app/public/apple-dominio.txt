@@ -1,0 +1,9 @@
+PENDIENTE — sustituye este fichero por el que entrega Apple.
+
+Apple Developer → Identifiers → el Services ID (com.oscarini.ballenaops.web)
+→ Configure → Domains and Subdomains → Download.
+
+Se sirve en /.well-known/apple-developer-domain-association.txt mediante la
+reescritura declarada en `_redirects`, y NO desde un directorio `.well-known/`
+de verdad: los despliegues de Cloudflare Pages no siempre suben los directorios
+cuyo nombre empieza por punto. Ver docs/DESPLIEGUE.md §4.4.
