@@ -14,7 +14,7 @@ preview_urls = false
 [[d1_databases]]
 binding = "DB"
 database_name = "ballena-ops"
-database_id = "PENDIENTE — pega aquí el id que devuelve `wrangler d1 create ballena-ops`"
+database_id = "862d4478-3a64-4810-b12c-239c20f03507"
 
 [vars]
 # Orígenes desde los que se admite la PWA. Sin coincidencia no se emiten
