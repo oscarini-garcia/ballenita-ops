@@ -1,6 +1,6 @@
 {
   "_nota": "Configuración del despliegue. Se lee en caliente al arrancar, así que cambiarla NO exige reconstruir ni republicar un OTA. Aquí no hay secretos: todo esto es público por diseño. Ver docs/DESPLIEGUE.md.",
-  "api": "https://ballena-ops-api.EJEMPLO.workers.dev",
+  "api": "https://ballena-ops-api.oscarini.workers.dev",
   "appleClienteWeb": "com.oscarini.ballenaops.web",
   "redireccion": "https://ballena-ops.galoopa.store",
   "otaManifiesto": "https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json"
