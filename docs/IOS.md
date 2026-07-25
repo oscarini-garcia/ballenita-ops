@@ -23,7 +23,7 @@ nativas reales: **háptica**, **compartir** (hoja nativa) y **push** (registro; 
 
 ## Qué ya está en el repo (lado web/JS)
 
-- `app/capacitor.config.json` — `appId: com.oscarini.ballenaops`, bundle empaquetado (`webDir: dist`),
+- `app/capacitor.config.json` — `appId: com.garciadoral.ballenitaops`, bundle empaquetado (`webDir: dist`),
   `CapacitorHttp` activado (para que el `fetch` del OTA no choque con CORS) y `CapacitorUpdater`
   en modo manual.
 - `app/src/lib/native.js` — puente seguro: háptica (`tap`), compartir (`share`), OTA
@@ -71,7 +71,7 @@ aplica cada vez que sincronizas.
 npm run open:ios     # abre Xcode
 ```
 
-- **Signing & Capabilities** → selecciona tu *Team*; deja el bundle id `com.oscarini.ballenaops`.
+- **Signing & Capabilities** → selecciona tu *Team*; deja el bundle id `com.garciadoral.ballenitaops`.
 - Añade la capacidad **Sign in with Apple**. ⚠️ **Sin esto no se entra**, y por tanto no se
   sincroniza nada: desde la migración al backend propio, el acceso vive únicamente aquí
   (`docs/DESPLIEGUE.md` §3). Tiene que estar también marcada en el App ID del portal de Apple;

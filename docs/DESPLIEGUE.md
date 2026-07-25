@@ -95,9 +95,15 @@ Esa dirección va en `app/public/config.json`, campo `api`. **Ya está puesta.**
 ### 3.1 Identificador de la aplicación (App ID)
 
 En [developer.apple.com](https://developer.apple.com) → *Certificates,
-Identifiers & Profiles* → *Identifiers* → **App IDs**. Crea uno con el
-identificador de paquete que use la app de iOS (por omisión
-`com.oscarini.ballenaops`) y marca la capacidad **Sign in with Apple**.
+Identifiers & Profiles* → *Identifiers* → **App IDs**. El identificador de
+paquete es `com.garciadoral.ballenitaops` —el mismo que declara
+`app/capacitor.config.json`— y hay que marcarle la capacidad **Sign in with
+Apple**.
+
+> Los tres tienen que coincidir: el App ID del portal, el `appId` de
+> `capacitor.config.json` y `APPLE_AUD_IOS` en `wrangler.toml`. Si uno se
+> desvía, el Worker rechaza el token con «audiencia no admitida» y la app se
+> queda en la pantalla de acceso sin más explicación.
 
 ### 3.2 Y ya está: no hay nada más que dar de alta
 
@@ -113,7 +119,7 @@ Services ID solo hace falta para el flujo web, y aquí no hay flujo web.
 El identificador va a `api/wrangler.toml`, y ya está puesto:
 
 ```toml
-APPLE_AUD_IOS = "com.oscarini.ballenaops"
+APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
 ```
 
 > **Si algún día se recupera el acceso web**, hay que crear entonces el Services
