@@ -83,6 +83,8 @@ function CuentaSection() {
   const [codigo, setCodigo] = useState('')
   const [nombre, setNombre] = useState('')
   const [aviso, setAviso] = useState(null)
+  // Cuenta que se está renombrando: { id, nombre } o null.
+  const [editando, setEditando] = useState(null)
 
   const esAdmin = sesion?.cuenta?.rol === 'administrador'
 
@@ -121,6 +123,17 @@ function CuentaSection() {
     }
   }
 
+  async function renombrar() {
+    tap()
+    try {
+      await gestionarCuenta({ accion: 'renombrar', id: editando.id, nombre: editando.nombre })
+      setEditando(null)
+      cargar()
+    } catch (e) {
+      setAviso(String(e.message ?? e))
+    }
+  }
+
   async function salir() {
     tap()
     // Los datos del grupo se van con la sesión: no tiene sentido dejarlos en un
@@ -153,16 +166,41 @@ function CuentaSection() {
             {cuentas === null && <div className="empty" style={{ padding: 14 }}>Cargando…</div>}
             {cuentas?.map((c) => (
               <div className="cuenta-fila" key={c.id} data-activa={c.activa ? 'si' : 'no'}>
-                <div className="main">
-                  <div className="n">{c.nombre || c.email || 'Sin nombre'}</div>
-                  <div className="sub">
-                    {c.rol}
-                    {c.ultimoAcceso ? ` · última vez ${new Date(c.ultimoAcceso).toLocaleDateString('es-ES')}` : ' · aún no ha entrado'}
-                  </div>
-                </div>
-                <button className="btn sm ghost" onClick={() => alternar(c)}>
-                  {c.activa ? 'Quitar' : 'Devolver'}
-                </button>
+                {editando?.id === c.id ? (
+                  <>
+                    <input
+                      className="main"
+                      type="text"
+                      value={editando.nombre}
+                      onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                      onKeyDown={(e) => { if (e.key === 'Enter') renombrar() }}
+                      aria-label="Nombre de la cuenta"
+                      autoFocus
+                    />
+                    <button className="btn sm" onClick={renombrar}>Guardar</button>
+                    <button className="btn sm ghost" onClick={() => setEditando(null)}>Cancelar</button>
+                  </>
+                ) : (
+                  <>
+                    <div className="main">
+                      <div className="n">{c.nombre || c.email || 'Sin nombre'}</div>
+                      <div className="sub">
+                        {c.rol}
+                        {c.ultimoAcceso ? ` · última vez ${new Date(c.ultimoAcceso).toLocaleDateString('es-ES')}` : ' · aún no ha entrado'}
+                      </div>
+                    </div>
+                    <button
+                      className="btn sm ghost"
+                      onClick={() => { tap(); setEditando({ id: c.id, nombre: c.nombre || '' }) }}
+                      aria-label={`Renombrar a ${c.nombre || 'esta cuenta'}`}
+                    >
+                      ✏️
+                    </button>
+                    <button className="btn sm ghost" onClick={() => alternar(c)}>
+                      {c.activa ? 'Quitar' : 'Devolver'}
+                    </button>
+                  </>
+                )}
               </div>
             ))}
           </div>

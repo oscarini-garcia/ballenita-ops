@@ -190,6 +190,15 @@ async function cuentas(peticion, env) {
     return json({ ok: true });
   }
 
+  if (accion === 'renombrar') {
+    // El nombre es solo la etiqueta con la que el grupo se reconoce en la
+    // lista. Apple entrega el suyo únicamente en la primera autorización, así
+    // que sin esto una cuenta sin nombre se quedaría sin nombre para siempre.
+    if (!id) return json({ error: 'falta el id de la cuenta' }, 400);
+    await env.DB.prepare('UPDATE cuenta SET nombre = ? WHERE id = ?').bind(String(nombre ?? '').trim(), id).run();
+    return json({ ok: true });
+  }
+
   if (accion === 'activar' || accion === 'desactivar') {
     if (!id) return json({ error: 'falta el id de la cuenta' }, 400);
     if (accion === 'desactivar' && id === cuenta.id) {

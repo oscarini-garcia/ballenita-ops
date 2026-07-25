@@ -90,13 +90,31 @@ identificador de paquete que use la app de iOS (por omisión
 ### 3.2 Identificador de servicio (Services ID), para la web
 
 Otro identificador, esta vez de tipo **Services IDs**, con un valor distinto del
-anterior: `com.oscarini.ballenaops.web`. Actívale Sign in with Apple y, en
+anterior: `com.oscarini.ballenaops.web`. Actívale Sign in with Apple y entra en
 *Configure*:
 
+- **Primary App ID**: `com.oscarini.ballenaops`, el del paso anterior.
+  **Este campo es el que más importa** — ver el aviso de abajo.
 - **Domains**: `ballena-ops.galoopa.store`. Sin `https://` ni barras.
 - **Return URLs**: `https://ballena-ops.galoopa.store`, con `https://` y **sin**
   barra final. Tiene que ser **idéntica carácter a carácter** al campo
   `redireccion` de `config.json`; si no, Apple responde `invalid_client`.
+
+> ⚠️ **Por qué el *Primary App ID* no es un trámite.**
+>
+> Apple devuelve el mismo identificador de usuario (`sub`) para los
+> identificadores **agrupados bajo un mismo App ID principal**. Ese `sub` es
+> exactamente la clave con la que este montaje reconoce a una persona
+> (`cuenta.appleSub`).
+>
+> Si el Services ID de la web queda colgando de otro App ID —o de ninguno—, la
+> **misma persona** recibirá un `sub` distinto desde el móvil y desde la web. En
+> la práctica: entra por iOS, funciona; abre la web, y le sale «todavía no
+> tienes acceso» con un código **diferente**. Habría que invitarla dos veces y
+> aparecería duplicada en la lista de cuentas.
+>
+> No es un fallo del que se pueda salir sin tocar Apple: hay que corregir el
+> *Primary App ID* y volver a entrar. Mejor mirarlo dos veces ahora.
 
 > **No hagas esto todavía** si aún no has montado el dominio (§4.2). Apple
 > intenta verificarlo en cuanto lo declaras, y si no hay certificado aún, falla
@@ -119,6 +137,17 @@ Vuelve a desplegar el Worker después de tocarlos (`npm run desplegar`).
 Este montaje **no** usa el flujo de servidor de Apple, así que no hace falta
 generar ni custodiar ninguna clave `.p8`. El cliente obtiene un token de
 identidad y el Worker verifica su firma contra las claves públicas de Apple.
+
+### 3.4 El nombre solo llega una vez
+
+Apple entrega el nombre de la persona **únicamente en la primera autorización**.
+A partir de ahí, nunca más: los inicios de sesión siguientes traen el `sub` y
+poco más.
+
+No es un problema aquí porque el nombre lo pone quien invita (§6), y esa es la
+etiqueta que se ve en la lista de cuentas. Pero explica por qué la primera
+cuenta —la que entra sola, sin invitación— puede quedarse sin nombre si Apple
+decidió no darlo: se arregla desde la propia lista, no volviendo a entrar.
 
 ---
 
