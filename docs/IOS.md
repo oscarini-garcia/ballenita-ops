@@ -15,9 +15,15 @@ Esto es lo que Apple permite (guía 3.3.2: ejecutar JS descargado mientras no ca
 de la app). Para reforzar la guía 4.2 ("que no sea solo una web"), la app usa capacidades
 nativas reales: **háptica**, **compartir** (hoja nativa) y **push** (registro; envío pendiente).
 
+> ⚠️ **La migración al backend propio añadió un plugin nativo**
+> (`@capacitor-community/apple-sign-in`, para el acceso con Apple). Los plugins son código
+> nativo, así que **no** se reparten por OTA: hace falta **compilar y subir un binario nuevo**
+> a Apple una vez. Hasta entonces, la app instalada dirá que esa versión no trae el acceso con
+> Apple. Después, el día a día vuelve a ser el de siempre. Ver [`DESPLIEGUE.md`](DESPLIEGUE.md) §8.
+
 ## Qué ya está en el repo (lado web/JS)
 
-- `app/capacitor.config.json` — `appId: com.oscarini.ballenaops`, bundle empaquetado (`webDir: dist`),
+- `app/capacitor.config.json` — `appId: com.garciadoral.ballenitaops`, bundle empaquetado (`webDir: dist`),
   `CapacitorHttp` activado (para que el `fetch` del OTA no choque con CORS) y `CapacitorUpdater`
   en modo manual.
 - `app/src/lib/native.js` — puente seguro: háptica (`tap`), compartir (`share`), OTA
@@ -65,7 +71,12 @@ aplica cada vez que sincronizas.
 npm run open:ios     # abre Xcode
 ```
 
-- **Signing & Capabilities** → selecciona tu *Team*; deja el bundle id `com.oscarini.ballenaops`.
+- **Signing & Capabilities** → selecciona tu *Team*; deja el bundle id `com.garciadoral.ballenitaops`.
+- Añade la capacidad **Sign in with Apple**. ⚠️ **Sin esto no se entra**, y por tanto no se
+  sincroniza nada: desde la migración al backend propio, el acceso vive únicamente aquí
+  (`docs/DESPLIEGUE.md` §3). Tiene que estar también marcada en el App ID del portal de Apple;
+  si falta en un sitio de los dos, Xcode firma sin protestar y el fallo aparece al pulsar
+  «Entrar con Apple».
 - Añade la capacidad **Push Notifications** (para la fase de push).
 - **Iconos / splash**: las imágenes fuente ya están en `app/assets/` (`icon.png` 1024×1024
   cuadrado y opaco, y `splash.png` 2732×2732). Genera todos los tamaños con:
@@ -106,8 +117,8 @@ A partir de aquí, los cambios de web/JS **no** necesitan repetir esto: van por 
 ## Push con OneSignal
 
 Elegido **OneSignal** (capa gratuita): gestiona APNs por ti. El cliente ya está cableado en
-`registerPush()` (plugin `onesignal-cordova-plugin`), gobernado por variables de entorno al
-estilo de `VITE_JSONBIN_*`:
+`registerPush()` (plugin `onesignal-cordova-plugin`), gobernado por variables de entorno
+inyectadas en el build:
 
 | Variable | Qué es | ¿Segura en el cliente? |
 | --- | --- | --- |
@@ -127,7 +138,8 @@ estilo de `VITE_JSONBIN_*`:
 2. Sube tu **APNs Auth Key (.p8)** al panel de OneSignal (la generas en el portal de Apple
    Developer → *Keys*). OneSignal se encarga del resto de APNs.
 3. Copia la **App ID** y ponla como secret del repo `VITE_ONESIGNAL_APP_ID` (se inyecta en el
-   build de Pages y en el workflow OTA, junto a `VITE_JSONBIN_*`).
+   workflow OTA). La dirección de la API y el cliente de Apple **no** van aquí: viajan en
+   `app/public/config.json` y se leen en caliente (ver [`DESPLIEGUE.md`](DESPLIEGUE.md)).
 4. En Xcode, capacidad **Push Notifications** activada (Fase B).
 
 Con esto, cada dispositivo queda **suscrito** y ya puedes **enviar avisos a mano desde el panel

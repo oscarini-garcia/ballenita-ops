@@ -55,14 +55,24 @@ jobs:
       - if: steps.check.outputs.publish == 'true'
         run: npm test
 
-      # Build para la app: base '/' (NO el subpath de Pages).
+      # La dirección de la API y el cliente de Apple ya NO se hornean en el
+      # bundle: viajan en public/config.json y se leen al arrancar. Por eso este
+      # build ya no necesita ningún secreto de sincronización.
       - if: steps.check.outputs.publish == 'true'
         run: npm run build:app
         env:
-          VITE_JSONBIN_ID: ${{ secrets.VITE_JSONBIN_ID }}
-          VITE_JSONBIN_KEY: ${{ secrets.VITE_JSONBIN_KEY }}
           VITE_ONESIGNAL_APP_ID: ${{ secrets.VITE_ONESIGNAL_APP_ID }}
           VITE_PUSH_ENDPOINT: ${{ secrets.VITE_PUSH_ENDPOINT }}
+
+      # Un bundle con el marcador de ejemplo dejaría a todos los móviles
+      # apuntando a una API que no existe, y encima se aplicaría solo.
+      - name: Comprobar que config.json está relleno
+        if: steps.check.outputs.publish == 'true'
+        run: |
+          if grep -q 'EJEMPLO' public/config.json; then
+            echo "::error file=app/public/config.json::config.json todavía tiene el marcador EJEMPLO; sustitúyelo antes de publicar un OTA."
+            exit 1
+          fi
 
       - name: Empaquetar bundle + manifiesto
         if: steps.check.outputs.publish == 'true'

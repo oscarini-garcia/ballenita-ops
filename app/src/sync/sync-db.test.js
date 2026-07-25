@@ -1,40 +1,146 @@
-import { describe, it, expect } from 'vitest'
-import { db, createEvent, addExpense, addFamily, removeExpense, exportSnapshot, importSnapshot, expensesOf } from '../db.js'
-import { mergeSnapshots } from './merge-snapshot.js'
+import { describe, it, expect, beforeEach } from 'vitest'
+import {
+  db, addExpense, addFamily, colaPendiente, createEvent, exportSnapshot,
+  importSnapshot, olvidarTodo, removeExpense, updateExpense, vaciarCola,
+} from '../db.js'
 
-describe('sync sobre la base de datos real', () => {
-  it('exportSnapshot recoge todas las tablas', async () => {
-    const ev = await createEvent({ name: 'E', currency: 'EUR' })
-    await addFamily(ev, { name: 'A' })
-    const snap = await exportSnapshot()
-    expect(snap.tables.events.length).toBe(1)
-    expect(snap.tables.families.length).toBe(1)
+// El modelo de sincronización cambió al migrar al Worker: ya no hay merge en el
+// cliente ni lápidas, sino una cola de cambios y una instantánea del servidor
+// que manda. Lo que se prueba aquí es esa frontera.
+
+beforeEach(async () => {
+  await olvidarTodo()
+})
+
+describe('cola de cambios', () => {
+  it('cada escritura deja en la cola solo lo que cambia', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    const id = await addExpense(eventId, { description: 'Hielo', amountCents: 300 })
+    await updateExpense(id, { category: 'bebida' })
+
+    const delGasto = (await colaPendiente()).filter((c) => c.tabla === 'expenses')
+
+    expect(delGasto).toHaveLength(2)
+    expect(delGasto[0].op).toBe('upsert')
+    expect(delGasto[0].campos.description).toBe('Hielo')
+    expect(delGasto[1].campos).toEqual({ category: 'bebida' })
+    expect(delGasto[1].campos.description).toBeUndefined()
   })
 
-  it('borrar deja un tombstone', async () => {
-    const ev = await createEvent({ name: 'E', currency: 'EUR' })
-    const gid = await addExpense(ev, { description: 'x', amountCents: 100, category: 'varios', dateISO: 'd', payers: [], participantIds: [] })
-    await removeExpense(gid)
-    const t = await db.tombstones.get(`expenses:${gid}`)
-    expect(t).toMatchObject({ table: 'expenses', rowId: gid })
-    expect(await db.expenses.get(gid)).toBeUndefined()
+  it('el dato y su entrada en la cola se escriben juntos', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    const antes = (await colaPendiente()).length
+    const id = await addFamily(eventId, { name: 'García' })
+
+    expect(await db.families.get(id)).toBeTruthy()
+    expect((await colaPendiente()).length).toBe(antes + 1)
   })
 
-  it('importar un snapshot remoto añade lo nuevo y aplica borrados', async () => {
-    const ev = await createEvent({ name: 'E', currency: 'EUR' })
-    const g1 = await addExpense(ev, { description: 'local', amountCents: 100, category: 'varios', dateISO: '2026-01-01', payers: [], participantIds: [] })
+  it('borrar encola un cambio y no deja lápida', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    const id = await addExpense(eventId, { description: 'Birras', amountCents: 900 })
+    await removeExpense(id)
 
-    // Snapshot "remoto": trae un gasto nuevo g2 y un tombstone que borra g1.
-    const remote = {
+    expect(await db.expenses.get(id)).toBeUndefined()
+    expect((await colaPendiente()).find((c) => c.op === 'borrar')).toMatchObject({ tabla: 'expenses', id })
+    expect(db.tables.map((t) => t.name)).not.toContain('tombstones')
+  })
+
+  it('vaciarCola descarta hasta la marca subida y conserva el resto', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    await addExpense(eventId, { description: 'Uno', amountCents: 100 })
+    const cola = await colaPendiente()
+    const corte = cola[cola.length - 1].orden
+
+    await addExpense(eventId, { description: 'Llegó tarde', amountCents: 200 })
+    await vaciarCola(corte)
+
+    const quedan = await colaPendiente()
+    expect(quedan).toHaveLength(1)
+    expect(quedan[0].campos.description).toBe('Llegó tarde')
+  })
+})
+
+describe('instantánea del servidor', () => {
+  it('sustituye la copia local: lo que el servidor no manda, deja de existir', async () => {
+    const eventId = await createEvent({ name: 'Viejo' })
+    await addExpense(eventId, { description: 'Fantasma', amountCents: 100 })
+    await vaciarCola((await colaPendiente()).at(-1).orden)
+
+    await importSnapshot({
       v: 1,
-      tables: { expenses: [{ id: 'g2', eventId: ev, description: 'remoto', amountCents: 200, updatedAt: '2026-05-01' }] },
-      tombstones: [{ key: `expenses:${g1}`, table: 'expenses', rowId: g1, ts: '2026-06-01' }],
-    }
-    const merged = mergeSnapshots(await exportSnapshot(), remote)
-    await importSnapshot(merged)
+      tables: {
+        events: [{ id: 'ev_srv', name: 'Ballenita 2026', updatedAt: '2026-08-01T00:00:00.000Z' }],
+        expenses: [],
+      },
+    })
 
-    const ids = (await expensesOf(ev)).map((e) => e.id)
-    expect(ids).toContain('g2')
-    expect(ids).not.toContain(g1) // borrado por el tombstone remoto
+    const events = await db.events.toArray()
+    expect(events).toHaveLength(1)
+    expect(events[0].id).toBe('ev_srv')
+    expect(await db.expenses.count()).toBe(0)
+  })
+
+  it('aplicar la instantánea no realimenta la cola', async () => {
+    await importSnapshot({
+      v: 1,
+      tables: { events: [{ id: 'ev_srv', name: 'Ballenita', updatedAt: '2026-08-01T00:00:00.000Z' }] },
+    })
+    expect(await colaPendiente()).toHaveLength(0)
+  })
+
+  it('lo encolado durante el vuelo sobrevive a la instantánea', async () => {
+    // Un gasto apuntado mientras la petición estaba en camino: el servidor
+    // todavía no lo conoce, y aun así tiene que seguir en pantalla al volver.
+    const eventId = await createEvent({ name: 'Ballenita' })
+    const enVuelo = await addExpense(eventId, { description: 'En vuelo', amountCents: 500 })
+
+    await importSnapshot({ v: 1, tables: { events: [{ id: eventId, name: 'Ballenita' }], expenses: [] } })
+
+    const superviviente = await db.expenses.get(enVuelo)
+    expect(superviviente).toBeTruthy()
+    expect(superviviente.description).toBe('En vuelo')
+  })
+
+  it('un borrado en vuelo no lo resucita la instantánea', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    const id = await addExpense(eventId, { description: 'Se va', amountCents: 100 })
+    await vaciarCola((await colaPendiente()).at(-1).orden)
+    await removeExpense(id)
+
+    // El servidor todavía lo tiene y su instantánea lo trae de vuelta.
+    await importSnapshot({
+      v: 1,
+      tables: { expenses: [{ id, eventId, description: 'Se va', amountCents: 100 }] },
+    })
+
+    expect(await db.expenses.get(id)).toBeUndefined()
+  })
+})
+
+describe('volcado y olvido', () => {
+  it('exportSnapshot recoge todas las tablas sincronizadas', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    await addFamily(eventId, { name: 'García' })
+    await addExpense(eventId, { description: 'Hielo', amountCents: 300 })
+
+    const snap = await exportSnapshot()
+    expect(snap.v).toBe(1)
+    for (const tabla of ['events', 'families', 'bungas', 'persons', 'expenses', 'settlements', 'dishes', 'dinners', 'plans', 'shop']) {
+      expect(Array.isArray(snap.tables[tabla])).toBe(true)
+    }
+    expect(snap.tables.expenses).toHaveLength(1)
+    expect(snap.tables.families).toHaveLength(1)
+  })
+
+  it('olvidarTodo deja el móvil limpio, datos y cola', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    await addExpense(eventId, { description: 'Hielo', amountCents: 300 })
+
+    await olvidarTodo()
+
+    expect(await db.events.count()).toBe(0)
+    expect(await db.expenses.count()).toBe(0)
+    expect(await colaPendiente()).toHaveLength(0)
   })
 })

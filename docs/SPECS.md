@@ -452,6 +452,8 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 
 ## 14. Arquitectura técnica (PWA)
 
+> ⚠️ **Lee antes [§14.9](#149--migración-a-backend-propio-worker--d1--sustituye-a-142-145-bis-y-145-ter).** La capa de sincronización, el hosting y la identidad **ya no son** lo que describen §14.2, §14.5-bis y §14.5-ter: se migró a Worker + D1. Lo que sigue es el registro de por qué se empezó con el modelo de `counter-ops`, que sigue siendo útil para entender las decisiones que **sí** se conservaron.
+
 > **Contrastado con `counter-ops`** — la PWA de "contar consumiciones" que el grupo **ya usa en el iPhone** y le funciona. Conclusión: su enfoque (mucho más simple que un motor de sync) es la mejor **base de partida** para Ballena Ops. PowerSync + Supabase pasa a ser **vía de mejora**, no el punto de partida.
 
 ### 14.1 Qué es `counter-ops` (lo que ya funciona en sus iPhones)
@@ -520,8 +522,8 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 **Veredicto:** para un grupo de amigos, el tráfico es trivial. El diseño aguanta de sobra; solo hay que **no hacer PUT en vano** y **no pollear demasiado**.
 
 ### 14.6 Forks resueltos (dónde Ballena Ops difiere de counter-ops)
-1. **✅ Auth: SÍ hay login (email mágico; sin Apple, sin Google por ahora).** No se adopta el "sin login" de counter-ops; se mantiene la decisión de §2.1. El "unirse por enlace/QR" (§2.5) sigue siendo la forma de **entrar al evento**; el login es cómo te **autenticas** una vez dentro.
-2. **✅ Privacidad del backend: se acepta el modelo simple** (clave del doc en el cliente, como counter-ops). Grupo de confianza, doc no público.
+1. ~~**✅ Auth: SÍ hay login (email mágico; sin Apple, sin Google por ahora).**~~ **Revocado en §14.9:** el login es **Sign in with Apple**, con alta por invitación. El email mágico nunca llegó a implementarse.
+2. ~~**✅ Privacidad del backend: se acepta el modelo simple** (clave del doc en el cliente, como counter-ops).~~ **Revocado en §14.9:** ese modelo era justamente el problema —la clave acababa en el bundle de una web pública—. Ahora autoriza una sesión firmada por el Worker.
 3. **✅ Almacenamiento: IndexedDB desde el principio** (Dexie / `idb-keyval`). Sin límite práctico, listo para varios eventos y para fotos más adelante. Mismo patrón de merge tombstone/LWW por encima.
 4. **✅ Fotos: emoji/preset en v1, fotos a v2** (avatar y ticket). Mantiene el doc de sync ligero.
 
@@ -552,6 +554,64 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 ### 14.8 Vía de mejora (sigue siendo PWA, no app nativa)
 - Solo **si el modelo simple se queda corto** (muchos eventos, datos grandes, sync más robusto o control de acceso real): subir la capa de sync/backend a **PowerSync + Supabase** (con RLS) — **sin dejar de ser una PWA**.
 - Antes sería **sobre-ingeniería** para lo que el grupo necesita hoy. El enfoque de counter-ops es el punto de partida sensato. **No se contempla app iOS nativa.**
+
+### 14.9 ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter**
+
+> Lo anterior de §14 queda como **registro de por qué se empezó así**, no como
+> descripción de lo que hay. El montaje de counter-ops (JSONBin + merge en el
+> cliente) se retiró y se adoptó el stack de `garciadoral-ops`.
+
+**Por qué se cambió.** El motivo decisivo no fue la cuota de peticiones que
+anticipaba §14.5-ter, sino la **credencial**: `VITE_JSONBIN_KEY` se inyectaba en
+el build, de modo que la clave maestra del documento viajaba dentro del
+JavaScript de una web pública. Cualquiera con la URL podía leer y sobrescribir
+los gastos del grupo. Los demás beneficios (copias, migraciones, conflictos
+campo a campo) llegaron de propina.
+
+**Qué hay ahora.**
+
+| Capa | Antes | Ahora |
+|---|---|---|
+| Backend | ninguno · JSONBin | **Cloudflare Worker + D1** (`api/`) |
+| Sync | documento entero ↔ merge LWW + tombstones **en cada móvil** | **cola de cambios** → el servidor aplica → devuelve la instantánea, que **sustituye** la copia local |
+| Conflictos | por registro entero | **por campo** (solo se envía lo que cambia) |
+| Borrados | tombstone en cada cliente | `borrado = 1` en el servidor; deja de transmitirse |
+| Identidad | ninguna (email mágico, pendiente) | **Sign in with Apple** (solo app iOS), alta por invitación |
+| Hosting | GitHub Pages, subpath `/ballenita-ops/` | **Cloudflare Pages**, base `/` |
+| Configuración | variables `VITE_*` horneadas en el build | `public/config.json`, **leído en caliente** |
+
+**Lo que NO cambió, y es lo importante:** se siguen sincronizando **hechos**, y
+los **saldos se calculan en local** (`lib/reparto.js`). El servidor no guarda ni
+transmite un saldo jamás.
+
+**Lo que se descartó a propósito** de `garciadoral-ops`: su **filtrado por
+lector antes de transmitir**. Allí es la regla que gobierna el sistema porque su
+modo de fallo grave es arruinar una sorpresa de regalos; aquí todo el grupo ve
+lo mismo y esa maquinaria sería complejidad sin requisito que la justifique.
+
+**Consecuencia asumida:** el acceso solo con Apple deja fuera a quien no tenga
+un Apple ID, y añade los 99 €/año del programa de Apple. Se aceptó a sabiendas
+(§15). El Worker está escrito de forma que añadir otro proveedor de identidad
+más adelante no toca ni la sincronización ni el modelo de datos.
+
+**Y una segunda, mayor: el acceso vive solo en la app de iOS.** En navegador y
+en la PWA instalada, Ballena Ops es una libreta local que no sincroniza. Se
+eligió así para evitar la mitad web del montaje de Apple —Services ID,
+verificación de dominio, fichero `.txt`, SDK en ventana emergente—, que es la
+parte que más se atasca y la que más piezas frágiles añade.
+
+Lo que cuesta:
+
+- **Para participar en el grupo hace falta la app instalada.** Un portátil o un
+  Android sirven para apuntar cosas propias, no para compartirlas.
+- **La primera cuenta no se puede crear sin la app**, así que el arranque de una
+  instalación nueva depende de haber compilado y subido el binario.
+
+Recuperarlo sería declarar el Services ID y añadir `APPLE_AUD_WEB`: el Worker ya
+admite esa audiencia si aparece, y `auth/apple.js` volvería a necesitar su rama
+web. Cambio de configuración más una función, no de arquitectura.
+
+Pasos de despliegue: [`DESPLIEGUE.md`](DESPLIEGUE.md).
 
 ---
 

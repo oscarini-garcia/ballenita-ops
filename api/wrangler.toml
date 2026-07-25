@@ -1,0 +1,38 @@
+name = "ballena-ops-api"
+main = "src/index.js"
+compatibility_date = "2026-05-01"
+
+# La PWA llama al Worker por su dirección de workers.dev, así que esa ruta se
+# declara explícitamente. Las URL de vista previa sobran: publicarían cada
+# versión en una dirección propia que nadie usa y que también atendería.
+workers_dev = true
+preview_urls = false
+
+# El binding es `DB` a propósito: es el nombre con el que el Worker la busca
+# (`env.DB`). No copie el que sugiere `wrangler d1 create`, que deriva del
+# nombre de la base y dejaría al Worker sin encontrarla.
+[[d1_databases]]
+binding = "DB"
+database_name = "ballena-ops"
+database_id = "862d4478-3a64-4810-b12c-239c20f03507"
+
+[vars]
+# Quien habla con esta API es la app de iOS, y no pasa por el navegador: con
+# `CapacitorHttp` activado la petición la hace el sistema, sin CORS de por medio.
+# La web es una libreta local y no llama aquí.
+#
+# La lista se queda por dos motivos: `wrangler dev` contra un navegador durante
+# el desarrollo, y no dejar la puerta abierta de par en par si algún día se
+# recupera el acceso web. Sin coincidencia no se emiten cabeceras CORS.
+ORIGENES_PERMITIDOS = "http://localhost:5173"
+
+# Audiencia admitida del token de Apple: el identificador del paquete de la app.
+# No hay Services ID porque no hay acceso con Apple en la web.
+APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
+
+# Secretos, que NO van aquí. Se registran con `wrangler secret put`:
+#   SESION_SECRETO  · clave con la que este Worker firma las sesiones
+#   TOKEN_SERVICIO  · credencial de la siembra desde JSONBin (/api/importar)
+
+[observability]
+enabled = true

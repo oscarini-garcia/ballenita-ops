@@ -1,0 +1,6 @@
+{
+  "_nota": "Configuración del despliegue. Se lee en caliente al arrancar, así que cambiarla NO exige reconstruir ni republicar un OTA. Aquí no hay secretos: todo esto es público por diseño. Ver docs/DESPLIEGUE.md.",
+  "_acceso": "El acceso con Apple vive solo en la app de iOS, así que no hay cliente web ni URL de retorno que declarar. En el navegador la app es una libreta local.",
+  "api": "https://ballena-ops-api.oscarini.workers.dev",
+  "otaManifiesto": "https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json"
+}

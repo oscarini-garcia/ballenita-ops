@@ -3,8 +3,12 @@ import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
 
 // IndexedDB desde el día 1 (§14). Cada tabla guarda registros con `id` de cliente
-// y `updatedAt` para el merge. Aquí, en Fase 0, la app es local; la sincronización
-// del documento compartido se enchufa después (ver src/sync/).
+// y `updatedAt`. Desde la migración a la API propia (Worker + D1), IndexedDB deja
+// de ser la fuente de la verdad y pasa a ser **la copia local de la instantánea**
+// que manda el servidor, más una **cola de cambios** pendientes de subir.
+//
+// La regla de oro no cambia: aquí solo hay hechos. Los saldos los sigue
+// calculando `lib/reparto.js` en el dispositivo, y no se sincronizan jamás.
 export const db = new Dexie('ballena-ops')
 
 db.version(1).stores({
@@ -34,7 +38,16 @@ db.version(4).stores({
   shop: '&id, eventId, updatedAt',
 })
 
-const stamp = (obj) => ({ ...obj, updatedAt: now() })
+// v5: cola de cambios, y adiós a las lápidas.
+//
+// Con el documento de JSONBin cada móvil fusionaba el estado entero y hacía
+// falta una lápida para que un borrado no resucitara desde otro dispositivo.
+// Ahora el borrado es un cambio más de la cola y el servidor lo conserva
+// marcado, así que la tabla sobra: ponerla a `null` la elimina al migrar.
+db.version(5).stores({
+  outbox: '++orden, tabla',
+  tombstones: null,
+})
 
 // ── Señal de cambios locales (para disparar la sync) ──
 let applyingRemote = false
@@ -43,115 +56,165 @@ function bump() {
   if (applyingRemote || typeof window === 'undefined') return
   window.dispatchEvent(new Event('ballena:changed'))
 }
-for (const t of SYNC_TABLES) {
-  db[t].hook('creating', () => { bump() })
-  db[t].hook('updating', () => { bump() })
-  db[t].hook('deleting', () => { bump() })
-}
 
-// Borrado con tombstone: se elimina la fila y se anota el borrado para que
-// la sincronización no la resucite desde otro dispositivo (§14, LWW + tombstones).
-export async function removeRow(table, id) {
-  await db.transaction('rw', db[table], db.tombstones, async () => {
-    await db[table].delete(id)
-    await db.tombstones.put({ key: `${table}:${id}`, table, rowId: id, ts: now() })
+// ---------------------------------------------------------------------------
+// Escritura: dato y cola, siempre juntos
+// ---------------------------------------------------------------------------
+
+/**
+ * Toda escritura de la app pasa por aquí.
+ *
+ * El dato y su entrada en la cola se guardan en **la misma transacción**. Si se
+ * hicieran por separado, cerrar la app entre una y otra dejaría un cambio que
+ * se ve en el móvil y que el servidor no llega a conocer nunca: el peor fallo
+ * posible en una app de gastos compartidos, porque no se nota hasta que las
+ * cuentas no cuadran.
+ *
+ * A la cola va **solo lo que cambia**, no la fila entera. Así dos personas que
+ * editan campos distintos del mismo gasto no se pisan (lo resuelve el servidor
+ * campo a campo), y de paso la cola ocupa lo que tiene que ocupar.
+ */
+async function escribir(tabla, id, campos) {
+  const updatedAt = now()
+  await db.transaction('rw', db[tabla], db.outbox, async () => {
+    const anterior = await db[tabla].get(id)
+    await db[tabla].put({ ...(anterior ?? {}), ...campos, id, updatedAt })
+    if (!applyingRemote) await db.outbox.add({ tabla, id, op: 'upsert', campos, updatedAt })
   })
+  bump()
+  return id
 }
 
-// ── Snapshot completo (para sincronizar el documento compartido) ──
-export async function exportSnapshot() {
-  const tables = {}
-  for (const t of SYNC_TABLES) tables[t] = await db[t].toArray()
-  const tombstones = await db.tombstones.toArray()
-  return { v: 1, tables, tombstones }
+/**
+ * Borrado: desaparece de la copia local y sube como un cambio más. El servidor
+ * lo marca y deja de transmitirlo; no hacen falta lápidas locales.
+ */
+export async function removeRow(tabla, id) {
+  const updatedAt = now()
+  await db.transaction('rw', db[tabla], db.outbox, async () => {
+    await db[tabla].delete(id)
+    if (!applyingRemote) await db.outbox.add({ tabla, id, op: 'borrar', updatedAt })
+  })
+  bump()
 }
 
+/** Cambios pendientes de subir, en orden de llegada. */
+export const colaPendiente = () => db.outbox.orderBy('orden').toArray()
+export const hayCambiosPendientes = async () => (await db.outbox.count()) > 0
+
+/** Descarta de la cola lo que el servidor ya ha aceptado (o rechazado con motivo). */
+export const vaciarCola = (hastaOrden) =>
+  db.outbox.where('orden').belowOrEqual(hastaOrden).delete()
+
+// ---------------------------------------------------------------------------
+// Instantánea
+// ---------------------------------------------------------------------------
+
+/**
+ * Sustituye la copia local por la instantánea del servidor, que es la autoridad.
+ *
+ * Se reemplaza en vez de fusionar: lo que el servidor no manda es que ya no
+ * existe. Los cambios que hayan entrado en la cola mientras la petición estaba
+ * en vuelo se vuelven a aplicar encima, para que nada de lo que el usuario
+ * acaba de tocar desaparezca de su pantalla.
+ */
 export async function importSnapshot(snap) {
   setApplyingRemote(true)
   try {
-    await db.transaction('rw', [...SYNC_TABLES.map((t) => db[t]), db.tombstones], async () => {
-      if (snap.tombstones?.length) await db.tombstones.bulkPut(snap.tombstones)
+    const pendientes = await colaPendiente()
+
+    await db.transaction('rw', SYNC_TABLES.map((t) => db[t]), async () => {
       for (const t of SYNC_TABLES) {
+        await db[t].clear()
         if (snap.tables?.[t]?.length) await db[t].bulkPut(snap.tables[t])
-        const del = (snap.tombstones ?? []).filter((x) => x.table === t).map((x) => x.rowId)
-        if (del.length) await db[t].bulkDelete(del)
       }
     })
+
+    for (const cambio of pendientes) {
+      if (cambio.op === 'borrar') await db[cambio.tabla].delete(cambio.id)
+      else {
+        const anterior = await db[cambio.tabla].get(cambio.id)
+        await db[cambio.tabla].put({
+          ...(anterior ?? {}), ...cambio.campos, id: cambio.id, updatedAt: cambio.updatedAt,
+        })
+      }
+    }
   } finally {
     setApplyingRemote(false)
   }
 }
 
+/** Volcado local completo. Sirve para sembrar la base nueva desde JSONBin. */
+export async function exportSnapshot() {
+  const tables = {}
+  for (const t of SYNC_TABLES) tables[t] = await db[t].toArray()
+  return { v: 1, tables }
+}
+
+/** Olvida todo lo local. Al cerrar sesión, para no dejar los datos del grupo
+ *  en un móvil que ya no tiene acceso. */
+export async function olvidarTodo() {
+  await db.transaction('rw', [...SYNC_TABLES.map((t) => db[t]), db.outbox], async () => {
+    for (const t of SYNC_TABLES) await db[t].clear()
+    await db.outbox.clear()
+  })
+}
+
 // ── Eventos ──
 export async function createEvent({ name, lugar = '', currency = 'EUR', startDate, endDate }) {
-  const id = uid('ev')
-  await db.events.add(stamp({ id, name, lugar, currency, startDate, endDate, status: 'activo' }))
-  return id
+  return escribir('events', uid('ev'), { name, lugar, currency, startDate, endDate, status: 'activo' })
 }
 export const listEvents = () => db.events.orderBy('updatedAt').reverse().toArray()
 export const getEvent = (id) => db.events.get(id)
-export const updateEvent = (id, patch) => db.events.update(id, stamp(patch))
+export const updateEvent = (id, patch) => escribir('events', id, patch)
 
 // ── Familias ──
 export async function addFamily(eventId, { name, color = '#1FA6D6', avatar = '👨‍👩‍👧', estado = '' }) {
-  const id = uid('fam')
-  await db.families.add(stamp({ id, eventId, name, color, avatar, estado }))
-  return id
+  return escribir('families', uid('fam'), { eventId, name, color, avatar, estado })
 }
 export const familiesOf = (eventId) => db.families.where({ eventId }).toArray()
-export const updateFamily = (id, patch) => db.families.update(id, stamp(patch))
+export const updateFamily = (id, patch) => escribir('families', id, patch)
 export const removeFamily = (id) => removeRow('families', id)
 
 // ── Bungas ──
 export async function addBunga(eventId, { name, alias = '', familyId = null }) {
-  const id = uid('bunga')
-  await db.bungas.add(stamp({ id, eventId, name, alias, familyId }))
-  return id
+  return escribir('bungas', uid('bunga'), { eventId, name, alias, familyId })
 }
 export const bungasOf = (eventId) => db.bungas.where({ eventId }).toArray()
-export const updateBunga = (id, patch) => db.bungas.update(id, stamp(patch))
+export const updateBunga = (id, patch) => escribir('bungas', id, patch)
 export const removeBunga = (id) => removeRow('bungas', id)
 
 // ── Personas ──
 export async function addPerson(eventId, p) {
-  const id = uid('per')
   const edad = p.edad ?? 'adulto'
-  await db.persons.add(
-    stamp({
-      id,
-      eventId,
-      name: p.name,
-      apodo: p.apodo ?? '',
-      familyId: p.familyId ?? null,
-      edad,
-      comeConMayores: p.comeConMayores ?? edad === 'adulto',
-      cuentaComoAdultoReparto: p.cuentaComoAdultoReparto ?? edad === 'adulto',
-      pesoReparto: p.pesoReparto ?? (edad === 'adulto' ? 1 : 0.5),
-      avatar: p.avatar ?? '🧑',
-      estado: p.estado ?? '',
-    }),
-  )
-  return id
+  return escribir('persons', uid('per'), {
+    eventId,
+    name: p.name,
+    apodo: p.apodo ?? '',
+    familyId: p.familyId ?? null,
+    edad,
+    comeConMayores: p.comeConMayores ?? edad === 'adulto',
+    cuentaComoAdultoReparto: p.cuentaComoAdultoReparto ?? edad === 'adulto',
+    pesoReparto: p.pesoReparto ?? (edad === 'adulto' ? 1 : 0.5),
+    avatar: p.avatar ?? '🧑',
+    estado: p.estado ?? '',
+  })
 }
 export const personsOf = (eventId) => db.persons.where({ eventId }).toArray()
-export const updatePerson = (id, patch) => db.persons.update(id, stamp(patch))
+export const updatePerson = (id, patch) => escribir('persons', id, patch)
 export const removePerson = (id) => removeRow('persons', id)
 
 // ── Gastos ──
 export async function addExpense(eventId, e) {
-  const id = uid('exp')
-  await db.expenses.add(stamp({ id, eventId, ...e }))
-  return id
+  return escribir('expenses', uid('exp'), { eventId, ...e })
 }
 export const expensesOf = (eventId) => db.expenses.where({ eventId }).reverse().sortBy('dateISO')
-export const updateExpense = (id, patch) => db.expenses.update(id, stamp(patch))
+export const updateExpense = (id, patch) => escribir('expenses', id, patch)
 export const removeExpense = (id) => removeRow('expenses', id)
 
 // ── Liquidaciones ──
 export async function addSettlement(eventId, s) {
-  const id = uid('set')
-  await db.settlements.add(stamp({ id, eventId, dateISO: now(), ...s }))
-  return id
+  return escribir('settlements', uid('set'), { eventId, dateISO: now(), ...s })
 }
 export const settlementsOf = (eventId) => db.settlements.where({ eventId }).toArray()
 export const removeSettlement = (id) => removeRow('settlements', id)
@@ -165,36 +228,32 @@ export const DISH_CATEGORIES = [
   { id: 'postre', label: 'Postre' },
 ]
 export async function addDish({ name, categorias = [], esFavorito = false, ingredientes = [] }) {
-  const id = uid('dish')
-  await db.dishes.add(stamp({ id, name, categorias, esFavorito, ingredientes }))
-  return id
+  return escribir('dishes', uid('dish'), { name, categorias, esFavorito, ingredientes })
 }
 export const listDishes = () => db.dishes.toArray()
-export const updateDish = (id, patch) => db.dishes.update(id, stamp(patch))
+export const updateDish = (id, patch) => escribir('dishes', id, patch)
 export const removeDish = (id) => removeRow('dishes', id)
 
 // ── Cenas (§6) — una por día ──
 export async function addDinner(eventId, d) {
-  const id = uid('cena')
-  await db.dinners.add(stamp({
-    id, eventId, dia: d.dia,
+  return escribir('dinners', uid('cena'), {
+    eventId,
+    dia: d.dia,
     platoIds: d.platoIds ?? [],
     bungaMayoresId: d.bungaMayoresId ?? null,
     bungaNinosId: d.bungaNinosId ?? null,
     queSeHace: d.queSeHace ?? '',
     cantidades: d.cantidades ?? '',
-  }))
-  return id
+  })
 }
 export const dinnersOf = (eventId) => db.dinners.where({ eventId }).sortBy('dia')
-export const updateDinner = (id, patch) => db.dinners.update(id, stamp(patch))
+export const updateDinner = (id, patch) => escribir('dinners', id, patch)
 export const removeDinner = (id) => removeRow('dinners', id)
 
 // ── Planes (§4) ──
 export async function addPlan(eventId, p) {
-  const id = uid('plan')
-  await db.plans.add(stamp({
-    id, eventId,
+  return escribir('plans', uid('plan'), {
+    eventId,
     titulo: p.titulo,
     descripcion: p.descripcion ?? '',
     dia: p.dia ?? null,
@@ -203,11 +262,10 @@ export async function addPlan(eventId, p) {
     enlace: p.enlace ?? '',
     estado: p.estado ?? 'votando',
     votos: p.votos ?? {},
-  }))
-  return id
+  })
 }
 export const plansOf = (eventId) => db.plans.where({ eventId }).toArray()
-export const updatePlan = (id, patch) => db.plans.update(id, stamp(patch))
+export const updatePlan = (id, patch) => escribir('plans', id, patch)
 export const removePlan = (id) => removeRow('plans', id)
 
 // ── Lista de la compra (§6.6) — ítems simples que cualquiera apunta ──
@@ -219,19 +277,19 @@ export const SHOP_CATEGORIES = [
   { id: 'otros', label: 'Otros', icon: '🧺' },
 ]
 export async function addShopItem(eventId, { texto, categoria = 'otros' }) {
-  const id = uid('shop')
-  await db.shop.add(stamp({ id, eventId, texto, categoria, comprado: false, compradoPor: null, compradoEn: null }))
-  return id
+  return escribir('shop', uid('shop'), {
+    eventId, texto, categoria, comprado: false, compradoPor: null, compradoEn: null,
+  })
 }
 export const shopItemsOf = (eventId) => db.shop.where({ eventId }).toArray()
-export const updateShopItem = (id, patch) => db.shop.update(id, stamp(patch))
+export const updateShopItem = (id, patch) => escribir('shop', id, patch)
 export const removeShopItem = (id) => removeRow('shop', id)
 // Marcar/desmarcar comprado registrando quién (personId) y cuándo.
 export const markBought = (id, personId = null) =>
   updateShopItem(id, { comprado: true, compradoPor: personId, compradoEn: now() })
 export const unmarkBought = (id) =>
   updateShopItem(id, { comprado: false, compradoPor: null, compradoEn: null })
-// Vacía lo ya comprado para dejar la lista limpia (cada borrado deja tombstone).
+// Vacía lo ya comprado para dejar la lista limpia.
 export async function clearBoughtShopItems(eventId) {
   const done = (await db.shop.where({ eventId }).toArray()).filter((x) => x.comprado)
   for (const it of done) await removeRow('shop', it.id)

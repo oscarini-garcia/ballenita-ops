@@ -148,7 +148,7 @@ describe('Lista de la compra — apuntar, marcar y limpiar', () => {
     expect(it.categoria).toBe('otros')
   })
 
-  it('limpiar comprados borra solo lo marcado y deja tombstone', async () => {
+  it('limpiar comprados borra solo lo marcado y encola el borrado', async () => {
     const ev = await createEvent({ name: 'C', currency: 'EUR' })
     const a = await addShopItem(ev, { texto: 'Fruta', categoria: 'fruta' })
     const b = await addShopItem(ev, { texto: 'Cerveza', categoria: 'bebida' })
@@ -159,8 +159,11 @@ describe('Lista de la compra — apuntar, marcar y limpiar', () => {
     const items = await shopItemsOf(ev)
     expect(items.map((x) => x.id)).toEqual([b])
 
-    const { db } = await import('./db.js')
-    expect(await db.tombstones.get(`shop:${a}`)).toBeTruthy()
+    // El borrado sube como un cambio más de la cola; el servidor lo marca y
+    // deja de transmitirlo, de modo que ya no hacen falta lápidas locales.
+    const { colaPendiente } = await import('./db.js')
+    const encolado = (await colaPendiente()).find((c) => c.op === 'borrar' && c.id === a)
+    expect(encolado).toMatchObject({ tabla: 'shop', id: a })
   })
 
   it('removeShopItem elimina el ítem', async () => {

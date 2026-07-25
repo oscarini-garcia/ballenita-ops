@@ -1,13 +1,11 @@
 # Ballena Ops 🐳 — app (PWA)
 
-Implementación (Fase 0) de la app descrita en [`../docs/SPECS.md`](../docs/SPECS.md).
+Implementación de la app descrita en [`../docs/SPECS.md`](../docs/SPECS.md).
 PWA offline-first para gestionar los eventos del grupo de amigos: gastos estilo
-Splitwise **entre familias**, con el motor de reparto y de sincronización heredados
-del enfoque de `counter-ops` (§14 del spec).
+Splitwise **entre familias**, con backend propio en [`../api/`](../api/)
+(Cloudflare Worker + D1, §14.9 del spec).
 
-## Estado actual (Fase 0)
-
-Funciona **en local** (IndexedDB), sin backend todavía:
+## Qué hace
 
 - ✅ Crear/elegir **eventos** (o cargar el ejemplo «Ballenita 2026»).
 - ✅ **Familias, bungas y personas** (con peso de reparto, avatar emoji y estado).
@@ -16,21 +14,36 @@ Funciona **en local** (IndexedDB), sin backend todavía:
 - ✅ **Saldos entre familias** + **liquidación simplificada** + «marcar pagado».
 - ✅ **Cenas, Planes, Agenda y Estadísticas.**
 - ✅ **Temas** (5 skins + Sistema + Aleatorio diario) en Ajustes.
-- ✅ **Motor de reparto** (`src/lib/reparto.js`) y **de merge LWW/tombstone**
-  (`src/lib/merge.js`), ambos con tests (`npm test`).
-- ✅ **Sincronización** (`src/sync/`): snapshot completo + merge LWW/tombstones +
-  transporte JSONBin. Se activa con las variables `VITE_JSONBIN_*`; sin ellas la app
-  es solo local. PUT solo si hay cambios; sync al abrir, al volver online/foreground
-  y cada 90 s (patrón counter-ops, §14.3).
+- ✅ **Motor de reparto** (`src/lib/reparto.js`), puro y con tests.
+- ✅ **Acceso con Apple** (`src/auth/`) y alta por invitación desde Ajustes.
+- ✅ **Sincronización** (`src/sync/`): cola de cambios → el servidor la aplica y
+  devuelve la instantánea, que sustituye la copia local. Al abrir, al volver
+  online/foreground y cada 90 s.
 
-Pendiente (siguientes fases): login por email mágico y avatares con foto.
+Pendiente: editar gastos y personas desde la UI, avatares con foto.
 
-### Sincronización — cómo se activa
+### Cómo funciona la sincronización
 
-1. Crea un bin en [JSONBin.io](https://jsonbin.io) y copia su **Bin ID** y **Master Key**.
-2. Ponlos en `.env` (ver `.env.example`): `VITE_JSONBIN_ID` y `VITE_JSONBIN_KEY`.
-   En GitHub Pages, como **secrets** del repo (inyectados en el build).
-3. Listo: los móviles del grupo comparten el mismo documento y convergen (LWW + historial).
+Toda escritura pasa por `escribir()` o `removeRow()` en `src/db.js`, que guardan
+el dato **y su entrada en la cola** (`outbox`) en la misma transacción. Si se
+hicieran por separado, cerrar la app entre una y otra dejaría un gasto visible
+en el móvil que el servidor no llegaría a conocer nunca.
+
+Después, `sync/engine.js` sube la cola, recibe la instantánea y la aplica. El
+servidor es la autoridad: lo que no manda, deja de existir en local. Lo que se
+haya encolado mientras la petición viajaba se vuelve a aplicar encima, para que
+nada de lo que acabas de tocar desaparezca de la pantalla.
+
+No hay merge en el cliente ni lápidas: eso era del montaje anterior con JSONBin.
+
+### Configuración
+
+`public/config.json` — la dirección de la API, el cliente de Apple y el
+manifiesto OTA. Se lee **en caliente** al arrancar, así que cambiarlo no exige
+reconstruir ni publicar un OTA. No contiene secretos. Si no apunta a ninguna
+API, la app funciona **solo en local** y lo indica en la cabecera.
+
+Pasos de despliegue: [`../docs/DESPLIEGUE.md`](../docs/DESPLIEGUE.md).
 
 ## Desarrollo
 

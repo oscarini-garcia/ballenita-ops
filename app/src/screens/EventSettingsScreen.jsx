@@ -3,11 +3,13 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, removeFamily,
   bungasOf, addBunga, removeBunga,
-  personsOf, addPerson, removePerson, updatePerson,
+  personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
 } from '../db.js'
 import { useSkin, SKINS } from '../lib/skins.js'
 import { syncNow } from '../sync/engine.js'
-import { isConfigured } from '../sync/jsonbin.js'
+import { gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
+import { borrarSesion, leerSesion } from '../auth/sesion.js'
+import { tap } from '../lib/native.js'
 import { forzarActualizacion, UPDATE_STEPS, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
@@ -35,7 +37,15 @@ function EventoSection({ event, onChangeEvent }) {
 
 function SyncSection() {
   const [state, setState] = useState(null)
-  const configured = isConfigured()
+  // La configuración se lee en caliente de config.json, así que llega después
+  // del primer pintado en vez de estar horneada en el bundle.
+  const [configured, setConfigured] = useState(false)
+  useEffect(() => {
+    let vivo = true
+    hayApi().then((si) => { if (vivo) setConfigured(si) })
+    return () => { vivo = false }
+  }, [])
+
   async function run() {
     setState({ status: 'syncing' })
     setState(await syncNow())
@@ -54,8 +64,157 @@ function SyncSection() {
           </div>
         </>
       ) : (
-        <div className="note">Ahora mismo la app es <b>solo local</b> (este móvil). Para sincronizar con el grupo, configura <code>VITE_JSONBIN_ID</code> y <code>VITE_JSONBIN_KEY</code> (ver <code>app/.env.example</code>). Sin eso, todo funciona igual pero no se comparte.</div>
+        <div className="note">Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es donde vive el acceso con Apple.</div>
       )}
+    </>
+  )
+}
+
+/**
+ * Sesión y, para quien administre el grupo, el alta de gente nueva.
+ *
+ * La incorporación es por invitación: alguien que ya está dentro pega aquí el
+ * código que le ha pasado el aspirante. Sin esto haría falta entrar en la base
+ * de datos a mano para dejar entrar a nadie.
+ */
+function CuentaSection() {
+  const sesion = leerSesion()
+  const [cuentas, setCuentas] = useState(null)
+  const [codigo, setCodigo] = useState('')
+  const [nombre, setNombre] = useState('')
+  const [aviso, setAviso] = useState(null)
+  // Cuenta que se está renombrando: { id, nombre } o null.
+  const [editando, setEditando] = useState(null)
+
+  const esAdmin = sesion?.cuenta?.rol === 'administrador'
+
+  async function cargar() {
+    try {
+      setCuentas((await listarCuentas()).cuentas)
+    } catch (e) {
+      setAviso(String(e.message ?? e))
+    }
+  }
+
+  useEffect(() => { if (esAdmin) cargar() }, [esAdmin])
+
+  async function invitar() {
+    if (!codigo.trim()) return
+    tap()
+    setAviso(null)
+    try {
+      await gestionarCuenta({ accion: 'invitar', identificador: codigo.trim(), nombre: nombre.trim() })
+      setCodigo('')
+      setNombre('')
+      setAviso('Listo. Que entre con Apple y ya tendrá acceso.')
+      cargar()
+    } catch (e) {
+      setAviso(String(e.message ?? e))
+    }
+  }
+
+  async function alternar(cuenta) {
+    tap()
+    try {
+      await gestionarCuenta({ accion: cuenta.activa ? 'desactivar' : 'activar', id: cuenta.id })
+      cargar()
+    } catch (e) {
+      setAviso(String(e.message ?? e))
+    }
+  }
+
+  async function renombrar() {
+    tap()
+    try {
+      await gestionarCuenta({ accion: 'renombrar', id: editando.id, nombre: editando.nombre })
+      setEditando(null)
+      cargar()
+    } catch (e) {
+      setAviso(String(e.message ?? e))
+    }
+  }
+
+  async function salir() {
+    tap()
+    // Los datos del grupo se van con la sesión: no tiene sentido dejarlos en un
+    // móvil que ya no va a poder actualizarlos.
+    borrarSesion()
+    await olvidarTodo()
+    window.location.reload()
+  }
+
+  if (!sesion) return null
+
+  return (
+    <>
+      <div className="sec-h">Tu cuenta</div>
+      <div className="card tight">
+        <div className="row">
+          <div className="av" aria-hidden="true">🐳</div>
+          <div className="main">
+            <div className="n">{sesion.cuenta?.nombre || 'Cuenta de Apple'}</div>
+            <div className="sub">{esAdmin ? 'Administras el grupo' : 'Miembro del grupo'}</div>
+          </div>
+          <button className="btn sm ghost" onClick={salir}>Salir</button>
+        </div>
+      </div>
+
+      {esAdmin && (
+        <>
+          <div className="sec-h">Quién tiene acceso</div>
+          <div className="card tight">
+            {cuentas === null && <div className="empty" style={{ padding: 14 }}>Cargando…</div>}
+            {cuentas?.map((c) => (
+              <div className="cuenta-fila" key={c.id} data-activa={c.activa ? 'si' : 'no'}>
+                {editando?.id === c.id ? (
+                  <>
+                    <input
+                      className="main"
+                      type="text"
+                      value={editando.nombre}
+                      onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                      onKeyDown={(e) => { if (e.key === 'Enter') renombrar() }}
+                      aria-label="Nombre de la cuenta"
+                      autoFocus
+                    />
+                    <button className="btn sm" onClick={renombrar}>Guardar</button>
+                    <button className="btn sm ghost" onClick={() => setEditando(null)}>Cancelar</button>
+                  </>
+                ) : (
+                  <>
+                    <div className="main">
+                      <div className="n">{c.nombre || c.email || 'Sin nombre'}</div>
+                      <div className="sub">
+                        {c.rol}
+                        {c.ultimoAcceso ? ` · última vez ${new Date(c.ultimoAcceso).toLocaleDateString('es-ES')}` : ' · aún no ha entrado'}
+                      </div>
+                    </div>
+                    <button
+                      className="btn sm ghost"
+                      onClick={() => { tap(); setEditando({ id: c.id, nombre: c.nombre || '' }) }}
+                      aria-label={`Renombrar a ${c.nombre || 'esta cuenta'}`}
+                    >
+                      ✏️
+                    </button>
+                    <button className="btn sm ghost" onClick={() => alternar(c)}>
+                      {c.activa ? 'Quitar' : 'Devolver'}
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="note">Para dar de alta a alguien: que intente entrar con Apple, te pase el código que le sale y lo pegues aquí.</div>
+          <label htmlFor="cuenta-codigo">Código de Apple</label>
+          <input id="cuenta-codigo" type="text" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="000123.abc…" />
+          <label htmlFor="cuenta-nombre">Nombre (para reconocerlo en la lista)</label>
+          <input id="cuenta-nombre" type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Curro" />
+          <button className="btn sm" style={{ marginTop: 8 }} onClick={invitar}>Dar acceso</button>
+        </>
+      )}
+
+      {aviso && <div className="note" role="status">{aviso}</div>}
     </>
   )
 }
@@ -147,6 +306,7 @@ export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
     <div className="body">
       <EventoSection event={event} onChangeEvent={onChangeEvent} />
       <AspectoSection />
+      <CuentaSection />
       <SyncSection />
       <AppSection />
 
