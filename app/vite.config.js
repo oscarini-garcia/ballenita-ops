@@ -3,9 +3,11 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'node:fs'
 
-// Servida en GitHub Pages bajo /ballenita-ops/ (§14 del spec).
-// En local, base '/' para que el dev server funcione sin subpath.
-const base = process.env.GITHUB_PAGES ? '/ballenita-ops/' : '/'
+// Servida en Cloudflare Pages, en la raíz de su propio dominio. Antes vivía en
+// GitHub Pages bajo /ballenita-ops/, y ese subpath obligaba a construir dos
+// bundles distintos —uno para la web y otro para la app de iOS, que se sirve
+// desde la raíz—. Con dominio propio, base '/' vale para los dos.
+const base = '/'
 
 // Versión desde package.json, inyectada como global. Útil para ver qué bundle
 // está vivo (sirve de prueba visual del OTA: al actualizar, cambia el número).

@@ -1,0 +1,17 @@
+{
+  "name": "ballena-ops-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API de Ballena Ops sobre Cloudflare Workers y D1 🐳",
+  "scripts": {
+    "dev": "wrangler dev",
+    "desplegar": "wrangler deploy",
+    "migrar:local": "wrangler d1 execute ballena-ops --local --file=migraciones/0001_esquema.sql",
+    "migrar:remoto": "wrangler d1 execute ballena-ops --remote --file=migraciones/0001_esquema.sql",
+    "test": "node --test 'test/*.test.js'"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

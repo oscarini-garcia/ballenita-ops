@@ -15,6 +15,12 @@ Esto es lo que Apple permite (guía 3.3.2: ejecutar JS descargado mientras no ca
 de la app). Para reforzar la guía 4.2 ("que no sea solo una web"), la app usa capacidades
 nativas reales: **háptica**, **compartir** (hoja nativa) y **push** (registro; envío pendiente).
 
+> ⚠️ **La migración al backend propio añadió un plugin nativo**
+> (`@capacitor-community/apple-sign-in`, para el acceso con Apple). Los plugins son código
+> nativo, así que **no** se reparten por OTA: hace falta **compilar y subir un binario nuevo**
+> a Apple una vez. Hasta entonces, la app instalada dirá que esa versión no trae el acceso con
+> Apple. Después, el día a día vuelve a ser el de siempre. Ver [`DESPLIEGUE.md`](DESPLIEGUE.md) §8.
+
 ## Qué ya está en el repo (lado web/JS)
 
 - `app/capacitor.config.json` — `appId: com.oscarini.ballenaops`, bundle empaquetado (`webDir: dist`),
@@ -106,8 +112,8 @@ A partir de aquí, los cambios de web/JS **no** necesitan repetir esto: van por 
 ## Push con OneSignal
 
 Elegido **OneSignal** (capa gratuita): gestiona APNs por ti. El cliente ya está cableado en
-`registerPush()` (plugin `onesignal-cordova-plugin`), gobernado por variables de entorno al
-estilo de `VITE_JSONBIN_*`:
+`registerPush()` (plugin `onesignal-cordova-plugin`), gobernado por variables de entorno
+inyectadas en el build:
 
 | Variable | Qué es | ¿Segura en el cliente? |
 | --- | --- | --- |
@@ -127,7 +133,8 @@ estilo de `VITE_JSONBIN_*`:
 2. Sube tu **APNs Auth Key (.p8)** al panel de OneSignal (la generas en el portal de Apple
    Developer → *Keys*). OneSignal se encarga del resto de APNs.
 3. Copia la **App ID** y ponla como secret del repo `VITE_ONESIGNAL_APP_ID` (se inyecta en el
-   build de Pages y en el workflow OTA, junto a `VITE_JSONBIN_*`).
+   workflow OTA). La dirección de la API y el cliente de Apple **no** van aquí: viajan en
+   `app/public/config.json` y se leen en caliente (ver [`DESPLIEGUE.md`](DESPLIEGUE.md)).
 4. En Xcode, capacidad **Push Notifications** activada (Fase B).
 
 Con esto, cada dispositivo queda **suscrito** y ya puedes **enviar avisos a mano desde el panel

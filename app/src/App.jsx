@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getEvent, personsOf } from './db.js'
 import WhaleLogo from './components/WhaleLogo.jsx'
 import UserBadge from './components/UserBadge.jsx'
+import AccesoScreen from './screens/AccesoScreen.jsx'
 import EventsScreen from './screens/EventsScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
 import DineroScreen from './screens/DineroScreen.jsx'
@@ -12,6 +13,8 @@ import MasScreen from './screens/MasScreen.jsx'
 import { useSyncEngine } from './sync/engine.js'
 import { tap } from './lib/native.js'
 import { veniaDeActualizar } from './lib/pwa.js'
+import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
+import { haySesion, leerSesion } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
@@ -20,6 +23,7 @@ const ACTIVE_KEY = 'ballena.activeEventId'
 function syncDot(sync) {
   if (!sync.isConfigured) return { color: '#8fb0a0', title: 'Solo local (sin sincronización)', checking: false }
   if (!sync.online || sync.status === 'offline') return { color: '#e5544b', title: 'Sin conexión', checking: false }
+  if (sync.status === 'sesion-caducada') return { color: '#e5544b', title: 'Sesión caducada · vuelve a entrar con Apple', checking: false }
   if (sync.status === 'syncing' || sync.status === 'busy') return { color: '#e7a33e', title: 'Sincronizando…', checking: true }
   if (sync.status === 'error') return { color: '#e7a33e', title: 'Error al sincronizar · toca para reintentar', checking: false }
   if (sync.dirty) return { color: '#e7a33e', title: 'Cambios sin sincronizar · toca para sincronizar', checking: false }
@@ -41,7 +45,21 @@ export default function App() {
   // Tras recargar por una actualización, volvemos a «Más» (donde vive Ajustes) en
   // vez de a «Hoy», para no perder el sitio desde el que se pulsó el botón.
   const [tab, setTab] = useState(() => (veniaDeActualizar() ? 'mas' : 'hoy'))
+
+  // `undefined` mientras se lee config.json; después, el objeto (vacío si no
+  // hay API configurada, que es el modo solo-local de siempre).
+  const [configuracion, setConfiguracion] = useState(undefined)
+  const [sesion, setSesion] = useState(() => leerSesion())
+  useEffect(() => { cargarConfiguracion().then(setConfiguracion) }, [])
+
   const sync = useSyncEngine()
+
+  // Si el Worker rechaza la sesión, el transporte ya la ha borrado: aquí solo
+  // hay que volver a la puerta.
+  useEffect(() => {
+    if (sync.status === 'sesion-caducada' && !haySesion()) setSesion(null)
+  }, [sync.status])
+
   const persons = useLiveQuery(() => (activeId ? personsOf(activeId) : []), [activeId], [])
 
   // El resultado se etiqueta con el id consultado, para distinguir un valor "stale"
@@ -64,6 +82,26 @@ export default function App() {
   useEffect(() => {
     if (activeId && resolvedForActive && event === null) pick(null)
   }, [activeId, resolvedForActive, event])
+
+  // Hasta saber si esta instalación tiene API no se puede decidir si hace falta
+  // entrar; pintar la app y quitarla un instante después sería peor.
+  if (configuracion === undefined) {
+    return (
+      <div className="app">
+        <div className="body"><div className="empty"><span className="e">🐳</span>Cargando…</div></div>
+      </div>
+    )
+  }
+
+  // Sin API configurada la app sigue siendo local y no pide entrar, igual que
+  // antes de tener servidor.
+  if (estaConfigurada(configuracion) && !sesion) {
+    return (
+      <div className="app">
+        <AccesoScreen configuracion={configuracion} onEntrar={setSesion} />
+      </div>
+    )
+  }
 
   if (!activeId) {
     return (

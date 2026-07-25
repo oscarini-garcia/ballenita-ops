@@ -11,9 +11,12 @@ estadísticas. Es un proyecto **solo para el grupo** (sin escalar ni monetizar),
 plan con fecha de inicio/fin. Idioma: **solo español**.
 
 - **Diseño / fuente de la verdad:** [`docs/SPECS.md`](docs/SPECS.md) — specs de producto,
-  lógica y arquitectura (§14). Si cambias comportamiento, actualiza el spec.
+  lógica y arquitectura (§14, y **§14.9** para el backend actual). Si cambias
+  comportamiento, actualiza el spec.
 - **Código:** [`app/`](app/) — la PWA. Ver [`app/README.md`](app/README.md).
-- **Desplegada** en GitHub Pages: https://oscarini-garcia.github.io/ballenita-ops/
+- **Código:** [`api/`](api/) — el Worker de Cloudflare + D1.
+- **Despliegue:** [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) — Cloudflare, Apple y GitHub.
+- **Desplegada** en Cloudflare Pages.
 
 ## Cómo trabajar en `app/`
 
@@ -30,17 +33,26 @@ npm run build        # build de producción (PWA)
 lógica pura → `*.test.js` junto al módulo; algo con datos → test tipo `db`; UI → test de
 componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-indexeddb`.
 
-## Arquitectura (resumen — detalle en SPECS §14)
+## Arquitectura (resumen — detalle en SPECS §14.9)
 
-- **React + Vite + `vite-plugin-pwa`**. Sin backend propio.
-- **IndexedDB** vía **Dexie** (`app/src/db.js`). Registros con `id` de cliente + `updatedAt`.
+- **React + Vite + `vite-plugin-pwa`** en `app/`; **Cloudflare Worker + D1** en `api/`.
+- **IndexedDB** vía **Dexie** (`app/src/db.js`). Ya **no es la fuente de la verdad**: es la
+  copia local de la instantánea del servidor **más una cola de cambios** (tabla `outbox`).
 - **Regla de oro:** se **sincronizan los hechos** (gastos, liquidaciones, cenas, planes) y
   los **saldos se calculan en local** (`app/src/lib/reparto.js`). Nunca se sincroniza un saldo.
-- **Sincronización** (`app/src/sync/`): snapshot completo ↔ documento JSON compartido en
-  **JSONBin**, con **merge last-write-wins + tombstones** (`app/src/lib/merge.js`,
-  `sync/merge-snapshot.js`). Sync al abrir / online / foreground / cada 90 s; **PUT solo si
-  hay cambios**. Sin credenciales `VITE_JSONBIN_*`, la app va **solo local** (indicador
-  `● local` en la cabecera).
+- **Sincronización** (`app/src/sync/`): se sube la **cola de cambios** (`POST /api/cambios`),
+  el servidor la aplica y devuelve la instantánea, que **sustituye** la copia local. El
+  servidor es la autoridad → **no hay merge en el cliente ni tombstones**. Sync al abrir /
+  online / foreground / cada 90 s. Sin `config.json` apuntando a una API, la app va **solo
+  local** (indicador `● local` en la cabecera).
+- **Toda escritura pasa por `escribir()`/`removeRow()` en `db.js`**, que guardan el dato y su
+  entrada en la cola **en la misma transacción**. No escribas en `db.<tabla>` directamente:
+  el cambio no subiría nunca.
+- **Auth:** Sign in with Apple; el Worker firma una sesión propia (JWT HS256, 90 días). El
+  alta es **por invitación** desde Ajustes; la primera cuenta de una instalación vacía nace
+  administradora.
+- **Configuración en caliente:** `app/public/config.json` (API, cliente de Apple, manifiesto
+  OTA). Se lee al arrancar, así que cambiarla **no** exige reconstruir ni publicar un OTA.
 - **Offline-first**: iOS Safari no tiene background sync → se sincroniza en foreground
   (patrón de `counter-ops`). Requiere "Añadir a pantalla de inicio" para push/persistencia.
 - **Temas** (`app/src/skins.css`, `lib/skins.js`): 5 skins + Sistema + Aleatorio (rota cada
@@ -48,30 +60,47 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 
 ### Convenciones que importan
 - **Dinero en céntimos enteros** (`lib/money.js`). El reparto no pierde ni inventa céntimos.
-- **IDs de cliente** (`lib/ids.js`) — nunca autoincrementales (romperían el merge offline).
-- **Borrados dejan tombstone** (`removeRow` en `db.js`) para que se propaguen en la sync.
-- **Auth:** decidido email mágico (aún NO implementado); login = identidad, no control de
-  acceso (modelo simple, clave del doc en cliente — grupo de confianza).
+- **IDs de cliente** (`lib/ids.js`) — nunca autoincrementales (romperían el trabajo offline).
+- **Borrados**: `removeRow` los encola como cambio `borrar`; el servidor marca `borrado = 1`
+  y deja de transmitir la fila. **Ya no hay tombstones locales.**
+- **Nombres de columna = nombres de campo** (`eventId`, `amountCents`…): el esquema de D1 usa
+  camelCase a propósito, para no traducir entre la base y la app. Ver `api/src/tablas.js`.
+- **En la API, los campos JSON** (`payers`, `participantIds`, `votos`, `platoIds`…) van como
+  texto en SQLite y se convierten en `tablas.js`. Si añades uno, decláralo ahí.
 
-## Estructura de la app
+## Estructura
 
 ```
 app/src/
-  db.js                 Dexie: esquema, CRUD, snapshot export/import, tombstones
-  lib/  reparto.js      motor de saldos (puro, testeado)  ·  merge.js  LWW+tombstones
-        stats.js money.js ids.js skins.js
-  sync/ engine.js       orquestador (cuándo sincronizar)  ·  jsonbin.js  transporte
-        merge-snapshot.js  tables.js
-  screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats, EventSettings, Events
+  db.js                 Dexie: esquema, CRUD, cola (outbox), instantánea
+  lib/  reparto.js      motor de saldos (puro, testeado)  ·  config.js  config en caliente
+        stats.js money.js ids.js skins.js native.js pwa.js
+  auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo
+  sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
+        tables.js
+  screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats, EventSettings,
+            Events, Acceso
   components/ WhaleLogo.jsx  ·  App.jsx  ·  theme.css / skins.css
+  public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
+
+api/
+  src/  index.js        rutas del Worker   ·  repositorio.js  lectura/escritura sobre D1
+        tablas.js       descriptor de tablas y conversión de tipos
+        apple.js sesion.js
+  migraciones/0001_esquema.sql
+  test/                 pruebas con node:sqlite contra el esquema real
+  herramientas/sembrar-desde-jsonbin.mjs
 ```
 
 ## Despliegue
 
-- GitHub Pages vía Actions (`.github/workflows/deploy.yml`), en cada push a `main`.
-- Base path `/ballenita-ops/` (build con `GITHUB_PAGES=true`).
-- Sync: secrets del repo `VITE_JSONBIN_ID` y `VITE_JSONBIN_KEY` (inyectados en el build).
-- El repo debe ser **público** o con plan Pro para que Pages publique.
+- **Web:** Cloudflare Pages conectado al repo; build `cd app && npm ci && npm run build`,
+  salida `app/dist`. Cada push a `main` republica. Base path `/` (ya no hay subpath).
+- **API:** `cd api && npm run desplegar` (wrangler). Secretos: `SESION_SECRETO` y
+  `TOKEN_SERVICIO`, con `wrangler secret put`.
+- **Pruebas:** `.github/workflows/pruebas.yml` corre las dos suites en cada rama.
+- **OTA de iOS:** sin cambios (`ota.yml`); sube la versión en `app/package.json` y mergea.
+- Pasos completos en [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 
 ## Flujo de git (IMPORTANTE)
 
@@ -83,9 +112,16 @@ app/src/
 ## Estado y pendientes
 
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
-cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadísticas, 5 temas,
-sincronización JSONBin. ~45 tests en verde. Desplegada y sincronizando.
+cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadísticas, 5 temas.
+**Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
+75 tests en la PWA + 22 en la API, todos en verde.
 
-**Pendiente (ideas):** login por email mágico · editar gastos/personas desde la UI ·
-avatares con foto (v2, comprimidas, fuera del doc de sync) · lista de la compra agregada
-(usa `Dish.ingredientes`) · pulir contrastes de algún tema.
+**Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
+`database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el
+proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
+la app funciona en modo solo-local.
+
+**Pendiente (ideas):** editar gastos/personas desde la UI · avatares con foto (v2,
+comprimidas, fuera de la sync) · lista de la compra agregada (usa `Dish.ingredientes`) ·
+pulir contrastes de algún tema · sacar los ~96 estilos inline de las pantallas a CSS
+(rompen los temas: p. ej. el punto de sincronización no se recolorea).

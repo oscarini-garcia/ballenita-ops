@@ -208,3 +208,36 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 @media (prefers-reduced-motion: reduce) {
   .update-overlay .whale, .update-overlay .prog i { animation: none; }
 }
+
+/* Pantalla de acceso (Sign in with Apple). Es lo primero que ve alguien nuevo,
+   así que va con el mismo fondo de la cabecera: la app se presenta entera antes
+   de pedir nada. */
+.acceso { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;
+  gap: 14px; text-align: center;
+  padding: calc(24px + env(safe-area-inset-top)) 26px calc(24px + env(safe-area-inset-bottom));
+  background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb; }
+.acceso-logo { width: 84px; height: 84px; margin: 0 auto; }
+.acceso h1 { font-size: 26px; font-weight: 850; margin: 0; }
+.acceso-texto { font-size: 14.5px; line-height: 1.5; color: #a9cede; margin: 0 auto; max-width: 320px; }
+
+/* El botón de Apple mantiene su aspecto en los dos temas a propósito: es una
+   marca ajena y su contraste está fijado por las normas de Apple. */
+.btn.apple { display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: #fff; color: #000; margin-top: 8px; }
+.btn.apple:disabled { opacity: .6; cursor: default; }
+
+.acceso-aviso { background: rgba(255,255,255,.08); border-radius: var(--r); padding: 14px;
+  font-size: 13.5px; line-height: 1.5; text-align: left; display: grid; gap: 8px; justify-items: start; }
+.acceso-aviso .note { color: #a9cede; margin: 0; }
+.acceso-codigo { display: block; width: 100%; word-break: break-all; font-size: 12px;
+  background: rgba(0,0,0,.25); border-radius: 6px; padding: 8px; }
+.acceso-aviso .btn.ghost { color: #eaf6fb; border-color: rgba(255,255,255,.3); }
+
+/* Sección de cuentas en Ajustes (solo administradores). */
+.cuenta-fila { display: flex; align-items: center; gap: 10px; padding: 9px 0;
+  border-bottom: 1px solid var(--line-soft); }
+.cuenta-fila:last-child { border-bottom: none; }
+.cuenta-fila .main { flex: 1; min-width: 0; }
+.cuenta-fila .n { font-weight: 700; font-size: 14px; }
+.cuenta-fila .sub { font-size: 11.5px; color: var(--ink-faint); }
+.cuenta-fila[data-activa="no"] { opacity: .55; }
