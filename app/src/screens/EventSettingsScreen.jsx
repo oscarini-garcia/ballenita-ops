@@ -64,7 +64,7 @@ function SyncSection() {
           </div>
         </>
       ) : (
-        <div className="note">Ahora mismo la app es <b>solo local</b> (este móvil). Para sincronizar con el grupo hace falta que <code>config.json</code> apunte a la API del grupo (ver <code>docs/DESPLIEGUE.md</code>). Sin eso, todo funciona igual pero no se comparte.</div>
+        <div className="note">Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es donde vive el acceso con Apple.</div>
       )}
     </>
   )

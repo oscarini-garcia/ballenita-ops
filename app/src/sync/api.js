@@ -10,6 +10,7 @@
 
 import { cargarConfiguracion, estaConfigurada } from '../lib/config.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
+import { isNative } from '../lib/native.js'
 import { uid } from '../lib/ids.js'
 
 const CLAVE_DISPOSITIVO = 'ballena.dispositivo'
@@ -29,7 +30,15 @@ function idDeDispositivo() {
   }
 }
 
+/**
+ * ¿Este dispositivo sincroniza con el grupo?
+ *
+ * Solo la app de iOS. En el navegador y en la PWA instalada, Ballena Ops es una
+ * libreta local: no hay forma de entrar —el acceso con Apple vive en la cáscara
+ * nativa— y por tanto tampoco se habla con la API.
+ */
 export async function hayApi() {
+  if (!isNative()) return false
   return estaConfigurada(await cargarConfiguracion())
 }
 

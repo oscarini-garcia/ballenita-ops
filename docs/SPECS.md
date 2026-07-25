@@ -576,7 +576,7 @@ campo a campo) llegaron de propina.
 | Sync | documento entero ↔ merge LWW + tombstones **en cada móvil** | **cola de cambios** → el servidor aplica → devuelve la instantánea, que **sustituye** la copia local |
 | Conflictos | por registro entero | **por campo** (solo se envía lo que cambia) |
 | Borrados | tombstone en cada cliente | `borrado = 1` en el servidor; deja de transmitirse |
-| Identidad | ninguna (email mágico, pendiente) | **Sign in with Apple**, alta por invitación |
+| Identidad | ninguna (email mágico, pendiente) | **Sign in with Apple** (solo app iOS), alta por invitación |
 | Hosting | GitHub Pages, subpath `/ballenita-ops/` | **Cloudflare Pages**, base `/` |
 | Configuración | variables `VITE_*` horneadas en el build | `public/config.json`, **leído en caliente** |
 
@@ -593,6 +593,23 @@ lo mismo y esa maquinaria sería complejidad sin requisito que la justifique.
 un Apple ID, y añade los 99 €/año del programa de Apple. Se aceptó a sabiendas
 (§15). El Worker está escrito de forma que añadir otro proveedor de identidad
 más adelante no toca ni la sincronización ni el modelo de datos.
+
+**Y una segunda, mayor: el acceso vive solo en la app de iOS.** En navegador y
+en la PWA instalada, Ballena Ops es una libreta local que no sincroniza. Se
+eligió así para evitar la mitad web del montaje de Apple —Services ID,
+verificación de dominio, fichero `.txt`, SDK en ventana emergente—, que es la
+parte que más se atasca y la que más piezas frágiles añade.
+
+Lo que cuesta:
+
+- **Para participar en el grupo hace falta la app instalada.** Un portátil o un
+  Android sirven para apuntar cosas propias, no para compartirlas.
+- **La primera cuenta no se puede crear sin la app**, así que el arranque de una
+  instalación nueva depende de haber compilado y subido el binario.
+
+Recuperarlo sería declarar el Services ID y añadir `APPLE_AUD_WEB`: el Worker ya
+admite esa audiencia si aparece, y `auth/apple.js` volvería a necesitar su rama
+web. Cambio de configuración más una función, no de arquitectura.
 
 Pasos de despliegue: [`DESPLIEGUE.md`](DESPLIEGUE.md).
 

@@ -11,7 +11,7 @@ import CenasCompraScreen from './screens/CenasCompraScreen.jsx'
 import PlanesScreen from './screens/PlanesScreen.jsx'
 import MasScreen from './screens/MasScreen.jsx'
 import { useSyncEngine } from './sync/engine.js'
-import { tap } from './lib/native.js'
+import { isNative, tap } from './lib/native.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
 import { haySesion, leerSesion } from './auth/sesion.js'
@@ -21,7 +21,13 @@ const ACTIVE_KEY = 'ballena.activeEventId'
 // Punto de estado de la cabecera: color + ayuda + si conviene animar el "recheck".
 // 🟢 al día · 🟡 conectado con cambios encolados · 🔴 sin red · ⚪ solo local.
 function syncDot(sync) {
-  if (!sync.isConfigured) return { color: '#8fb0a0', title: 'Solo local (sin sincronización)', checking: false }
+  if (!sync.isConfigured) {
+    return {
+      color: '#8fb0a0',
+      title: isNative() ? 'Solo local (sin sincronización)' : 'Solo local · el grupo se sincroniza desde la app de iOS',
+      checking: false,
+    }
+  }
   if (!sync.online || sync.status === 'offline') return { color: '#e5544b', title: 'Sin conexión', checking: false }
   if (sync.status === 'sesion-caducada') return { color: '#e5544b', title: 'Sesión caducada · vuelve a entrar con Apple', checking: false }
   if (sync.status === 'syncing' || sync.status === 'busy') return { color: '#e7a33e', title: 'Sincronizando…', checking: true }
@@ -93,9 +99,10 @@ export default function App() {
     )
   }
 
-  // Sin API configurada la app sigue siendo local y no pide entrar, igual que
-  // antes de tener servidor.
-  if (estaConfigurada(configuracion) && !sesion) {
+  // Solo la app de iOS entra: la sincronización con el grupo vive en la cáscara
+  // nativa. En el navegador y en la PWA instalada, Ballena Ops es una libreta
+  // local de ese dispositivo y no pide nada.
+  if (isNative() && estaConfigurada(configuracion) && !sesion) {
     return (
       <div className="app">
         <AccesoScreen configuracion={configuracion} onEntrar={setSesion} />

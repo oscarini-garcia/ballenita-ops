@@ -16,6 +16,13 @@ Las piezas nuevas son tres:
 Lo que **no** cambia: los saldos se siguen calculando en cada móvil
 (`app/src/lib/reparto.js`). El servidor guarda hechos, nunca saldos.
 
+> ⚠️ **Quién sincroniza y quién no.** El acceso con Apple vive **solo en la app
+> de iOS**. En el navegador y en la PWA instalada, Ballena Ops es una libreta
+> local de ese dispositivo: funciona entera, pero no comparte nada con el grupo.
+> Eso evita todo el montaje web de Apple —Services ID, verificación de dominio,
+> el fichero `.txt`—, que es la parte que más se atasca, y a cambio exige tener
+> la app instalada para participar.
+
 ---
 
 ## 0. Lo que hace falta antes de empezar
@@ -92,50 +99,31 @@ Identifiers & Profiles* → *Identifiers* → **App IDs**. Crea uno con el
 identificador de paquete que use la app de iOS (por omisión
 `com.oscarini.ballenaops`) y marca la capacidad **Sign in with Apple**.
 
-### 3.2 Identificador de servicio (Services ID), para la web
+### 3.2 Y ya está: no hay nada más que dar de alta
 
-Otro identificador, esta vez de tipo **Services IDs**, con un valor distinto del
-anterior: `com.oscarini.ballenaops.web`. Actívale Sign in with Apple y entra en
-*Configure*:
+Esto es todo lo que hay que hacer en Apple. **No hace falta Services ID, ni
+declarar dominios, ni verificar nada con un fichero `.txt`**, que es la parte
+que más se atasca de este montaje.
 
-- **Primary App ID**: `com.oscarini.ballenaops`, el del paso anterior.
-  **Este campo es el que más importa** — ver el aviso de abajo.
-- **Domains**: `ballenita-ops.galoopa.store`. Sin `https://` ni barras.
-- **Return URLs**: `https://ballenita-ops.galoopa.store`, con `https://` y **sin**
-  barra final. Tiene que ser **idéntica carácter a carácter** al campo
-  `redireccion` de `config.json`; si no, Apple responde `invalid_client`.
+El motivo es la decisión de fondo: **el acceso con Apple vive solo dentro de la
+app de iOS**. En el navegador y en la PWA instalada, Ballena Ops funciona como
+una libreta local de ese dispositivo, sin entrar y sin hablar con la API. Un
+Services ID solo hace falta para el flujo web, y aquí no hay flujo web.
 
-> ⚠️ **Por qué el *Primary App ID* no es un trámite.**
->
-> Apple devuelve el mismo identificador de usuario (`sub`) para los
-> identificadores **agrupados bajo un mismo App ID principal**. Ese `sub` es
-> exactamente la clave con la que este montaje reconoce a una persona
-> (`cuenta.appleSub`).
->
-> Si el Services ID de la web queda colgando de otro App ID —o de ninguno—, la
-> **misma persona** recibirá un `sub` distinto desde el móvil y desde la web. En
-> la práctica: entra por iOS, funciona; abre la web, y le sale «todavía no
-> tienes acceso» con un código **diferente**. Habría que invitarla dos veces y
-> aparecería duplicada en la lista de cuentas.
->
-> No es un fallo del que se pueda salir sin tocar Apple: hay que corregir el
-> *Primary App ID* y volver a entrar. Mejor mirarlo dos veces ahora.
-
-> **No hagas esto todavía** si aún no has montado el dominio (§4.2). Apple
-> intenta verificarlo en cuanto lo declaras, y si no hay certificado aún, falla
-> y hay que reintentarlo.
-
-Apple te dará un fichero `.txt` para verificar el dominio. Dónde va y cómo
-comprobar que se sirve de verdad: **§4.4**, que tiene truco.
-
-Los dos identificadores van a `api/wrangler.toml`:
+El identificador va a `api/wrangler.toml`, y ya está puesto:
 
 ```toml
-APPLE_AUD_WEB = "com.oscarini.ballenaops.web"
 APPLE_AUD_IOS = "com.oscarini.ballenaops"
 ```
 
-Vuelve a desplegar el Worker después de tocarlos (`npm run desplegar`).
+> **Si algún día se recupera el acceso web**, hay que crear entonces el Services
+> ID, declarar el dominio, verificarlo y añadir `APPLE_AUD_WEB` a la
+> configuración. El Worker ya admite esa audiencia si aparece declarada, así que
+> sería un cambio de configuración y no de código. Cuidado en ese momento con el
+> **Primary App ID** del Services ID: Apple solo devuelve el mismo identificador
+> de usuario para los identificadores agrupados bajo un mismo App ID principal,
+> y ese identificador es la clave con la que reconocemos a cada persona. Mal
+> puesto, la misma persona tendría una cuenta distinta en el móvil y en la web.
 
 ### 3.3 Nada de claves privadas
 
@@ -210,71 +198,42 @@ curl -I https://ballenita-ops.galoopa.store     # debe dar 200 con certificado v
 
 Solo cuando esto esté **Active** tiene sentido volver a Apple (§3.2).
 
-### 4.3 Rellena `config.json`
+### 4.3 Qué sirve esta web
 
-`app/public/config.json` viene con un marcador `EJEMPLO`. Sustitúyelo:
+Conviene tenerlo claro, porque cambia lo que se espera de ella: **la web es una
+libreta local**. Quien la abra puede apuntar gastos, cenas y planes, y todo se
+guarda en su navegador, pero **no se sincroniza con el grupo**. Los datos
+compartidos viven en la app de iOS.
+
+Sigue mereciendo la pena publicarla: es donde se prueba la interfaz sin compilar
+nada, y es el mismo código que va dentro de la app.
+
+`app/public/config.json` ya está relleno y sin marcadores:
 
 ```json
 {
-  "api": "https://ballena-ops-api.TU-SUBDOMINIO.workers.dev",
-  "appleClienteWeb": "com.oscarini.ballenaops.web",
-  "redireccion": "https://ballenita-ops.galoopa.store",
+  "api": "https://ballena-ops-api.oscarini.workers.dev",
   "otaManifiesto": "https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json"
 }
 ```
 
-Lo único que queda por sustituir es `TU-SUBDOMINIO` en la dirección de la API;
-el resto ya está puesto.
+Se lee **en caliente** al arrancar, así que cambiarlo no obliga a reconstruir
+nada ni a publicar un OTA. No hay secretos: las dos direcciones son públicas.
 
-Este fichero se lee **en caliente** al arrancar la app, así que cambiarlo no
-obliga a reconstruir nada ni a publicar un OTA nuevo. Ahí no hay secretos: la
-dirección de la API y el cliente de Apple son públicos por diseño.
+El workflow de OTA se niega a publicar si aparece el marcador `EJEMPLO`.
 
-El workflow de OTA se niega a publicar si el marcador `EJEMPLO` sigue puesto.
+### 4.4 Los orígenes permitidos
 
-### 4.4 El fichero de verificación de Apple
-
-El `.txt` que te da Apple (§3.2) **sustituye** a `app/public/apple-dominio.txt`,
-que ahora mismo es un marcador. Se sirve en la ruta que Apple espera mediante la
-reescritura ya declarada en `app/public/_redirects`.
-
-> **¿Por qué no un directorio `.well-known/` normal?** Porque los despliegues de
-> Pages no siempre suben los directorios cuyo nombre empieza por punto. El
-> síntoma sería una verificación que falla sin decir por qué. La reescritura con
-> código 200 es una redirección **interna**: Apple ve el fichero donde lo
-> espera, con su content-type, y sin saltos por el camino (que también
-> rechazaría). Por eso se hace así desde el principio.
-
-Tras el empujón que lo publique:
-
-```bash
-curl -i https://ballenita-ops.galoopa.store/.well-known/apple-developer-domain-association.txt
-```
-
-> ⚠️ **Mira el `content-type`, no solo el `200`.**
->
-> - `text/plain` → el fichero se sirve de verdad. Adelante.
-> - `text/html` → el fichero **no** está; te están devolviendo una página. Apple
->   fallará con un error que no explica nada.
->
-> El cuerpo debe ser la cadena que entregó Apple, no `<!DOCTYPE html>`.
-
-El repositorio incluye un `app/public/404.html` justamente para que esta
-comprobación no dé un falso positivo: sin él, Pages responde `200` con el
-`index.html` de la aplicación para **cualquier** ruta inexistente, y parecería
-que el fichero está publicado cuando no lo está.
-
-### 4.5 Los orígenes permitidos
-
-En `api/wrangler.toml`, `ORIGENES_PERMITIDOS` tiene que incluir el dominio de la
-PWA. Sin coincidencia el Worker no emite cabeceras CORS y la app entra pero no
-ve datos. Ya viene puesto:
+Quien habla con la API es la app de iOS, y **no pasa por el navegador**: con
+`CapacitorHttp` activado la petición la hace el sistema, así que no hay CORS de
+por medio. La lista se queda corta a propósito:
 
 ```toml
-ORIGENES_PERMITIDOS = "https://ballenita-ops.galoopa.store,https://ballenita-ops.pages.dev,http://localhost:5173"
+ORIGENES_PERMITIDOS = "http://localhost:5173"
 ```
 
-Vuelve a desplegar el Worker si lo cambias (`npm run desplegar`).
+Está ahí para `wrangler dev` durante el desarrollo, y para no dejar la puerta
+abierta si algún día se recupera el acceso web.
 
 ---
 
@@ -283,7 +242,14 @@ Vuelve a desplegar el Worker si lo cambias (`npm run desplegar`).
 La primera persona que entra en una instalación vacía **entra sola y nace
 administradora**. Es la única excepción; a partir de ahí todo es por invitación.
 
-Entra tú el primero, antes de pasarle la URL a nadie.
+> ⚠️ **Esto exige la app de iOS ya instalada.** El acceso con Apple vive en la
+> cáscara nativa, así que no hay forma de crear la primera cuenta desde la web.
+> En la práctica, el orden es: compilar y subir la app (§8) → instalarla →
+> entrar tú → sembrar los datos (§7) → dar de alta al resto (§6).
+>
+> No hay atajo por la base de datos: para dar de alta a alguien hace falta su
+> identificador de Apple, y ese identificador solo aparece cuando esa persona
+> intenta entrar.
 
 ---
 
@@ -358,12 +324,10 @@ en `app/package.json`, mergea a `main`, y el workflow publica el OTA.
 
 | Síntoma | Causa habitual |
 |---|---|
-| La web carga pero el botón de Apple no hace nada | El dominio no está verificado en el Services ID, o `appleClienteWeb` no coincide con él |
-| Apple responde `invalid_client` | La *Return URL* del Services ID y el campo `redireccion` de `config.json` no son idénticos. Compara carácter a carácter, incluida la barra final |
-| Apple no consigue verificar el dominio | El `.txt` no se está sirviendo. Lanza el `curl` de §4.4: si el `content-type` es `text/html`, el fichero no está donde crees |
-| El dominio no sale de «pending» en Pages | El CNAME no ha propagado o apunta a otro proyecto. `dig ballenita-ops.galoopa.store CNAME +short` debe devolver tu `pages.dev` |
+| En la web no aparece el botón de entrar | Es lo correcto: la web es una libreta local y no sincroniza. El acceso vive en la app de iOS (§4.3) |
+| El dominio no sale de «pending» en Pages | El CNAME no ha propagado o apunta a otro proyecto. Debe resolver a tu `pages.dev` |
 | Se rompió la tienda de `galoopa.store` | Nada de este despliegue toca el apex. Mira si al añadir el CNAME se modificó por error el registro `A` que apunta a Shopify |
-| Entra pero no ve datos | `ORIGENES_PERMITIDOS` no incluye el dominio de la PWA, o `api` en `config.json` apunta a otro sitio |
+| La app entra pero no ve datos | `api` en `config.json` apunta a otro sitio, o el Worker no está desplegado |
 | «Todavía no tienes acceso» la primera vez | Es el comportamiento correcto: hay que darle de alta (§6) |
 | Todo da 401 de repente | Cambió `SESION_SECRETO`; hay que volver a entrar |
 | El punto de la cabecera se queda ámbar | Hay cambios en la cola que el servidor no acepta. La consola del navegador lista cuáles y por qué |

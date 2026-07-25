@@ -83,8 +83,11 @@ function idDeCuenta() {
  * abierto, que en un grupo cerrado es justo lo que se quiere.
  */
 async function abrirSesion(peticion, env) {
-  const { id_token: idToken, plataforma = 'web', nombre = '' } = await peticion.json();
+  const { id_token: idToken, plataforma = 'ios', nombre = '' } = await peticion.json();
 
+  // Hoy solo entra la app de iOS, así que `APPLE_AUD_WEB` no está declarada y
+  // se descarta sola. Se sigue admitiendo en la lista para que recuperar el
+  // acceso web sea declarar una variable, no tocar código.
   const { sub, email } = await verificarTokenDeApple(idToken, [env.APPLE_AUD_IOS, env.APPLE_AUD_WEB]);
 
   let cuenta = await cuentaPorApple(env.DB, sub);

@@ -1,9 +1,10 @@
 /**
  * Verificación del token de identidad de Sign in with Apple.
  *
- * El mismo endpoint atiende a la PWA y a la app de iOS, que presentan
- * audiencias distintas: el Services ID en la web y el identificador del paquete
- * en iOS. Las dos se declaran en la configuración del Worker.
+ * Hoy la única audiencia declarada es el identificador del paquete de la app de
+ * iOS: el acceso con Apple vive solo en la cáscara nativa. La verificación
+ * admite una lista porque recuperar el acceso web sería declarar el Services ID
+ * como segunda audiencia, sin tocar este fichero.
  *
  * Portado de `garciadoral-ops`, donde este código ya está en producción.
  */

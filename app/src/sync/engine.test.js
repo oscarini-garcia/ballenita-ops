@@ -36,6 +36,14 @@ describe('syncNow', () => {
     expect(api.traerInstantanea).not.toHaveBeenCalled()
   })
 
+  it('fuera de la app de iOS no se sincroniza nunca', async () => {
+    // `hayApi` devuelve false en la web por diseño: el acceso con Apple vive en
+    // la cáscara nativa, así que un navegador no tiene forma de autenticarse y
+    // no debe llamar a la API ni aunque config.json apunte a ella.
+    const { hayApi } = await vi.importActual('./api.js')
+    expect(await hayApi()).toBe(false)
+  })
+
   it('sin sesión no llama a la API', async () => {
     sesionMock.haySesion.mockReturnValue(false)
     expect(await syncNow()).toEqual({ status: 'sin-sesion' })

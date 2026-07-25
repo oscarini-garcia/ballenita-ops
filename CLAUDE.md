@@ -48,9 +48,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 - **Toda escritura pasa por `escribir()`/`removeRow()` en `db.js`**, que guardan el dato y su
   entrada en la cola **en la misma transacción**. No escribas en `db.<tabla>` directamente:
   el cambio no subiría nunca.
-- **Auth:** Sign in with Apple; el Worker firma una sesión propia (JWT HS256, 90 días). El
-  alta es **por invitación** desde Ajustes; la primera cuenta de una instalación vacía nace
-  administradora.
+- **Auth:** Sign in with Apple **solo en la app de iOS**; el Worker firma una sesión propia
+  (JWT HS256, 90 días). El alta es **por invitación** desde Ajustes; la primera cuenta de una
+  instalación vacía nace administradora.
+- **La web NO sincroniza**, a propósito: en navegador y PWA la app es una libreta local
+  (`hayApi()` devuelve `false` si no es nativa). Ahorra todo el montaje web de Apple
+  —Services ID, verificación de dominio— a cambio de exigir la app para participar.
 - **Configuración en caliente:** `app/public/config.json` (API, cliente de Apple, manifiesto
   OTA). Se lee al arrancar, así que cambiarla **no** exige reconstruir ni publicar un OTA.
 - **Offline-first**: iOS Safari no tiene background sync → se sincroniza en foreground
