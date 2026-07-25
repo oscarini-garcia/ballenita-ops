@@ -228,6 +228,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 
 .acceso-aviso { background: rgba(255,255,255,.08); border-radius: var(--r); padding: 14px;
   font-size: 13.5px; line-height: 1.5; text-align: left; display: grid; gap: 8px; justify-items: start; }
+/* Los mensajes de error traen saltos de línea a propósito: separan el fallo de
+   Apple, que es críptico, de la explicación de qué suele causarlo. */
+.acceso-aviso p { white-space: pre-line; margin: 0; }
 .acceso-aviso .note { color: #a9cede; margin: 0; }
 .acceso-codigo { display: block; width: 100%; word-break: break-all; font-size: 12px;
   background: rgba(0,0,0,.25); border-radius: 6px; padding: 8px; }
