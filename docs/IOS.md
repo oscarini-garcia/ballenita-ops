@@ -71,7 +71,18 @@ aplica cada vez que sincronizas.
 npm run open:ios     # abre Xcode
 ```
 
-- **Signing & Capabilities** → selecciona tu *Team*; deja el bundle id `com.garciadoral.ballenitaops`.
+- **Signing & Capabilities** → selecciona tu *Team*; el bundle id es `com.garciadoral.ballenitaops`.
+
+  > ⚠️ **El `appId` de `capacitor.config.json` solo se aplica al generar el proyecto.** Es decir,
+  > la primera vez que corres `npx cap add ios`. A partir de ahí, `npm run sync:ios` copia la web
+  > y actualiza los plugins, pero **no** toca el `PRODUCT_BUNDLE_IDENTIFIER` del proyecto Xcode.
+  > Si cambias el `appId` con `ios/` ya generado, hay que cambiarlo **también a mano** aquí, en
+  > *Signing & Capabilities → Bundle Identifier* (o borrar `ios/` y regenerarlo). Mantén los dos
+  > iguales de todas formas: si algún día se regenera el proyecto, mandará el del fichero.
+  >
+  > Y recuerda que este identificador tiene que coincidir con el App ID del portal de Apple y
+  > con `APPLE_AUD_IOS` de `api/wrangler.toml`. Si se desvía, el Worker rechaza el token por
+  > «audiencia no admitida» y la app se queda en la pantalla de acceso sin explicar por qué.
 - Añade la capacidad **Sign in with Apple**. ⚠️ **Sin esto no se entra**, y por tanto no se
   sincroniza nada: desde la migración al backend propio, el acceso vive únicamente aquí
   (`docs/DESPLIEGUE.md` §3). Tiene que estar también marcada en el App ID del portal de Apple;
