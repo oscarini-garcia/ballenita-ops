@@ -72,6 +72,11 @@ npm run open:ios     # abre Xcode
 ```
 
 - **Signing & Capabilities** → selecciona tu *Team*; deja el bundle id `com.oscarini.ballenaops`.
+- Añade la capacidad **Sign in with Apple**. ⚠️ **Sin esto no se entra**, y por tanto no se
+  sincroniza nada: desde la migración al backend propio, el acceso vive únicamente aquí
+  (`docs/DESPLIEGUE.md` §3). Tiene que estar también marcada en el App ID del portal de Apple;
+  si falta en un sitio de los dos, Xcode firma sin protestar y el fallo aparece al pulsar
+  «Entrar con Apple».
 - Añade la capacidad **Push Notifications** (para la fase de push).
 - **Iconos / splash**: las imágenes fuente ya están en `app/assets/` (`icon.png` 1024×1024
   cuadrado y opaco, y `splash.png` 2732×2732). Genera todos los tamaños con:
