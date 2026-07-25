@@ -18,15 +18,6 @@
 
 import { isNative } from '../lib/native.js'
 
-async function tokenPorLaCascara() {
-  const { SignInWithApple } = await import('@capacitor-community/apple-sign-in')
-  const respuesta = await SignInWithApple.authorize({ scopes: 'name' })
-  return {
-    idToken: respuesta?.response?.identityToken ?? null,
-    nombre: [respuesta?.response?.givenName, respuesta?.response?.familyName].filter(Boolean).join(' '),
-  }
-}
-
 /**
  * Devuelve `{ token, cuenta }` o lanza un error con un mensaje legible. El
  * error de «todavía no tienes acceso» lleva además el identificador que hay que
@@ -42,15 +33,31 @@ export async function entrarConApple(configuracion) {
     throw new Error('Esta instalación todavía no tiene configurada la API.')
   }
 
-  let idToken = null
-  let nombre = ''
+  // Las dos formas de fallar aquí piden arreglos muy distintos, y confundirlas
+  // manda a buscar donde no es. Que el plugin no exista significa binario
+  // antiguo; que exista y falle suele ser la capacidad «Sign in with Apple» sin
+  // marcar en Xcode, o sencillamente que se canceló la hoja.
+  let plugin
   try {
-    const obtenido = await tokenPorLaCascara()
-    idToken = obtenido.idToken
-    nombre = obtenido.nombre
+    ;({ SignInWithApple: plugin } = await import('@capacitor-community/apple-sign-in'))
   } catch {
     throw new Error(
       'Esta versión de la app no trae el acceso con Apple. Hace falta una compilación nueva; no basta con una actualización por OTA.',
+    )
+  }
+
+  let idToken = null
+  let nombre = ''
+  try {
+    const respuesta = await plugin.authorize({ scopes: 'name' })
+    idToken = respuesta?.response?.identityToken ?? null
+    nombre = [respuesta?.response?.givenName, respuesta?.response?.familyName].filter(Boolean).join(' ')
+  } catch (error) {
+    const motivo = String(error?.message ?? error ?? '').trim()
+    if (/cancel/i.test(motivo)) throw new Error('Has cancelado el acceso con Apple.')
+    throw new Error(
+      `Apple no completó el acceso${motivo ? `: ${motivo}` : '.'}\n\n` +
+        'Lo más habitual es que falte la capacidad «Sign in with Apple» en el proyecto de Xcode (Signing & Capabilities). Tiene que estar marcada ahí y en el App ID del portal de Apple.',
     )
   }
 
