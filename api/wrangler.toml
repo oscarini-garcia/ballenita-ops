@@ -23,7 +23,7 @@ database_id = "862d4478-3a64-4810-b12c-239c20f03507"
 # El dominio propio es el que cuenta: es el que Apple verifica y el que lleva
 # la app. El `*.pages.dev` se deja porque Pages lo sigue sirviendo y viene bien
 # para comprobar si algo falla por el dominio o por otra cosa.
-ORIGENES_PERMITIDOS = "https://ballena-ops.galoopa.store,https://ballenita-ops.pages.dev,http://localhost:5173"
+ORIGENES_PERMITIDOS = "https://ballenita-ops.galoopa.store,https://ballenita-ops.pages.dev,http://localhost:5173"
 
 # Audiencias admitidas del token de Apple: el Services ID de la web y el
 # identificador del paquete de la app de iOS.

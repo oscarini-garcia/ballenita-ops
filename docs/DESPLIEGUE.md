@@ -25,7 +25,7 @@ Lo que **no** cambia: los saldos se siguen calculando en cada móvil
 - Una cuenta del **Apple Developer Program** (99 €/año). Es imprescindible:
   sin ella no hay Sign in with Apple ni app de iOS.
 - Acceso al DNS de **`galoopa.store`** (panel de Squarespace Domains). La app
-  vive en `ballena-ops.galoopa.store`.
+  vive en `ballenita-ops.galoopa.store`.
 
 > **Aviso que ya se dio y conviene tener presente:** el acceso es solo con Apple.
 > Quien no tenga un Apple ID no puede entrar, ni desde Android ni desde la web.
@@ -70,11 +70,16 @@ Despliega y comprueba:
 
 ```bash
 npm run desplegar
-curl https://ballena-ops-api.TU-SUBDOMINIO.workers.dev/api/salud
+curl https://ballena-ops-api.oscarini.workers.dev/api/salud
 # {"estado":"ok","ahora":"..."}
 ```
 
-Apunta esa dirección: va en `app/public/config.json`.
+Esa dirección va en `app/public/config.json`, campo `api`. **Ya está puesta.**
+
+> El Worker se llama `ballena-ops-api` y la base `ballena-ops`, sin el «ita»,
+> porque se crearon antes de fijar el nombre. Son nombres internos que no ve
+> nadie: solo salen en esa URL y en la consola de Cloudflare. Renombrarlos
+> obligaría a recrear la base y a cambiar la URL de la API, y no arregla nada.
 
 ---
 
@@ -95,8 +100,8 @@ anterior: `com.oscarini.ballenaops.web`. Actívale Sign in with Apple y entra en
 
 - **Primary App ID**: `com.oscarini.ballenaops`, el del paso anterior.
   **Este campo es el que más importa** — ver el aviso de abajo.
-- **Domains**: `ballena-ops.galoopa.store`. Sin `https://` ni barras.
-- **Return URLs**: `https://ballena-ops.galoopa.store`, con `https://` y **sin**
+- **Domains**: `ballenita-ops.galoopa.store`. Sin `https://` ni barras.
+- **Return URLs**: `https://ballenita-ops.galoopa.store`, con `https://` y **sin**
   barra final. Tiene que ser **idéntica carácter a carácter** al campo
   `redireccion` de `config.json`; si no, Apple responde `invalid_client`.
 
@@ -153,6 +158,8 @@ decidió no darlo: se arregla desde la propia lista, no volviendo a entrar.
 
 ## 4. Cloudflare Pages: la aplicación web
 
+### 4.1 Crear el proyecto
+
 En el panel de Cloudflare → *Workers & Pages* → **Create**. Cuidado: el
 asistente ofrece **Workers** por defecto y Pages está en otra pestaña. Cambia a
 **Pages** y entonces *Connect to Git*.
@@ -169,7 +176,7 @@ Cada empujón a `main` reconstruye y republica. Las pruebas siguen corriendo en
 GitHub Actions (`.github/workflows/pruebas.yml`), que es lo que te avisa si algo
 se rompe antes de que llegue a producción.
 
-### 4.2 Apuntar `ballena-ops.galoopa.store` a Pages
+### 4.2 Apuntar `ballenita-ops.galoopa.store` a Pages
 
 `galoopa.store` **no está alojado en Cloudflare**: sus servidores de nombres son
 los de Google Cloud DNS, heredados de Google Domains, y el panel donde se editan
@@ -182,13 +189,13 @@ Pages admite dominios cuyo DNS vive fuera— y basta con un registro.
 > mirar es si al añadir el CNAME se modificó por error el registro `A` del apex.
 
 1. En el proyecto de Pages: **Custom domains → Set up a custom domain** →
-   `ballena-ops.galoopa.store`. Como el dominio no está en Cloudflare, la
+   `ballenita-ops.galoopa.store`. Como el dominio no está en Cloudflare, la
    interfaz te dirá que crees tú el registro y te enseñará el destino.
 2. En el panel de DNS del dominio, **un único registro nuevo**:
 
    | Tipo | Nombre | Valor | TTL |
    |---|---|---|---|
-   | CNAME | `ballena-ops` | `<tu-proyecto>.pages.dev` | 300 mientras pruebas |
+   | CNAME | `ballenita-ops` | `ballenita-ops.pages.dev` | 300 mientras pruebas |
 
 3. Cloudflare detecta el CNAME, valida y emite el certificado solo. De unos
    minutos a una hora. **No sigas** hasta que el dominio figure como **Active**
@@ -197,8 +204,8 @@ Pages admite dominios cuyo DNS vive fuera— y basta con un registro.
 Comprobación:
 
 ```bash
-dig ballena-ops.galoopa.store CNAME +short    # debe devolver tu *.pages.dev
-curl -I https://ballena-ops.galoopa.store     # debe dar 200 con certificado válido
+dig ballenita-ops.galoopa.store CNAME +short    # debe devolver tu *.pages.dev
+curl -I https://ballenita-ops.galoopa.store     # debe dar 200 con certificado válido
 ```
 
 Solo cuando esto esté **Active** tiene sentido volver a Apple (§3.2).
@@ -211,7 +218,7 @@ Solo cuando esto esté **Active** tiene sentido volver a Apple (§3.2).
 {
   "api": "https://ballena-ops-api.TU-SUBDOMINIO.workers.dev",
   "appleClienteWeb": "com.oscarini.ballenaops.web",
-  "redireccion": "https://ballena-ops.galoopa.store",
+  "redireccion": "https://ballenita-ops.galoopa.store",
   "otaManifiesto": "https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json"
 }
 ```
@@ -241,7 +248,7 @@ reescritura ya declarada en `app/public/_redirects`.
 Tras el empujón que lo publique:
 
 ```bash
-curl -i https://ballena-ops.galoopa.store/.well-known/apple-developer-domain-association.txt
+curl -i https://ballenita-ops.galoopa.store/.well-known/apple-developer-domain-association.txt
 ```
 
 > ⚠️ **Mira el `content-type`, no solo el `200`.**
@@ -264,7 +271,7 @@ PWA. Sin coincidencia el Worker no emite cabeceras CORS y la app entra pero no
 ve datos. Ya viene puesto:
 
 ```toml
-ORIGENES_PERMITIDOS = "https://ballena-ops.galoopa.store,https://ballenita-ops.pages.dev,http://localhost:5173"
+ORIGENES_PERMITIDOS = "https://ballenita-ops.galoopa.store,https://ballenita-ops.pages.dev,http://localhost:5173"
 ```
 
 Vuelve a desplegar el Worker si lo cambias (`npm run desplegar`).
@@ -354,7 +361,7 @@ en `app/package.json`, mergea a `main`, y el workflow publica el OTA.
 | La web carga pero el botón de Apple no hace nada | El dominio no está verificado en el Services ID, o `appleClienteWeb` no coincide con él |
 | Apple responde `invalid_client` | La *Return URL* del Services ID y el campo `redireccion` de `config.json` no son idénticos. Compara carácter a carácter, incluida la barra final |
 | Apple no consigue verificar el dominio | El `.txt` no se está sirviendo. Lanza el `curl` de §4.4: si el `content-type` es `text/html`, el fichero no está donde crees |
-| El dominio no sale de «pending» en Pages | El CNAME no ha propagado o apunta a otro proyecto. `dig ballena-ops.galoopa.store CNAME +short` debe devolver tu `pages.dev` |
+| El dominio no sale de «pending» en Pages | El CNAME no ha propagado o apunta a otro proyecto. `dig ballenita-ops.galoopa.store CNAME +short` debe devolver tu `pages.dev` |
 | Se rompió la tienda de `galoopa.store` | Nada de este despliegue toca el apex. Mira si al añadir el CNAME se modificó por error el registro `A` que apunta a Shopify |
 | Entra pero no ve datos | `ORIGENES_PERMITIDOS` no incluye el dominio de la PWA, o `api` en `config.json` apunta a otro sitio |
 | «Todavía no tienes acceso» la primera vez | Es el comportamiento correcto: hay que darle de alta (§6) |
