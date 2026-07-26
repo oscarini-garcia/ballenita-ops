@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { listEvents, createEvent, seedExample } from '../db.js'
 import WhaleLogo from '../components/WhaleLogo.jsx'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 
 export default function EventsScreen({ onPick }) {
   const events = useLiveQuery(listEvents, [], [])
@@ -56,6 +57,7 @@ function fmtRange(e) {
 }
 
 function NewEventModal({ onClose, onCreate }) {
+  useBloqueoDeScroll()
   const [name, setName] = useState('')
   const [lugar, setLugar] = useState('')
   const [currency, setCurrency] = useState('EUR')

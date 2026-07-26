@@ -117,14 +117,17 @@ api/
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
 cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadísticas, 5 temas.
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
-75 tests en la PWA + 22 en la API, todos en verde.
+**Cromo repasado** (SPECS §14.10): ⚙️ en la cabecera, punto de sync mudado a Ajustes, badge
+de usuario con perfil editable (emoji/estado/foto local) y modales que bloquean el scroll
+del fondo. 86 tests en la PWA + 22 en la API, todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
 `database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el
 proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
 la app funciona en modo solo-local.
 
-**Pendiente (ideas):** editar gastos/personas desde la UI · avatares con foto (v2,
-comprimidas, fuera de la sync) · lista de la compra agregada (usa `Dish.ingredientes`) ·
-pulir contrastes de algún tema · sacar los ~96 estilos inline de las pantallas a CSS
-(rompen los temas: p. ej. el punto de sincronización no se recolorea).
+**Pendiente (ideas):** editar gastos/personas desde la UI · **compartir** los avatares con
+foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
+almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
+`Dish.ingredientes`) · pulir contrastes de algún tema · sacar los ~96 estilos inline de las
+pantallas a CSS (rompen los temas).

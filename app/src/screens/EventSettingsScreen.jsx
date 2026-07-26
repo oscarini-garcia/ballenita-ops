@@ -5,7 +5,9 @@ import {
   bungasOf, addBunga, removeBunga,
   personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
 } from '../db.js'
+import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
 import { useSkin, SKINS } from '../lib/skins.js'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { syncNow } from '../sync/engine.js'
 import { gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
@@ -35,34 +37,51 @@ function EventoSection({ event, onChangeEvent }) {
   )
 }
 
-function SyncSection() {
+/**
+ * Sincronización. Aquí es donde vive ahora el punto de estado: antes ocupaba
+ * sitio en la cabecera para algo que se mira de uvas a peras, y la cabecera la
+ * necesitábamos para el ⚙️.
+ *
+ * `sync` llega desde App (el motor real). Sin él —montando la pantalla suelta,
+ * p. ej. en un test— se apaña detectando la API por su cuenta.
+ */
+function SyncSection({ sync }) {
   const [state, setState] = useState(null)
   // La configuración se lee en caliente de config.json, así que llega después
   // del primer pintado en vez de estar horneada en el bundle.
-  const [configured, setConfigured] = useState(false)
+  const [detectada, setDetectada] = useState(false)
   useEffect(() => {
+    if (sync) return undefined
     let vivo = true
-    hayApi().then((si) => { if (vivo) setConfigured(si) })
+    hayApi().then((si) => { if (vivo) setDetectada(si) })
     return () => { vivo = false }
-  }, [])
+  }, [sync])
+
+  const estado = sync ?? { isConfigured: detectada, online: true, status: state?.status ?? 'idle' }
+  const d = estadoSync(estado)
 
   async function run() {
+    tap()
+    if (sync?.recheck) { await sync.recheck(); return }
     setState({ status: 'syncing' })
     setState(await syncNow())
   }
+
   return (
     <>
       <div className="sec-h">Sincronización</div>
-      {configured ? (
-        <>
-          <div className="note">Los cambios se sincronizan solos entre los móviles del grupo (al abrir, al volver la conexión y cada poco). Todo funciona sin cobertura y cuadra al reconectar.</div>
-          <div style={{ marginTop: 8 }}>
-            <button className="btn sm" onClick={run}>↻ Sincronizar ahora</button>
-            {state && <span style={{ marginLeft: 10, fontSize: 12, color: 'var(--ink-faint)' }}>
-              {state.status === 'syncing' ? 'sincronizando…' : state.status === 'synced' ? '✓ al día' : state.status}
-            </span>}
+      <div className="card tight">
+        <div className="row">
+          <SyncDot sync={estado} onClick={run} />
+          <div className="main">
+            <div className="n">{d.title}</div>
+            <div className="sub">{d.detalle}</div>
           </div>
-        </>
+          {estado.isConfigured && <button className="btn sm ghost" onClick={run}>↻ Ahora</button>}
+        </div>
+      </div>
+      {estado.isConfigured ? (
+        <div className="note">Los cambios se sincronizan solos entre los móviles del grupo (al abrir, al volver la conexión y cada poco). Todo funciona sin cobertura y cuadra al reconectar.</div>
       ) : (
         <div className="note">Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es donde vive el acceso con Apple.</div>
       )}
@@ -294,7 +313,7 @@ function AspectoSection() {
   )
 }
 
-export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
+export default function EventSettingsScreen({ eventId, event, onChangeEvent, sync }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
@@ -307,7 +326,7 @@ export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
       <EventoSection event={event} onChangeEvent={onChangeEvent} />
       <AspectoSection />
       <CuentaSection />
-      <SyncSection />
+      <SyncSection sync={sync} />
       <AppSection />
 
       <div className="sec-h">Familias <button className="btn sm ghost" onClick={() => setModal('familia')}>+ añadir</button></div>
@@ -359,6 +378,7 @@ export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
 }
 
 function Modal({ title, onClose, children, onSave }) {
+  useBloqueoDeScroll()
   return (
     <div className="modal-bg" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>

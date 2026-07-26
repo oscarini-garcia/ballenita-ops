@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { updatePerson } from '../db.js'
 import { tap } from '../lib/native.js'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
 
 // El "usuario" es una persona del evento (§ barra superior). Quién eres se guarda
 // por dispositivo (localStorage), NO se sincroniza — cada móvil elige su identidad.
-// Lo que sí es un hecho (y sincroniza) es tu icono y tu estado, guardados en la
-// propia persona.
+// Lo que sí es un hecho (y sincroniza) es tu emoji y tu estado, guardados en la
+// propia persona. La foto es aparte: vive solo en este móvil (lib/avatares.js).
 function meKey(eventId) { return `ballena.me:${eventId}` }
 export function getMeId(eventId) {
   try { return localStorage.getItem(meKey(eventId)) } catch { return null }
@@ -25,15 +28,26 @@ const ESTADOS = [
   '🍤 en modo gamba', '🚗 haciendo de chófer', '🧴 poniéndome crema',
 ]
 
-// Iconos rápidos para el avatar (se puede escribir cualquier emoji igualmente).
+// Emojis rápidos para el avatar (se puede escribir cualquiera igualmente).
 const AVATARES = ['🧑', '👩', '👨', '🧔', '👵', '👴', '🧒', '🐳', '🦑', '🦀', '🏄', '🕶️', '🍹', '🐙']
+
+// Cara del usuario: la foto de este móvil si la hay, si no el emoji.
+function Cara({ emoji, foto, className }) {
+  return (
+    <span className={className}>
+      {foto ? <img src={foto} alt="" className="ufoto" /> : (emoji || '🐳')}
+    </span>
+  )
+}
 
 export default function UserBadge({ eventId, persons }) {
   const [meId, setMe] = useState(() => getMeId(eventId))
   const [open, setOpen] = useState(false)
+  const [foto, setFoto] = useState(null)
 
   // Al cambiar de evento, releer la identidad guardada para ese evento.
   useEffect(() => { setMe(getMeId(eventId)) }, [eventId])
+  useEffect(() => { setFoto(leerFoto(eventId, meId)) }, [eventId, meId])
 
   const me = persons.find((p) => p.id === meId) || null
 
@@ -45,66 +59,148 @@ export default function UserBadge({ eventId, persons }) {
   function choose(id) { setMeId(eventId, id); setMe(id) }
   function salir() { setMeId(eventId, null); setMe(null) }
 
+  function aplicarFoto(dataUrl) {
+    guardarFoto(eventId, meId, dataUrl)
+    setFoto(dataUrl || null)
+  }
+
+  // Sin identidad el rótulo es corto a propósito: la cabecera ya va justa con
+  // el nombre del evento y el ⚙️.
+  const nombre = me ? (me.apodo || me.name) : 'Elígete'
+
   return (
     <>
       <button
         className="userbadge"
         onClick={() => { tap(); setOpen(true) }}
-        title={me ? `Eres ${me.name}` : '¿Quién eres?'}
-        aria-label={me ? `Usuario: ${me.name}` : 'Elegir quién eres'}
+        title={me ? `${me.name} · toca para editar tu perfil` : 'Toca para decir quién eres'}
+        aria-label={me ? `Usuario: ${me.name}` : 'Elegir usuario'}
       >
-        <span className="uav">{me ? me.avatar : '🐳'}</span>
+        <Cara className="uav" emoji={me?.avatar} foto={foto} />
         <span className="utxt">
-          <span className="un">{me ? (me.apodo || me.name) : '¿Quién eres?'}</span>
+          <span className="un">{nombre}</span>
           {me && me.estado && <span className="ust">{me.estado}</span>}
         </span>
       </button>
-      {open && (
+      {/* El sheet va a <body> por portal: la cabecera es `sticky` con z-index,
+          o sea que crea contexto de apilamiento, y sin el portal el FAB de la
+          pantalla se dibujaba por encima del modal. */}
+      {open && createPortal(
         <UserSheet
           persons={persons}
           me={me}
+          foto={foto}
+          onFoto={aplicarFoto}
           onChoose={choose}
-          onSalir={() => { salir() }}
+          onSalir={salir}
           onClose={() => setOpen(false)}
-        />
+        />,
+        document.body,
       )}
     </>
   )
 }
 
-function UserSheet({ persons, me, onChoose, onSalir, onClose }) {
+function UserSheet({ persons, me, foto, onFoto, onChoose, onSalir, onClose }) {
   const [estado, setEstado] = useState(me?.estado ?? '')
   const [avatar, setAvatar] = useState(me?.avatar ?? '🧑')
+  // Borrador de la foto: `undefined` = sin tocar, `null` = quitarla, string = nueva.
+  const [fotoNueva, setFotoNueva] = useState(undefined)
+  const [aviso, setAviso] = useState(null)
+  // Con identidad el sheet edita tu perfil; este flag abre la lista para cambiar.
+  const [eligiendo, setEligiendo] = useState(!me)
+  const archivo = useRef(null)
 
-  // Al elegir persona (o cambiar de identidad) el sheet pasa a modo edición:
-  // resembramos los campos con los datos de esa persona.
+  useBloqueoDeScroll()
+
+  // Al elegir persona (o cambiar de identidad) resembramos los campos con los
+  // datos de esa persona y volvemos al modo edición.
   useEffect(() => {
     setEstado(me?.estado ?? '')
     setAvatar(me?.avatar ?? '🧑')
+    setFotoNueva(undefined)
+    setAviso(null)
+    setEligiendo(!me)
   }, [me])
 
+  const fotoActual = fotoNueva === undefined ? foto : fotoNueva
+
+  // Volver al perfil aunque se re-elija a la misma persona (ahí `me` no cambia
+  // y el efecto de arriba no se dispara).
+  function elegir(id) { onChoose(id); setEligiendo(false) }
+
+  async function elegirFoto(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite volver a elegir la misma foto
+    if (!file) return
+    setAviso(null)
+    try {
+      setFotoNueva(await comprimirFoto(file))
+    } catch (error) {
+      setAviso(String(error?.message ?? error))
+    }
+  }
+
   async function guardar() {
-    if (me) await updatePerson(me.id, { estado: estado.trim(), avatar: avatar || '🧑' })
+    if (me) {
+      await updatePerson(me.id, { estado: estado.trim(), avatar: avatar || '🧑' })
+      if (fotoNueva !== undefined) onFoto(fotoNueva)
+    }
     onClose()
   }
+
+  const listaPersonas = (
+    <div className="lista-personas">
+      {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en Ajustes ⚙️.</div>}
+      {persons.map((p) => (
+        <button
+          key={p.id}
+          className={`persona-opcion btn ghost${p.id === me?.id ? ' on' : ''}`}
+          onClick={() => { tap(); elegir(p.id) }}
+        >
+          <span className="pe">{p.avatar}</span>
+          <span>{p.name}{p.apodo ? ` · «${p.apodo}»` : ''}</span>
+        </button>
+      ))}
+    </div>
+  )
 
   return (
     <div className="modal-bg center" onClick={onClose}>
       <div className="modal center" onClick={(e) => e.stopPropagation()}>
-        <button className="x" onClick={onClose}>×</button>
-        {me ? (
-          <>
-            <h2>Eres {me.name} 🐳</h2>
-            <div className="note">Cambia tu icono y tu estado (se ven en todo el grupo). «Salir» olvida quién eres en este móvil para cambiar de persona.</div>
+        <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
 
-            <label>Tu icono</label>
+        {me && !eligiendo ? (
+          <>
+            <div className="perfil-cab">
+              <Cara className="perfil-cara" emoji={avatar} foto={fotoActual} />
+              <div className="perfil-txt">
+                <h2>{me.name}</h2>
+                <div className="perfil-sub">{me.apodo ? `«${me.apodo}»` : 'Tu perfil en este evento'}</div>
+              </div>
+            </div>
+
+            <label>Tu foto <span className="solo-movil">(solo en este móvil)</span></label>
+            <div className="chips">
+              <button className="chip" onClick={() => { tap(); archivo.current?.click() }}>📷 {fotoActual ? 'Cambiar foto' : 'Poner foto'}</button>
+              {fotoActual && <button className="chip" onClick={() => { tap(); setFotoNueva(null) }}>🗑️ Quitar foto</button>}
+            </div>
+            <input
+              ref={archivo}
+              type="file"
+              accept="image/*"
+              onChange={elegirFoto}
+              className="oculto"
+              aria-label="Elegir foto de avatar"
+            />
+
+            <label>Tu emoji</label>
             <div className="chips">
               {AVATARES.map((a) => (
                 <button key={a} className={`chip${avatar === a ? ' on' : ''}`} onClick={() => { tap(); setAvatar(a) }}>{a}</button>
               ))}
             </div>
-            <label>O escribe el que quieras</label>
-            <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} placeholder="🙂" />
+            <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} placeholder="🙂" aria-label="Emoji a mano" />
 
             <label>Tu estado</label>
             <div className="chips">
@@ -112,31 +208,31 @@ function UserSheet({ persons, me, onChoose, onSalir, onClose }) {
                 <button key={s} className={`chip${estado === s ? ' on' : ''}`} onClick={() => { tap(); setEstado(s) }}>{s}</button>
               ))}
             </div>
-            <input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="a mi bola…" style={{ marginTop: 8 }} />
+            <input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="a mi bola…" aria-label="Estado a mano" style={{ marginTop: 8 }} />
 
-            <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+            {aviso && <div className="note" role="status" style={{ marginTop: 10 }}>{aviso}</div>}
+
+            <div className="note" style={{ marginTop: 12 }}>El emoji y el estado los ve todo el grupo. «Salir de {me.apodo || me.name}» solo olvida quién eres en este móvil: no borra a nadie.</div>
+
+            {/* Pegada abajo: con tanto chip, «Guardar» quedaba fuera de pantalla. */}
+            <div className="perfil-acciones">
               <button className="btn block" onClick={guardar}>Guardar</button>
-              <button className="btn ghost" onClick={() => { tap(); onSalir() }} style={{ flex: 'none' }}>Salir</button>
+              <div className="perfil-secundarias">
+                <button className="btn ghost" onClick={() => { tap(); setEligiendo(true) }}>↔ Cambiar</button>
+                <button className="btn ghost danger-txt" onClick={() => { tap(); onSalir() }}>Salir de {me.apodo || me.name}</button>
+              </div>
             </div>
           </>
         ) : (
           <>
-            <h2>¿Quién eres? 🐳</h2>
-            <div className="note">Elige quién eres en este evento (se guarda en tu móvil). Luego podrás cambiar tu estado y tu icono.</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-              {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en Ajustes ⚙️.</div>}
-              {persons.map((p) => (
-                <button
-                  key={p.id}
-                  className="btn ghost"
-                  onClick={() => { tap(); onChoose(p.id) }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start' }}
-                >
-                  <span style={{ fontSize: 18 }}>{p.avatar}</span>
-                  <span>{p.name}{p.apodo ? ` · «${p.apodo}»` : ''}</span>
-                </button>
-              ))}
-            </div>
+            <h2>Elige tu persona 🐳</h2>
+            <div className="note">Se guarda en este móvil. Después podrás cambiar tu foto, tu emoji y tu estado.</div>
+            {listaPersonas}
+            {me && (
+              <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => { tap(); setEligiendo(false) }}>
+                Volver a tu perfil
+              </button>
+            )}
           </>
         )}
       </div>

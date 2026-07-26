@@ -18,24 +18,6 @@ import { haySesion, leerSesion } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
-// Punto de estado de la cabecera: color + ayuda + si conviene animar el "recheck".
-// 🟢 al día · 🟡 conectado con cambios encolados · 🔴 sin red · ⚪ solo local.
-function syncDot(sync) {
-  if (!sync.isConfigured) {
-    return {
-      color: '#8fb0a0',
-      title: isNative() ? 'Solo local (sin sincronización)' : 'Solo local · el grupo se sincroniza desde la app de iOS',
-      checking: false,
-    }
-  }
-  if (!sync.online || sync.status === 'offline') return { color: '#e5544b', title: 'Sin conexión', checking: false }
-  if (sync.status === 'sesion-caducada') return { color: '#e5544b', title: 'Sesión caducada · vuelve a entrar con Apple', checking: false }
-  if (sync.status === 'syncing' || sync.status === 'busy') return { color: '#e7a33e', title: 'Sincronizando…', checking: true }
-  if (sync.status === 'error') return { color: '#e7a33e', title: 'Error al sincronizar · toca para reintentar', checking: false }
-  if (sync.dirty) return { color: '#e7a33e', title: 'Cambios sin sincronizar · toca para sincronizar', checking: false }
-  return { color: '#2e9e6b', title: 'Conectado y al día', checking: false }
-}
-
 // Opción A de UX: 5 destinos en la barra (≤5, iOS HIG / Material). Gastos+Saldos
 // se funden en «Dinero», la Compra entra en «Cenas» y Stats/Ajustes viven en «Más».
 const TABS = [
@@ -51,6 +33,9 @@ export default function App() {
   // Tras recargar por una actualización, volvemos a «Más» (donde vive Ajustes) en
   // vez de a «Hoy», para no perder el sitio desde el que se pulsó el botón.
   const [tab, setTab] = useState(() => (veniaDeActualizar() ? 'mas' : 'hoy'))
+  // Sub-pestaña de «Más»: la controla App porque el ⚙️ de la cabecera es un
+  // atajo directo a Ajustes, no a Estadísticas.
+  const [masSeg, setMasSeg] = useState(() => (veniaDeActualizar() ? 'ajustes' : 'stats'))
 
   // `undefined` mientras se lee config.json; después, el objeto (vacío si no
   // hay API configurada, que es el modo solo-local de siempre).
@@ -134,19 +119,16 @@ export default function App() {
           <div className="ti">{event.name}</div>
           <div className="su">{event.lugar || 'Ballena Ops'}</div>
         </div>
-        {(() => {
-          const d = syncDot(sync)
-          return (
-            <button
-              className={`sync-dot${d.checking ? ' checking' : ''}`}
-              title={d.title}
-              aria-label={d.title}
-              onClick={() => { tap(); sync.recheck() }}
-            >
-              <span className="d" style={{ background: d.color }} />
-            </button>
-          )
-        })()}
+        {/* Los ajustes son un botón de la cabecera: el estado de sincronización
+            ya no vive aquí, se ha mudado dentro de Ajustes. */}
+        <button
+          className="iconbtn"
+          title="Ajustes"
+          aria-label="Ajustes"
+          onClick={() => { tap(); setMasSeg('ajustes'); setTab('mas') }}
+        >
+          ⚙️
+        </button>
         <UserBadge eventId={activeId} persons={persons} />
       </header>
 
@@ -154,7 +136,16 @@ export default function App() {
       {tab === 'dinero' && <DineroScreen eventId={activeId} event={event} />}
       {tab === 'cenas' && <CenasCompraScreen eventId={activeId} event={event} />}
       {tab === 'planes' && <PlanesScreen eventId={activeId} event={event} />}
-      {tab === 'mas' && <MasScreen eventId={activeId} event={event} onChangeEvent={() => pick(null)} />}
+      {tab === 'mas' && (
+        <MasScreen
+          eventId={activeId}
+          event={event}
+          onChangeEvent={() => pick(null)}
+          seccion={masSeg}
+          onSeccion={setMasSeg}
+          sync={sync}
+        />
+      )}
 
       <nav className="tabbar">
         {TABS.map((t) => (
