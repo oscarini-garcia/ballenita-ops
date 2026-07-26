@@ -1,3 +1,15 @@
+/**
+ * Las cenas del evento: qué se come cada día y a qué bunga le toca (§6).
+ *
+ * Una cena apunta a platos del catálogo global en vez de guardar el nombre
+ * suelto, para que «paella» sea el mismo plato en todos los eventos y las
+ * estadísticas puedan contarlo. El catálogo se puede ampliar desde aquí mismo
+ * (alta rápida): obligar a ir a otra pantalla a dar de alta un plato para poder
+ * apuntar la cena de mañana es justo la friccion que hace que nadie lo apunte.
+ *
+ * Cada día se asignan dos bungas, mayores y niños, porque la rotación diaria es
+ * doble (§6.4) y esa es la discusión que la app viene a zanjar.
+ */
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {

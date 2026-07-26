@@ -1,3 +1,13 @@
+/**
+ * Elegir evento, o crear el primero (§2.5).
+ *
+ * Es lo único que se ve cuando no hay evento activo, así que hace de portada. Un
+ * evento es cualquier plan con fecha de inicio y fin —un viaje, un camping, un
+ * finde—, y todo lo demás cuelga de uno de ellos, salvo el catálogo de platos.
+ *
+ * Ofrece sembrar el evento de ejemplo porque una app de gastos vacía no se
+ * entiende: hasta que no hay tres gastos y dos familias no se ve para qué sirve.
+ */
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { listEvents, createEvent, seedExample } from '../db.js'

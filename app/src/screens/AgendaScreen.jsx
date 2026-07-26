@@ -1,3 +1,15 @@
+/**
+ * «Hoy»: la agenda por días, que es la vista que une todo (§4.1).
+ *
+ * Es la pantalla de arranque porque responde a la única pregunta que se hace de
+ * verdad estando allí —qué toca hoy—, en vez de obligar a mirar cenas y planes
+ * por separado y montarlo en la cabeza.
+ *
+ * Los días salen de las fechas del evento; si el evento no las tiene, se
+ * deducen de los días que ya tengan una cena o un plan, para que un plan sin
+ * fechas no quede invisible. `eachDay` lleva tope de 60 días: unas fechas mal
+ * puestas no deben colgar la pantalla.
+ */
 import { useLiveQuery } from 'dexie-react-hooks'
 import { dinnersOf, plansOf, bungasOf } from '../db.js'
 

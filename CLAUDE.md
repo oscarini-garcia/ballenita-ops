@@ -16,7 +16,37 @@ plan con fecha de inicio/fin. Idioma: **solo español**.
 - **Código:** [`app/`](app/) — la PWA. Ver [`app/README.md`](app/README.md).
 - **Código:** [`api/`](api/) — el Worker de Cloudflare + D1.
 - **Despliegue:** [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) — Cloudflare, Apple y GitHub.
+- **Dónde mirar:** [`docs/mapa.md`](docs/mapa.md) — mapa del repositorio, **generado**.
 - **Desplegada** en Cloudflare Pages.
+
+## El mapa del repositorio (`docs/mapa.md`)
+
+> ⚠️ **`docs/mapa.md` es un fichero GENERADO. No se edita a mano.** Lo compone
+> `herramientas/mapa.mjs` leyendo el código; cualquier cambio a mano se pierde en la
+> siguiente ejecución y la integración continua lo rechaza (`--verificar` sale con
+> código 1). Si algo del mapa está mal, **está mal en el código**: arregla la cabecera
+> del módulo, la tabla de rutas o el spec, y vuelve a generarlo.
+
+```bash
+node herramientas/mapa.mjs              # escribe docs/mapa.md (commitéalo)
+node herramientas/mapa.mjs --contexto   # a stdout, es lo que usa el hook de arranque
+node herramientas/mapa.mjs --verificar  # código 1 si docs/mapa.md no cuadra con el código
+```
+
+Al abrir sesión, el hook `SessionStart` de [`.claude/settings.json`](.claude/settings.json)
+inyecta el mapa **generado en ese instante** —no el fichero guardado, que podría estar
+desfasado— más el estado vivo de git. Por eso el mapa no se estudia: llega ya leído.
+
+Dos consecuencias prácticas al tocar código:
+
+- **La cabecera de un módulo es su entrada en el mapa.** La primera frase del docstring
+  (o del comentario de cabecera, que aquí a menudo va debajo de los `import`) es lo que
+  se ve. Un módulo nuevo sin cabecera sale marcado como desfase.
+- **El mapa contrasta lo que está declarado dos veces** y avisa si divergen: la tabla
+  `RUTAS` contra la lista de la cabecera de `api/src/index.js`, las tablas
+  sincronizadas en sus cuatro declaraciones, las claves de `config.json` contra las que
+  el código lee, las `VITE_*` contra las que inyecta el build. Si añades una ruta o una
+  tabla, decláralas en los dos sitios o el mapa lo cantará.
 
 ## Cómo trabajar en `app/`
 
@@ -29,9 +59,13 @@ npm test             # suite completa una vez
 npm run build        # build de producción (PWA)
 ```
 
-**Al añadir una feature, añade su test** (hay ~45 y es como se detectan regresiones):
-lógica pura → `*.test.js` junto al módulo; algo con datos → test tipo `db`; UI → test de
-componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-indexeddb`.
+**Al añadir una feature, añade su test** (así se detectan las regresiones; el recuento
+vivo está en [`docs/mapa.md`](docs/mapa.md)): lógica pura → `*.test.js` junto al módulo;
+algo con datos → test tipo `db`; UI → test de componente (`*.test.jsx`). Entorno: Vitest
++ jsdom + Testing Library + `fake-indexeddb`.
+
+**Y escríbele su cabecera al módulo nuevo**: la primera frase es su entrada en el mapa,
+y sin ella el mapa lo marca como desfase.
 
 ## Arquitectura (resumen — detalle en SPECS §14.9)
 
@@ -73,26 +107,21 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 
 ## Estructura
 
-```
-app/src/
-  db.js                 Dexie: esquema, CRUD, cola (outbox), instantánea
-  lib/  reparto.js      motor de saldos (puro, testeado)  ·  config.js  config en caliente
-        stats.js money.js ids.js skins.js native.js pwa.js
-  auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo
-  sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
-        tables.js
-  screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats, EventSettings,
-            Events, Acceso
-  components/ WhaleLogo.jsx  ·  App.jsx  ·  theme.css / skins.css
-  public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
+**Módulo a módulo, con su descripción y sus símbolos, está en
+[`docs/mapa.md`](docs/mapa.md)** — generado, así que no se queda viejo. Aquí solo para
+qué es cada carpeta, que es lo que no se deduce del código:
 
-api/
-  src/  index.js        rutas del Worker   ·  repositorio.js  lectura/escritura sobre D1
-        tablas.js       descriptor de tablas y conversión de tipos
-        apple.js sesion.js
-  migraciones/0001_esquema.sql
-  test/                 pruebas con node:sqlite contra el esquema real
-  herramientas/sembrar-desde-jsonbin.mjs
+```
+app/src/     lib/       lógica pura y testeable (reparto, dinero, stats, temas, config)
+             auth/      Sign in with Apple y el token de este dispositivo
+             sync/      cuándo (engine) y cómo (api) se habla con el Worker
+             screens/   una pantalla por fichero; las cinco de la barra las compone App.jsx
+             components/ lo que se reutiliza entre pantallas
+             db.js      Dexie: esquema, CRUD y cola de cambios en la misma transacción
+app/public/  config.json  configuración leída en caliente al arrancar
+api/src/     el Worker: rutas, repositorio sobre D1 y descriptor de tablas
+api/test/    pruebas con node:sqlite contra el esquema real de la migración
+herramientas/ el generador del mapa (mapa.mjs) y su escáner
 ```
 
 ## Despliegue
@@ -112,19 +141,23 @@ api/
   no apiles sobre historia ya fusionada.
 - Commits descriptivos; **corre `npm test` antes de push**. PR en **draft** por defecto.
 
-## Estado y pendientes
+## En curso
+
+Lo único que se escribe **a mano** porque no se deduce del código. El hook lo inyecta
+al final del mapa. Corto y en presente; el backlog va al [`README`](README.md).
+
+- **Pendiente de despliegue** (manual, [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md)): crear
+  la D1 y pegar su `database_id`, registrar los secretos, dar de alta los identificadores
+  de Apple, crear el proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**.
+  Hasta entonces la app va en modo solo-local.
+- **Decisión pendiente:** `config.json` declara `otaManifiesto` y `lib/native.js` tiene esa
+  URL a fuego, así que nadie lee la clave. O `native.js` la lee de la configuración (y el
+  manifiesto pasa a ser configurable en caliente, que es lo prometido), o se quita de
+  `config.json`. El mapa lo avisa en cada sesión hasta que se decida.
+
+## Estado
 
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
 cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadísticas, 5 temas.
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
-75 tests en la PWA + 22 en la API, todos en verde.
-
-**Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
-`database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el
-proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
-la app funciona en modo solo-local.
-
-**Pendiente (ideas):** editar gastos/personas desde la UI · avatares con foto (v2,
-comprimidas, fuera de la sync) · lista de la compra agregada (usa `Dish.ingredientes`) ·
-pulir contrastes de algún tema · sacar los ~96 estilos inline de las pantallas a CSS
-(rompen los temas: p. ej. el punto de sincronización no se recolorea).
+Las dos suites en verde (el recuento vivo está en [`docs/mapa.md`](docs/mapa.md)).

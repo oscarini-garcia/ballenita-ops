@@ -1,3 +1,16 @@
+/**
+ * El orquestador de la sincronización: decide **cuándo** se sincroniza.
+ *
+ * El qué y el cómo están en `api.js` (el transporte) y en `db.js` (la cola);
+ * aquí solo vive el calendario y el candado. Se sincroniza al abrir, al volver la
+ * red, al volver la app a primer plano y cada 90 segundos, porque Safari en iOS
+ * no tiene sincronización en segundo plano: si la app no está delante, no corre
+ * nada, y ese es el motivo de que el patrón sea este y no un service worker.
+ *
+ * El candado (`syncing`) no es una precaución de manual: dos ciclos a la vez
+ * subirían la misma cola dos veces y el segundo aplicaría una instantánea vieja
+ * encima de la nueva.
+ */
 import { useEffect, useState } from 'react'
 import { colaPendiente, importSnapshot, vaciarCola, db } from '../db.js'
 import { haySesion } from '../auth/sesion.js'

@@ -1,3 +1,14 @@
+/**
+ * La lista de la compra compartida (§6.6): apuntar cosas y tachar lo comprado.
+ *
+ * Es manual a propósito. Agregarla sola desde los ingredientes de las cenas
+ * está en la lista de ideas, pero la lista que de verdad se usa en un camping
+ * lleva hielo, pilas y bolsas de basura, que no salen de ninguna receta.
+ *
+ * Lo comprado se firma con quién lo marcó y cuándo, para que valga como aviso
+ * en el chat del grupo («ya lo llevo yo») y no haya dos carros con lo mismo.
+ * Quién eres se lee de la identidad ligera por dispositivo; aquí solo se lee.
+ */
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {

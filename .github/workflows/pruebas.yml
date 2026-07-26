@@ -33,6 +33,23 @@ jobs:
       - name: Comprobar que el build sale
         run: npm run build
 
+  # El mapa de docs/mapa.md se genera leyendo el código, así que un commit que
+  # cambie una cabecera, una ruta o una tabla lo deja desfasado sin querer.
+  # `--verificar` sale con código 1 en ese caso: es lo que impide que el mapa
+  # empiece a mentir en silencio, que es peor que no tenerlo.
+  mapa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pruebas del generador
+        run: node --test 'herramientas/*.test.mjs'
+      - name: ¿docs/mapa.md corresponde al código?
+        run: node herramientas/mapa.mjs --verificar
+
   api:
     runs-on: ubuntu-latest
     timeout-minutes: 5

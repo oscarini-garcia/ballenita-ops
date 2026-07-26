@@ -1,3 +1,18 @@
+/**
+ * Ajustes: el cuarto de máquinas del evento y del dispositivo.
+ *
+ * Junta lo que no es una tarea del día a día pero hay que poder tocar: el
+ * evento, las familias, los bungalows y la gente (§2.2–2.4), el tema, la
+ * sincronización, tu cuenta y —si eres administrador— quién tiene acceso al
+ * grupo, con el alta por invitación de §5.1.
+ *
+ * Es una pantalla larga a propósito: partirla en varias obligaría a recordar en
+ * cuál estaba cada cosa, y aquí se entra dos veces por viaje.
+ *
+ * Cerrar sesión borra también la copia local de los datos (`olvidarTodo`). No es
+ * celo: un móvil sin sesión ya no puede subir cambios, y dejarle una copia que
+ * parece editable es la mejor forma de que alguien apunte gastos en el vacío.
+ */
 import { useState, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {

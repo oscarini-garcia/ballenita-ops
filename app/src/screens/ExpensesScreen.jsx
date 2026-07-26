@@ -1,3 +1,15 @@
+/**
+ * Alta y listado de gastos (§3.1): quién puso el dinero y entre quiénes se
+ * reparte.
+ *
+ * Paga una **familia**, no una persona —es la unidad económica del grupo—,
+ * mientras que los participantes son personas: de ahí sale el reparto por peso
+ * que hace `lib/reparto.js`. El importe se convierte a céntimos enteros al
+ * guardarlo (`eurosToCents`) y nunca vuelve a ser un decimal.
+ *
+ * Exporta `CATEGORIES` porque las estadísticas necesitan las mismas etiquetas:
+ * duplicarlas sería garantizar que un día dejan de coincidir.
+ */
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { expensesOf, familiesOf, personsOf, addExpense, removeExpense } from '../db.js'

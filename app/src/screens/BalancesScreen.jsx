@@ -1,3 +1,14 @@
+/**
+ * Saldos por familia y liquidación en el menor número de transferencias (§3.4).
+ *
+ * No guarda ni sincroniza ningún saldo, y eso es la regla de oro del proyecto:
+ * lee los hechos —gastos y liquidaciones— y llama a `lib/reparto.js`, que es
+ * puro y determinista. Dos móviles con los mismos hechos pintan exactamente lo
+ * mismo sin haber hablado entre ellos.
+ *
+ * Liquidar es apuntar otro hecho (`addSettlement`), no borrar ni tocar deudas:
+ * el historial de quién pagó qué se queda intacto.
+ */
 import { useLiveQuery } from 'dexie-react-hooks'
 import { expensesOf, familiesOf, personsOf, settlementsOf, addSettlement } from '../db.js'
 import { computeFamilyBalances, simplifyDebts } from '../lib/reparto.js'

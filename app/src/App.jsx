@@ -1,3 +1,18 @@
+/**
+ * La cáscara de la aplicación: cabecera, barra de 5 destinos y quién manda a
+ * quién.
+ *
+ * Aquí no hay lógica de negocio, solo tres decisiones de encuadre. La primera:
+ * qué se enseña antes de una pantalla —si hay API configurada y no hay sesión,
+ * se pide entrar; si no hay evento activo, se elige uno—. La segunda: el punto
+ * de estado de la cabecera, que es el único sitio donde el usuario ve si sus
+ * cambios han salido del móvil. Y la tercera: los cinco destinos de la barra,
+ * que agrupan nueve pantallas porque iOS HIG y Material coinciden en no pasar
+ * de cinco.
+ *
+ * El evento activo se guarda por dispositivo (`localStorage`), no en la base:
+ * qué viaje estás mirando no es un hecho del grupo.
+ */
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getEvent, personsOf } from './db.js'

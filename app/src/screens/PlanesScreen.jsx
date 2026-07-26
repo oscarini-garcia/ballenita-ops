@@ -1,3 +1,15 @@
+/**
+ * Planes del evento y su votación (§4): la excursión que alguien propone y el
+ * resto valora.
+ *
+ * Se vota con 👍 / 🤷 / 👎 y no con una nota del 1 al 10: lo que se quiere saber
+ * es si hay ganas, no medir un consenso con decimales. Los votos viven en el
+ * propio plan (un objeto `votos` por persona), así que cambiar de opinión
+ * sobrescribe y no acumula.
+ *
+ * Un plan con día aparece en la agenda; sin día es una idea suelta que sigue en
+ * la lista, y eso es deliberado: al proponerla casi nunca se sabe el día.
+ */
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, addPlan, updatePlan, removePlan, personsOf } from '../db.js'

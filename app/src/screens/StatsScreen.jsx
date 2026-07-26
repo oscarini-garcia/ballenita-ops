@@ -1,3 +1,16 @@
+/**
+ * Estadísticas del evento (§7), con las métricas con pique desactivadas de
+ * serie.
+ *
+ * El cálculo entero vive en `lib/stats.js`, que es puro; aquí solo se pinta. La
+ * única decisión de esta pantalla es cuál se enseña: las métricas que **señalan
+ * a alguien** —quién pone menos, quién no cocina— están detrás de un
+ * interruptor por dispositivo. Un grupo de amigos aguanta la broma cuando la
+ * pide, no cuando le salta en la cara al abrir la pestaña.
+ *
+ * Las etiquetas de categoría se importan de `ExpensesScreen` para que no puedan
+ * divergir de las del alta de gastos.
+ */
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
