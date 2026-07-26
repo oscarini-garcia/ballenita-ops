@@ -6,13 +6,14 @@ import {
   personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
 } from '../db.js'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
+import UpdateModal from '../components/UpdateModal.jsx'
 import { useSkin, SKINS } from '../lib/skins.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { syncNow } from '../sync/engine.js'
 import { gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
-import { forzarActualizacion, UPDATE_STEPS, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
+import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -249,10 +250,11 @@ function AppSection() {
   function actualizar() {
     if (busy) return
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
+    setPaso('checking') // abre el modal ya, sin esperar al primer aviso
     const inicio = Date.now()
     forzarActualizacion(setPaso, {
       // La recarga es inevitable (hay que cargar el JS nuevo), pero la retrasamos
-      // un poco para que el overlay de progreso se vea de verdad y no sea un parpadeo.
+      // un poco para que el progreso se vea de verdad y no sea un parpadeo.
       reload: async () => {
         const resto = 1600 - (Date.now() - inicio)
         if (resto > 0) await new Promise((r) => setTimeout(r, resto))
@@ -264,26 +266,28 @@ function AppSection() {
   return (
     <>
       <div className="sec-h">App</div>
-      <div className="note">¿No ves los últimos cambios? Fuerza que la ballena traiga la <b>versión más reciente</b> sin tener que quitarla y volver a añadirla a la pantalla de inicio.
-        <div style={{ marginTop: 8 }}>
-          <button className="btn sm" disabled={busy} onClick={actualizar}>🔄 Buscar actualización y recargar</button>
-        </div>
-        {recienActualizada && (
-          <div className="pill owed" style={{ marginTop: 10, display: 'inline-block' }}>✓ Actualizada · v{APP_VERSION}</div>
-        )}
-        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-faint)' }}>Versión {APP_VERSION}</div>
-      </div>
-
-      {busy && (
-        <div className="update-overlay" role="status" aria-live="polite">
-          <div className="box">
-            <div className="whale" aria-hidden>🐳</div>
-            <div className="step">{UPDATE_STEPS[paso] ?? 'Actualizando…'}</div>
-            <div className="prog"><i /></div>
-            <div className="hint">No cierres la app, tarda un momento…</div>
+      <div className="card tight">
+        {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
+        <div className="row">
+          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐳</div>
+          <div className="main">
+            <div className="n">Ballena Ops</div>
+            <div className="sub">Versión en curso</div>
           </div>
+          <div className="version-grande tnum">v{APP_VERSION}</div>
         </div>
+        <div className="row">
+          <div className="main">
+            <div className="sub">¿No ves los últimos cambios? Trae la <b>más reciente</b> sin quitar y volver a añadir la app.</div>
+          </div>
+          <button className="btn sm" disabled={busy} onClick={actualizar}>🔄 Comprobar</button>
+        </div>
+      </div>
+      {recienActualizada && (
+        <div className="pill owed" style={{ display: 'inline-block' }}>✓ Recién actualizada a la v{APP_VERSION}</div>
       )}
+
+      {busy && <UpdateModal paso={paso} version={APP_VERSION} />}
     </>
   )
 }
