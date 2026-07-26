@@ -118,8 +118,9 @@ api/
 cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadísticas, 5 temas.
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
 **Cromo repasado** (SPECS §14.10): ⚙️ en la cabecera, punto de sync mudado a Ajustes, badge
-de usuario con perfil editable (emoji/estado/foto local) y modales que bloquean el scroll
-del fondo. 86 tests en la PWA + 22 en la API, todos en verde.
+de usuario con perfil editable (emoji/estado/foto local), modales que bloquean el scroll
+del fondo y modal de progreso al comprobar versión. 89 tests en la PWA + 22 en la API,
+todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
 `database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el

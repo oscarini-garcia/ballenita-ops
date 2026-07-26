@@ -646,6 +646,16 @@ almacenamiento aparte.
 la barra de pestañas **más `env(safe-area-inset-bottom)`**. Sin ese sumando, en
 un iPhone con indicador de home las últimas filas quedaban debajo de la barra.
 
+**Comprobar la versión.** En Ajustes → «App», la **versión en curso** se enseña
+grande (es el dato que se viene a mirar aquí) y «🔄 Comprobar» abre un **modal
+de progreso** (`components/UpdateModal.jsx`) con los tres pasos de
+`forzarActualizacion` —buscar, descargar, aplicar— marcados según van cayendo:
+✓ los hechos, resaltado el que corre, apagados los que faltan. Antes era un
+overlay a pantalla completa con un solo rótulo que se sustituía, y parecía un
+parpadeo. El modal **no lleva cerrar** a propósito: el proceso acaba siempre en
+una recarga (`marcarPostActualizacion` devuelve a Ajustes, que enseña el ✓ con
+la versión ya nueva), así que un botón de cancelar sería mentira.
+
 **Modales: el fondo no se mueve** (`lib/scrollLock.js`). `overflow: hidden` en
 el body no basta en Safari iOS —el gesto se lo queda el documento igualmente—,
 así que mientras hay un modal abierto el body se fija (`position: fixed`)
