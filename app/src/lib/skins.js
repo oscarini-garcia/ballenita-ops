@@ -1,3 +1,12 @@
+/**
+ * Los temas de la app: cuáles hay, cuál toca y cómo se aplica.
+ *
+ * El tema se guarda **por dispositivo** y no se sincroniza: es una preferencia
+ * de quien mira, no un hecho del grupo. Además de los cinco temas y del modo
+ * Sistema hay uno Aleatorio, que sortea **una vez al día** y guarda el resultado
+ * con su fecha: sortear en cada render cambiaría de color al navegar. Y nunca
+ * repite el del día anterior, que echaría a perder la gracia.
+ */
 import { useEffect, useState } from 'react'
 
 // Temas disponibles. `sistema` = claro/oscuro automático (sin data-skin).

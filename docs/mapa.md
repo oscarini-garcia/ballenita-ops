@@ -11,8 +11,8 @@ Un hecho declarado en dos sitios que ya no coinciden:
 
 ## Las dos piezas
 
-- **`app/`** v0.1.7 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  76 pruebas en 12 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.2.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  89 pruebas en 15 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   28 pruebas en 3 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -88,12 +88,17 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`app/src/components/`**
 
 - `SubNav.jsx` — Control segmentado que vive bajo la cabecera, dentro de una pestaña, para dividir una sección en dos (p. ej. Dinero → Gastos / Saldos).
+- `SyncDot.jsx` — Punto de estado de la sincronización: color + ayuda + si conviene animar. 🟢 al día · 🟡 conectado con cambios encolados · 🔴 sin red · ⚪ solo local.
+  ↳ estadoSync
+- `UpdateModal.jsx` — El modal que se enseña mientras la PWA se actualiza a la última versión.
 - `UserBadge.jsx` — El "usuario" es una persona del evento (§ barra superior).
   ↳ getMeId
 - `WhaleLogo.jsx` — Icono de Ballena Ops: "B" de Ballena como marca de agua + emoji de ballena con chorro delante.
 
 **`app/src/lib/`**
 
+- `avatares.js` — Foto de avatar de una persona.
+  ↳ leerFoto, guardarFoto, borrarFoto, comprimirFoto
 - `config.js` — Configuración del despliegue, leída **en caliente** de `config.json`.
   ↳ cargarConfiguracion, olvidarConfiguracion, estaConfigurada
 - `ids.js` — IDs generados en cliente (§12.2): así dos dispositivos offline no chocan al sincronizar.
@@ -106,7 +111,9 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, forzarActualizacion, UPDATE_STEPS
 - `reparto.js` — Motor de reparto — el corazón de Ballena Ops (§3, §14.7 del spec).
   ↳ splitCents, expensePersonShares, computeFamilyBalances, simplifyDebts
-- `skins.js` — Temas disponibles. `sistema` = claro/oscuro automático (sin data-skin).
+- `scrollLock.js` — Bloqueo del scroll del fondo mientras hay un modal abierto.
+  ↳ bloquearScrollDeFondo, liberarScrollDeFondo, useBloqueoDeScroll
+- `skins.js` — Los temas de la app: cuáles hay, cuál toca y cómo se aplica.
   ↳ getPref, setPref, rollRandom, currentSkin, applySkin, useSkin · +2 más
 - `stats.js` — Estadísticas del evento (§7).
   ↳ computeStats
@@ -196,6 +203,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14** Arquitectura técnica (PWA) → `CompraScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `ids.js`
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
+- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `avatares.js`
 
 ## En curso
 
@@ -204,10 +212,11 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 Lo único que se escribe **a mano** porque no se deduce del código. El hook lo inyecta
 al final del mapa. Corto y en presente; el backlog va al [`README`](README.md).
 
-- **Pendiente de despliegue** (manual, [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md)): crear
-  la D1 y pegar su `database_id`, registrar los secretos, dar de alta los identificadores
-  de Apple, crear el proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**.
-  Hasta entonces la app va en modo solo-local.
+- **Por confirmar del despliegue:** lo comprobable ya está hecho (la D1 tiene `database_id`,
+  el Worker contesta en `/api/salud`, Pages publica y `config.json` apunta a la API de
+  verdad). Lo que no se puede comprobar desde fuera y sigue sin confirmar: si están
+  registrados los dos secretos, si los identificadores de Apple están dados de alta y si
+  **la siembra desde JSONBin** llegó a ejecutarse. Ver [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 - **Decisión pendiente:** `config.json` declara `otaManifiesto` y `lib/native.js` tiene esa
   URL a fuego, así que nadie lee la clave. O `native.js` la lee de la configuración (y el
   manifiesto pasa a ser configurable en caliente, que es lo prometido), o se quita de

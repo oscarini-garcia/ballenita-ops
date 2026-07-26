@@ -25,9 +25,9 @@ Cosas que estarían bien y que nadie está haciendo ahora mismo. Lo que **sí** 
 marcha vive en la sección «En curso» de [`CLAUDE.md`](CLAUDE.md).
 
 - Editar gastos y personas desde la UI (hoy se crean y se borran, no se corrigen).
-- Avatares con foto: v2, comprimidas y **fuera** de la sincronización.
+- **Compartir** los avatares con foto con el grupo: hoy son locales del móvil
+  (`lib/avatares.js`), y hacerlos comunes pide almacenamiento aparte, fuera de la sync.
 - Lista de la compra agregada a partir de `Dish.ingredientes`, sumando la de las cenas
   del evento a lo que se apunte a mano.
 - Pulir los contrastes de algún tema.
-- Sacar a CSS los ~96 estilos inline de las pantallas: rompen los temas —el punto de
-  sincronización de la cabecera, por ejemplo, no se recolorea.
+- Sacar a CSS los ~96 estilos inline de las pantallas, que rompen los temas.

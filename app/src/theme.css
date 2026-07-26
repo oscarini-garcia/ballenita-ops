@@ -68,12 +68,13 @@ button, input, select { font: inherit; color: inherit; }
   border-radius: 7px; padding: 7px 9px; font-size: 16px; line-height: 1; cursor: pointer; }
 .appbar .iconbtn:active { transform: translateY(1px); }
 
-/* Punto de estado de conexión/sync. Verde al día · amarillo con cola · rojo sin red. */
-.appbar .sync-dot { flex: none; background: rgba(255,255,255,.12); border: none; border-radius: 7px;
-  padding: 9px; cursor: pointer; display: grid; place-items: center; }
-.appbar .sync-dot:active { transform: translateY(1px); }
-.appbar .sync-dot .d { width: 11px; height: 11px; border-radius: 50%; display: block; }
-.appbar .sync-dot.checking .d { animation: syncpulse .8s ease-in-out infinite; }
+/* Punto de estado de conexión/sync. Verde al día · amarillo con cola · rojo sin red.
+   Vive en Ajustes (ya no en la cabecera, que ahora lleva el ⚙️). */
+.sync-dot { flex: none; background: color-mix(in srgb, var(--ink) 8%, transparent); border: none;
+  border-radius: 7px; padding: 11px; cursor: pointer; display: grid; place-items: center; }
+.sync-dot:active { transform: translateY(1px); }
+.sync-dot .d { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.sync-dot.checking .d { animation: syncpulse .8s ease-in-out infinite; }
 @keyframes syncpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.65); } }
 
 /* Indicador de usuario (quién eres). */
@@ -82,7 +83,9 @@ button, input, select { font: inherit; color: inherit; }
   padding: 4px 9px 4px 4px; cursor: pointer; }
 .appbar .userbadge:active { transform: translateY(1px); }
 .appbar .userbadge .uav { flex: none; width: 26px; height: 26px; border-radius: 6px; display: grid;
-  place-items: center; font-size: 15px; background: rgba(255,255,255,.16); }
+  place-items: center; font-size: 15px; background: rgba(255,255,255,.16); overflow: hidden; }
+/* Foto de avatar (opcional y solo de este móvil): tapa el hueco del emoji. */
+.ufoto { width: 100%; height: 100%; object-fit: cover; display: block; }
 .appbar .userbadge .utxt { display: flex; flex-direction: column; align-items: flex-start;
   min-width: 0; line-height: 1.12; }
 .appbar .userbadge .un { max-width: 100%; font-size: 12px; font-weight: 700;
@@ -90,9 +93,13 @@ button, input, select { font: inherit; color: inherit; }
 .appbar .userbadge .ust { max-width: 100%; font-size: 9.5px; font-weight: 600; opacity: .72;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* El hueco de abajo tiene que dejar pasar la tabbar ENTERA: su alto (~58px) más
+   el indicador de home de iOS, que la propia tabbar añade como padding. Sin ese
+   `env()` el final del scroll se metía debajo de la barra. */
 .body { flex: 1; display: flex; flex-direction: column; gap: 12px;
   /* Laterales con safe-area para el notch en horizontal. */
-  padding: 14px calc(14px + env(safe-area-inset-right)) 84px calc(14px + env(safe-area-inset-left)); }
+  padding: 14px calc(14px + env(safe-area-inset-right))
+           calc(86px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left)); }
 
 .sec-h { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
   color: var(--ink-faint); margin: 4px 2px 0; display: flex; align-items: center; justify-content: space-between; }
@@ -175,10 +182,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   bottom: calc(78px + env(safe-area-inset-bottom)); width: 52px; height: 52px;
   border-radius: 10px; background: var(--spout); color: #fff; border: none; font-size: 27px; cursor: pointer;
   box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--spout) 70%, transparent); z-index: 6; }
+/* `overscroll-behavior: contain` remata el bloqueo de scroll del fondo
+   (lib/scrollLock.js): al llegar al final del modal el gesto no se propaga. */
 .modal-bg { position: fixed; inset: 0; background: rgba(4,18,26,.5); z-index: 20; display: flex; align-items: flex-end;
-  justify-content: center; }
-.modal { background: var(--foam); width: 100%; max-width: 520px; border-radius: 12px 12px 0 0; padding: 16px 16px 26px;
-  max-height: 92vh; overflow-y: auto; }
+  justify-content: center; overscroll-behavior: contain; }
+.modal { background: var(--foam); width: 100%; max-width: 520px; border-radius: 12px 12px 0 0;
+  padding: 16px 16px calc(26px + env(safe-area-inset-bottom));
+  max-height: 92vh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 /* Variante centrada para la edición de usuario. El alto se limita a ~78vh (y respeta
    las safe-areas) para que no se solape con la barra superior; el contenido hace
    scroll dentro del propio modal. */
@@ -190,23 +200,69 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .modal h2 { margin: 4px 0 2px; font-size: 19px; }
 .modal .x { float: right; background: none; border: none; font-size: 22px; color: var(--ink-faint); cursor: pointer; }
 
-/* Overlay de actualización: cubre la pantalla mientras se busca/descarga/aplica la
-   nueva versión, para que la recarga se sienta intencionada (no un salto a la home). */
-.update-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
-  background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb;
-  padding: calc(16px + env(safe-area-inset-top)) 24px calc(16px + env(safe-area-inset-bottom)); }
-.update-overlay .box { text-align: center; max-width: 300px; }
-.update-overlay .whale { font-size: 58px; line-height: 1; animation: whalebob 1.7s ease-in-out infinite; }
-.update-overlay .step { margin-top: 16px; font-size: 15.5px; font-weight: 750; }
-.update-overlay .hint { margin-top: 8px; font-size: 12px; color: #a9cede; }
-.update-overlay .prog { margin: 16px auto 0; width: 190px; height: 6px; border-radius: 3px;
-  background: rgba(255,255,255,.14); overflow: hidden; }
-.update-overlay .prog i { display: block; height: 100%; width: 42%; border-radius: 3px; background: var(--spout);
+/* Sheet del usuario: cabecera con la cara grande, acciones y lista de personas. */
+.perfil-cab { display: flex; align-items: center; gap: 12px; margin: 2px 0 10px; }
+.perfil-cara { flex: none; width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center;
+  font-size: 28px; overflow: hidden; background: color-mix(in srgb, var(--spout) 16%, var(--foam-2));
+  border: 1px solid var(--line); }
+.perfil-txt { min-width: 0; }
+.perfil-txt h2 { margin: 0; }
+.perfil-sub { font-size: 12.5px; color: var(--ink-faint); }
+.solo-movil { font-weight: 600; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
+/* Barra de acciones pegada al fondo del sheet: el perfil trae muchos chips y
+   «Guardar» se iba fuera de pantalla. El `-22px` compensa el padding del modal. */
+.perfil-acciones { position: sticky; bottom: -22px; z-index: 1; display: flex; flex-direction: column;
+  gap: 8px; margin-top: 14px; padding: 12px 0 22px; background: var(--foam);
+  box-shadow: 0 -14px 14px -10px color-mix(in srgb, var(--abyss) 45%, transparent); }
+.perfil-secundarias { display: flex; gap: 8px; }
+.perfil-secundarias .btn { flex: 1; padding: 10px 12px; font-size: 14px; }
+.btn.ghost.danger-txt { color: var(--owe); border-color: color-mix(in srgb, var(--owe) 40%, transparent); }
+.oculto { display: none; }
+
+.lista-personas { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.persona-opcion { display: flex; align-items: center; gap: 10px; justify-content: flex-start; text-align: left; }
+.persona-opcion .pe { font-size: 18px; }
+.persona-opcion.on { border-color: var(--spout); color: var(--spout-deep);
+  background: color-mix(in srgb, var(--spout) 10%, transparent); }
+
+/* Modal de actualización: se busca/descarga/aplica la versión nueva a la vista,
+   para que la recarga se sienta intencionada (no un salto a la home). Antes era
+   un overlay a pantalla completa con un solo rótulo que iba cambiando; ahora es
+   un modal como los demás y enseña la lista de pasos y la versión en curso. */
+.update-modal { text-align: center; }
+.update-modal .whale { font-size: 52px; line-height: 1; animation: whalebob 1.7s ease-in-out infinite; }
+.update-modal h2 { margin: 6px 0 12px; }
+
+/* La versión, bien grande: es el dato que se viene a comprobar. */
+.version-caja { display: grid; gap: 2px; justify-items: center; padding: 12px;
+  background: color-mix(in srgb, var(--spout) 10%, var(--foam-2)); border: 1px solid var(--line);
+  border-radius: var(--r); }
+.version-caja .l { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-faint); }
+.version-caja .v { font-size: 26px; font-weight: 850; letter-spacing: -.02em; color: var(--spout-deep); }
+/* Su gemela pequeña, en la ficha de Ajustes. */
+.version-grande { font-size: 19px; font-weight: 850; letter-spacing: -.02em; color: var(--spout-deep); }
+
+.pasos { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 2px; text-align: left; }
+.pasos li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px;
+  font-size: 13.5px; font-weight: 650; }
+.pasos li .txt { flex: 1; min-width: 0; }
+.pasos li .marca { flex: none; font-size: 13px; }
+.pasos li[data-estado="pendiente"] { color: var(--ink-faint); opacity: .6; }
+.pasos li[data-estado="hecho"] { color: var(--owed); }
+.pasos li[data-estado="ahora"] { background: color-mix(in srgb, var(--spout) 12%, transparent);
+  color: var(--spout-deep); }
+.pasos li[data-estado="ahora"] .marca { animation: syncpulse .8s ease-in-out infinite; }
+
+.update-modal .hint { margin-top: 10px; font-size: 12px; color: var(--ink-faint); }
+.update-modal .prog { margin: 14px auto 0; width: 100%; max-width: 220px; height: 6px; border-radius: 3px;
+  background: var(--line-soft); overflow: hidden; }
+.update-modal .prog i { display: block; height: 100%; width: 42%; border-radius: 3px; background: var(--spout);
   animation: progslide 1.15s ease-in-out infinite; }
 @keyframes progslide { 0% { transform: translateX(-110%); } 100% { transform: translateX(240%); } }
 @keyframes whalebob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
 @media (prefers-reduced-motion: reduce) {
-  .update-overlay .whale, .update-overlay .prog i { animation: none; }
+  .update-modal .whale, .update-modal .prog i, .pasos li[data-estado="ahora"] .marca { animation: none; }
 }
 
 /* Pantalla de acceso (Sign in with Apple). Es lo primero que ve alguien nuevo,

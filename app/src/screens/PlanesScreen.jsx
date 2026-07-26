@@ -13,6 +13,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, addPlan, updatePlan, removePlan, personsOf } from '../db.js'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 
 const VOTES = ['👍', '🤷', '👎']
 const fmtDay = (d) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -96,6 +97,7 @@ export default function PlanesScreen({ eventId }) {
 }
 
 function AddPlanModal({ eventId, onClose }) {
+  useBloqueoDeScroll()
   const [titulo, setTitulo] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [dia, setDia] = useState('')

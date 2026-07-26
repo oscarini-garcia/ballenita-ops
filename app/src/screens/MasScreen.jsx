@@ -12,16 +12,20 @@ const OPTIONS = [
   { id: 'ajustes', label: '⚙️ Ajustes' },
 ]
 
-export default function MasScreen({ eventId, event, onChangeEvent }) {
+// `seccion`/`onSeccion` son opcionales: App las controla para que el ⚙️ de la
+// cabecera abra Ajustes directamente. Sin ellas la pantalla se apaña sola.
+export default function MasScreen({ eventId, event, onChangeEvent, seccion, onSeccion, sync }) {
   // Si venimos de una actualización, abrimos directamente en Ajustes (donde está
   // el botón y el ✓), no en Estadísticas.
-  const [seg, setSeg] = useState(() => (veniaDeActualizar() ? 'ajustes' : 'stats'))
+  const [interno, setInterno] = useState(() => (veniaDeActualizar() ? 'ajustes' : 'stats'))
+  const seg = seccion ?? interno
+  const cambiar = onSeccion ?? setInterno
   return (
     <>
-      <SubNav value={seg} onChange={setSeg} options={OPTIONS} />
+      <SubNav value={seg} onChange={cambiar} options={OPTIONS} />
       {seg === 'stats'
         ? <StatsScreen eventId={eventId} event={event} />
-        : <EventSettingsScreen eventId={eventId} event={event} onChangeEvent={onChangeEvent} />}
+        : <EventSettingsScreen eventId={eventId} event={event} onChangeEvent={onChangeEvent} sync={sync} />}
     </>
   )
 }

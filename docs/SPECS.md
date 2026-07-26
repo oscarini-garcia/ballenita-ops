@@ -613,6 +613,55 @@ web. Cambio de configuración más una función, no de arquitectura.
 
 Pasos de despliegue: [`DESPLIEGUE.md`](DESPLIEGUE.md).
 
+### 14.10 Cromo de la app: cabecera, barra inferior y modales
+
+Lo que rodea al contenido, que es donde se notan los roces del uso diario.
+
+**Cabecera.** Tres cosas y ni una más: la ballena + el nombre del evento, el
+botón **⚙️ Ajustes** y el **indicador de usuario**. El ⚙️ es un atajo directo:
+abre «Más» ya en la sub-pestaña de Ajustes, no en Estadísticas.
+
+**El punto de sincronización vive en Ajustes**, no en la cabecera. Es
+información que se consulta cuando algo huele raro, no cada vez que se abre la
+app, y ocupaba un hueco que el ⚙️ aprovecha mejor. En Ajustes va con su texto
+al lado («Conectado y al día», «Cambios sin sincronizar»…), que es más útil que
+un color a secas. Sus colores salen de las variables del tema, así que se
+recolorea con la skin.
+
+**Indicador de usuario.** El badge **dice quién eres** (foto o emoji, apodo y
+estado); ya no pregunta «¿quién eres?». Al tocarlo se abre tu perfil, donde se
+cambian **emoji, estado y foto**, se puede **cambiar de persona** y se puede
+**salir de esa persona en concreto** — que solo olvida la identidad en este
+móvil, no borra a nadie. Sin identidad elegida el badge dice «Sin identificar»
+y el sheet abre directamente en la lista de gente.
+
+**Foto de avatar** (`lib/avatares.js`): se recorta a un cuadrado de 96 px y se
+guarda **en el dispositivo** (localStorage), **fuera de la sincronización**. La
+instantánea del servidor lleva hechos, no binarios (§14.6, decisión «fotos a
+v2»), así que la foto es cosa de tu móvil y el **emoji sigue siendo el avatar
+que ve el grupo**. Compartirlas con el grupo es la v2 de §5.2 y necesita
+almacenamiento aparte.
+
+**Fin del scroll.** El hueco inferior del contenido (`.body`) reserva el alto de
+la barra de pestañas **más `env(safe-area-inset-bottom)`**. Sin ese sumando, en
+un iPhone con indicador de home las últimas filas quedaban debajo de la barra.
+
+**Comprobar la versión.** En Ajustes → «App», la **versión en curso** se enseña
+grande (es el dato que se viene a mirar aquí) y «🔄 Comprobar» abre un **modal
+de progreso** (`components/UpdateModal.jsx`) con los tres pasos de
+`forzarActualizacion` —buscar, descargar, aplicar— marcados según van cayendo:
+✓ los hechos, resaltado el que corre, apagados los que faltan. Antes era un
+overlay a pantalla completa con un solo rótulo que se sustituía, y parecía un
+parpadeo. El modal **no lleva cerrar** a propósito: el proceso acaba siempre en
+una recarga (`marcarPostActualizacion` devuelve a Ajustes, que enseña el ✓ con
+la versión ya nueva), así que un botón de cancelar sería mentira.
+
+**Modales: el fondo no se mueve** (`lib/scrollLock.js`). `overflow: hidden` en
+el body no basta en Safari iOS —el gesto se lo queda el documento igualmente—,
+así que mientras hay un modal abierto el body se fija (`position: fixed`)
+desplazado lo que estuviera scrolleado y se devuelve al cerrar. Un contador
+permite modales anidados. Todos los modales lo usan.
+
 ---
 
 ## 15. Registro de decisiones

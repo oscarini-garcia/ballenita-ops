@@ -16,6 +16,7 @@ import {
   dinnersOf, addDinner, removeDinner,
   bungasOf, listDishes, addDish, DISH_CATEGORIES,
 } from '../db.js'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 const fmtDay = (d) => (d ? new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Sin día')
@@ -76,6 +77,7 @@ export default function CenasScreen({ eventId }) {
 }
 
 function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
+  useBloqueoDeScroll()
   const [dia, setDia] = useState('')
   const [bungaMayoresId, setMayores] = useState(bungas[0]?.id ?? '')
   const [bungaNinosId, setNinos] = useState(bungas[1]?.id ?? bungas[0]?.id ?? '')

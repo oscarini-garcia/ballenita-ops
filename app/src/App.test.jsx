@@ -54,6 +54,24 @@ describe('App — navegación de la Opción A', () => {
     expect(await screen.findByPlaceholderText(/Apunta algo/)).toBeInTheDocument()
   })
 
+  it('el ⚙️ de la cabecera es un atajo a Ajustes', async () => {
+    await abrirEjemplo()
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
+
+    // Entra en «Más» pero directamente en la sub-pestaña de Ajustes, no en Stats.
+    expect(await screen.findByRole('tab', { name: '⚙️ Ajustes' })).toHaveAttribute('aria-selected', 'true')
+    expect(await screen.findByText(/Cambiar/)).toBeInTheDocument()
+  })
+
+  it('el estado de sincronización ya no está en la cabecera, sino en Ajustes', async () => {
+    await abrirEjemplo()
+    expect(document.querySelector('.appbar .sync-dot')).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
+    // Sin config.json la app va en modo solo-local y así lo dice el punto.
+    expect(await screen.findByRole('button', { name: 'Solo local (sin sincronización)' })).toBeInTheDocument()
+  })
+
   it('«Más» agrupa Estadísticas y Ajustes', async () => {
     await abrirEjemplo()
     await userEvent.click(screen.getByText('Más'))

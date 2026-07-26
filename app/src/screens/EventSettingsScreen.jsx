@@ -20,12 +20,15 @@ import {
   bungasOf, addBunga, removeBunga,
   personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
 } from '../db.js'
+import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
+import UpdateModal from '../components/UpdateModal.jsx'
 import { useSkin, SKINS } from '../lib/skins.js'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { syncNow } from '../sync/engine.js'
 import { gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
-import { forzarActualizacion, UPDATE_STEPS, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
+import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -50,34 +53,51 @@ function EventoSection({ event, onChangeEvent }) {
   )
 }
 
-function SyncSection() {
+/**
+ * Sincronización. Aquí es donde vive ahora el punto de estado: antes ocupaba
+ * sitio en la cabecera para algo que se mira de uvas a peras, y la cabecera la
+ * necesitábamos para el ⚙️.
+ *
+ * `sync` llega desde App (el motor real). Sin él —montando la pantalla suelta,
+ * p. ej. en un test— se apaña detectando la API por su cuenta.
+ */
+function SyncSection({ sync }) {
   const [state, setState] = useState(null)
   // La configuración se lee en caliente de config.json, así que llega después
   // del primer pintado en vez de estar horneada en el bundle.
-  const [configured, setConfigured] = useState(false)
+  const [detectada, setDetectada] = useState(false)
   useEffect(() => {
+    if (sync) return undefined
     let vivo = true
-    hayApi().then((si) => { if (vivo) setConfigured(si) })
+    hayApi().then((si) => { if (vivo) setDetectada(si) })
     return () => { vivo = false }
-  }, [])
+  }, [sync])
+
+  const estado = sync ?? { isConfigured: detectada, online: true, status: state?.status ?? 'idle' }
+  const d = estadoSync(estado)
 
   async function run() {
+    tap()
+    if (sync?.recheck) { await sync.recheck(); return }
     setState({ status: 'syncing' })
     setState(await syncNow())
   }
+
   return (
     <>
       <div className="sec-h">Sincronización</div>
-      {configured ? (
-        <>
-          <div className="note">Los cambios se sincronizan solos entre los móviles del grupo (al abrir, al volver la conexión y cada poco). Todo funciona sin cobertura y cuadra al reconectar.</div>
-          <div style={{ marginTop: 8 }}>
-            <button className="btn sm" onClick={run}>↻ Sincronizar ahora</button>
-            {state && <span style={{ marginLeft: 10, fontSize: 12, color: 'var(--ink-faint)' }}>
-              {state.status === 'syncing' ? 'sincronizando…' : state.status === 'synced' ? '✓ al día' : state.status}
-            </span>}
+      <div className="card tight">
+        <div className="row">
+          <SyncDot sync={estado} onClick={run} />
+          <div className="main">
+            <div className="n">{d.title}</div>
+            <div className="sub">{d.detalle}</div>
           </div>
-        </>
+          {estado.isConfigured && <button className="btn sm ghost" onClick={run}>↻ Ahora</button>}
+        </div>
+      </div>
+      {estado.isConfigured ? (
+        <div className="note">Los cambios se sincronizan solos entre los móviles del grupo (al abrir, al volver la conexión y cada poco). Todo funciona sin cobertura y cuadra al reconectar.</div>
       ) : (
         <div className="note">Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es donde vive el acceso con Apple.</div>
       )}
@@ -245,10 +265,11 @@ function AppSection() {
   function actualizar() {
     if (busy) return
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
+    setPaso('checking') // abre el modal ya, sin esperar al primer aviso
     const inicio = Date.now()
     forzarActualizacion(setPaso, {
       // La recarga es inevitable (hay que cargar el JS nuevo), pero la retrasamos
-      // un poco para que el overlay de progreso se vea de verdad y no sea un parpadeo.
+      // un poco para que el progreso se vea de verdad y no sea un parpadeo.
       reload: async () => {
         const resto = 1600 - (Date.now() - inicio)
         if (resto > 0) await new Promise((r) => setTimeout(r, resto))
@@ -260,26 +281,28 @@ function AppSection() {
   return (
     <>
       <div className="sec-h">App</div>
-      <div className="note">¿No ves los últimos cambios? Fuerza que la ballena traiga la <b>versión más reciente</b> sin tener que quitarla y volver a añadirla a la pantalla de inicio.
-        <div style={{ marginTop: 8 }}>
-          <button className="btn sm" disabled={busy} onClick={actualizar}>🔄 Buscar actualización y recargar</button>
-        </div>
-        {recienActualizada && (
-          <div className="pill owed" style={{ marginTop: 10, display: 'inline-block' }}>✓ Actualizada · v{APP_VERSION}</div>
-        )}
-        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-faint)' }}>Versión {APP_VERSION}</div>
-      </div>
-
-      {busy && (
-        <div className="update-overlay" role="status" aria-live="polite">
-          <div className="box">
-            <div className="whale" aria-hidden>🐳</div>
-            <div className="step">{UPDATE_STEPS[paso] ?? 'Actualizando…'}</div>
-            <div className="prog"><i /></div>
-            <div className="hint">No cierres la app, tarda un momento…</div>
+      <div className="card tight">
+        {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
+        <div className="row">
+          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐳</div>
+          <div className="main">
+            <div className="n">Ballena Ops</div>
+            <div className="sub">Versión en curso</div>
           </div>
+          <div className="version-grande tnum">v{APP_VERSION}</div>
         </div>
+        <div className="row">
+          <div className="main">
+            <div className="sub">¿No ves los últimos cambios? Trae la <b>más reciente</b> sin quitar y volver a añadir la app.</div>
+          </div>
+          <button className="btn sm" disabled={busy} onClick={actualizar}>🔄 Comprobar</button>
+        </div>
+      </div>
+      {recienActualizada && (
+        <div className="pill owed" style={{ display: 'inline-block' }}>✓ Recién actualizada a la v{APP_VERSION}</div>
       )}
+
+      {busy && <UpdateModal paso={paso} version={APP_VERSION} />}
     </>
   )
 }
@@ -309,7 +332,7 @@ function AspectoSection() {
   )
 }
 
-export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
+export default function EventSettingsScreen({ eventId, event, onChangeEvent, sync }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
@@ -322,7 +345,7 @@ export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
       <EventoSection event={event} onChangeEvent={onChangeEvent} />
       <AspectoSection />
       <CuentaSection />
-      <SyncSection />
+      <SyncSection sync={sync} />
       <AppSection />
 
       <div className="sec-h">Familias <button className="btn sm ghost" onClick={() => setModal('familia')}>+ añadir</button></div>
@@ -374,6 +397,7 @@ export default function EventSettingsScreen({ eventId, event, onChangeEvent }) {
 }
 
 function Modal({ title, onClose, children, onSave }) {
+  useBloqueoDeScroll()
   return (
     <div className="modal-bg" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>

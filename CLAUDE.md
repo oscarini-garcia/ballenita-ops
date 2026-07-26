@@ -146,10 +146,11 @@ herramientas/ el generador del mapa (mapa.mjs) y su escáner
 Lo único que se escribe **a mano** porque no se deduce del código. El hook lo inyecta
 al final del mapa. Corto y en presente; el backlog va al [`README`](README.md).
 
-- **Pendiente de despliegue** (manual, [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md)): crear
-  la D1 y pegar su `database_id`, registrar los secretos, dar de alta los identificadores
-  de Apple, crear el proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**.
-  Hasta entonces la app va en modo solo-local.
+- **Por confirmar del despliegue:** lo comprobable ya está hecho (la D1 tiene `database_id`,
+  el Worker contesta en `/api/salud`, Pages publica y `config.json` apunta a la API de
+  verdad). Lo que no se puede comprobar desde fuera y sigue sin confirmar: si están
+  registrados los dos secretos, si los identificadores de Apple están dados de alta y si
+  **la siembra desde JSONBin** llegó a ejecutarse. Ver [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 - **Decisión pendiente:** `config.json` declara `otaManifiesto` y `lib/native.js` tiene esa
   URL a fuego, así que nadie lee la clave. O `native.js` la lee de la configuración (y el
   manifiesto pasa a ser configurable en caliente, que es lo prometido), o se quita de
@@ -160,4 +161,11 @@ al final del mapa. Corto y en presente; el backlog va al [`README`](README.md).
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
 cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadísticas, 5 temas.
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
+**Cromo repasado** (SPECS §14.10): ⚙️ en la cabecera, punto de sync mudado a Ajustes, badge
+de usuario con perfil editable (emoji/estado/foto local), modales que bloquean el scroll
+del fondo y modal de progreso al comprobar versión.
+
+**Desplegado y en marcha:** la D1 existe, el Worker responde en `/api/salud`, Pages publica
+en cada empujón a `main` y el OTA se publica solo al subir la versión.
+
 Las dos suites en verde (el recuento vivo está en [`docs/mapa.md`](docs/mapa.md)).

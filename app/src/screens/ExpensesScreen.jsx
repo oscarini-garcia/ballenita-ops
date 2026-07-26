@@ -15,6 +15,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { expensesOf, familiesOf, personsOf, addExpense, removeExpense } from '../db.js'
 import { eurosToCents, formatCents } from '../lib/money.js'
 import { now } from '../lib/ids.js'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 
 export const CATEGORIES = [
   { id: 'compra_general', label: 'Compra general', icon: '🛒' },
@@ -81,6 +82,7 @@ export default function ExpensesScreen({ eventId, event }) {
 }
 
 function AddExpenseModal({ event, eventId, families, persons, onClose }) {
+  useBloqueoDeScroll()
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState(event.currency)
