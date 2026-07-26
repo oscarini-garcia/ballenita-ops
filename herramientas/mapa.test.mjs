@@ -186,6 +186,17 @@ test('--verificar pasa con el mapa al día y falla en cuanto cambia una cabecera
   execFileSync('node', [MAPA, '--verificar']); // y vuelve a pasar al deshacerlo
 });
 
+test('las claves de config.json se ven leídas de las dos formas', () => {
+  // La clave se lee por propiedad (`configuracion.api`) o desestructurando
+  // (`const { otaManifiesto } = await cargarConfiguracion()`). Contar solo la
+  // primera daba un falso desfase en una clave que sí se lee.
+  const salida = execFileSync('node', [MAPA, '--contexto'], { encoding: 'utf8' });
+  const claves = /config\.json`, leído al arrancar\): (.+)/.exec(salida)?.[1] ?? '';
+  assert.match(claves, /`api`/);
+  assert.match(claves, /`otaManifiesto`/);
+  assert.doesNotMatch(claves, /sin leer/, 'una clave que el código lee sale marcada como no leída');
+});
+
 test('el mapa cabe en el presupuesto de contexto', () => {
   const lineas = execFileSync('node', [MAPA, '--contexto'], { encoding: 'utf8' }).split('\n').length;
   assert.ok(lineas < 260, `el mapa se ha ido a ${lineas} líneas; el presupuesto son ~200`);

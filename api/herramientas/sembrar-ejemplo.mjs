@@ -7,6 +7,10 @@
  * comprueba en cada rama que siguen entrando en el esquema real y saliendo
  * íntegros, en vez de descubrirlo al sembrar.
  *
+ * Es la única razón que le queda a `POST /api/importar` de existir, junto con
+ * restaurar un volcado: la siembra desde JSONBin, para la que nació la ruta, se
+ * descartó.
+ *
  * Los identificadores son fijos y legibles (`ev_demo`, `fam_garcia`…), a
  * propósito: hacen la siembra idempotente —lanzarla dos veces no duplica nada—
  * y permiten barrer justo esto cuando llegue el momento de ir en serio, sin

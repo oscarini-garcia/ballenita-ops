@@ -2,11 +2,28 @@
 // si no corremos dentro de la cáscara iOS, las funciones hacen no-op o usan el
 // equivalente web (p. ej. navigator.share). Así la PWA y los tests no se rompen.
 import { Capacitor } from '@capacitor/core'
+import { cargarConfiguracion } from './config.js'
 
 // URL del manifiesto OTA auto-alojado (GitHub Releases, ver .github/workflows/ota.yml
 // y docs/IOS.md). `releases/latest/download/...` redirige siempre al último release.
-const OTA_MANIFEST_URL =
+//
+// Se lee de `config.json` (clave `otaManifiesto`), que es configuración en caliente: así
+// cambiar de dónde salen las actualizaciones NO exige publicar un OTA nuevo —lo cual,
+// tratándose del propio canal de actualización, sería tener que actualizar para poder
+// actualizar—. La constante se queda como respaldo para cuando la clave no esté: sin
+// ella, una configuración incompleta dejaría a los móviles sin vía de actualizarse.
+const OTA_MANIFEST_POR_DEFECTO =
   'https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json'
+
+export async function urlDelManifiestoOta() {
+  try {
+    const { otaManifiesto } = await cargarConfiguracion()
+    if (typeof otaManifiesto === 'string' && otaManifiesto.trim()) return otaManifiesto.trim()
+  } catch {
+    /* sin configuración se usa el respaldo, que es lo que había antes */
+  }
+  return OTA_MANIFEST_POR_DEFECTO
+}
 
 // Push vía OneSignal. La App ID es pública (segura en el cliente). El envío se hace
 // desde el panel de OneSignal (manual) o desde un endpoint serverless propio que
@@ -67,7 +84,7 @@ export async function checkForOtaUpdate() {
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
     const current = await CapacitorUpdater.current()
-    const res = await fetch(OTA_MANIFEST_URL, { cache: 'no-store' })
+    const res = await fetch(await urlDelManifiestoOta(), { cache: 'no-store' })
     if (!res.ok) return { status: 'no-manifest' }
     const manifest = await res.json() // { version, url, checksum }
     const installed = current?.bundle?.version

@@ -69,7 +69,8 @@ Dos secretos, que **no** van en `wrangler.toml`:
 # después: cambiarla obliga a todo el grupo a volver a entrar.
 npx wrangler secret put SESION_SECRETO
 
-# Credencial de la siembra desde JSONBin (§7). Puedes borrarla al terminar.
+# Credencial de `POST /api/importar` (§7): sembrar datos de prueba en la base de
+# verdad y restaurar un volcado. No la usa ningún móvil, solo un portátil.
 npx wrangler secret put TOKEN_SERVICIO
 ```
 
@@ -273,28 +274,33 @@ la cuenta sin borrar nada de lo que haya apuntado.
 
 ---
 
-## 7. Traer lo que ya había en JSONBin
+## 7. Meter datos en la base con `POST /api/importar`
 
-El grupo tiene eventos y gastos vivos en el documento antiguo. Para no empezar
-de cero:
+> **La migración desde JSONBin se descartó**: se empezó de cero, y la herramienta
+> que la hacía (`sembrar-desde-jsonbin.mjs`) ya no está. Si quedan secretos
+> `VITE_JSONBIN_ID` o `VITE_JSONBIN_KEY` en el repositorio, **bórralos**: no los usa
+> nadie, y una clave que sigue viva es una clave que puede filtrarse.
+
+Lo que sigue en pie es la ruta de importación, para dos cosas.
+
+**Sembrar el evento de prueba** «Ballenita 2026», que es la forma de ver la app con
+datos antes de que entren los de verdad:
 
 ```bash
 cd api
-JSONBIN_ID=...  JSONBIN_KEY=...  \
 API=https://ballena-ops-api.TU-SUBDOMINIO.workers.dev  TOKEN_SERVICIO=...  \
-  node herramientas/sembrar-desde-jsonbin.mjs --simulacro   # primero en seco
+  node herramientas/sembrar-ejemplo.mjs --simulacro   # primero en seco
 ```
 
-Quita `--simulacro` cuando el recuento cuadre.
+Quita `--simulacro` cuando el recuento cuadre. Los identificadores son fijos
+(`ev_demo`, `fam_garcia`…), así que la siembra es **idempotente** y se puede barrer
+sola después con `npm run borrar:ejemplo`, sin tocar lo que haya alrededor.
 
-La siembra es **idempotente** y respeta la regla de última escritura: puedes
-lanzarla hoy, dejar que el grupo siga unos días en la versión vieja y volver a
-lanzarla el día del corte para arrastrar lo que haya cambiado. Nunca pisa algo
-más reciente que ya esté en el servidor.
-
-Cuando esté hecho, borra los secretos `VITE_JSONBIN_ID` y `VITE_JSONBIN_KEY` del
-repositorio: ya no los usa nadie, y una clave que sigue viva es una clave que
-puede filtrarse.
+**Restaurar un volcado.** La ruta aplica la instantánea fila a fila con la misma
+lógica que la cola de cambios, así que respeta la regla de última escritura: nunca
+pisa algo más reciente que ya esté en el servidor. Para volver atrás de verdad,
+D1 trae **Time Travel** (recuperación a un punto de los últimos 30 días), que es la
+herramienta correcta si lo que quieres es deshacer y no fusionar.
 
 ---
 

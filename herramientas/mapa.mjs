@@ -271,10 +271,27 @@ function configuracionEnCaliente() {
   // Las claves con `_` delante son notas para quien edite el fichero.
   const claves = Object.keys(JSON.parse(bruto)).filter((c) => !c.startsWith('_'));
 
+  // Se cuentan las dos formas en que se lee una clave, porque las dos se usan:
+  // por propiedad (`configuracion.api`) y desestructurando el resultado de
+  // `cargarConfiguracion()`. Mirar solo la primera daba un falso desfase en la
+  // clave que sí se lee, que es peor que no avisar: enseña a ignorar los avisos.
   const consumidas = new Set();
   for (const modulo of modulos.filter((m) => m.ruta.startsWith('app/src/') && !m.prueba)) {
     for (const m of modulo.desnudo.matchAll(/\b(?:configuracion|config|conf)\s*\??\.\s*([A-Za-z_$][\w$]*)/g)) {
       consumidas.add(m[1]);
+    }
+    const destructuraciones = [
+      /\{([^{}]*)\}\s*=\s*(?:await\s+)?cargarConfiguracion\s*\(/g,
+      /\{([^{}]*)\}\s*=\s*(?:configuracion|config|conf)\b/g,
+    ];
+    for (const patron of destructuraciones) {
+      for (const m of modulo.desnudo.matchAll(patron)) {
+        for (const parte of m[1].split(',')) {
+          // `{ api: destino }` y `{ api = 'x' }` declaran la clave `api`.
+          const clave = /^\s*([A-Za-z_$][\w$]*)/.exec(parte);
+          if (clave) consumidas.add(clave[1]);
+        }
+      }
     }
   }
 

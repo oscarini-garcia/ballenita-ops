@@ -3,16 +3,14 @@
 <!-- GENERADO por herramientas/mapa.mjs leyendo el código. NO se edita a mano. -->
 Dónde mirar sin leerse la aplicación entera. Si algo falta aquí, falta en el código.
 
-## ⚠️ Desfases (1)
+## ✅ Sin desfases
 
-Un hecho declarado en dos sitios que ya no coinciden:
-
-- `otaManifiesto` está en `config.json` y ningún módulo de `app/src` la lee como propiedad de la configuración.
+Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
 - **`app/`** v0.2.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  89 pruebas en 15 ficheros · `npm test` → `vitest run`
+  93 pruebas en 15 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   28 pruebas en 3 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -29,7 +27,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 | `POST` | `/api/cambios` | sesión | aplica la cola del dispositivo y devuelve la instantánea |
 | `GET` | `/api/cuentas` | sesión | quién tiene acceso (administradores) |
 | `POST` | `/api/cuentas` | sesión | alta, alta por invitación y baja (administradores) |
-| `POST` | `/api/importar` | servicio | siembra la base desde un volcado de JSONBin (servicio) |
+| `POST` | `/api/importar` | servicio | aplica un volcado completo sobre la base (servicio) |
 
 ## Barra de la PWA
 
@@ -52,7 +50,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 - `SESION_SECRETO` — no declarada en `wrangler.toml` (secreto u opcional)
 - `TOKEN_SERVICIO` — no declarada en `wrangler.toml` (secreto u opcional)
 
-**PWA** (`app/public/config.json`, leído al arrancar): `api`, `otaManifiesto` ⚠️ sin leer
+**PWA** (`app/public/config.json`, leído al arrancar): `api`, `otaManifiesto`
 
 **Horneadas en el build**: `VITE_ONESIGNAL_APP_ID`, `VITE_PUSH_ENDPOINT`
 
@@ -106,7 +104,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `money.js` — Todo el dinero se maneja en CÉNTIMOS enteros para no arrastrar errores de coma flotante.
   ↳ eurosToCents, centsToEuros, formatCents
 - `native.js` — Puente con las capacidades nativas (Capacitor).
-  ↳ isNative, tap, share, checkForOtaUpdate, registerPush, notifyGroup · +1 más
+  ↳ urlDelManifiestoOta, isNative, tap, share, checkForOtaUpdate, registerPush · +2 más
 - `pwa.js` — Fuerza que la PWA cargue la última versión desplegada sin tener que quitar y volver a añadir a la pantalla de inicio.
   ↳ marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, forzarActualizacion, UPDATE_STEPS
 - `reparto.js` — Motor de reparto — el corazón de Ballena Ops (§3, §14.7 del spec).
@@ -161,7 +159,6 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `datos-ejemplo.mjs` — El evento de prueba «Ballenita 2026», en un fichero aparte para que también lo puedan usar las pruebas: así se garantiza que estos datos siguen entrando en el esquema real y saliendo íntegr…
   ↳ instantaneaDeEjemplo
-- `sembrar-desde-jsonbin.mjs` — Trae el documento que el grupo tiene en JSONBin y lo siembra en la base nueva.
 - `sembrar-ejemplo.mjs` — Siembra la base con el evento de ejemplo «Ballenita 2026», para poder probar la app con datos antes de que entren los de verdad.
 
 **`api/test/`**
@@ -216,10 +213,11 @@ al final del mapa. Corto y en presente; el backlog va al [`README`](README.md).
   entrado aún** desde la app de iOS. Es el único eslabón que no se ha visto funcionar
   (token de Apple → `/api/sesion` → sesión → sync), y donde se concentran los fallos de
   configuración. El resto del despliegue está confirmado.
-- **Decisión pendiente — manifiesto OTA:** `config.json` declara `otaManifiesto` y
-  `lib/native.js` tiene esa URL a fuego, así que nadie lee la clave. O `native.js` la lee de
-  la configuración (lo prometido), o se quita de `config.json`. El mapa lo avisa cada sesión.
-- **Decisión pendiente — vía de importación:** descartada la siembra desde JSONBin, quedan
-  sin dueño `POST /api/importar`, `TOKEN_SERVICIO` y `sembrar-desde-jsonbin.mjs`. No es solo
-  código muerto: es una ruta que sobrescribe la base entera, con secreto vivo, que ya no
-  sirve a nada. O se quita el conjunto, o se declara como vía de restauración en el spec.
+- **Decisión abierta — `/api/importar` y su token.** La siembra desde JSONBin se descartó y
+  su herramienta ya no está, pero la ruta **no quedó huérfana**: la usa
+  `npm run sembrar:ejemplo`. Por ahora se queda declarada como vía de importación genérica
+  (sembrar pruebas, restaurar un volcado). Lo que falta por decidir es si sembrar datos de
+  prueba en la base de producción justifica tener viva una ruta que puede sobrescribirla
+  entera con un secreto registrado. Si la respuesta es no, se van las tres cosas juntas
+  —ruta, token y `sembrar-ejemplo.mjs`— y el ejemplo se queda solo en local
+  (`seedExample()` de `db.js`, que no toca el servidor).

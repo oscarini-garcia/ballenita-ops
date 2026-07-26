@@ -32,7 +32,8 @@ APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
 
 # Secretos, que NO van aquí. Se registran con `wrangler secret put`:
 #   SESION_SECRETO  · clave con la que este Worker firma las sesiones
-#   TOKEN_SERVICIO  · credencial de la siembra desde JSONBin (/api/importar)
+#   TOKEN_SERVICIO  · credencial de /api/importar (sembrar datos de prueba, restaurar
+#                     un volcado). No la usa ningún móvil, solo un portátil.
 
 [observability]
 enabled = true

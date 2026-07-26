@@ -150,13 +150,14 @@ al final del mapa. Corto y en presente; el backlog va al [`README`](README.md).
   entrado aún** desde la app de iOS. Es el único eslabón que no se ha visto funcionar
   (token de Apple → `/api/sesion` → sesión → sync), y donde se concentran los fallos de
   configuración. El resto del despliegue está confirmado.
-- **Decisión pendiente — manifiesto OTA:** `config.json` declara `otaManifiesto` y
-  `lib/native.js` tiene esa URL a fuego, así que nadie lee la clave. O `native.js` la lee de
-  la configuración (lo prometido), o se quita de `config.json`. El mapa lo avisa cada sesión.
-- **Decisión pendiente — vía de importación:** descartada la siembra desde JSONBin, quedan
-  sin dueño `POST /api/importar`, `TOKEN_SERVICIO` y `sembrar-desde-jsonbin.mjs`. No es solo
-  código muerto: es una ruta que sobrescribe la base entera, con secreto vivo, que ya no
-  sirve a nada. O se quita el conjunto, o se declara como vía de restauración en el spec.
+- **Decisión abierta — `/api/importar` y su token.** La siembra desde JSONBin se descartó y
+  su herramienta ya no está, pero la ruta **no quedó huérfana**: la usa
+  `npm run sembrar:ejemplo`. Por ahora se queda declarada como vía de importación genérica
+  (sembrar pruebas, restaurar un volcado). Lo que falta por decidir es si sembrar datos de
+  prueba en la base de producción justifica tener viva una ruta que puede sobrescribirla
+  entera con un secreto registrado. Si la respuesta es no, se van las tres cosas juntas
+  —ruta, token y `sembrar-ejemplo.mjs`— y el ejemplo se queda solo en local
+  (`seedExample()` de `db.js`, que no toca el servidor).
 
 ## Estado
 

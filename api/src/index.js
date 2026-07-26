@@ -19,7 +19,7 @@
  *   POST /api/cambios   · aplica la cola del dispositivo y devuelve la instantánea
  *   GET  /api/cuentas   · quién tiene acceso (administradores)
  *   POST /api/cuentas   · alta, alta por invitación y baja (administradores)
- *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
+ *   POST /api/importar  · aplica un volcado completo sobre la base (servicio)
  */
 
 import { verificarTokenDeApple } from './apple.js';
@@ -217,9 +217,15 @@ async function cuentas(peticion, env) {
 }
 
 /**
- * Siembra de la base a partir de un volcado del documento de JSONBin, para no
- * empezar de cero con los eventos que el grupo ya tiene. Va con el token de
- * servicio y no con una sesión: se lanza desde un portátil, una sola vez.
+ * Aplica un volcado completo de la instantánea sobre la base.
+ *
+ * Nació para traerse el documento de JSONBin, pero esa migración se descartó: se
+ * empezó de cero. Lo que la mantiene viva es sembrar datos de prueba en una base
+ * de verdad (`npm run sembrar:ejemplo`) y, llegado el caso, restaurar un volcado.
+ *
+ * Va con el token de servicio y no con una sesión, a propósito: no es una
+ * operación que haga un móvil del grupo, es una que se lanza desde un portátil.
+ * Escribe fila a fila con la misma lógica de la cola, así que es idempotente.
  */
 async function importar(peticion, env) {
   if (!env.TOKEN_SERVICIO || !coincideEnTiempoConstante(credencial(peticion), env.TOKEN_SERVICIO)) {
