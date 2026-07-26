@@ -146,15 +146,17 @@ herramientas/ el generador del mapa (mapa.mjs) y su escáner
 Lo único que se escribe **a mano** porque no se deduce del código. El hook lo inyecta
 al final del mapa. Corto y en presente; el backlog va al [`README`](README.md).
 
-- **Por confirmar del despliegue:** lo comprobable ya está hecho (la D1 tiene `database_id`,
-  el Worker contesta en `/api/salud`, Pages publica y `config.json` apunta a la API de
-  verdad). Lo que no se puede comprobar desde fuera y sigue sin confirmar: si están
-  registrados los dos secretos, si los identificadores de Apple están dados de alta y si
-  **la siembra desde JSONBin** llegó a ejecutarse. Ver [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
-- **Decisión pendiente:** `config.json` declara `otaManifiesto` y `lib/native.js` tiene esa
-  URL a fuego, así que nadie lee la clave. O `native.js` la lee de la configuración (y el
-  manifiesto pasa a ser configurable en caliente, que es lo prometido), o se quita de
-  `config.json`. El mapa lo avisa en cada sesión hasta que se decida.
+- **Sin probar: entrar con Apple.** Los identificadores están de alta pero **nadie ha
+  entrado aún** desde la app de iOS. Es el único eslabón que no se ha visto funcionar
+  (token de Apple → `/api/sesion` → sesión → sync), y donde se concentran los fallos de
+  configuración. El resto del despliegue está confirmado.
+- **Decisión pendiente — manifiesto OTA:** `config.json` declara `otaManifiesto` y
+  `lib/native.js` tiene esa URL a fuego, así que nadie lee la clave. O `native.js` la lee de
+  la configuración (lo prometido), o se quita de `config.json`. El mapa lo avisa cada sesión.
+- **Decisión pendiente — vía de importación:** descartada la siembra desde JSONBin, quedan
+  sin dueño `POST /api/importar`, `TOKEN_SERVICIO` y `sembrar-desde-jsonbin.mjs`. No es solo
+  código muerto: es una ruta que sobrescribe la base entera, con secreto vivo, que ya no
+  sirve a nada. O se quita el conjunto, o se declara como vía de restauración en el spec.
 
 ## Estado
 
@@ -165,7 +167,8 @@ cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadí
 de usuario con perfil editable (emoji/estado/foto local), modales que bloquean el scroll
 del fondo y modal de progreso al comprobar versión.
 
-**Desplegado y en marcha:** la D1 existe, el Worker responde en `/api/salud`, Pages publica
-en cada empujón a `main` y el OTA se publica solo al subir la versión.
+**Desplegado y en marcha:** la D1 existe con sus dos secretos registrados, el Worker
+responde en `/api/salud`, Pages publica en cada empujón a `main` y el OTA se publica solo
+al subir la versión. Falta ver a alguien entrar con Apple (ver «En curso»).
 
 Las dos suites en verde (el recuento vivo está en [`docs/mapa.md`](docs/mapa.md)).
