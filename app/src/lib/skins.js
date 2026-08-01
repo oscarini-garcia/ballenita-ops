@@ -1,16 +1,35 @@
 import { useEffect, useState } from 'react'
 
-// Temas disponibles. `sistema` = claro/oscuro automático (sin data-skin).
+/**
+ * Temas disponibles. `sistema` = claro/oscuro automático (sin data-skin).
+ *
+ * Van en dos grupos, y el grupo es un dato del tema (`grupo`) y no del sitio
+ * donde se pintan: un tema con degradado de neón y otro pensado para leerlo al
+ * sol no compiten por lo mismo, y mezclarlos en una sola tira de pastillas hace
+ * que se elija el bonito y se sufra después. Los legibles son deliberadamente
+ * sosos: máximo contraste, sin degradados de fondo y sin translúcidos.
+ */
 export const SKINS = [
-  { id: 'sistema', name: 'Sistema', emoji: '🌗', desc: 'Claro/oscuro automático' },
-  { id: 'abisal', name: 'Abisal Fiesta', emoji: '🌊', desc: 'Azul profundo festivo' },
-  { id: 'chiringuito', name: 'Chiringuito', emoji: '🌅', desc: 'Atardecer cálido' },
-  { id: 'verbena', name: 'Verbena Neón', emoji: '🪩', desc: 'Noche de neón' },
-  { id: 'cuaderno', name: 'Cuaderno', emoji: '📓', desc: 'Diario de viaje' },
-  { id: 'aqua', name: 'Aqua Glass', emoji: '💎', desc: 'Cristal marino' },
+  { id: 'sistema', name: 'Sistema', emoji: '🌗', desc: 'Claro/oscuro automático', grupo: 'legible' },
+  { id: 'abisal', name: 'Abisal Fiesta', emoji: '🌊', desc: 'Azul profundo festivo', grupo: 'fiesta' },
+  { id: 'chiringuito', name: 'Chiringuito', emoji: '🌅', desc: 'Atardecer cálido', grupo: 'fiesta' },
+  { id: 'verbena', name: 'Verbena Neón', emoji: '🪩', desc: 'Noche de neón', grupo: 'fiesta' },
+  { id: 'cuaderno', name: 'Cuaderno', emoji: '📓', desc: 'Diario de viaje', grupo: 'fiesta' },
+  { id: 'aqua', name: 'Aqua Glass', emoji: '💎', desc: 'Cristal marino', grupo: 'fiesta' },
+  { id: 'mediterraneo', name: 'Mediterráneo', emoji: '🍋', desc: 'Cal, limón y azul', grupo: 'fiesta' },
+  { id: 'nitido', name: 'Nítido', emoji: '☀️', desc: 'Claro, máximo contraste', grupo: 'legible' },
+  { id: 'tinta', name: 'Tinta', emoji: '🌑', desc: 'Oscuro, máximo contraste', grupo: 'legible' },
 ]
 
-export const POOL = ['abisal', 'chiringuito', 'verbena', 'cuaderno', 'aqua']
+export const GRUPOS = [
+  { id: 'legible', label: 'Para leer bien' },
+  { id: 'fiesta', label: 'Con guasa' },
+]
+
+// El bombo del modo aleatorio. Los dos de alto contraste se quedan fuera a
+// propósito: se eligen para poder leer, y un dado que te los quita mañana —o que
+// te mete en uno de neón— es justo lo contrario de lo que se venía a pedir.
+export const POOL = ['abisal', 'chiringuito', 'verbena', 'cuaderno', 'aqua', 'mediterraneo']
 const PREF_KEY = 'ballena.skin'
 const RND_KEY = 'ballena.skin.random'
 const DEFAULT_SKIN = 'abisal' // el azul festivo de la marca por defecto

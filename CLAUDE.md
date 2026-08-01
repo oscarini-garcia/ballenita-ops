@@ -58,8 +58,17 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   OTA). Se lee al arrancar, así que cambiarla **no** exige reconstruir ni publicar un OTA.
 - **Offline-first**: iOS Safari no tiene background sync → se sincroniza en foreground
   (patrón de `counter-ops`). Requiere "Añadir a pantalla de inicio" para push/persistencia.
-- **Temas** (`app/src/skins.css`, `lib/skins.js`): 5 skins + Sistema + Aleatorio (rota cada
-  día). Por defecto **Abisal**. Se guardan por dispositivo. La ballena se recolorea por tema.
+- **Temas** (`app/src/skins.css`, `lib/skins.js`): 8 skins en dos grupos —«Para leer bien»
+  (Sistema, Nítido, Tinta) y «Con guasa» (Abisal, Chiringuito, Verbena, Cuaderno, Aqua,
+  Mediterráneo)— más Aleatorio, que rota cada día y **no** saca los de alto contraste. Por
+  defecto **Abisal**. Se guardan por dispositivo. La ballena se recolorea por tema.
+- **Tipografía** (`lib/tamano.js`, SPECS §14.11): cuerpo a 17 px y **un solo número**
+  (`--escala`) del que cuelga toda la escala `--t-*`. **De fábrica va en Grande**
+  (×1,12); Ajustes → Aspecto la mueve (Normal/Grande/Enorme). No pongas tamaños en
+  píxeles sueltos: usa los tokens.
+- **Esqueleto** (SPECS §14.10): `.app` es una columna de `100dvh` —cabecera · `.body`
+  (`flex:1; min-height:0; overflow-y:auto`) · barra—. Nada es `position: fixed`, así que
+  nada se solapa. No añadas relleno al final de `.body` para esquivar la barra.
 
 ### Convenciones que importan
 - **Dinero en céntimos enteros** (`lib/money.js`). El reparto no pierde ni inventa céntimos.
@@ -77,13 +86,19 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 app/src/
   db.js                 Dexie: esquema, CRUD, cola (outbox), instantánea
   lib/  reparto.js      motor de saldos (puro, testeado)  ·  config.js  config en caliente
-        stats.js money.js ids.js skins.js native.js pwa.js
+        stats.js money.js ids.js native.js pwa.js
+        skins.js tamano.js    aspecto: tema y tamaño del texto (por dispositivo)
+        identidad.js          quién eres en un evento (compartido cabecera ↔ Ajustes)
+        sincronizarTodo.js    datos + versión de la app, en una lista de pasos
+        scrollLock.js avatares.js
   auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo
   sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
         tables.js
-  screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats, EventSettings,
-            Events, Acceso
-  components/ WhaleLogo.jsx  ·  App.jsx  ·  theme.css / skins.css
+  screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats,
+            EventSettings (= Ajustes, en acordeón), Events, Acceso
+  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · ProgresoModal.jsx · SyncDot.jsx
+              WhaleLogo.jsx
+  App.jsx  ·  theme.css / skins.css
   public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
 
 api/
@@ -108,7 +123,7 @@ api/
 ## Flujo de git (IMPORTANTE)
 
 - Rama de trabajo: **la que diga el encargo**; si no dice ninguna,
-  `claude/group-trip-app-specs-5oto6o`. Si su PR ya está **fusionada**, reinicia la rama
+  `claude/basic-ui-review-e28ijl`. Si su PR ya está **fusionada**, reinicia la rama
   desde `main` (`git checkout -B <rama> origin/main`) y abre **PR nueva**; no apiles sobre
   historia ya fusionada.
 - Commits descriptivos; **corre `npm test` antes de push**.
@@ -125,8 +140,9 @@ pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
 
 - **Al mergear, tres cosas y en este orden:** (1) **qué ha cambiado**, en lista o tabla,
   una línea por cambio y no un párrafo del que haya que sacarlos; (2) **qué versión tiene
-  que estar puesta**, con el número y dónde mirarlo —**Más → ⚙️ Ajustes → App**, «Versión
-  en curso», que sale de `app/package.json` inyectada por Vite—; y (3) **qué puede quedar
+  que estar puesta**, con el número y dónde mirarlo —**Ajustes → 🐳 La app**, que lleva la
+  versión en el propio rótulo del acordeón y «Versión en curso» dentro; sale de
+  `app/package.json` inyectada por Vite—; y (3) **qué puede quedar
   pendiente**, que es lo que más se cae porque la vuelta recién terminada es la que parece
   terminada. Sin el número, la primera pregunta ante cualquier cosa que no se ve es «¿tengo
   lo nuevo?» y no se puede contestar desde la pantalla; con él, si no coincide falta el OTA
@@ -146,18 +162,23 @@ pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
 cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadísticas, 5 temas.
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
-**Cromo repasado** (SPECS §14.10): ⚙️ en la cabecera, punto de sync mudado a Ajustes, badge
-de usuario con perfil editable (emoji/estado/foto local), modales que bloquean el scroll
-del fondo y modal de progreso al comprobar versión. **La puerta de acceso ya no es un
-muro**: si Apple falla se puede seguir en local y lo apuntado sube al entrar (SPECS §14.9).
-110 tests en la PWA + 22 en la API, todos en verde.
+**La puerta de acceso ya no es un muro**: si Apple falla se puede seguir en local y lo
+apuntado sube al entrar (SPECS §14.9).
+**Repaso de UX/UI** (SPECS §14.10–14.12), inspirado en `meeting-ops-air` y
+`garciadoral-ops`: barra de **Hoy · Dinero · Cenas · Planes · Ajustes** con los ajustes
+abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo, todo plegado) que se ha
+comido «Más» —Estadísticas, Quién eres (con tu perfil) y Evento son apartados—, cabecera de
+tres cosas con el punto verde que **sincroniza todo** (datos + versión de la app) con su
+lista de progreso, tipografía a 17 px ×1,12 de fábrica, y dos temas de máximo contraste.
+**Deslizar una fila de gastos** descubre Editar y Borrar (§14.10-bis), y el botón de crear
+lleva la palabra puesta («+ Gasto»). 134 tests en la PWA + 28 en la API, todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
 `database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el
 proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
 la app funciona en modo solo-local.
 
-**Pendiente (ideas):** editar gastos/personas desde la UI · **compartir** los avatares con
+**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · **compartir** los avatares con
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
 `Dish.ingredientes`) · pulir contrastes de algún tema · sacar los ~96 estilos inline de las

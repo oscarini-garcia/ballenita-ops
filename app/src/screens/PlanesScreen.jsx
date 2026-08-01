@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, addPlan, updatePlan, removePlan, personsOf } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import Fab from '../components/Fab.jsx'
 
 const VOTES = ['👍', '🤷', '👎']
 const fmtDay = (d) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -38,7 +39,7 @@ export default function PlanesScreen({ eventId }) {
       </div>
 
       {plans.length === 0 && (
-        <div className="empty"><span className="e">🗺️</span>Ningún plan todavía.<br />Propón una idea con el botón +.</div>
+        <div className="empty"><span className="e">🗺️</span>Ningún plan todavía.<br />Propón una idea con «+ Plan».</div>
       )}
 
       {sorted.map((plan) => {
@@ -78,7 +79,7 @@ export default function PlanesScreen({ eventId }) {
         )
       })}
 
-      <button className="fab" aria-label="Proponer plan" onClick={() => setOpen(true)}>+</button>
+      <Fab label="Plan" onClick={() => setOpen(true)} />
       {open && <AddPlanModal eventId={eventId} onClose={() => setOpen(false)} />}
     </div>
   )

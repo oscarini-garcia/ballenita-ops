@@ -640,25 +640,90 @@ Pasos de despliegue: [`DESPLIEGUE.md`](DESPLIEGUE.md).
 
 ### 14.10 Cromo de la app: cabecera, barra inferior y modales
 
-Lo que rodea al contenido, que es donde se notan los roces del uso diario.
+Lo que rodea al contenido, que es donde se notan los roces del uso diario. Este
+apartado se rehízo tomando como referencia lo aprendido en `meeting-ops-air` y
+`garciadoral-ops`, que resolvieron antes los mismos problemas.
 
-**Cabecera.** Tres cosas y ni una más: la ballena + el nombre del evento, el
-botón **⚙️ Ajustes** y el **indicador de usuario**. El ⚙️ es un atajo directo:
-abre «Más» ya en la sub-pestaña de Ajustes, no en Estadísticas.
+**El esqueleto es una columna, no un apilado de cosas fijas.** `.app` mide
+`100dvh` y es `flex-direction: column`: cabecera (`flex: none`) · contenido
+(`flex: 1; min-height: 0; overflow-y: auto`) · barra (`flex: none`). Nada se
+solapa porque nada se superpone — una lista de cualquier largo termina encima de
+la barra y empieza debajo de la cabecera. Sustituye al parche anterior, que era
+reservar `86px + env(safe-area-inset-bottom)` de relleno al final del contenido
+para esquivar una barra `position: fixed`; ese número había que mantenerlo a
+mano y fallaba en cuanto la barra cambiaba de alto (p. ej. al subir el tamaño
+del texto). El `min-height: 0` es lo que hace verdad todo lo demás: sin él una
+lista larga estira la columna en vez de desplazarse dentro.
 
-**El punto de sincronización vive en Ajustes**, no en la cabecera. Es
-información que se consulta cuando algo huele raro, no cada vez que se abre la
-app, y ocupaba un hueco que el ⚙️ aprovecha mejor. En Ajustes va con su texto
-al lado («Conectado y al día», «Cambios sin sincronizar»…), que es más útil que
-un color a secas. Sus colores salen de las variables del tema, así que se
-recolorea con la skin.
+**Ajustes es la quinta pestaña, abajo a la derecha.** Estuvo como ⚙️ en la
+esquina de la cabecera y se ha bajado a la barra: arriba a la derecha es lo que
+peor alcanza el pulgar de una mano sola, y es justo el sitio al que hay que
+estirarse cuando algo no va. Es la resolución de `garciadoral-ops`. De paso se
+comió lo que era «Más»: las estadísticas eran media pestaña de primer nivel para
+algo que se mira al volver del viaje, y ahora son un apartado de Ajustes.
 
-**Indicador de usuario.** El badge **dice quién eres** (foto o emoji, apodo y
-estado); ya no pregunta «¿quién eres?». Al tocarlo se abre tu perfil, donde se
-cambian **emoji, estado y foto**, se puede **cambiar de persona** y se puede
-**salir de esa persona en concreto** — que solo olvida la identidad en este
-móvil, no borra a nadie. Sin identidad elegida el badge dice «Sin identificar»
-y el sheet abre directamente en la lista de gente.
+Barra: **Hoy · Dinero · Cenas · Planes · Ajustes**.
+
+**Cabecera: la ballena, dónde estás y el punto.** Tres cosas, y el badge de
+«quién eres» **se retiró**. Decía tu nombre en todas las pantallas y todo el
+rato, en un móvil que es tuyo —una respuesta a una pregunta que ya sabes—, y
+costaba 112 px de una fila que solo tiene 390: con él, el logotipo y el punto, al
+nombre del evento le quedaban 87 px y «Ballenita 2026» se leía «Ballenita 2…».
+Sin él, el título dispone de 258 px y cabe entero.
+
+Lo que el badge hacía —tu emoji, tu estado, tu foto y cambiar de persona— vive
+ahora en **Ajustes → Quién eres**, que es donde se va cuando de verdad hay algo
+que cambiar. Y deja de ser un modal: dentro de un apartado que ya está abierto,
+una ventana encima era una ventana de más.
+
+**El punto de sincronización vuelve a la cabecera, y ahora sincroniza todo.** Un
+toque hace las dos capas en el orden que importa —primero los datos, que es lo
+que se suele querer decir y es de lo que se pinta el punto; después la versión de
+la app, que es lo único que no se aplica hasta recargar— y lo cuenta en **una
+sola lista** que se lee de arriba abajo como lo que ha ido pasando
+(`lib/sincronizarTodo.js`, figura tomada de `garciadoral-ops`). Tener dos botones
+que hacían media cosa cada uno obligaba a acertar cuál era tu problema antes de
+dejarte mirar: nadie llega aquí sabiendo eso, se llega porque algo no está como
+se esperaba, y «¿han subido mis gastos?» y «¿tengo la versión buena?» son la
+misma pregunta hecha a capas distintas.
+
+El punto es de 12 px dentro de un objetivo de 44: el punto es lo que se lee y el
+botón es lo que se apunta, y no son la misma medida. Sus colores salen de las
+variables del tema, así que se recolorea con la skin. Sus rótulos son cortos
+(«Solo local», «Al día», «Cambios sin subir») porque el mismo texto se pinta como
+nombre de fila en Ajustes; lo largo va en el `detalle`, que tiene dos renglones.
+
+Para que el punto pueda tocarse a menudo hizo falta partir `lib/pwa.js` en dos:
+`comprobarActualizacion()` mira si hay versión nueva y **solo recarga si la
+hay**, mientras que `forzarActualizacion()` —la de Ajustes → «La app»— termina
+siempre en recarga, porque su último recurso es borrar cachés y recargar. Eso
+está bien detrás de un botón que se llama «Comprobar» y está fatal detrás de uno
+que se llama «Sincronizar».
+
+**Ajustes, en apartados plegables.** `<details>`/`<summary>` del navegador, sin
+JavaScript por debajo (`components/Acordeon.jsx`): el elemento ya se abre al
+tocarlo y con Enter, ya se anuncia como plegado o desplegado a quien no ve, y el
+buscador del navegador abre por su cuenta el apartado donde encuentra algo.
+
+**Todos plegados.** Ajustes es una lista de cosas que casi nunca se tocan, y
+dejar una abierta obliga a pasarle por encima para llegar a las demás; con las
+diez plegadas la pantalla entera se lee de un vistazo y se toca la que se venía a
+buscar, que es un gesto en vez de un desplazamiento. Cada rótulo lleva su moneda
+(la figura de los Ajustes de iOS) y una **nota** que dice algo con la solapa
+bajada —«Abisal Fiesta», «v0.2.0», «6»—, así que plegado no quiere decir mudo.
+
+Los apartados, en orden: Sincronización · Aspecto · Quién eres · Evento ·
+Estadísticas · Familias · Bungalows · Gente · Tu cuenta · La app.
+
+**Quién eres.** La identidad vive en `lib/identidad.js` (localStorage por evento,
+**no se sincroniza**: cada móvil elige la suya). El apartado de Ajustes es ahora
+el único sitio donde se toca, y lleva las dos cosas: **tu perfil** —emoji, estado
+y foto— y **cambiar de persona**, para el móvil que se pasa de mano en mano en el
+bunga. El emoji y el estado son hechos del grupo y sincronizan; la foto no.
+
+**Escoger evento desde Ajustes.** El apartado «Evento» enseña el que está en
+curso, lista los demás para saltar sin pasar por la portada, y deja volver a la
+lista completa.
 
 **Foto de avatar** (`lib/avatares.js`): se recorta a un cuadrado de 96 px y se
 guarda **en el dispositivo** (localStorage), **fuera de la sincronización**. La
@@ -667,25 +732,125 @@ v2»), así que la foto es cosa de tu móvil y el **emoji sigue siendo el avatar
 que ve el grupo**. Compartirlas con el grupo es la v2 de §5.2 y necesita
 almacenamiento aparte.
 
-**Fin del scroll.** El hueco inferior del contenido (`.body`) reserva el alto de
-la barra de pestañas **más `env(safe-area-inset-bottom)`**. Sin ese sumando, en
-un iPhone con indicador de home las últimas filas quedaban debajo de la barra.
+**Modal de progreso** (`components/ProgresoModal.jsx`). Lo pintan los dos
+procesos largos —sincronizar todo, y comprobar la versión desde Ajustes— porque
+son el mismo gesto a capas distintas y merecen la misma figura. Recibe
+`[{ texto, estado }]` con estado `curso | hecho | fallo | aviso`; «aviso» existe
+porque «aquí no hay sincronización» es una respuesta, no una avería. Mientras
+quede un paso en curso **no hay salida dibujada**: el proceso o termina o
+recarga, y un «Cancelar» ahí sería mentira.
 
-**Comprobar la versión.** En Ajustes → «App», la **versión en curso** se enseña
-grande (es el dato que se viene a mirar aquí) y «🔄 Comprobar» abre un **modal
-de progreso** (`components/UpdateModal.jsx`) con los tres pasos de
-`forzarActualizacion` —buscar, descargar, aplicar— marcados según van cayendo:
-✓ los hechos, resaltado el que corre, apagados los que faltan. Antes era un
-overlay a pantalla completa con un solo rótulo que se sustituía, y parecía un
-parpadeo. El modal **no lleva cerrar** a propósito: el proceso acaba siempre en
-una recarga (`marcarPostActualizacion` devuelve a Ajustes, que enseña el ✓ con
-la versión ya nueva), así que un botón de cancelar sería mentira.
+**Modales: el fondo no se mueve** (`lib/scrollLock.js`), y hay **dos scrollers**
+que tapar:
 
-**Modales: el fondo no se mueve** (`lib/scrollLock.js`). `overflow: hidden` en
-el body no basta en Safari iOS —el gesto se lo queda el documento igualmente—,
-así que mientras hay un modal abierto el body se fija (`position: fixed`)
-desplazado lo que estuviera scrolleado y se devuelve al cerrar. Un contador
-permite modales anidados. Todos los modales lo usan.
+- El del documento: `overflow: hidden` en el body no basta en Safari iOS —el
+  gesto se lo queda el documento igualmente—, así que el body se fija
+  (`position: fixed`) desplazado lo que estuviera scrolleado y se devuelve al
+  cerrar.
+- El de la aplicación: desde que el esqueleto es una columna de `100dvh`, el
+  documento ya no se desplaza nunca y quien lo hace es `.body`, un `div`. Fijar
+  el body de la página no le hace nada. Ahí sí basta `overflow: hidden` —el
+  problema de Safari es del scroller del documento, no de un div normal—, puesto
+  por clase (`body.modal-abierto .body`) para no pelearse con otros estilos.
+
+Los dos siguen puestos. Un contador permite modales anidados (y el doble montaje
+de StrictMode). Todos los modales lo usan.
+
+### 14.10-bis Corregir y crear: el gesto de la fila y el botón con la palabra
+
+**Deslizar una fila descubre sus verbos** (`components/Deslizable.jsx`). Cada
+gasto llevaba un botón «borrar» puesto, siempre visible, que ocupaba justo el
+hueco del importe —lo que se viene a mirar en Dinero— y no dejaba sitio para
+«Editar». Ahora la fila enseña cuánto costó y se desliza a la izquierda para las
+dos cosas. Es el gesto de `garciadoral-ops` y de cualquier lista de iOS.
+
+Tres cosas que no salen gratis y que están resueltas:
+
+- **El desplazamiento vertical manda.** Se escucha con eventos de puntero, y
+  hasta que el gesto no se aparta 10 px no se decide de quién es: si baja más de
+  lo que se mueve a los lados, es de la página. `touch-action: pan-y` se lo dice
+  también al navegador, que así no espera nuestro veredicto para scrollar.
+- **El `click` que remata el arrastre se consume.** El navegador lo dispara al
+  soltar, y sin consumirlo entraba por el mismo sitio que un toque y cerraba la
+  fila en el gesto que acababa de abrirla. jsdom no lo emite, así que esto solo
+  se ve en un navegador de verdad.
+- **Con el teclado no hay nada que arrastrar**: los verbos son botones y
+  enfocarlos abre la fila. Cerrada, se ocultan con `visibility` para que no
+  queden en la ruta del tabulador.
+
+Dos detalles de color. La cara de la fila necesita un fondo **opaco**
+(`--fila-solida`), porque con el `rgba` translúcido de las tarjetas de los temas
+de cristal el rojo de «Borrar» se transparentaba a través de toda la fila; los
+tres temas afectados lo pisan en `skins.css`. Y los verbos llevan **color propio
+y no el del tema**: `--spout-deep` es cian claro en Abisal y `--owe` es salmón, y
+con blanco encima no se leen. Es lo correcto además de lo práctico — como el
+ámbar de `meeting-ops-air`, un verbo destructivo es un hecho sobre la fila y no
+un acento, así que «Borrar» es el mismo rojo en los nueve temas.
+
+**Corregir un gasto existe.** La misma ficha sirve para apuntarlo y para
+arreglarlo (`ExpenseModal`): con un gasto puesto, los campos arrancan con lo que
+había y al guardar se actualiza. Antes había que borrarlo y volver a teclearlo
+entero, con su reparto, por un 24,60 € que eran 26,40. Al corregir **se conserva
+`dateISO`**: es cuándo se gastó, no cuándo se cayó en la cuenta del error.
+
+El gesto va en la lista de gastos y solo ahí. Cenas y Planes no son filas sino
+tarjetas llenas de mandos —votos, fechas, confirmar—, no tienen presión de ancho,
+y una superficie que se arrastra por encima de todo eso pelearía con ellos.
+
+**El botón de crear lleva la palabra puesta** (`components/Fab.jsx`): «+ Gasto»,
+«+ Cena», «+ Plan». Un «+» a secas no dice qué va a crear y obligaba a acordarse
+de en qué pestaña estabas. Mismo sitio y mismo gesto; cambia la forma —pastilla
+en vez de cuadrado, porque ahora crece con el rótulo—, no el sistema.
+
+### 14.11 Tipografía: un número y toda la escala
+
+El cuerpo pasa de 14 px a **17 px**, que es lo que iOS llama *body* y lo que de
+verdad se está leyendo. Una lista de gastos a 12 px se lee bien sentado en el
+sofá y no se lee en la puerta de un supermercado, que es donde se usa.
+
+Las proporciones están decididas; lo que no lo estaba es cuánto mide el
+conjunto. Así que hay **un solo número** —`--escala`— y de él cuelga la escala
+entera (`--t-hero`, `--t-title`, `--t-body`, `--t-row`, `--t-sub`, `--t-label`,
+`--t-micro`). Subirlo mueve los siete rangos a la vez y conserva las
+proporciones, que es lo que no pasa cuando cada pantalla se retoca a mano. La
+idea es de `meeting-ops-air`.
+
+Ajustes → Aspecto lleva **Normal · Grande · Enorme** (`lib/tamano.js`, ×1, ×1,12
+y ×1,26), guardado por dispositivo y aplicado en `main.jsx` antes del primer
+pintado para que la app no parpadee de talla. **La de fábrica es Grande**: esto
+lo lee gente de cuarenta y tantos, en la playa y con el sol de cara, y 19 px es
+lo que se lee sin acercarse el móvil. Por eso el ×1,12 vive en `--escala` y las
+otras dos tallas son desvíos de él — el valor de origen sigue estando en un solo
+sitio. Va en un segmentado y no en un
+desplegable: es lo único de esa pantalla cuyo efecto se ve en el sitio, y una
+rueda de iOS encima taparía justo lo que hay que mirar para decidir. Va **antes**
+que el tema, porque el que arregla un problema va antes que el que entretiene.
+
+La escala se declara **una sola vez**, en `theme.css`: un tema cambia de qué
+color es una cosa, nunca cuánto mide, así que una copia bajo otro selector solo
+podría discrepar. Y `--toque: 44px` es el suelo de cualquier cosa tocable, que no
+se baja: los botones pequeños bajan de cuerpo, no de altura.
+
+### 14.12 Temas: los de guasa y los de leer
+
+Los temas van en **dos grupos**, y el grupo es un dato del tema. Un tema con
+degradado de neón y otro pensado para leerlo al sol no compiten por lo mismo, y
+mezclarlos en una sola tira de pastillas hace que se elija el bonito y se sufra
+después.
+
+- **Para leer bien** — Sistema 🌗 · **Nítido** ☀️ (blanco contra casi negro,
+  ≈16:1) · **Tinta** 🌑 (el mismo contraste al revés, para la noche). Los dos
+  nuevos son deliberadamente sosos: sin degradados de fondo, sin translúcidos
+  —los `rgba` sobre degradado son lo primero que se pierde cuando el brillo del
+  móvil no da para más— y con bordes de campo de 2 px.
+- **Con guasa** — Abisal Fiesta 🌊 (el de origen) · Chiringuito 🌅 · Verbena
+  Neón 🪩 · Cuaderno 📓 · Aqua Glass 💎 · **Mediterráneo** 🍋 (cal, limón y azul:
+  el claro plano que faltaba, porque los otros claros son o un degradado naranja
+  o un papel rayado) · 🎲 Aleatorio.
+
+**Los dos de máximo contraste se quedan fuera del bombo del aleatorio.** Se
+eligen para poder leer, y un dado que mañana te los quita —o que te mete en uno
+de neón— es exactamente lo contrario de lo que se venía a pedir.
 
 ---
 

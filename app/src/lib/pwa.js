@@ -67,6 +67,45 @@ export async function forzarActualizacion(onStatus = () => {}, { reload = () => 
   return 'reloaded'
 }
 
+/**
+ * La hermana prudente de `forzarActualizacion`: mira si hay versión nueva y
+ * **solo recarga si la hay**.
+ *
+ * Hace falta porque el punto de la cabecera se toca a menudo, y la de arriba
+ * termina siempre en una recarga —cuando no aparece un worker nuevo se va al
+ * último recurso: borrar cachés y recargar—. Eso está bien detrás de un botón
+ * que se llama «Comprobar», y está fatal detrás de uno que se llama
+ * «Sincronizar».
+ *
+ * Devuelve 'al-dia' · 'actualizando' (va a recargar) · 'no-aplica' (navegador
+ * sin service worker, o aún sin registrar) · 'error'.
+ */
+export async function comprobarActualizacion({ onStatus = () => {}, reload = () => window.location.reload() } = {}) {
+  const say = (s) => { try { onStatus(s) } catch { /* la UI se cayó: da igual */ } }
+
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator) || !navigator.serviceWorker.getRegistration) {
+    return 'no-aplica'
+  }
+
+  say('checking')
+  try {
+    const reg = await navigator.serviceWorker.getRegistration()
+    if (!reg) return 'no-aplica'
+    await reg.update().catch(() => {})
+    const nuevo = reg.installing || reg.waiting
+    if (!nuevo) return 'al-dia'
+
+    say('downloading')
+    await esperaActivado(nuevo)
+    nuevo.postMessage?.({ type: 'SKIP_WAITING' })
+    say('applying')
+    reload()
+    return 'actualizando'
+  } catch {
+    return 'error'
+  }
+}
+
 // Resuelve cuando el worker llega a 'activated' (o queda 'redundant'). Con un
 // tope de tiempo para no colgarnos si el evento no llega en iOS.
 function esperaActivado(worker, timeoutMs = 6000) {
