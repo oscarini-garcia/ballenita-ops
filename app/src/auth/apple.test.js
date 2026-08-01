@@ -29,15 +29,29 @@ describe('codigoDeApple', () => {
 })
 
 describe('explicarFalloDeApple', () => {
-  it('1001 es «cancelado», y se pregunta si llegó a salir la hoja', () => {
+  it('1001 es «cancelado», y se reparte por lo que se vio en pantalla', () => {
     const mensaje = explicarFalloDeApple(ERROR_1001)
     expect(mensaje).toMatch(/1001/)
-    expect(mensaje).toMatch(/hoja/i)
-    // Lo accionable desde el propio iPhone va primero…
+    // Las tres cosas que pueden haber pasado con la hoja, cada una con su arreglo.
+    expect(mensaje).toMatch(/Registro no completado/i)
+    expect(mensaje).toMatch(/no llegó a salir/i)
+    expect(mensaje).toMatch(/cerraste/i)
+  })
+
+  it('el caso «Registro no completado» manda a la cuenta, no a Xcode', () => {
+    const mensaje = explicarFalloDeApple(ERROR_1001)
+    // Lo que de verdad lo desatasca y se hace desde el propio iPhone.
+    expect(mensaje).toMatch(/developer\.apple\.com/)
+    expect(mensaje).toMatch(/contrato/i)
+    expect(mensaje).toMatch(/Inicio de sesión y seguridad/i)
+  })
+
+  it('la rama de «ni salió la hoja» conserva lo que se toca en Ajustes', () => {
+    const mensaje = explicarFalloDeApple(ERROR_1001)
     expect(mensaje).toMatch(/iCloud/)
     expect(mensaje).toMatch(/dos pasos/i)
     expect(mensaje).toMatch(/Tiempo de uso/i)
-    // …y la compilación nueva, que es lo caro, solo como último caso.
+    // La compilación nueva, que es lo caro y pide Mac, solo como último caso.
     expect(mensaje).toMatch(/compilación nueva/i)
   })
 

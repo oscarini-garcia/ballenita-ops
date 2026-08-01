@@ -36,12 +36,12 @@ export function codigoDeApple(error) {
  * Traduce el fallo de la hoja de Apple a algo accionable.
  *
  * El matiz que costó una tarde: **1001 es «cancelado»**, no «falta la
- * capacidad». Y iOS devuelve ese mismo 1001 tanto cuando uno cierra la hoja
- * como cuando la petición ni siquiera llega a presentarse —sin sesión de
- * iCloud, sin verificación en dos pasos, con Tiempo de uso restringiendo, o con
- * el binario sin la capacidad «Sign in with Apple»—. Como desde el móvil no se
- * puede saber cuál de los dos fue, la pregunta que lo separa —¿llegó a salir la
- * hoja de Apple?— se le hace a quien está mirando la pantalla.
+ * capacidad». Y iOS devuelve ese mismo 1001 en tres situaciones que piden
+ * arreglos distintos: la hoja no llega a presentarse, la hoja sale y Apple
+ * misma corta el registro («Sign Up Not Completed»), o uno la cierra. Ninguna se
+ * distingue desde el código —el `NSError` es idéntico—, así que la pregunta que
+ * las separa —¿qué llegaste a ver?— se le hace a quien mira la pantalla, con la
+ * salvedad de ordenar cada rama por lo que se puede tocar sin un Mac delante.
  */
 export function explicarFalloDeApple(error) {
   const codigo = codigoDeApple(error)
@@ -49,14 +49,18 @@ export function explicarFalloDeApple(error) {
 
   if (codigo === 1001 || (codigo === null && /cancel/i.test(motivo))) {
     return (
-      'Apple canceló el acceso (error 1001).\n\n' +
-      '¿Llegó a salir la hoja de «Continuar con Apple»?\n\n' +
-      '• Si NO salió, el fallo no es tuyo: normalmente es que este iPhone no tiene ' +
-      'sesión de iCloud iniciada, que ese Apple ID no tiene la verificación en dos ' +
-      'pasos activada, o que Tiempo de uso está restringiendo el acceso. Los tres se ' +
-      'arreglan desde Ajustes del iPhone. Si aun así no sale, es que al binario le ' +
-      'falta la capacidad «Sign in with Apple» y hace falta compilación nueva (un OTA no basta).\n\n' +
-      '• Si SÍ salió y la cerraste, vuelve a darle sin más.\n\n' +
+      'Apple canceló el acceso (error 1001). Apple no dice más, así que va por lo que hayas visto:\n\n' +
+      '• La hoja salió y Apple dijo «Registro no completado» → el atasco está en la ' +
+      'cuenta, no en la app. Por orden: en developer.apple.com/account, acepta el contrato ' +
+      'pendiente si lo hay (uno sin firmar rompe el acceso de todas tus apps a la vez); en ' +
+      'Ajustes → tu nombre, acepta los términos de iCloud si te los pide; en Ajustes → tu ' +
+      'nombre → Inicio de sesión y seguridad → Iniciar sesión con Apple, si Ballena Ops ya ' +
+      'aparece de un intento anterior, deja de usar la cuenta y empieza de cero.\n\n' +
+      '• La hoja no llegó a salir → este iPhone no tiene sesión de iCloud, ese Apple ID no ' +
+      'tiene la verificación en dos pasos, o Tiempo de uso está restringiendo. Los tres se ' +
+      'arreglan en Ajustes. Si aun así no sale, al binario le falta la capacidad «Sign in ' +
+      'with Apple» y hace falta compilación nueva (un OTA no basta).\n\n' +
+      '• La cerraste tú → vuelve a darle sin más.\n\n' +
       'Mientras tanto puedes seguir en este móvil sin entrar: lo que apuntes se sube entero cuando entres.'
     )
   }
