@@ -664,11 +664,17 @@ algo que se mira al volver del viaje, y ahora son un apartado de Ajustes.
 
 Barra: **Hoy · Dinero · Cenas · Planes · Ajustes**.
 
-**Cabecera: el nombre del evento, el punto y quién eres.** La ballena se fue de
-aquí — a 390 pt la fila solo da para tres cosas y el logotipo era la cuarta:
-entre él, el punto y el badge, al título le quedaban 87 px y «Ballenita 2026» se
-leía «Ballenita 2…». La mascota sigue en la portada, en el acceso, en Ajustes y
-en el modal de progreso; el nombre del evento no está en ningún otro sitio.
+**Cabecera: la ballena, dónde estás y el punto.** Tres cosas, y el badge de
+«quién eres» **se retiró**. Decía tu nombre en todas las pantallas y todo el
+rato, en un móvil que es tuyo —una respuesta a una pregunta que ya sabes—, y
+costaba 112 px de una fila que solo tiene 390: con él, el logotipo y el punto, al
+nombre del evento le quedaban 87 px y «Ballenita 2026» se leía «Ballenita 2…».
+Sin él, el título dispone de 258 px y cabe entero.
+
+Lo que el badge hacía —tu emoji, tu estado, tu foto y cambiar de persona— vive
+ahora en **Ajustes → Quién eres**, que es donde se va cuando de verdad hay algo
+que cambiar. Y deja de ser un modal: dentro de un apartado que ya está abierto,
+una ventana encima era una ventana de más.
 
 **El punto de sincronización vuelve a la cabecera, y ahora sincroniza todo.** Un
 toque hace las dos capas en el orden que importa —primero los datos, que es lo
@@ -699,23 +705,21 @@ JavaScript por debajo (`components/Acordeon.jsx`): el elemento ya se abre al
 tocarlo y con Enter, ya se anuncia como plegado o desplegado a quien no ve, y el
 buscador del navegador abre por su cuenta el apartado donde encuentra algo.
 
-Uno solo abierto —**Sincronización**—, porque es a lo que se entra. Ajustes es
-una lista de cosas que casi nunca se tocan; enseñarlas todas abiertas obliga a
-leerlas enteras para encontrar la única que se venía a buscar. Cada rótulo lleva
-su moneda (la figura de los Ajustes de iOS) y una **nota** que dice algo con la
-solapa bajada —«Abisal Fiesta», «v0.2.0», «6»—, que ahorra desplegarlo solo para
-verlo.
+**Todos plegados.** Ajustes es una lista de cosas que casi nunca se tocan, y
+dejar una abierta obliga a pasarle por encima para llegar a las demás; con las
+diez plegadas la pantalla entera se lee de un vistazo y se toca la que se venía a
+buscar, que es un gesto en vez de un desplazamiento. Cada rótulo lleva su moneda
+(la figura de los Ajustes de iOS) y una **nota** que dice algo con la solapa
+bajada —«Abisal Fiesta», «v0.2.0», «6»—, así que plegado no quiere decir mudo.
 
 Los apartados, en orden: Sincronización · Aspecto · Quién eres · Evento ·
 Estadísticas · Familias · Bungalows · Gente · Tu cuenta · La app.
 
-**Quién eres, en dos sitios y con una sola verdad.** La identidad vive en
-`lib/identidad.js` (localStorage por evento, **no se sincroniza**) y la comparten
-el badge de la cabecera y el apartado de Ajustes, que se avisan con un evento
-propio: elegirte en uno se ve en el otro sin recargar. Son dos preguntas
-distintas y por eso están las dos: arriba se toca para **editar tu perfil**
-—emoji, estado y foto—, y en Ajustes se viene a **cambiar de persona**, que es lo
-que pasa cuando el móvil se pasa de mano en mano en el bunga.
+**Quién eres.** La identidad vive en `lib/identidad.js` (localStorage por evento,
+**no se sincroniza**: cada móvil elige la suya). El apartado de Ajustes es ahora
+el único sitio donde se toca, y lleva las dos cosas: **tu perfil** —emoji, estado
+y foto— y **cambiar de persona**, para el móvil que se pasa de mano en mano en el
+bunga. El emoji y el estado son hechos del grupo y sincronizan; la foto no.
 
 **Escoger evento desde Ajustes.** El apartado «Evento» enseña el que está en
 curso, lista los demás para saltar sin pasar por la portada, y deja volver a la
@@ -767,7 +771,11 @@ idea es de `meeting-ops-air`.
 
 Ajustes → Aspecto lleva **Normal · Grande · Enorme** (`lib/tamano.js`, ×1, ×1,12
 y ×1,26), guardado por dispositivo y aplicado en `main.jsx` antes del primer
-pintado para que la app no parpadee de talla. Va en un segmentado y no en un
+pintado para que la app no parpadee de talla. **La de fábrica es Grande**: esto
+lo lee gente de cuarenta y tantos, en la playa y con el sol de cara, y 19 px es
+lo que se lee sin acercarse el móvil. Por eso el ×1,12 vive en `--escala` y las
+otras dos tallas son desvíos de él — el valor de origen sigue estando en un solo
+sitio. Va en un segmentado y no en un
 desplegable: es lo único de esa pantalla cuyo efecto se ve en el sitio, y una
 rueda de iOS encima taparía justo lo que hay que mirar para decidir. Va **antes**
 que el tema, porque el que arregla un problema va antes que el que entretiene.

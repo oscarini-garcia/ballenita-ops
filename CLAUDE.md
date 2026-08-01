@@ -63,8 +63,9 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   Mediterráneo)— más Aleatorio, que rota cada día y **no** saca los de alto contraste. Por
   defecto **Abisal**. Se guardan por dispositivo. La ballena se recolorea por tema.
 - **Tipografía** (`lib/tamano.js`, SPECS §14.11): cuerpo a 17 px y **un solo número**
-  (`--escala`) del que cuelga toda la escala `--t-*`. Ajustes → Aspecto la mueve
-  (Normal/Grande/Enorme). No pongas tamaños en píxeles sueltos: usa los tokens.
+  (`--escala`) del que cuelga toda la escala `--t-*`. **De fábrica va en Grande**
+  (×1,12); Ajustes → Aspecto la mueve (Normal/Grande/Enorme). No pongas tamaños en
+  píxeles sueltos: usa los tokens.
 - **Esqueleto** (SPECS §14.10): `.app` es una columna de `100dvh` —cabecera · `.body`
   (`flex:1; min-height:0; overflow-y:auto`) · barra—. Nada es `position: fixed`, así que
   nada se solapa. No añadas relleno al final de `.body` para esquivar la barra.
@@ -95,7 +96,7 @@ app/src/
         tables.js
   screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats,
             EventSettings (= Ajustes, en acordeón), Events, Acceso
-  components/ Acordeon.jsx · ProgresoModal.jsx · SyncDot.jsx · UserBadge.jsx · WhaleLogo.jsx
+  components/ Acordeon.jsx · ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx
   App.jsx  ·  theme.css / skins.css
   public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
 
@@ -134,10 +135,10 @@ cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadí
 apuntado sube al entrar (SPECS §14.9).
 **Repaso de UX/UI** (SPECS §14.10–14.12), inspirado en `meeting-ops-air` y
 `garciadoral-ops`: barra de **Hoy · Dinero · Cenas · Planes · Ajustes** con los ajustes
-abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo) que se ha comido «Más»
-—Estadísticas, Quién eres y Evento son apartados—, punto verde en la cabecera que
-**sincroniza todo** (datos + versión de la app) con su lista de progreso, tipografía a 17 px
-con escala ajustable, y dos temas de máximo contraste.
+abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo, todo plegado) que se ha
+comido «Más» —Estadísticas, Quién eres (con tu perfil) y Evento son apartados—, cabecera de
+tres cosas con el punto verde que **sincroniza todo** (datos + versión de la app) con su
+lista de progreso, tipografía a 17 px ×1,12 de fábrica, y dos temas de máximo contraste.
 129 tests en la PWA + 28 en la API, todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su

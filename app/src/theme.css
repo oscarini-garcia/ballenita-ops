@@ -24,7 +24,7 @@
 
      Se declaran **una sola vez**: un tema cambia de qué color es una cosa, nunca
      cuánto mide, así que una copia bajo otro selector solo podría discrepar. */
-  --escala: 1;
+  --escala: 1.12;
   --t-hero:  calc(30px * var(--escala));   /* la cifra grande de Saldos */
   --t-title: calc(21px * var(--escala));   /* títulos de modal y de cabecera */
   --t-body:  calc(17px * var(--escala));   /* el cuerpo: lo que se lee */
@@ -36,9 +36,10 @@
   --toque: 44px;
 }
 
-/* Las tres tallas. `normal` no está aquí: su valor vive arriba, en un sitio
-   solo. Ver lib/tamano.js. */
-:root[data-texto="grande"] { --escala: 1.12; }
+/* Las tres tallas. La de fábrica es **Grande** y por eso su ×1,12 está arriba,
+   en `--escala`, y no aquí: el valor de origen vive en un sitio solo, y las dos
+   que quedan son desvíos de él. Ver lib/tamano.js. */
+:root[data-texto="normal"] { --escala: 1; }
 :root[data-texto="enorme"] { --escala: 1.26; }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -125,21 +126,9 @@ button, input, select { font: inherit; color: inherit; }
 .sync-dot.checking .d { animation: syncpulse .8s ease-in-out infinite; }
 @keyframes syncpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.65); } }
 
-/* Indicador de usuario (quién eres). */
-.appbar .userbadge { flex: none; display: flex; align-items: center; gap: 7px; max-width: 112px;
-  background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink); border-radius: 7px;
-  padding: 4px 9px 4px 4px; cursor: pointer; }
-.appbar .userbadge:active { transform: translateY(1px); }
-.appbar .userbadge .uav { flex: none; width: 28px; height: 28px; border-radius: 7px; display: grid;
-  place-items: center; font-size: var(--t-row); background: rgba(255,255,255,.16); overflow: hidden; }
-/* Foto de avatar (opcional y solo de este móvil): tapa el hueco del emoji. */
+/* La cara: la foto de este móvil si la hay, si no el emoji. Ya no vive en la
+   cabecera —el badge se retiró—, sino en Ajustes → Quién eres. */
 .ufoto { width: 100%; height: 100%; object-fit: cover; display: block; }
-.appbar .userbadge .utxt { display: flex; flex-direction: column; align-items: flex-start;
-  min-width: 0; line-height: 1.15; }
-.appbar .userbadge .un { max-width: 100%; font-size: var(--t-label); font-weight: 700;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.appbar .userbadge .ust { max-width: 100%; font-size: var(--t-micro); font-weight: 600; opacity: .78;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Lo único que se desplaza. Ya no lleva relleno al final para esquivar la barra:
    la barra ocupa su sitio en la columna y no se superpone a nada. */
@@ -171,7 +160,7 @@ body.modal-abierto .body { overflow: hidden; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
 .av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
-  font-size: var(--t-body); color: #fff; }
+  font-size: var(--t-body); color: #fff; overflow: hidden; }
 
 .btn { border: none; border-radius: 8px; padding: 12px 16px; font-weight: 750; font-size: var(--t-row);
   min-height: var(--toque); cursor: pointer; background: var(--spout); color: #fff; }

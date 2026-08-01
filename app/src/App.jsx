@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { getEvent, personsOf } from './db.js'
-import UserBadge from './components/UserBadge.jsx'
+import { getEvent } from './db.js'
+import WhaleLogo from './components/WhaleLogo.jsx'
 import AccesoScreen from './screens/AccesoScreen.jsx'
 import EventsScreen from './screens/EventsScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
@@ -79,8 +79,6 @@ export default function App() {
     if (sync.status === 'sesion-caducada' && !haySesion()) setSesion(null)
   }, [sync.status])
 
-  const persons = useLiveQuery(() => (activeId ? personsOf(activeId) : []), [activeId], [])
-
   // El resultado se etiqueta con el id consultado, para distinguir un valor "stale"
   // (de un activeId anterior, aún sin resolver) de un "el evento no existe" real.
   const result = useLiveQuery(
@@ -145,13 +143,16 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* La ballena se ha ido de aquí. A 390 pt la cabecera solo da para tres
-          cosas, y el logotipo era la cuarta: entre él, el punto y tu nombre, al
-          título del evento le quedaban 87 px y «Ballenita 2026» se leía
-          «Ballenita 2…». La mascota sigue en la portada, en el acceso, en los
-          ajustes y en el modal de progreso; el nombre del evento no está en
-          ningún otro sitio. */}
+      {/* Tres cosas y ni una más: la ballena, dónde estás y el punto.
+          El badge de «quién eres» se ha retirado. Decía tu nombre en todas las
+          pantallas, todo el rato, en un móvil que es tuyo —una respuesta a una
+          pregunta que ya sabías—, y costaba 112 px de una fila que solo tiene
+          390: con él, el logotipo y el punto, al nombre del evento le quedaban
+          87 px y «Ballenita 2026» se leía «Ballenita 2…». Tu perfil (emoji,
+          estado y foto) y el cambio de persona viven ahora en Ajustes → Quién
+          eres, que es donde se va cuando de verdad hay algo que cambiar. */}
       <header className="appbar">
+        <WhaleLogo className="logo" />
         <div className="grow">
           <div className="ti">{event.name}</div>
           <div className="su">{event.lugar || 'Ballena Ops'}</div>
@@ -160,7 +161,6 @@ export default function App() {
             todo: los datos del grupo y, detrás, la versión de la app. Los
             ajustes se han ido abajo a la derecha, que es donde llega el pulgar. */}
         <SyncDot sync={sync} onClick={sincronizarTodoAhora} />
-        <UserBadge eventId={activeId} persons={persons} />
       </header>
 
       {tab === 'hoy' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}

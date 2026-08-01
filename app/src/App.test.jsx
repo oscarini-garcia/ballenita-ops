@@ -59,8 +59,6 @@ describe('App — navegación', () => {
     await abrirEjemplo()
     // La cabecera no tiene botón de ajustes: se ha ido abajo a la derecha.
     expect(document.querySelector('.appbar .iconbtn')).toBeNull()
-    // Ni logotipo: el sitio es del nombre del evento, que no está en otro lado.
-    expect(document.querySelector('.appbar .logo')).toBeNull()
 
     const barra = document.querySelector('.tabbar')
     const ultima = barra.querySelectorAll('.tab')[4]
@@ -70,11 +68,16 @@ describe('App — navegación', () => {
     expect(await screen.findByText('Sincronización')).toBeInTheDocument()
   })
 
-  it('el punto de sincronización vuelve a la cabecera', async () => {
+  it('la cabecera son tres cosas: ballena, dónde estás y el punto', async () => {
     await abrirEjemplo()
+    expect(document.querySelector('.appbar .logo')).not.toBeNull()
+    expect(document.querySelector('.appbar .ti')).toHaveTextContent('Ballenita')
     // Sin config.json la app va en modo solo-local y así lo dice el punto.
     expect(document.querySelector('.appbar .sync-dot')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Solo local' })).toBeInTheDocument()
+    // Y ni rastro del badge de persona: en un móvil que es tuyo, decirte tu
+    // nombre en todas las pantallas es gastar sitio en algo que ya sabes.
+    expect(document.querySelector('.appbar .userbadge')).toBeNull()
   })
 
   it('Ajustes recoge en apartados el aspecto, quién eres, el evento y las estadísticas', async () => {
@@ -84,26 +87,27 @@ describe('App — navegación', () => {
     for (const titulo of ['Sincronización', 'Aspecto', 'Quién eres', 'Evento', 'Estadísticas', 'La app']) {
       expect(await screen.findByText(titulo)).toBeInTheDocument()
     }
-    // Solo Sincronización arranca abierto: a Ajustes se llega porque algo no va.
-    const abiertos = [...document.querySelectorAll('.acordeon[open]')]
-    expect(abiertos).toHaveLength(1)
-    expect(abiertos[0]).toHaveTextContent('Sincronización')
+    // Todos plegados: la lista entera se lee de un vistazo y se toca la que toca.
+    expect(document.querySelectorAll('.acordeon[open]')).toHaveLength(0)
   })
 
-  it('elegirse en Ajustes se ve al momento en el badge de la cabecera', async () => {
+  it('«Quién eres» se ha comido el perfil que estaba en la cabecera', async () => {
     await abrirEjemplo()
-    expect(screen.getByRole('button', { name: 'Elegir usuario' })).toBeInTheDocument()
-
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
     await userEvent.click(await screen.findByText('Quién eres'))
 
-    // La primera persona del evento de ejemplo, sea quien sea.
+    // Sin identidad todavía no hay perfil que editar: primero se elige persona.
+    expect(screen.queryByRole('button', { name: 'Guardar mi perfil' })).not.toBeInTheDocument()
+
     const opciones = document.querySelectorAll('.acordeon .persona-opcion')
     expect(opciones.length).toBeGreaterThan(0)
     await userEvent.click(opciones[0])
 
-    // El badge de arriba se entera sin recargar: la identidad es compartida.
-    expect(document.querySelector('.appbar .userbadge .un').textContent).not.toBe('Elígete')
+    // Y al elegirla aparecen ahí mismo el emoji, el estado y la foto.
+    expect(await screen.findByRole('button', { name: 'Guardar mi perfil' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Estado a mano')).toBeInTheDocument()
+    expect(screen.getByLabelText('Emoji a mano')).toBeInTheDocument()
+    expect(screen.getByLabelText('Elegir foto de avatar')).toBeInTheDocument()
   })
 
   it('el apartado «Aspecto» deja cambiar el tamaño del texto', async () => {
@@ -111,11 +115,11 @@ describe('App — navegación', () => {
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
     await userEvent.click(await screen.findByText('Aspecto'))
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Enorme' }))
-    expect(document.documentElement.getAttribute('data-texto')).toBe('enorme')
+    await userEvent.click(await screen.findByRole('button', { name: 'Normal' }))
+    expect(document.documentElement.getAttribute('data-texto')).toBe('normal')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Normal' }))
-    // «Normal» es el valor de origen y no escribe atributo: vive en el CSS.
+    await userEvent.click(screen.getByRole('button', { name: 'Grande' }))
+    // «Grande» es la talla de fábrica y no escribe atributo: vive en el CSS.
     expect(document.documentElement.getAttribute('data-texto')).toBeNull()
   })
 })

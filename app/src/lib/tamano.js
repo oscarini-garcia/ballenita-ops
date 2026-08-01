@@ -18,7 +18,10 @@ export const TAMANOS = [
 ]
 
 const KEY = 'ballena.tamano'
-const POR_DEFECTO = 'normal'
+// Grande de fábrica. Esto lo lee gente de cuarenta y tantos, en la playa, con el
+// sol de cara: 17 px es lo que iOS llama legible y 19 es lo que se lee sin
+// acercarse el móvil. Quien quiera más denso tiene «Normal» a un toque.
+const POR_DEFECTO = 'grande'
 
 export function getTamano() {
   try {
@@ -34,9 +37,9 @@ export function setTamano(id) {
 }
 
 /**
- * Lo aplica al <html>. `normal` quita el atributo en vez de escribir `1`: así el
- * valor de origen vive en un sitio solo (theme.css) y no en dos que puedan
- * discrepar.
+ * Lo aplica al <html>. La talla de origen quita el atributo en vez de escribir
+ * su número: así el valor de fábrica vive en un sitio solo (theme.css) y no en
+ * dos que puedan discrepar.
  */
 export function applyTamano() {
   const id = getTamano()

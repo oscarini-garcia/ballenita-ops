@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, removeFamily,
   bungasOf, addBunga, removeBunga,
-  personsOf, addPerson, removePerson, olvidarTodo,
+  personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
   listEvents,
 } from '../db.js'
 import Acordeon from '../components/Acordeon.jsx'
@@ -13,6 +13,7 @@ import StatsScreen from './StatsScreen.jsx'
 import { useSkin, SKINS, GRUPOS } from '../lib/skins.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
+import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
 import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
@@ -152,22 +153,91 @@ function AspectoSection() {
   )
 }
 
+// Estados de coña para tocar rápido (se puede escribir cualquiera igualmente).
+const ESTADOS = [
+  '🍺 de resaca', '🏖️ tirado en la toalla', '😴 echando la siesta',
+  '🐳 avistando ballenas', '💸 sin blanca', '🍷 vino en mano',
+  '🔥 a la parrilla', '🤿 buceando', '🫥 desaparecido en combate',
+  '🍤 en modo gamba', '🚗 haciendo de chófer', '🧴 poniéndome crema',
+]
+
+// Emojis rápidos para el avatar (también se escribe a mano).
+const AVATARES = ['🧑', '👩', '👨', '🧔', '👵', '👴', '🧒', '🐳', '🦑', '🦀', '🏄', '🕶️', '🍹', '🐙']
+
+/** Tu cara: la foto de este móvil si la hay, si no el emoji. */
+function Cara({ emoji, foto, className }) {
+  return (
+    <span className={className}>
+      {foto ? <img src={foto} alt="" className="ufoto" /> : (emoji || '🐳')}
+    </span>
+  )
+}
+
 /**
- * Quién eres, desde Ajustes.
+ * Quién eres, y tu perfil.
  *
- * Es la misma identidad que el badge de la cabecera (`lib/identidad.js`), y está
- * aquí además de allí porque son dos preguntas distintas: arriba se toca para
- * editar tu perfil, y aquí se viene a **cambiar de persona** —el móvil que se
- * pasa de mano en mano en el bunga, que es exactamente lo que pasa.
+ * Aquí vivía solo el «cambiar de persona»; el resto —emoji, estado y foto— se
+ * editaba tocando tu nombre en la cabecera. Ese badge se ha retirado: en un
+ * móvil que es tuyo, recordarte quién eres cien veces al día es gastar el sitio
+ * de la cabecera en una pregunta que ya sabes. Así que el perfil baja aquí
+ * entero, y de paso deja de ser un modal: dentro de un apartado que ya está
+ * abierto, un modal encima era una ventana de más.
+ *
+ * El emoji y el estado son hechos del grupo y sincronizan. La foto no: vive solo
+ * en este móvil (`lib/avatares.js`, SPECS §14.10).
  */
 function QuienEresSection({ eventId, persons }) {
-  const { me, elegir, salir } = useIdentidad(eventId, persons)
+  const { meId, me, elegir, salir } = useIdentidad(eventId, persons)
+  const [foto, setFoto] = useState(null)
+  const [estado, setEstado] = useState('')
+  const [avatar, setAvatar] = useState('🧑')
+  // Borrador de la foto: `undefined` = sin tocar, `null` = quitarla, string = nueva.
+  const [fotoNueva, setFotoNueva] = useState(undefined)
+  const [aviso, setAviso] = useState(null)
+  const [guardado, setGuardado] = useState(false)
+  const archivo = useRef(null)
+
+  useEffect(() => { setFoto(leerFoto(eventId, meId)) }, [eventId, meId])
+
+  // Al cambiar de persona, resembrar los campos con los suyos.
+  useEffect(() => {
+    setEstado(me?.estado ?? '')
+    setAvatar(me?.avatar ?? '🧑')
+    setFotoNueva(undefined)
+    setAviso(null)
+    setGuardado(false)
+  }, [me])
+
+  const fotoActual = fotoNueva === undefined ? foto : fotoNueva
+
+  async function elegirFoto(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite volver a elegir la misma foto
+    if (!file) return
+    setAviso(null)
+    try {
+      setFotoNueva(await comprimirFoto(file))
+    } catch (error) {
+      setAviso(String(error?.message ?? error))
+    }
+  }
+
+  async function guardar() {
+    tap()
+    await updatePerson(me.id, { estado: estado.trim(), avatar: avatar || '🧑' })
+    if (fotoNueva !== undefined) {
+      guardarFoto(eventId, meId, fotoNueva)
+      setFoto(fotoNueva)
+      setFotoNueva(undefined)
+    }
+    setGuardado(true)
+  }
 
   return (
     <>
       <div className="card tight">
         <div className="row">
-          <div className="av" style={{ background: 'var(--spout-deep)' }}>{me?.avatar || '🐳'}</div>
+          <Cara className="av" emoji={avatar} foto={fotoActual} />
           <div className="main">
             <div className="n">{me ? me.name : 'Sin elegir'}</div>
             <div className="sub">{me ? (me.estado || 'Sin estado') : 'Nadie ha dicho quién es en este móvil'}</div>
@@ -176,6 +246,46 @@ function QuienEresSection({ eventId, persons }) {
         </div>
       </div>
 
+      {me && (
+        <>
+          <label>Tu foto <span className="solo-movil">(solo en este móvil)</span></label>
+          <div className="chips">
+            <button className="chip" onClick={() => { tap(); archivo.current?.click() }}>📷 {fotoActual ? 'Cambiar foto' : 'Poner foto'}</button>
+            {fotoActual && <button className="chip" onClick={() => { tap(); setFotoNueva(null) }}>🗑️ Quitar foto</button>}
+          </div>
+          <input
+            ref={archivo}
+            type="file"
+            accept="image/*"
+            onChange={elegirFoto}
+            className="oculto"
+            aria-label="Elegir foto de avatar"
+          />
+
+          <label>Tu emoji</label>
+          <div className="chips">
+            {AVATARES.map((a) => (
+              <button key={a} className={`chip${avatar === a ? ' on' : ''}`} onClick={() => { tap(); setAvatar(a) }}>{a}</button>
+            ))}
+          </div>
+          <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} placeholder="🙂" aria-label="Emoji a mano" />
+
+          <label>Tu estado</label>
+          <div className="chips">
+            {ESTADOS.map((x) => (
+              <button key={x} className={`chip${estado === x ? ' on' : ''}`} onClick={() => { tap(); setEstado(x) }}>{x}</button>
+            ))}
+          </div>
+          <input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="a mi bola…" aria-label="Estado a mano" />
+
+          {aviso && <div className="note" role="status">{aviso}</div>}
+
+          <button className="btn block" onClick={guardar}>Guardar mi perfil</button>
+          {guardado && <div className="pill owed" style={{ display: 'inline-block' }} role="status">✓ Guardado</div>}
+        </>
+      )}
+
+      <div className="sec-h">{me ? 'Cambiar de persona' : 'Elige quién eres'}</div>
       <div className="lista-personas">
         {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en «Gente».</div>}
         {persons.map((p) => (
@@ -190,7 +300,7 @@ function QuienEresSection({ eventId, persons }) {
         ))}
       </div>
 
-      <div className="note">Quién eres se guarda <b>en este móvil</b> y no se sincroniza: cada uno elige la suya. Tu emoji y tu estado sí los ve el grupo, y se cambian tocando tu nombre en la cabecera.</div>
+      <div className="note">Quién eres se guarda <b>en este móvil</b> y no se sincroniza: cada uno elige la suya. El emoji y el estado sí los ve el grupo. «Salir» solo olvida la identidad aquí: no borra a nadie.</div>
     </>
   )
 }
@@ -442,11 +552,12 @@ function AppSection() {
 /**
  * Ajustes, en apartados plegables.
  *
- * La figura es la de `garciadoral-ops`: `<details>`/`<summary>` del navegador, y
- * **uno solo abierto**, Sincronización. Ajustes es una lista de cosas que casi
- * nunca se tocan; enseñarlas todas abiertas obliga a leerlas enteras para
- * encontrar la única que se venía a buscar. Y aquí se llega casi siempre por lo
- * mismo: algo no está como se esperaba.
+ * La figura es la de `garciadoral-ops`: `<details>`/`<summary>` del navegador,
+ * y **todos plegados**. Ajustes es una lista de cosas que casi nunca se tocan;
+ * dejar una abierta obliga a pasarle por encima para llegar a las demás. Con las
+ * diez plegadas la pantalla entera se lee de un vistazo y se toca la que se venía
+ * a buscar: un gesto en vez de un desplazamiento. Cada rótulo lleva su nota
+ * —«v0.2.0», «6», el tema puesto—, así que plegado no quiere decir mudo.
  *
  * Se ha comido lo que antes era «Más»: las estadísticas eran media pestaña de la
  * barra inferior para algo que se mira al volver del viaje, y ahora son un
@@ -465,7 +576,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
 
   return (
     <div className="body">
-      <Acordeon titulo="Sincronización" emoji="🔄" abierta>
+      <Acordeon titulo="Sincronización" emoji="🔄">
         <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
       </Acordeon>
 
