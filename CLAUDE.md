@@ -107,10 +107,16 @@ api/
 
 ## Flujo de git (IMPORTANTE)
 
-- Rama de trabajo: `claude/group-trip-app-specs-5oto6o`. Si su PR ya está **fusionada**,
-  reinicia la rama desde `main` (`git checkout -B <rama> origin/main`) y abre **PR nueva**;
-  no apiles sobre historia ya fusionada.
-- Commits descriptivos; **corre `npm test` antes de push**. PR en **draft** por defecto.
+- Rama de trabajo: **la que diga el encargo**; si no dice ninguna,
+  `claude/group-trip-app-specs-5oto6o`. Si su PR ya está **fusionada**, reinicia la rama
+  desde `main` (`git checkout -B <rama> origin/main`) y abre **PR nueva**; no apiles sobre
+  historia ya fusionada.
+- Commits descriptivos; **corre `npm test` antes de push**.
+- **La PR se abre lista para revisar, no en borrador.** Decía lo contrario, y lo que hacía
+  era pedir un clic de más para nada: un borrador anuncia que el trabajo todavía se está
+  haciendo, y aquí una PR se abre cuando ya está hecho y lo único que falta es mirarla y
+  fusionarla. Si alguna vez hace falta enseñar algo a medias, se pone en borrador esa y se
+  dice por qué.
 
 ## Cómo se cuenta cada vuelta
 
