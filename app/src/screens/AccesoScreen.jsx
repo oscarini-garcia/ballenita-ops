@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import WhaleLogo from '../components/WhaleLogo.jsx'
 import { entrarConApple } from '../auth/apple.js'
-import { guardarSesion } from '../auth/sesion.js'
+import { activarModoLocal, guardarSesion } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
 
 /**
@@ -12,8 +12,14 @@ import { tap } from '../lib/native.js'
  * tu identificador—, así que la primera vez que entra alguien nuevo la API
  * responde con su código y esta pantalla lo enseña para que lo pase por el
  * chat del grupo.
+ *
+ * La puerta no puede ser un muro. Cuando Apple falla por algo que no se arregla
+ * desde el móvil —el binario sin la capacidad, el App ID a medias—, quedarse
+ * fuera de la propia libreta el fin de semana del viaje no lo arregla nadie. De
+ * ahí la salida en local: se entra a apuntar, y lo apuntado sube el día que la
+ * puerta abra.
  */
-export default function AccesoScreen({ configuracion, onEntrar }) {
+export default function AccesoScreen({ configuracion, onEntrar, onLocal }) {
   const [entrando, setEntrando] = useState(false)
   const [error, setError] = useState(null)
   const [identificador, setIdentificador] = useState(null)
@@ -34,6 +40,12 @@ export default function AccesoScreen({ configuracion, onEntrar }) {
     } finally {
       setEntrando(false)
     }
+  }
+
+  function seguirEnLocal() {
+    tap()
+    activarModoLocal()
+    onLocal?.()
   }
 
   async function copiar() {
@@ -78,6 +90,15 @@ export default function AccesoScreen({ configuracion, onEntrar }) {
           )}
         </div>
       )}
+
+      <button className="btn block ghost" style={{ marginTop: 12 }} onClick={seguirEnLocal}>
+        Usar solo en este móvil
+      </button>
+      <p className="note">
+        Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda
+        aquí. Lo que apuntes se sube entero en cuanto consigas entrar, así que no
+        se pierde nada por empezar así.
+      </p>
     </div>
   )
 }

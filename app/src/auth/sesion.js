@@ -7,6 +7,7 @@
  */
 
 const CLAVE = 'ballena.sesion'
+const CLAVE_LOCAL = 'ballena.soloLocal'
 
 export function leerSesion() {
   try {
@@ -33,3 +34,40 @@ export function borrarSesion() {
 }
 
 export const haySesion = () => Boolean(leerSesion()?.token)
+
+/**
+ * Modo local en la app de iOS: usar Ballena Ops como libreta de este móvil sin
+ * haber entrado.
+ *
+ * Existe porque el acceso con Apple puede fallar por cosas que no se arreglan
+ * desde el móvil —falta la capacidad en el binario, el App ID sin dar de alta—,
+ * y quedarse mirando la puerta cerrada mientras empieza el viaje es el peor
+ * resultado posible. Los datos que se apunten aquí no se pierden: cada escritura
+ * deja su entrada en la cola, así que suben enteros el día que se entre.
+ *
+ * Es una preferencia de este dispositivo, no un hecho del grupo: vive en
+ * `localStorage` como la sesión.
+ */
+export function modoLocal() {
+  try {
+    return localStorage.getItem(CLAVE_LOCAL) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function activarModoLocal() {
+  try {
+    localStorage.setItem(CLAVE_LOCAL, '1')
+  } catch {
+    /* sin almacenamiento: durará lo que la sesión de la app */
+  }
+}
+
+export function salirDeModoLocal() {
+  try {
+    localStorage.removeItem(CLAVE_LOCAL)
+  } catch {
+    /* nada que borrar */
+  }
+}

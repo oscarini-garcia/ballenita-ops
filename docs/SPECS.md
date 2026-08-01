@@ -611,6 +611,31 @@ Recuperarlo sería declarar el Services ID y añadir `APPLE_AUD_WEB`: el Worker 
 admite esa audiencia si aparece, y `auth/apple.js` volvería a necesitar su rama
 web. Cambio de configuración más una función, no de arquitectura.
 
+**La puerta no es un muro (modo local en iOS).** Todo lo anterior deja un modo
+de fallo feo: si Apple no deja entrar por algo que no se arregla desde el móvil
+—al binario le falta la capacidad, el App ID está a medias—, la app instalada se
+queda en la pantalla de acceso y no sirve ni para apuntar. Y eso solo se
+descubre cuando ya no hay un Mac cerca. Por eso la pantalla de acceso ofrece
+**usar solo en este móvil**: la app entra como libreta local, sin sesión y sin
+sincronizar.
+
+- La decisión se recuerda por dispositivo (`ballena.soloLocal` en
+  `localStorage`), como la sesión: no es un hecho del grupo.
+- **No se pierde nada.** Toda escritura sigue pasando por `escribir()`, que deja
+  su entrada en la cola; el día que se entra, la cola sube entera en el primer
+  ciclo de sincronización.
+- El punto de estado lo dice (`sin-sesion` → «Modo local (sin entrar)») y
+  Ajustes ofrece volver a intentarlo, que es olvidar la marca y recargar.
+
+**Y los errores de Apple se traducen por código, no por texto** (`auth/apple.js`,
+`explicarFalloDeApple`). El matiz importa: `ASAuthorizationError` **1001 es
+«cancelado»**, e iOS devuelve ese mismo 1001 tanto si se cierra la hoja como si
+la petición ni siquiera llega a presentarse —sin sesión de iCloud, sin
+verificación en dos pasos, con Tiempo de uso restringiendo, o con el binario sin
+la capacidad—. Antes se culpaba a Xcode en todos los casos, que es la única
+causa que **no** se puede arreglar desde el iPhone; ahora el mensaje separa las
+dos ramas con la pregunta que las distingue: ¿llegó a salir la hoja de Apple?
+
 Pasos de despliegue: [`DESPLIEGUE.md`](DESPLIEGUE.md).
 
 ### 14.10 Cromo de la app: cabecera, barra inferior y modales

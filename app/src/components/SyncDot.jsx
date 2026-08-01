@@ -16,6 +16,16 @@ export function estadoSync(sync = {}) {
       checking: false,
     }
   }
+  // Hay API, pero este móvil todavía no ha entrado (modo local en iOS). Decir
+  // «conectado y al día» aquí sería mentir: no sube nada a ningún sitio.
+  if (sync.status === 'sin-sesion') {
+    return {
+      color: 'var(--ink-faint)',
+      title: 'Modo local (sin entrar)',
+      detalle: 'Se guarda aquí y subirá cuando entres con Apple.',
+      checking: false,
+    }
+  }
   if (!sync.online || sync.status === 'offline') {
     return { color: 'var(--owe)', title: 'Sin conexión', detalle: 'Se subirá todo al recuperar la red.', checking: false }
   }
