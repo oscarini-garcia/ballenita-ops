@@ -7,10 +7,11 @@ import {
   listEvents,
 } from '../db.js'
 import Acordeon from '../components/Acordeon.jsx'
+import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
 import ProgresoModal from '../components/ProgresoModal.jsx'
 import StatsScreen from './StatsScreen.jsx'
-import { useSkin, SKINS, GRUPOS } from '../lib/skins.js'
+import { useTema, TEMAS } from '../lib/tema.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
@@ -102,9 +103,8 @@ function SyncSection({ sync, onSincronizarTodo }) {
  * antes que el que entretiene.
  */
 function AspectoSection() {
-  const { pref, current, choose, reroll } = useSkin()
+  const { tema, elegir: elegirTema } = useTema()
   const { tamano, elegir } = useTamano()
-  const currentName = SKINS.find((s) => s.id === current)?.name ?? current
 
   return (
     <>
@@ -114,41 +114,22 @@ function AspectoSection() {
           mirar para decidir. */}
       <div className="seg" role="group" aria-label="Tamaño del texto">
         {TAMANOS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            aria-pressed={tamano === t.id}
-            onClick={() => { tap(); elegir(t.id) }}
-          >
+          <button key={t.id} type="button" aria-pressed={tamano === t.id} onClick={() => { tap(); elegir(t.id) }}>
             {t.name}
           </button>
         ))}
       </div>
-      <div className="note">Se guarda en este móvil y mueve toda la app a la vez, no solo esta pantalla.</div>
 
-      {GRUPOS.map((g) => (
-        <div key={g.id}>
-          <div className="sec-h">{g.label}</div>
-          <div className="chips" style={{ marginTop: 8 }}>
-            {SKINS.filter((s) => s.grupo === g.id).map((s) => (
-              <button key={s.id} className={`chip${pref === s.id ? ' on' : ''}`} onClick={() => { tap(); choose(s.id) }}>
-                {s.emoji} {s.name}
-              </button>
-            ))}
-            {g.id === 'fiesta' && (
-              <button className={`chip${pref === 'random' ? ' on' : ''}`} onClick={() => { tap(); choose('random') }}>🎲 Aleatorio</button>
-            )}
-          </div>
-        </div>
-      ))}
+      <label>Claro u oscuro</label>
+      <div className="seg" role="group" aria-label="Claro u oscuro">
+        {TEMAS.map((t) => (
+          <button key={t.id} type="button" aria-pressed={tema === t.id} onClick={() => { tap(); elegirTema(t.id) }}>
+            {t.name}
+          </button>
+        ))}
+      </div>
 
-      {pref === 'random' ? (
-        <div className="note">🎲 Modo aleatorio: hoy toca <b>{currentName}</b>, y cambia solo <b>cada día</b>. Los dos de máximo contraste se quedan fuera del bombo: se eligen para poder leer, no para que el dado te los quite mañana.
-          <div style={{ marginTop: 8 }}><button className="btn sm" onClick={reroll}>🎲 Tirar otra vez</button></div>
-        </div>
-      ) : (
-        <div className="note">«Para leer bien» son sosos a propósito: máximo contraste, sin degradados ni translúcidos. «Con guasa» son los del grupo. Se guarda en tu móvil.</div>
-      )}
+      <div className="note">Las dos cosas se guardan <b>en este móvil</b> y mueven la app entera, no solo esta pantalla. «Automático» sigue al claro/oscuro del sistema.</div>
     </>
   )
 }
@@ -313,7 +294,7 @@ function EventoSection({ event, onPickEvent }) {
     <>
       <div className="card tight">
         <div className="row">
-          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐳</div>
+          <div className="ico"><Icono nombre="evento" /></div>
           <div className="main">
             <div className="n">{event?.name || 'Evento'}</div>
             <div className="sub">{event?.lugar || 'Ballena Ops'}</div>
@@ -332,7 +313,7 @@ function EventoSection({ event, onPickEvent }) {
                 className="persona-opcion btn ghost"
                 onClick={() => { tap(); onPickEvent?.(e.id) }}
               >
-                <span className="pe">🗓️</span>
+                <span className="ico pe"><Icono nombre="evento" /></span>
                 <span>{e.name}{e.lugar ? ` · ${e.lugar}` : ''}</span>
               </button>
             ))}
@@ -422,7 +403,7 @@ function CuentaSection() {
     <>
       <div className="card tight">
         <div className="row">
-          <div className="av" aria-hidden="true">🐳</div>
+          <div className="ico"><Icono nombre="llave" /></div>
           <div className="main">
             <div className="n">{sesion.cuenta?.nombre || 'Cuenta de Apple'}</div>
             <div className="sub">{esAdmin ? 'Administras el grupo' : 'Miembro del grupo'}</div>
@@ -520,7 +501,7 @@ function AppSection() {
       <div className="card tight">
         {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
         <div className="row">
-          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐳</div>
+          <div className="ico"><Icono nombre="ballena" /></div>
           <div className="main">
             <div className="n">Ballena Ops</div>
             <div className="sub">Versión en curso</div>
@@ -571,32 +552,32 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
 
   const [modal, setModal] = useState(null) // 'familia' | 'bunga' | 'persona'
   const { me } = useIdentidad(eventId, persons)
-  const { current } = useSkin()
+  const { tema: temaPuesto } = useTema()
   const sesion = leerSesion()
 
   return (
     <div className="body">
-      <Acordeon titulo="Sincronización" emoji="🔄">
+      <Acordeon titulo="Sincronización" icono="sincronizar">
         <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
       </Acordeon>
 
-      <Acordeon titulo="Aspecto" emoji="🎨" nota={SKINS.find((s) => s.id === current)?.name}>
+      <Acordeon titulo="Aspecto" icono="aspecto" nota={TEMAS.find((t) => t.id === temaPuesto)?.name}>
         <AspectoSection />
       </Acordeon>
 
-      <Acordeon titulo="Quién eres" emoji="🙋" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
+      <Acordeon titulo="Quién eres" icono="persona" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
         <QuienEresSection eventId={eventId} persons={persons} />
       </Acordeon>
 
-      <Acordeon titulo="Evento" emoji="🗓️" nota={event?.name}>
+      <Acordeon titulo="Evento" icono="evento" nota={event?.name}>
         <EventoSection event={event} onPickEvent={onPickEvent} />
       </Acordeon>
 
-      <Acordeon titulo="Estadísticas" emoji="📊">
+      <Acordeon titulo="Estadísticas" icono="grafico">
         <StatsScreen eventId={eventId} event={event} suelto />
       </Acordeon>
 
-      <Acordeon titulo="Familias" emoji="👨‍👩‍👧" nota={families.length || null}>
+      <Acordeon titulo="Familias" icono="familia" nota={families.length || null}>
         <div className="card tight">
           {families.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin familias todavía.</div>}
           {families.map((f) => (
@@ -610,12 +591,12 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <button className="btn block" onClick={() => setModal('familia')}>+ Añadir familia</button>
       </Acordeon>
 
-      <Acordeon titulo="Bungalows" emoji="🏠" nota={bungas.length || null}>
+      <Acordeon titulo="Bungalows" icono="casa" nota={bungas.length || null}>
         <div className="card tight">
           {bungas.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin bungas todavía.</div>}
           {bungas.map((b) => (
             <div className="row" key={b.id}>
-              <div className="av" style={{ background: 'var(--spout-deep)' }}>🏠</div>
+              <div className="ico"><Icono nombre="casa" /></div>
               <div className="main"><div className="n">{b.name}{b.alias ? ` · ${b.alias}` : ''}</div><div className="sub">{famName(b.familyId)}</div></div>
               <button className="btn sm danger" onClick={() => removeBunga(b.id)}>Borrar</button>
             </div>
@@ -624,7 +605,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <button className="btn block" onClick={() => setModal('bunga')}>+ Añadir bunga</button>
       </Acordeon>
 
-      <Acordeon titulo="Gente" emoji="🧑" nota={persons.length || null}>
+      <Acordeon titulo="Gente" icono="persona" nota={persons.length || null}>
         <div className="card tight">
           {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin gente todavía.</div>}
           {persons.map((p) => (
@@ -643,12 +624,12 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
       </Acordeon>
 
       {sesion && (
-        <Acordeon titulo="Tu cuenta" emoji="🍏" nota={sesion.cuenta?.nombre}>
+        <Acordeon titulo="Tu cuenta" icono="llave" nota={sesion.cuenta?.nombre}>
           <CuentaSection />
         </Acordeon>
       )}
 
-      <Acordeon titulo="La app" emoji="🐳" nota={`v${APP_VERSION}`}>
+      <Acordeon titulo="La app" icono="ballena" nota={`v${APP_VERSION}`}>
         <AppSection />
       </Acordeon>
 

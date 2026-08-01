@@ -6,13 +6,17 @@ import { now } from '../lib/ids.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import Deslizable from '../components/Deslizable.jsx'
 import Fab from '../components/Fab.jsx'
+import Icono from '../components/Icono.jsx'
 
+// `icon` es el nombre de un dibujo de components/Icono.jsx y `tono` el que le
+// toca de la paleta de categorías (theme.css). Los dos son cromo: el emoji que
+// había traía su propio naranja, que no estaba en ninguna paleta.
 export const CATEGORIES = [
-  { id: 'compra_general', label: 'Compra general', icon: '🛒' },
-  { id: 'comida', label: 'Comida', icon: '🍔' },
-  { id: 'bebida', label: 'Bebida', icon: '🍷' },
-  { id: 'restaurante', label: 'Restaurante', icon: '🍽️' },
-  { id: 'varios', label: 'Varios', icon: '📦' },
+  { id: 'compra_general', label: 'Compra general', icon: 'compra', tono: 'compra' },
+  { id: 'comida', label: 'Comida', icon: 'comida', tono: 'comida' },
+  { id: 'bebida', label: 'Bebida', icon: 'bebida', tono: 'bebida' },
+  { id: 'restaurante', label: 'Restaurante', icon: 'restaurante', tono: 'restaurante' },
+  { id: 'varios', label: 'Varios', icon: 'varios', tono: 'varios' },
 ]
 const catOf = (id) => CATEGORIES.find((c) => c.id === id) ?? CATEGORIES[4]
 
@@ -50,16 +54,16 @@ export default function ExpensesScreen({ eventId, event }) {
               verbos={
                 <>
                   <button className="verbo editar" onClick={() => setFicha(e)}>
-                    <span className="g" aria-hidden>✏️</span>Editar
+<Icono nombre="lapiz" className="g" />Editar
                   </button>
                   <button className="verbo borrar" onClick={() => removeExpense(e.id)}>
-                    <span className="g" aria-hidden>🗑️</span>Borrar
+<Icono nombre="papelera" className="g" />Borrar
                   </button>
                 </>
               }
             >
               <div className="row">
-                <div className="av" style={{ background: 'color-mix(in srgb, var(--spout) 20%, transparent)' }}>{c.icon}</div>
+                <div className="ico" data-cat={c.tono}><Icono nombre={c.icon} /></div>
                 <div className="main">
                   <div className="n">{e.description}</div>
                   <div className="sub">
@@ -169,7 +173,9 @@ function ExpenseModal({ event, eventId, families, persons, gasto, onClose }) {
         <label>Categoría</label>
         <div className="chips">
           {CATEGORIES.map((c) => (
-            <button key={c.id} className={`chip${category === c.id ? ' on' : ''}`} onClick={() => setCategory(c.id)}>{c.icon} {c.label}</button>
+            <button key={c.id} className={`chip${category === c.id ? ' on' : ''}`} onClick={() => setCategory(c.id)}>
+              <span className="chip-ico" data-cat={c.tono}><Icono nombre={c.icon} /></span>{c.label}
+            </button>
           ))}
         </div>
 

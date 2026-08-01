@@ -1,15 +1,41 @@
 :root {
-  --foam: #edf3f5; --foam-2: #ffffff; --ink: #0a2430; --ink-soft: #40616f; --ink-faint: #7e9aa6;
-  --line: #d5e1e6; --line-soft: #e4ecef; --spout: #1fa6d6; --spout-deep: #0e7ca6;
-  --abyss: #08202c; --gold: #e7a33e;
-  --owe: #e5544b; --owe-bg: #fce9e7; --owed: #2e9e6b; --owed-bg: #e4f3ec;
+  /* ── Abisal Sobrio · cara clara ───────────────────────────────────────────
+     Un solo tema con dos caras, diseñadas por separado y no una invertida.
+     Sustituye a los nueve skins: nueve paletas eran nueve sitios donde un
+     contraste podía estar mal y ocho que nadie miraba.
+
+     El azul es el de siempre, con el volumen bajado — el fondo deja de ser un
+     degradado radial y pasa a plano, las tarjetas dejan de ser translúcidas y el
+     acento se desatura de #1f9fd0 a #22708f. Ver docs/diseño/iconos.html. */
+  --foam: #f1f5f7; --foam-2: #ffffff;
+  --ink: #12262f; --ink-soft: #4d6674; --ink-faint: #7c919d;
+  --line: #c3d2da; --line-soft: #dde6ea;
+  --spout: #22708f; --spout-deep: #1a6280;
+  --abyss: #0b1f2c; --gold: #8a6c2c;
+  --owe: #a8443a; --owe-bg: #f7e6e3; --owed: #2f7a5c; --owed-bg: #e0f0e8;
+
+  --app-bg: var(--foam);
+  --appbar-bg: #0b1f2c;
+  --appbar-ink: #e6eef3;
+  --whale: #8fbdd1;
+
+  /* Los cinco tonos de las categorías de gasto (I4 en docs/diseño/iconos.html).
+     Son lo único de la app que lleva color propio además del rojo y el verde de
+     los saldos, y lo llevan porque **informa**: en una lista larga se distingue
+     la compra de las cañas sin leer.
+
+     Están igualados a mano, no elegidos a ojo: contraste entre 4,3 y 4,8:1 aquí
+     y entre 5,3 y 6,0:1 en oscuro, con las luminancias de los trazos dentro de un
+     margen de 0,06. Así ninguno grita por encima de otro, que es lo que hacían
+     los emoji a los que sustituyen. */
+  --cat-bebida: #8a6c2c;      --cat-bebida-bg: #f6efdf;
+  --cat-compra: #3c7359;      --cat-compra-bg: #e2efe7;
+  --cat-comida: #9c5844;      --cat-comida-bg: #f7e8e2;
+  --cat-restaurante: #3f6b91; --cat-restaurante-bg: #e5edf4;
+  --cat-varios: #5b6b76;      --cat-varios-bg: #eceff1;
+
   --r: 9px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  /* Superficies que los temas (skins) pueden repintar. */
-  --app-bg: var(--foam);
-  --appbar-bg: linear-gradient(150deg, var(--abyss), #0d2d3c);
-  --appbar-ink: #eaf6fb;
-  --whale: #3cbdea;
 
   /* ── Tipografía ────────────────────────────────────────────────────────────
      Un solo número, y toda la escala cuelga de él. Las proporciones están
@@ -36,25 +62,74 @@
   --toque: 44px;
 
   /* El fondo de una fila que se desliza, y tiene que ser **opaco**: por debajo
-     van los verbos, y con el `rgba` translúcido de las tarjetas de los temas de
-     cristal se transparentaría el rojo de «Borrar» a través de toda la fila.
-     Aquí `--foam-2` ya es opaco; los tres temas que no lo tienen lo pisan en
-     skins.css. */
+     van los verbos, y con una tarjeta translúcida se transparentaría el rojo de
+     «Borrar» a través de toda la fila. Desde que el tema es uno y sus tarjetas
+     son opacas, es sencillamente el color de la tarjeta. */
   --fila-solida: var(--foam-2);
 }
 
-/* Las tres tallas. La de fábrica es **Grande** y por eso su ×1,12 está arriba,
-   en `--escala`, y no aquí: el valor de origen vive en un sitio solo, y las dos
+/* ── Cara oscura ──────────────────────────────────────────────────────────
+   No es la clara invertida: el papel se hunde hacia el marino de la marca y la
+   tinta sube, pero el acento **baja** de saturación en vez de subir, porque
+   sobre fondo oscuro un azul saturado vibra. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foam: #0b1f2c; --foam-2: #14303f;
+    --ink: #e6eef3; --ink-soft: #a4bcc9; --ink-faint: #78929f;
+    --line: #2c5468; --line-soft: #1e4256;
+    --spout: #3f8fae; --spout-deep: #6fb6d1;
+    --abyss: #081821; --gold: #c9a768;
+    --owe: #d97b6c; --owe-bg: #35211c; --owed: #6aab8b; --owed-bg: #16311f;
+    --appbar-bg: #081821;
+
+    --cat-bebida: #c9a768;      --cat-bebida-bg: #3a2f1a;
+    --cat-compra: #6fb392;      --cat-compra-bg: #16311f;
+    --cat-comida: #d1907c;      --cat-comida-bg: #35211c;
+    --cat-restaurante: #7ba6cc; --cat-restaurante-bg: #17303f;
+    --cat-varios: #95a8b5;      --cat-varios-bg: #23292e;
+  }
+}
+
+/* El conmutador de Ajustes gana sobre la consulta de medios **en los dos
+   sentidos**, no solo hacia el oscuro: elegir Claro en un móvil puesto en oscuro
+   tiene que funcionar igual que al revés. Por eso la cara clara se repite aquí
+   en vez de dejarla al bloque de arriba. Ver lib/tema.js. */
+:root[data-tema="claro"] {
+  --foam: #f1f5f7; --foam-2: #ffffff;
+  --ink: #12262f; --ink-soft: #4d6674; --ink-faint: #7c919d;
+  --line: #c3d2da; --line-soft: #dde6ea;
+  --spout: #22708f; --spout-deep: #1a6280;
+  --abyss: #0b1f2c; --gold: #8a6c2c;
+  --owe: #a8443a; --owe-bg: #f7e6e3; --owed: #2f7a5c; --owed-bg: #e0f0e8;
+  --appbar-bg: #0b1f2c;
+
+  --cat-bebida: #8a6c2c;      --cat-bebida-bg: #f6efdf;
+  --cat-compra: #3c7359;      --cat-compra-bg: #e2efe7;
+  --cat-comida: #9c5844;      --cat-comida-bg: #f7e8e2;
+  --cat-restaurante: #3f6b91; --cat-restaurante-bg: #e5edf4;
+  --cat-varios: #5b6b76;      --cat-varios-bg: #eceff1;
+}
+:root[data-tema="oscuro"] {
+  --foam: #0b1f2c; --foam-2: #14303f;
+  --ink: #e6eef3; --ink-soft: #a4bcc9; --ink-faint: #78929f;
+  --line: #2c5468; --line-soft: #1e4256;
+  --spout: #3f8fae; --spout-deep: #6fb6d1;
+  --abyss: #081821; --gold: #c9a768;
+  --owe: #d97b6c; --owe-bg: #35211c; --owed: #6aab8b; --owed-bg: #16311f;
+  --appbar-bg: #081821;
+
+  --cat-bebida: #c9a768;      --cat-bebida-bg: #3a2f1a;
+  --cat-compra: #6fb392;      --cat-compra-bg: #16311f;
+  --cat-comida: #d1907c;      --cat-comida-bg: #35211c;
+  --cat-restaurante: #7ba6cc; --cat-restaurante-bg: #17303f;
+  --cat-varios: #95a8b5;      --cat-varios-bg: #23292e;
+}
+
+/* Las tres tallas. La de fábrica es **Grande** y por eso su ×1,12 vive arriba,
+   en `--escala`, y no aquí: el valor de origen está en un sitio solo, y las dos
    que quedan son desvíos de él. Ver lib/tamano.js. */
 :root[data-texto="normal"] { --escala: 1; }
 :root[data-texto="enorme"] { --escala: 1.26; }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foam: #071a24; --foam-2: #0c2734; --ink: #eaf3f6; --ink-soft: #9fbcc7; --ink-faint: #6a8b98;
-    --line: #163847; --line-soft: #12303e; --spout: #3cbdea; --spout-deep: #7fd0ee; --abyss: #030f16;
-    --owe: #f0776f; --owe-bg: #3a1e1f; --owed: #4fc08a; --owed-bg: #12332a;
-  }
-}
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #root { height: 100%; }
@@ -102,9 +177,14 @@ button, input, select { font: inherit; color: inherit; }
      en horizontal, para que el contenido no se solape con la hora/batería. */
   padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
            12px calc(16px + env(safe-area-inset-left)); }
-.appbar .logo { width: 34px; height: 34px; flex: none; }
+/* La marca en la cabecera: el mismo trazo que el resto, en el azul del tema. */
+.marca { display: grid; place-items: center; flex: none; color: var(--whale); }
+.marca svg { width: 100%; height: 100%; display: block; }
+.appbar .logo { width: 30px; height: 30px; flex: none; }
+/* Y en grande, en la portada y en el acceso. */
+.acceso-logo { color: var(--whale); }
 .appbar .grow { flex: 1 1 auto; min-width: 0; }
-.appbar .ti { font-weight: 800; font-size: var(--t-title); letter-spacing: -.015em;
+.appbar .ti { font-weight: 650; font-size: var(--t-title); letter-spacing: -.01em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .appbar .su { font-size: var(--t-micro); color: var(--appbar-ink); opacity: .78;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -152,7 +232,7 @@ button, input, select { font: inherit; color: inherit; }
    desplaza es este `div` y no el documento. */
 body.modal-abierto .body { overflow: hidden; }
 
-.sec-h { font-size: var(--t-micro); font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+.sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
   color: var(--ink-faint); margin: 4px 2px 0; display: flex; align-items: center; justify-content: space-between; }
 
 .card { background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 12px; }
@@ -161,21 +241,42 @@ body.modal-abierto .body { overflow: hidden; }
 .row { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-top: 1px solid var(--line-soft); }
 .row:first-child { border-top: none; }
 .row .main { flex: 1; min-width: 0; }
-.row .main .n { font-size: var(--t-row); font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .main .n { font-size: var(--t-row); font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row .main .sub { font-size: var(--t-sub); color: var(--ink-soft); }
-.row .amt { font-weight: 750; font-size: var(--t-row); white-space: nowrap; }
+.row .amt { font-weight: 620; font-size: var(--t-row); white-space: nowrap; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
 .av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
   font-size: var(--t-body); color: #fff; overflow: hidden; }
 
-.btn { border: none; border-radius: 8px; padding: 12px 16px; font-weight: 750; font-size: var(--t-row);
+/* El icono de línea que sustituye al emoji. La caja es de 34 y el dibujo de 20
+   sobre rejilla de 24, con trazo de 1,8 — el mismo que la barra de abajo, que es
+   lo que la app estaba mezclando. Ver docs/diseño/iconos.html.
+
+   El color sale de la categoría (`data-cat`), que es lo único de la app con tono
+   propio aparte del rojo y el verde de los saldos: aquí el color informa. */
+.ico { width: 34px; height: 34px; border-radius: 9px; flex: none; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--spout) 12%, transparent); color: var(--spout-deep); }
+.ico svg { width: 20px; height: 20px; display: block; }
+.ico[data-cat="bebida"]      { background: var(--cat-bebida-bg);      color: var(--cat-bebida); }
+.ico[data-cat="compra"]      { background: var(--cat-compra-bg);      color: var(--cat-compra); }
+.ico[data-cat="comida"]      { background: var(--cat-comida-bg);      color: var(--cat-comida); }
+.ico[data-cat="restaurante"] { background: var(--cat-restaurante-bg); color: var(--cat-restaurante); }
+.ico[data-cat="varios"]      { background: var(--cat-varios-bg);      color: var(--cat-varios); }
+/* En el rótulo de un apartado de Ajustes la caja es algo menor. */
+.acordeon-moneda.ico { width: 30px; height: 30px; border-radius: 8px; }
+.acordeon-moneda.ico svg { width: 18px; height: 18px; }
+
+/* El relleno es para **una acción por pantalla**: la que se ha venido a hacer.
+   Todo lo demás va con contorno. Antes iban todos llenos del mismo cian
+   saturado, y una pantalla con cinco botones cantando no dice cuál es el bueno. */
+.btn { border: none; border-radius: 8px; padding: 12px 16px; font-weight: 600; font-size: var(--t-row);
   min-height: var(--toque); cursor: pointer; background: var(--spout); color: #fff; }
 .btn:active { transform: translateY(1px); }
 .btn.block { width: 100%; }
 .btn.ghost { background: transparent; color: var(--spout-deep); border: 1px solid var(--line); }
 /* La talla pequeña sigue siendo tocable: baja de cuerpo, no de altura. */
-.btn.sm { padding: 8px 12px; font-size: var(--t-sub); border-radius: 7px; min-height: 38px; }
+.btn.sm { padding: 8px 12px; font-size: var(--t-sub); border-radius: 7px; min-height: 38px; font-weight: 550; }
 .btn.danger { background: var(--owe); }
 
 label { display: block; font-size: var(--t-label); font-weight: 700; color: var(--ink-soft); margin: 12px 2px 5px; }
@@ -187,7 +288,7 @@ input[type=text], input[type=number], input[type=date], input[type=email], selec
   padding: 12px 12px; font-size: var(--t-body); }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); outline-offset: 1px; }
 
-.pill { font-size: var(--t-micro); font-weight: 750; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.pill { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .pill.owe { background: var(--owe-bg); color: var(--owe); }
 .pill.owed { background: var(--owed-bg); color: var(--owed); }
 .pill.neutral { background: color-mix(in srgb, var(--spout) 14%, transparent); color: var(--spout-deep); }
@@ -195,9 +296,24 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { border: 1px solid var(--line); background: var(--foam-2); border-radius: 999px; padding: 9px 14px;
-  font-size: var(--t-sub); font-weight: 650; cursor: pointer; display: inline-flex; gap: 6px; align-items: center;
+  font-size: var(--t-sub); font-weight: 550; cursor: pointer; display: inline-flex; gap: 6px; align-items: center;
   min-height: 38px; }
 .chip.on { background: var(--spout); border-color: var(--spout); color: #fff; }
+/* Un chip de categoría lleva su dibujo delante, del tono que le toca. Encendido
+   se apaga el tono: sobre el relleno del acento, el ámbar no se leería. */
+.chip-ico { width: 22px; height: 22px; flex: none; display: grid; place-items: center; }
+.chip-ico svg { width: 18px; height: 18px; display: block; }
+.chip-ico[data-cat="bebida"]      { color: var(--cat-bebida); }
+.chip-ico[data-cat="compra"]      { color: var(--cat-compra); }
+.chip-ico[data-cat="comida"]      { color: var(--cat-comida); }
+.chip-ico[data-cat="restaurante"] { color: var(--cat-restaurante); }
+.chip-ico[data-cat="varios"]      { color: var(--cat-varios); }
+.chip.on .chip-ico { color: currentColor; }
+/* En una lista de personas o eventos el dibujo va del tamaño de un emoji. */
+.persona-opcion .ico.pe { width: 26px; height: 26px; background: none; color: var(--ink-soft); }
+.persona-opcion .ico.pe svg { width: 19px; height: 19px; }
+/* El verbo de una fila deslizada: dibujo arriba, palabra debajo. */
+.verbo .g { width: 19px; height: 19px; display: block; }
 
 /* La barra. Deja de estar fija y pasa a ocupar su sitio al final de la columna:
    fija se comía el último trozo de lo que se leía —de ahí los 86 px de relleno
@@ -211,7 +327,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   min-height: var(--toque); color: var(--ink-faint); background: none; border: none; cursor: pointer; padding: 4px 2px; }
 .tab svg { width: 23px; height: 23px; }
-.tab span { font-size: var(--t-micro); font-weight: 650; }
+.tab span { font-size: var(--t-micro); font-weight: 550; }
 .tab.on { color: var(--spout); }
 
 /* Control segmentado bajo la cabecera (Dinero → Gastos/Saldos, Cenas → Cenas/Compra).
@@ -219,7 +335,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .subnav-wrap { flex: none; padding: 12px 14px 0; }
 .subnav { display: flex; gap: 4px; background: var(--line-soft); padding: 4px; border-radius: 10px; }
 .subnav button { flex: 1; padding: 10px 6px; border: none; background: none; cursor: pointer;
-  border-radius: 7px; font-weight: 750; font-size: var(--t-row); color: var(--ink-soft); }
+  border-radius: 7px; font-weight: 600; font-size: var(--t-row); color: var(--ink-soft); }
 .subnav button.on { background: var(--foam-2); color: var(--spout-deep);
   box-shadow: 0 1px 2px rgba(4, 18, 26, .10); }
 .subnav button:active { transform: translateY(1px); }
@@ -227,7 +343,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .balance-hero { background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb; border: none;
   position: relative; overflow: hidden; }
 .balance-hero .l { font-size: var(--t-micro); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #9ed4ea; }
-.balance-hero .big { font-size: var(--t-hero); font-weight: 850; letter-spacing: -.02em; margin: 3px 0 1px; }
+.balance-hero .big { font-size: var(--t-hero); font-weight: 700; letter-spacing: -.02em; margin: 3px 0 1px; }
 .balance-hero .s { font-size: var(--t-sub); color: #bcdcea; }
 
 .note { font-size: var(--t-sub); line-height: 1.45; color: var(--ink-soft);
@@ -242,12 +358,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 /* El botón de crear, con la palabra puesta: un «+» a secas no dice si va a
    apuntar un gasto, una cena o un plan. Pastilla y no cuadrado, porque ahora
    tiene que crecer con el rótulo. */
+/* El botón de crear es la acción llena de su pantalla. */
 .fab { position: fixed; right: max(calc(16px + env(safe-area-inset-right)), calc(50% - 244px));
   bottom: calc(78px + env(safe-area-inset-bottom)); min-height: 48px; padding: 0 18px 0 15px;
   display: inline-flex; align-items: center; gap: 8px;
   border-radius: 999px; background: var(--spout); color: #fff; border: none; cursor: pointer;
-  font-size: var(--t-row); font-weight: 750; letter-spacing: -.01em;
-  box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--spout) 70%, transparent); z-index: 6; }
+  font-size: var(--t-row); font-weight: 600; letter-spacing: -.01em;
+  box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--abyss) 60%, transparent); z-index: 6; }
 .fab:active { transform: translateY(1px); }
 .fab .mas { font-size: calc(21px * var(--escala)); line-height: 1; font-weight: 400; }
 
@@ -268,9 +385,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
    es lo correcto además de lo práctico —igual que el ámbar de `meeting-ops-air`,
    un verbo destructivo es un hecho sobre la fila y no un acento decorativo—, así
    que «Borrar» es el mismo rojo en los nueve temas. */
-.verbo { width: 76px; flex: none; display: grid; place-items: center; gap: 3px;
-  border: none; cursor: pointer; font-size: var(--t-label); font-weight: 750; padding: 0; }
-.verbo .g { font-size: var(--t-title); line-height: 1; }
+.verbo { width: 76px; flex: none; display: grid; place-items: center; gap: 5px;
+  border: none; cursor: pointer; font-size: var(--t-label); font-weight: 600; padding: 0; }
 .verbo.editar { background: #1f6f8f; color: #eaf6fb; }
 .verbo.borrar { background: #a8322a; color: #ffe9e5; }
 .verbo:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
@@ -336,14 +452,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   border-radius: var(--r); }
 .version-caja .l { font-size: var(--t-micro); font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
   color: var(--ink-faint); }
-.version-caja .v { font-size: calc(28px * var(--escala)); font-weight: 850; letter-spacing: -.02em;
+.version-caja .v { font-size: calc(28px * var(--escala)); font-weight: 700; letter-spacing: -.02em;
   color: var(--spout-deep); }
 /* Su gemela pequeña, en la ficha de Ajustes. */
-.version-grande { font-size: var(--t-title); font-weight: 850; letter-spacing: -.02em; color: var(--spout-deep); }
+.version-grande { font-size: var(--t-title); font-weight: 700; letter-spacing: -.02em; color: var(--spout-deep); }
 
 .pasos { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 3px; text-align: left; }
 .pasos li { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border-radius: 7px;
-  font-size: var(--t-sub); font-weight: 650; line-height: 1.35; }
+  font-size: var(--t-sub); font-weight: 550; line-height: 1.35; }
 .pasos li .txt { flex: 1; min-width: 0; }
 .pasos li .marca { flex: none; font-size: var(--t-sub); }
 .pasos li[data-estado="pendiente"] { color: var(--ink-faint); opacity: .6; }
@@ -377,7 +493,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .acordeon { background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r);
   padding: 0 13px; }
 .acordeon > summary { display: flex; align-items: center; gap: 11px; min-height: var(--toque);
-  padding: 9px 0; font-size: var(--t-body); font-weight: 700; cursor: pointer; list-style: none; }
+  padding: 9px 0; font-size: var(--t-body); font-weight: 600; cursor: pointer; list-style: none; }
 .acordeon > summary::-webkit-details-marker { display: none; }
 .acordeon > summary::after { content: ''; margin-left: auto; flex: none; width: 9px; height: 9px;
   border-right: 2px solid var(--ink-faint); border-bottom: 2px solid var(--ink-faint);
@@ -409,7 +525,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
    media pantalla, y el tamaño del texto es justo lo que hay que ver aplicado. */
 .seg { display: flex; gap: 4px; padding: 4px; background: var(--line-soft); border-radius: 10px; }
 .seg button { flex: 1; min-height: 40px; padding: 8px 10px; border: none; background: none; cursor: pointer;
-  border-radius: 7px; font-weight: 700; font-size: var(--t-sub); color: var(--ink-soft); }
+  border-radius: 7px; font-weight: 600; font-size: var(--t-sub); color: var(--ink-soft); }
 .seg button[aria-pressed="true"] { background: var(--foam-2); color: var(--spout-deep);
   box-shadow: 0 1px 2px rgba(4, 18, 26, .10); }
 .seg button:active { transform: translateY(1px); }
@@ -422,7 +538,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   padding: calc(24px + env(safe-area-inset-top)) 26px calc(24px + env(safe-area-inset-bottom));
   background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb; }
 .acceso-logo { width: 84px; height: 84px; margin: 0 auto; }
-.acceso h1 { font-size: calc(28px * var(--escala)); font-weight: 850; margin: 0; }
+.acceso h1 { font-size: calc(28px * var(--escala)); font-weight: 650; margin: 0; }
 .acceso-texto { font-size: var(--t-row); line-height: 1.5; color: #bcdcea; margin: 0 auto; max-width: 340px; }
 
 /* El botón de Apple mantiene su aspecto en los dos temas a propósito: es una

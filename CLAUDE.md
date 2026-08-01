@@ -58,10 +58,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   OTA). Se lee al arrancar, así que cambiarla **no** exige reconstruir ni publicar un OTA.
 - **Offline-first**: iOS Safari no tiene background sync → se sincroniza en foreground
   (patrón de `counter-ops`). Requiere "Añadir a pantalla de inicio" para push/persistencia.
-- **Temas** (`app/src/skins.css`, `lib/skins.js`): 8 skins en dos grupos —«Para leer bien»
-  (Sistema, Nítido, Tinta) y «Con guasa» (Abisal, Chiringuito, Verbena, Cuaderno, Aqua,
-  Mediterráneo)— más Aleatorio, que rota cada día y **no** saca los de alto contraste. Por
-  defecto **Abisal**. Se guardan por dispositivo. La ballena se recolorea por tema.
+- **Tema** (`lib/tema.js`, SPECS §14.12): **uno solo**, Abisal Sobrio, con sus dos caras
+  diseñadas por separado. En Ajustes solo se elige Automático · Claro · Oscuro. Los nueve
+  skins y el modo aleatorio se retiraron.
+- **Iconos** (`components/Icono.jsx`, SPECS §14.13): dibujo de línea sobre rejilla de 24,
+  trazo 1,8, en una tabla única; heredan el color de quien los coloca. **Los emoji que
+  elige el usuario se quedan** (avatar, estado); los del cromo, no. Las cinco categorías de
+  gasto llevan tono propio porque informa — es el único color además del de los saldos.
 - **Tipografía** (`lib/tamano.js`, SPECS §14.11): cuerpo a 17 px y **un solo número**
   (`--escala`) del que cuelga toda la escala `--t-*`. **De fábrica va en Grande**
   (×1,12); Ajustes → Aspecto la mueve (Normal/Grande/Enorme). No pongas tamaños en
@@ -87,7 +90,7 @@ app/src/
   db.js                 Dexie: esquema, CRUD, cola (outbox), instantánea
   lib/  reparto.js      motor de saldos (puro, testeado)  ·  config.js  config en caliente
         stats.js money.js ids.js native.js pwa.js
-        skins.js tamano.js    aspecto: tema y tamaño del texto (por dispositivo)
+        tema.js tamano.js     aspecto: cara del tema y tamaño del texto (por dispositivo)
         identidad.js          quién eres en un evento (compartido cabecera ↔ Ajustes)
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
         scrollLock.js avatares.js
@@ -96,9 +99,9 @@ app/src/
         tables.js
   screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats,
             EventSettings (= Ajustes, en acordeón), Events, Acceso
-  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · ProgresoModal.jsx · SyncDot.jsx
-              WhaleLogo.jsx
-  App.jsx  ·  theme.css / skins.css
+  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Icono.jsx · ProgresoModal.jsx
+              SyncDot.jsx · WhaleLogo.jsx
+  App.jsx  ·  theme.css
   public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
 
 api/
@@ -157,6 +160,40 @@ pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
   nada más**: las decisiones ya tomadas se quedan fuera salvo que sean justo lo que se
   reabre o que las pida yo.
 
+### Cómo se hace una hoja de opciones (la vara es `meeting-ops-air`)
+
+Sus hojas de `specs/design/` son mejores que lo que se hacía aquí, y esto es lo que las
+hace mejores. Vale para diseño y también para cualquier decisión que se me traiga.
+
+1. **El título es la frase del problema, no la etiqueta del tema.** «Los dos verbos detrás
+   de una fila, cuando las palabras son demasiado grandes para estar ahí», no «Verbos».
+   Quien abre la hoja ya sabe qué se decide antes de mirar nada.
+2. **Ficha de contexto arriba, en una línea**: qué versión está dibujada como «ahora», a
+   qué medida se dibuja (`390 pt`) y con qué paleta. Sin eso, no se sabe si lo que se
+   compara es lo que hay puesto.
+3. **Separa los defectos de las decisiones, y hazlo antes de las opciones.** «Antes de las
+   opciones · dos arreglos que no se eligen»: lo que está mal se arregla y se cuenta, no se
+   somete a votación. Sobre la mesa queda solo lo que de verdad tiene alternativas.
+4. **Números medidos, no adjetivos.** «32 intercambios antes, 2 después»; «92 pt cada
+   palabra»; «16 pt es el ancho de un pulgar». Si digo que algo no cabe, digo cuánto le
+   falta.
+5. **Dibujado al tamaño al que se sirve**, con el **contenido real de la app** repetido
+   igual en todas las opciones, para que lo único que cambie sea el tratamiento. Nada de
+   texto de relleno ni de cajas grises.
+6. **La hoja es un argumento con partes**, no una galería: «Parte uno · lo que cuestan las
+   palabras». Cada opción dice **qué cuesta y quién lo paga**, no si es bonita.
+7. **Enseña las combinaciones** cuando las haya («A2 con D1 y C1»): muchas veces la buena
+   no es ninguna de las cinco sino dos de ellas.
+8. **La hoja se queda en el repo**, en `docs/diseño/*.html`, y el CSS o el spec la citan
+   por nombre y código de opción (`ver docs/diseño/iconos.html · I4`). Un artefacto
+   publicado se pierde; un fichero versionado explica dentro de seis meses por qué una
+   variable vale lo que vale. Publicar el artefacto es además de eso, no en vez de eso.
+
+Y una regla de oficio que ya me ha mordido: **una maqueta se comprueba en un navegador
+antes de enseñarla**, midiendo lo que dice enseñar. Un `.oscuro .t-pastilla` con espacio
+—descendiente, cuando las dos clases van en el mismo elemento— dejó cinco opciones pintadas
+exactamente igual y con toda la pinta de estar bien.
+
 ## Estado y pendientes
 
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
@@ -171,15 +208,18 @@ comido «Más» —Estadísticas, Quién eres (con tu perfil) y Evento son apart
 tres cosas con el punto verde que **sincroniza todo** (datos + versión de la app) con su
 lista de progreso, tipografía a 17 px ×1,12 de fábrica, y dos temas de máximo contraste.
 **Deslizar una fila de gastos** descubre Editar y Borrar (§14.10-bis), y el botón de crear
-lleva la palabra puesta («+ Gasto»). 134 tests en la PWA + 28 en la API, todos en verde.
+lleva la palabra puesta («+ Gasto»). **Un solo tema** (Abisal Sobrio, claro y oscuro),
+**iconos de línea** con tono por categoría, pesos de letra más bajos y un solo botón lleno
+por pantalla (§14.12–14.13). 134 tests en la PWA + 28 en la API, todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
 `database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el
 proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
 la app funciona en modo solo-local.
 
-**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · **compartir** los avatares con
+**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · **icono de la app**
+nuevo (`public/favicon.svg` sigue siendo el emoji sobre un cuadrado) · **compartir** los avatares con
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
-`Dish.ingredientes`) · pulir contrastes de algún tema · sacar los ~96 estilos inline de las
+`Dish.ingredientes`) · sacar los ~96 estilos inline de las
 pantallas a CSS (rompen los temas).

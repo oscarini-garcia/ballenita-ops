@@ -35,22 +35,24 @@ describe('App — navegación', () => {
     await userEvent.click(screen.getByText('Dinero'))
 
     // Arranca en Gastos: se ve el total del evento y el segmentado.
-    expect(await screen.findByText('💸 Gastos')).toBeInTheDocument()
-    expect(screen.getByText('⚖️ Saldos')).toBeInTheDocument()
+    expect(await screen.findByText('Gastos')).toBeInTheDocument()
+    expect(screen.getByText('Saldos')).toBeInTheDocument()
     expect(screen.getByText('Gasto total del evento')).toBeInTheDocument()
 
     // Cambiar a Saldos: desaparece el total de gastos y aparece el saldo por familia.
-    await userEvent.click(screen.getByText('⚖️ Saldos'))
+    await userEvent.click(screen.getByText('Saldos'))
     expect(await screen.findByText('Saldo por familia')).toBeInTheDocument()
     expect(screen.queryByText('Gasto total del evento')).not.toBeInTheDocument()
   })
 
   it('«Cenas» lleva la Compra dentro como segunda sub-pestaña', async () => {
     await abrirEjemplo()
-    await userEvent.click(screen.getByText('Cenas'))
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[2])
 
-    expect(await screen.findByText('🍳 Cenas')).toBeInTheDocument()
-    await userEvent.click(screen.getByText('🛒 Compra'))
+    // «Cenas» está ahora en la barra y en el segmentado, así que se apunta al
+    // segmentado por su rol y no por su texto.
+    expect(await screen.findByRole('tab', { name: 'Cenas' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Compra' }))
     // La lista de la compra trae su barra de alta rápida.
     expect(await screen.findByPlaceholderText(/Apunta algo/)).toBeInTheDocument()
   })
@@ -121,5 +123,38 @@ describe('App — navegación', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Grande' }))
     // «Grande» es la talla de fábrica y no escribe atributo: vive en el CSS.
     expect(document.documentElement.getAttribute('data-texto')).toBeNull()
+  })
+
+  it('«Aspecto» ya solo elige la cara del tema: los nueve skins se han ido', async () => {
+    await abrirEjemplo()
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
+    await userEvent.click(await screen.findByText('Aspecto'))
+
+    // Ni Abisal, ni Verbena, ni el dado.
+    expect(screen.queryByText(/Abisal/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Aleatorio/)).not.toBeInTheDocument()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Oscuro' }))
+    expect(document.documentElement.getAttribute('data-tema')).toBe('oscuro')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Claro' }))
+    expect(document.documentElement.getAttribute('data-tema')).toBe('claro')
+
+    // «Automático» quita el atributo, que es lo que deja mandar al sistema.
+    await userEvent.click(screen.getByRole('button', { name: 'Automático' }))
+    expect(document.documentElement.getAttribute('data-tema')).toBeNull()
+  })
+
+  it('las categorías de gasto son dibujo con su tono, no emoji', async () => {
+    await abrirEjemplo()
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[1])
+    await screen.findByText('Gasto total del evento')
+
+    const iconos = [...document.querySelectorAll('.lista-deslizable .ico')]
+    expect(iconos.length).toBeGreaterThan(0)
+    for (const i of iconos) {
+      expect(i.querySelector('svg')).not.toBeNull()   // dibujo, no carácter
+      expect(i.dataset.cat).toBeTruthy()              // y con su tono puesto
+    }
   })
 })

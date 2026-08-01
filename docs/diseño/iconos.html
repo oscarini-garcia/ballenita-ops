@@ -1,0 +1,521 @@
+<title>Ballena Ops — Cinco maneras de pintar el mismo dibujo, cuando el emoji no vale</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, que es lo elegido. Estos son los valores de verdad. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(30px, 6vw, 42px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 62ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0;
+    color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 66ch; }
+  .defectos b { color: var(--tinta); }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent);
+    padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 15px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 62ch; font-size: 15px; }
+
+  /* ── El lienzo: las dos caras del tema elegido ─────────────────────────── */
+  .lienzos { display: grid; gap: 12px; }
+  @media (min-width: 700px) { .lienzos { grid-template-columns: 1fr 1fr; } }
+  .lienzo { border-radius: 11px; padding: 14px; display: flex; flex-direction: column; gap: 12px;
+    font-family: var(--sans); }
+  .lienzo.oscuro { background: var(--ab-fondo); color: var(--ab-ink); border: 1px solid var(--ab-linea); }
+  .lienzo.claro { background: var(--abc-fondo); color: var(--abc-ink); border: 1px solid var(--abc-linea); }
+
+  .tira { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cel { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 58px; }
+  .cel .nom { font-size: 10.5px; letter-spacing: .02em; }
+  .oscuro .cel .nom { color: var(--ab-faint); }
+  .claro .cel .nom { color: var(--abc-faint); }
+
+  /* La caja del icono: 34 px, como en la app. */
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+
+  /* Una fila de gasto de verdad, para verlo en su sitio. */
+  .fila { display: flex; align-items: center; gap: 11px; border-radius: 9px; padding: 10px 11px; }
+  .oscuro .fila { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .fila { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: 16px; font-weight: 550; }
+  .fila .s { font-size: 14px; }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+  .fila .imp { font-size: 16px; font-weight: 620; font-variant-numeric: tabular-nums; }
+
+  .cara-tema { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; }
+  .oscuro .cara-tema { color: var(--ab-faint); } .claro .cara-tema { color: var(--abc-faint); }
+
+  /* ── Tratamiento 1 · línea limpia ─────────────────────────────────────── */
+  .t-linea .ico { background: none; }
+  .oscuro.t-linea .ico { color: var(--ab-soft); }
+  .claro.t-linea .ico { color: var(--abc-soft); }
+  .t-linea .relleno { display: none; }
+
+  /* ── 2 · pastilla en acento ───────────────────────────────────────────── */
+  .oscuro.t-pastilla .ico { background: #17384a; color: #8fbdd1; }
+  .claro.t-pastilla .ico { background: #e6eef3; color: #43728a; }
+  .t-pastilla .relleno { display: none; }
+
+  /* ── 3 · duotono ──────────────────────────────────────────────────────── */
+  .oscuro.t-duo .ico { background: #17384a; color: #8fbdd1; }
+  .claro.t-duo .ico { background: #e6eef3; color: #3d6c85; }
+  .t-duo .relleno { display: block; }
+
+  /* ── 4 · color por categoría ──────────────────────────────────────────── */
+  .t-color .relleno { display: none; }
+  .oscuro.t-color .ico[data-cat="bebida"]      { background: #3a2f1a; color: #c9a768; }
+  .oscuro.t-color .ico[data-cat="compra"]      { background: #16311f; color: #6fb392; }
+  .oscuro.t-color .ico[data-cat="comida"]      { background: #35211c; color: #d1907c; }
+  .oscuro.t-color .ico[data-cat="restaurante"] { background: #17303f; color: #7ba6cc; }
+  .oscuro.t-color .ico[data-cat="varios"]      { background: #23292e; color: #95a8b5; }
+  .claro.t-color .ico[data-cat="bebida"]      { background: #f6efdf; color: #8a6c2c; }
+  .claro.t-color .ico[data-cat="compra"]      { background: #e2efe7; color: #3c7359; }
+  .claro.t-color .ico[data-cat="comida"]      { background: #f7e8e2; color: #9c5844; }
+  .claro.t-color .ico[data-cat="restaurante"] { background: #e5edf4; color: #3f6b91; }
+  .claro.t-color .ico[data-cat="varios"]      { background: #eceff1; color: #5b6b76; }
+
+  /* ── I3+I4 · el relleno del duotono con los tonos de la categoría ─────── */
+  .t-combo .relleno { display: block; }
+  .oscuro.t-combo .ico[data-cat="bebida"]      { background: #3a2f1a; color: #c9a768; }
+  .oscuro.t-combo .ico[data-cat="compra"]      { background: #16311f; color: #6fb392; }
+  .oscuro.t-combo .ico[data-cat="comida"]      { background: #35211c; color: #d1907c; }
+  .oscuro.t-combo .ico[data-cat="restaurante"] { background: #17303f; color: #7ba6cc; }
+  .oscuro.t-combo .ico[data-cat="varios"]      { background: #23292e; color: #95a8b5; }
+  .claro.t-combo .ico[data-cat="bebida"]      { background: #f6efdf; color: #8a6c2c; }
+  .claro.t-combo .ico[data-cat="compra"]      { background: #e2efe7; color: #3c7359; }
+  .claro.t-combo .ico[data-cat="comida"]      { background: #f7e8e2; color: #9c5844; }
+  .claro.t-combo .ico[data-cat="restaurante"] { background: #e5edf4; color: #3f6b91; }
+  .claro.t-combo .ico[data-cat="varios"]      { background: #eceff1; color: #5b6b76; }
+
+  /* ── 5 · trazo grueso y redondo ───────────────────────────────────────── */
+  .oscuro.t-grueso .ico { background: #17384a; color: #8fbdd1; }
+  .claro.t-grueso .ico { background: #e6eef3; color: #43728a; }
+  .t-grueso .relleno { display: none; }
+  .t-grueso svg { stroke-width: 2.5; }
+  .t-grueso .ico svg { width: 21px; height: 21px; }
+
+  .apuntes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .apuntes li { display: flex; gap: 9px; font-size: 14.5px; line-height: 1.45; color: var(--tinta-suave); }
+  .apuntes li::before { content: "+"; font-family: var(--mono); font-weight: 700; color: var(--acento); flex: none; }
+  .apuntes li[data-signo="menos"]::before { content: "−"; color: var(--coral); }
+
+  .cierre { background: var(--papel-2); border: 1px solid var(--linea); border-left: 4px solid var(--acento);
+    border-radius: 4px 12px 12px 4px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 21px; margin: 0; }
+  .cierre p { margin: 0; color: var(--tinta-suave); max-width: 62ch; }
+  .respuesta { font-family: var(--mono); font-size: 14px; background: var(--acento-suave); color: var(--acento);
+    border-radius: 7px; padding: 10px 13px; align-self: flex-start; font-weight: 600; }
+  .pie { font-size: 13.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    padding-top: 14px; margin: 0; }
+</style>
+
+<div class="hoja">
+  <div class="col">
+
+    <div class="masthead">
+      <div class="eyebrow">docs/diseño · iconos</div>
+      <h1>Cinco maneras de pintar el mismo dibujo, cuando el emoji no vale</h1>
+      <p class="entradilla">
+        Los emoji de las categorías traen su propia paleta puesta, cambian de dibujo según el
+        sistema y no se recolorean con el tema. Se van. Lo que se decide aquí es <b>con qué se
+        sustituyen</b>: cinco tratamientos del mismo trazo, dibujados a la medida a la que se
+        sirven y con el contenido real de la app, para que lo único que cambie sea el
+        tratamiento.
+      </p>
+      <div class="ficha">
+        <span><b>v0.3.0</b> es lo que está dibujado como «ahora»</span>
+        <span>Caja de <b>34 px</b>, dibujo de <b>20</b> sobre rejilla de 24</span>
+        <span>Paleta <b>Abisal Sobrio</b>, decidida — sus dos caras</span>
+      </div>
+    </div>
+
+    <!-- ── Antes de las opciones ─────────────────────────────────────────── -->
+    <div class="defectos">
+      <h2>Antes de las opciones · dos cosas que no se eligen</h2>
+      <p>
+        <b>Los emoji del cromo se van, y no como parte de ninguna opción.</b> Un 🍺 mide
+        distinto en iOS y en Chrome, no hereda el color del tema y arrastra un naranja que no
+        está en ninguna paleta. Los que <b>sí</b> se quedan son los que eliges tú —tu avatar,
+        tu estado—: ahí el emoji es contenido, no cromo.
+      </p>
+      <p>
+        <b>El trazo se unifica a 1,8 sobre rejilla de 24.</b> Es el que ya usa la barra de
+        abajo desde v0.3.0, así que hoy la app está mezclando dos lenguajes: dibujo de línea
+        abajo y emoji en las filas. Eso es un defecto, no una preferencia.
+      </p>
+      <p class="linea-corte">Lo que sí está sobre la mesa es todo lo de abajo: <b>cómo se pinta ese trazo</b>.</p>
+    </div>
+
+    <div class="parte">Parte uno · las cinco</div>
+
+    <!-- ── I1 ───────────────────────────────────────────────────────────── -->
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I1</span><span class="op-nombre">Línea limpia</span><span class="etq base">lo que propuse</span></div>
+      <p class="op-idea">Trazo de 1,8 en el gris del texto, sin fondo ni pastilla. Es la referencia: lo más sobrio posible.</p>
+      <div class="lienzos">
+        <div class="lienzo oscuro t-linea">
+          <span class="cara-tema">Oscuro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+        <div class="lienzo claro t-linea">
+          <span class="cara-tema">Claro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+      </div>
+      <p class="coste">Cuesta <b>la distinción</b>, y la paga quien busca un gasto en una lista de veinte: los cinco iconos se pintan del mismo gris (medido: <b>1 color</b> en la tira de cinco). Es el que más contraste tiene —8,5:1 en oscuro— y el que menos dice.</p>
+      <ul class="apuntes">
+        <li>Lo más silencioso que puede haber.</li>
+        <li data-signo="menos">Con cinco filas seguidas todos los iconos son la misma mancha gris: dejan de ayudar a distinguir una fila de otra, que es para lo que están.</li>
+      </ul>
+    </div>
+
+    <!-- ── I2 ───────────────────────────────────────────────────────────── -->
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I2</span><span class="op-nombre">Pastilla en acento</span></div>
+      <p class="op-idea">Mismo trazo, sobre una pastilla del azul del tema. Un punto de color, y siempre el mismo.</p>
+      <div class="lienzos">
+        <div class="lienzo oscuro t-pastilla">
+          <span class="cara-tema">Oscuro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+        <div class="lienzo claro t-pastilla">
+          <span class="cara-tema">Claro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+      </div>
+      <p class="coste">Cuesta <b>lo mismo que I1</b> —sigue habiendo <b>1 color</b> en la tira— y compra peso visual: la fila deja de empezar con un hueco. Contraste 6,1:1 en oscuro, 4,5:1 en claro.</p>
+      <ul class="apuntes">
+        <li>La pastilla le da cuerpo a la fila sin traer un color nuevo a la pantalla.</li>
+        <li>Es lo que ya hace la app hoy con los avatares, así que no inventa una figura nueva.</li>
+        <li data-signo="menos">Sigue siendo el mismo azul en las cinco: da peso, no distingue.</li>
+      </ul>
+    </div>
+
+    <!-- ── I3 ───────────────────────────────────────────────────────────── -->
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I3</span><span class="op-nombre">Duotono</span></div>
+      <p class="op-idea">El mismo dibujo con una silueta rellena por dentro al 28 %: la cerveza tiene cerveza, el carro va cargado, el plato tiene comida. Vida por dibujo, no por color.</p>
+      <div class="lienzos">
+        <div class="lienzo oscuro t-duo">
+          <span class="cara-tema">Oscuro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+        <div class="lienzo claro t-duo">
+          <span class="cara-tema">Claro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+      </div>
+      <p class="coste">Cuesta <b>una silueta más por icono</b> en el código, y la paga el que los dibuje. A 20 px el relleno es un matiz: medido contra I2, cambia <b>solo</b> el relleno interior, ni fondo ni trazo. Se nota en Ajustes, donde el icono va más grande; en una fila, poco.</p>
+      <ul class="apuntes">
+        <li>Los dibujos dejan de ser esquemas y pasan a ser cosas: la jarra está llena.</li>
+        <li>Un solo color, así que la sobriedad no se toca. La vida la pone el dibujo.</li>
+        <li data-signo="menos">A 20 px el relleno se ve poco: es un detalle que se nota más en Ajustes que en una fila.</li>
+      </ul>
+    </div>
+
+    <!-- ── I4 ───────────────────────────────────────────────────────────── -->
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">I4</span><span class="op-nombre">Un color por categoría</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Cada categoría con su tono, todos apagados y de la misma familia: ámbar la bebida, verde la compra, terracota la comida, azul el restaurante, gris lo demás. El color <b>informa</b>, no decora.</p>
+      <div class="lienzos">
+        <div class="lienzo oscuro t-color">
+          <span class="cara-tema">Oscuro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Compra grande</span><span class="s">Pagó Pérez</span></span>
+            <span class="imp">148,00 €</span>
+          </div>
+        </div>
+        <div class="lienzo claro t-color">
+          <span class="cara-tema">Claro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Compra grande</span><span class="s">Pagó Pérez</span></span>
+            <span class="imp">148,00 €</span>
+          </div>
+        </div>
+      </div>
+      <p class="coste">Cuesta <b>diez valores más</b> —cinco tonos × dos caras— y los paga quien mantenga el tema. A cambio es el único con <b>5 colores</b> en la tira. Los cinco están igualados a propósito: contraste entre <b>5,3 y 6,0:1</b> en oscuro y entre <b>4,3 y 4,8:1</b> en claro, con las luminancias de los trazos entre 0,350 y 0,411 — un margen de 0,06, así que ninguno grita por encima de otro.</p>
+      <ul class="apuntes">
+        <li>Es la única en la que el color <b>hace algo</b>: en una lista larga distingues la compra de las cañas sin leer.</li>
+        <li>Los cinco tonos están desaturados y a la misma altura, así que la pantalla no se vuelve un arcoíris — que es justo lo que pasaba con los emoji.</li>
+        <li>Solo lo llevan las categorías de gasto. El resto del cromo —los apartados de Ajustes, los verbos, la barra— sigue en un tono.</li>
+        <li data-signo="menos">Son cinco valores más por tema (diez en total) que hay que mantener a mano.</li>
+      </ul>
+    </div>
+
+    <!-- ── I5 ───────────────────────────────────────────────────────────── -->
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I5</span><span class="op-nombre">Trazo grueso</span></div>
+      <p class="op-idea">Mismo dibujo con trazo de 2,5 y remates redondos. Más rotundo y algo más simpático, sin salirse de un solo color.</p>
+      <div class="lienzos">
+        <div class="lienzo oscuro t-grueso">
+          <span class="cara-tema">Oscuro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+        <div class="lienzo claro t-grueso">
+          <span class="cara-tema">Claro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+      </div>
+      <p class="coste">Cuesta <b>los huecos del dibujo</b>: 2,5 sobre 1,8 es <b>un 39 % más de tinta</b> en una caja de 20 px, y quien lo paga es la jarra, cuyo hueco interior mide menos de 3 px. Y desentona con la barra de abajo, que va a 1,8 desde v0.3.0: habría que engordarla también.</p>
+      <ul class="apuntes">
+        <li>Se ve mejor de lejos y con el móvil al sol, que es donde se usa.</li>
+        <li data-signo="menos">A 2,5 el trazo empieza a comerse los huecos del dibujo: la jarra y la caja pierden detalle a 20 px.</li>
+        <li data-signo="menos">Y desentona con la barra de abajo, que va a 1,8: habría que engordarla también.</li>
+      </ul>
+    </div>
+
+    <div class="parte">Parte dos · la combinación</div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I3+I4</span><span class="op-nombre">Duotono con un color por categoría</span></div>
+      <p class="op-idea">
+        Las dos no compiten: una pone el relleno y la otra el tono. Juntas es una línea de CSS
+        más que I4 sola —dejar de esconder <code>.relleno</code>— y ningún valor nuevo.
+      </p>
+      <div class="lienzos">
+        <div class="lienzo oscuro t-combo">
+          <span class="cara-tema">Oscuro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+        <div class="lienzo claro t-combo">
+          <span class="cara-tema">Claro</span>
+          <div class="tira">
+            <div class="cel"><span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><span class="nom">Bebida</span></div>
+            <div class="cel"><span class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M6.6 9.6h12.1l-1.1 4.4a1 1 0 0 1-1 .8H8.6z" fill="currentColor" stroke="none" opacity=".28"/><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><span class="nom">Compra</span></div>
+            <div class="cel"><span class="ico" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle class="relleno" cx="12" cy="12" r="3.6" fill="currentColor" stroke="none" opacity=".28"/><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="nom">Comida</span></div>
+            <div class="cel"><span class="ico" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M15.2 4c-1.4 2.2-1.4 6 0 8.2h1.6V4z" fill="currentColor" stroke="none" opacity=".28"/><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg></span><span class="nom">Restaurante</span></div>
+            <div class="cel"><span class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 12h14.4v7a1.2 1.2 0 0 1-1.2 1.2H6a1.2 1.2 0 0 1-1.2-1.2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></span><span class="nom">Varios</span></div>
+          </div>
+          <div class="fila">
+            <span class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="relleno" d="M4.8 13h9.4v5.2A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span>
+            <span class="txt"><span class="n" style="display:block">Cañas en el chiringuito</span><span class="s">Pagó García</span></span>
+            <span class="imp">24,30 €</span>
+          </div>
+        </div>
+      </div>
+      <p class="coste">
+        Cuesta <b>lo que cuesta I4</b> —los mismos diez valores— más una silueta por icono.
+        No añade ni un color.
+      </p>
+    </div>
+
+    <div class="cierre">
+      <h2>Cómo contestar</h2>
+      <p>
+        Con el código basta. Se pueden combinar: <b>I3+I4</b> —duotono <em>y</em> color por
+        categoría— es una sola línea más y probablemente lo más vivo sin pasarse.
+      </p>
+      <div class="respuesta">I1 · I2 · I3 · I4 · I5 · I3+I4</div>
+    </div>
+
+    <p class="pie">
+      Los cinco dibujos son idénticos en las cinco opciones y son los que irían al código:
+      rejilla de 24, caja de 34 px, exactamente como se pintan hoy los avatares. Los tonos de
+      I4 están tomados a la misma luminosidad para que ninguno destaque sobre los demás.
+    </p>
+
+  </div>
+</div>
