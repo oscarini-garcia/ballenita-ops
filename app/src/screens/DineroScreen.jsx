@@ -7,8 +7,8 @@ import BalancesScreen from './BalancesScreen.jsx'
 // ves quién debe a quién sin cambiar de pestaña. El FAB de «+ gasto» vive dentro
 // de ExpensesScreen, así que solo aparece en la sub-pestaña Gastos (FAB contextual).
 const OPTIONS = [
-  { id: 'gastos', label: '💸 Gastos' },
-  { id: 'saldos', label: '⚖️ Saldos' },
+  { id: 'gastos', label: 'Gastos' },
+  { id: 'saldos', label: 'Saldos' },
 ]
 
 export default function DineroScreen({ eventId, event }) {

@@ -831,26 +831,65 @@ color es una cosa, nunca cuánto mide, así que una copia bajo otro selector sol
 podría discrepar. Y `--toque: 44px` es el suelo de cualquier cosa tocable, que no
 se baja: los botones pequeños bajan de cuerpo, no de altura.
 
-### 14.12 Temas: los de guasa y los de leer
+### 14.12 Un solo tema, y sus dos caras
 
-Los temas van en **dos grupos**, y el grupo es un dato del tema. Un tema con
-degradado de neón y otro pensado para leerlo al sol no compiten por lo mismo, y
-mezclarlos en una sola tira de pastillas hace que se elija el bonito y se sufra
-después.
+**Los nueve skins se van.** Eran nueve paletas: nueve sitios donde un contraste
+podía estar mal y ocho que nadie miraba. Y la división en «para leer bien» y «con
+guasa» dejó de tener sentido en cuanto el tema único se resolvió bien — si el que
+hay es legible, no hace falta una categoría aparte para los que lo son.
 
-- **Para leer bien** — Sistema 🌗 · **Nítido** ☀️ (blanco contra casi negro,
-  ≈16:1) · **Tinta** 🌑 (el mismo contraste al revés, para la noche). Los dos
-  nuevos son deliberadamente sosos: sin degradados de fondo, sin translúcidos
-  —los `rgba` sobre degradado son lo primero que se pierde cuando el brillo del
-  móvil no da para más— y con bordes de campo de 2 px.
-- **Con guasa** — Abisal Fiesta 🌊 (el de origen) · Chiringuito 🌅 · Verbena
-  Neón 🪩 · Cuaderno 📓 · Aqua Glass 💎 · **Mediterráneo** 🍋 (cal, limón y azul:
-  el claro plano que faltaba, porque los otros claros son o un degradado naranja
-  o un papel rayado) · 🎲 Aleatorio.
+Queda **Abisal Sobrio**: el azul de la marca con el volumen bajado. El fondo deja
+de ser un degradado radial y pasa a plano, las tarjetas dejan de ser translúcidas
+—lo que además retira el token `--fila-solida`, que existía solo para que el rojo
+de «Borrar» no se transparentase por debajo de una fila de cristal— y el acento
+se desatura de `#1f9fd0` a `#22708f`. Se va también el confeti de la cabecera.
 
-**Los dos de máximo contraste se quedan fuera del bombo del aleatorio.** Se
-eligen para poder leer, y un dado que mañana te los quita —o que te mete en uno
-de neón— es exactamente lo contrario de lo que se venía a pedir.
+Dos caras diseñadas por separado, no una invertida: en la oscura el papel se
+hunde hacia el marino y la tinta sube, pero el acento **baja** de saturación en
+vez de subir, porque sobre fondo oscuro un azul saturado vibra.
+
+En Ajustes → Aspecto solo se elige **Automático · Claro · Oscuro**
+(`lib/tema.js`). `auto` **quita** el atributo `data-tema`, que es lo que deja
+mandar a la consulta de medios; los otros dos lo escriben, y por eso la cara
+clara se repite bajo `[data-tema="claro"]` — tiene que ganarle a la consulta en
+los dos sentidos, no solo hacia el oscuro.
+
+### 14.13 Los dibujos, y el único color que informa
+
+**Los emoji del cromo se van** (`components/Icono.jsx`). Traían su propia paleta
+puesta, medían distinto en iOS y en el navegador y no se recoloreaban con el
+tema; y como la barra de abajo ya iba con dibujo de línea, la app estaba
+mezclando dos lenguajes. Todos los dibujos van ahora sobre rejilla de 24 con
+trazo de 1,8, en una sola tabla, y heredan el color de quien los coloca — un
+icono no sabe de qué color es.
+
+**Los emoji que eliges tú se quedan**: tu avatar, tu estado, el de una familia.
+Ahí el emoji es contenido y no cromo, y esa es toda la regla.
+
+**Las cinco categorías de gasto llevan tono propio** (opción I4 de
+`docs/diseño/iconos.html`): ámbar la bebida, verde la compra, terracota la
+comida, azul el restaurante, gris lo demás. Es lo único de la app con color
+propio aparte del rojo y el verde de los saldos, y lo lleva porque **informa**:
+en una lista larga se distingue la compra de las cañas sin leer. Los cinco están
+igualados a mano y no elegidos a ojo — contraste entre 4,3 y 4,8:1 en claro y
+entre 5,3 y 6,0:1 en oscuro, con las luminancias de los trazos dentro de un
+margen de 0,06 —, así que ninguno grita por encima de otro. Que es exactamente lo
+que hacían los emoji a los que sustituyen.
+
+**Los pesos bajan.** Los títulos de 800 a 650, las filas de 650 a 550, los
+importes de 750 a 620, los botones de 750 a 600, y fuera el `letter-spacing`
+negativo agresivo. Misma familia —la del sistema, que es la de iOS— y mismo
+tamaño: la talla sigue en Grande.
+
+**El relleno es para una acción por pantalla**, la que se ha venido a hacer; todo
+lo demás va con contorno. Antes iban todos llenos del mismo cian saturado, y una
+pantalla con cinco botones cantando no dice cuál es el bueno.
+
+**La marca también se dibuja.** `WhaleLogo` era un emoji de ballena sobre un
+cuadrado con una «B» de marca de agua tan apagada que no se leía; ahora es el
+mismo trazo que el resto y se recolorea con `--whale`. El icono de la app —el de
+la pantalla de inicio— sigue siendo `public/favicon.svg` y se cambia cuando haya
+dibujo nuevo.
 
 ---
 

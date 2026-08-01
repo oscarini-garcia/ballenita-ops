@@ -1,4 +1,5 @@
 import { tap } from '../lib/native.js'
+import Icono from './Icono.jsx'
 
 /**
  * Un apartado plegable, con `<details>` y `<summary>` del propio navegador.
@@ -11,11 +12,11 @@ import { tap } from '../lib/native.js'
  * `nota` es lo que el apartado sigue diciendo con la solapa bajada —«v0.2.0»,
  * «4 familias»—: ahorra desplegarlo solo para verlo.
  */
-export default function Acordeon({ titulo, emoji, nota, abierta = false, children }) {
+export default function Acordeon({ titulo, icono, nota, abierta = false, children }) {
   return (
     <details className="acordeon" open={abierta}>
       <summary onClick={() => tap()}>
-        {emoji && <span className="acordeon-moneda" aria-hidden>{emoji}</span>}
+        {icono && <span className="acordeon-moneda ico"><Icono nombre={icono} /></span>}
         <span className="acordeon-titulo">{titulo}</span>
         {nota != null && nota !== '' && <span className="acordeon-nota">{nota}</span>}
       </summary>
