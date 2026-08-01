@@ -10,19 +10,20 @@ describe('App — smoke test', () => {
     expect(screen.getByText('+ Nuevo evento')).toBeInTheDocument()
   })
 
-  it('cargar el ejemplo abre el evento y muestra las 5 pestañas (Opción A)', async () => {
+  it('cargar el ejemplo abre el evento y muestra las 5 pestañas', async () => {
     render(<App />)
     await userEvent.click(await screen.findByText(/Cargar ejemplo/))
-    // La barra baja a 5 destinos: Hoy · Dinero · Cenas · Planes · Más.
-    for (const label of ['Hoy', 'Dinero', 'Cenas', 'Planes', 'Más']) {
+    // La barra baja a 5 destinos: Hoy · Dinero · Cenas · Planes · Ajustes.
+    for (const label of ['Hoy', 'Dinero', 'Cenas', 'Planes', 'Ajustes']) {
       expect(await screen.findByText(label)).toBeInTheDocument()
     }
-    // «Saldos» y «Stats» ya no son pestañas de primer nivel.
+    // «Saldos», «Stats» y «Más» ya no son pestañas de primer nivel.
     expect(screen.queryByRole('button', { name: /^Saldos$/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('Más')).not.toBeInTheDocument()
   })
 })
 
-describe('App — navegación de la Opción A', () => {
+describe('App — navegación', () => {
   async function abrirEjemplo() {
     render(<App />)
     await userEvent.click(await screen.findByText(/Cargar ejemplo/))
@@ -54,31 +55,67 @@ describe('App — navegación de la Opción A', () => {
     expect(await screen.findByPlaceholderText(/Apunta algo/)).toBeInTheDocument()
   })
 
-  it('el ⚙️ de la cabecera es un atajo a Ajustes', async () => {
+  it('Ajustes es la quinta pestaña de la barra, y ya no un ⚙️ en la cabecera', async () => {
     await abrirEjemplo()
-    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
+    // La cabecera no tiene botón de ajustes: se ha ido abajo a la derecha.
+    expect(document.querySelector('.appbar .iconbtn')).toBeNull()
+    // Ni logotipo: el sitio es del nombre del evento, que no está en otro lado.
+    expect(document.querySelector('.appbar .logo')).toBeNull()
 
-    // Entra en «Más» pero directamente en la sub-pestaña de Ajustes, no en Stats.
-    expect(await screen.findByRole('tab', { name: '⚙️ Ajustes' })).toHaveAttribute('aria-selected', 'true')
-    expect(await screen.findByText(/Cambiar/)).toBeInTheDocument()
+    const barra = document.querySelector('.tabbar')
+    const ultima = barra.querySelectorAll('.tab')[4]
+    expect(ultima).toHaveTextContent('Ajustes')
+
+    await userEvent.click(ultima)
+    expect(await screen.findByText('Sincronización')).toBeInTheDocument()
   })
 
-  it('el estado de sincronización ya no está en la cabecera, sino en Ajustes', async () => {
+  it('el punto de sincronización vuelve a la cabecera', async () => {
     await abrirEjemplo()
-    expect(document.querySelector('.appbar .sync-dot')).toBeNull()
-
-    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
     // Sin config.json la app va en modo solo-local y así lo dice el punto.
-    expect(await screen.findByRole('button', { name: 'Solo local (sin sincronización)' })).toBeInTheDocument()
+    expect(document.querySelector('.appbar .sync-dot')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Solo local' })).toBeInTheDocument()
   })
 
-  it('«Más» agrupa Estadísticas y Ajustes', async () => {
+  it('Ajustes recoge en apartados el aspecto, quién eres, el evento y las estadísticas', async () => {
     await abrirEjemplo()
-    await userEvent.click(screen.getByText('Más'))
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
 
-    expect(await screen.findByText('📊 Estadísticas')).toBeInTheDocument()
-    await userEvent.click(screen.getByText('⚙️ Ajustes'))
-    // Los ajustes del evento permiten cambiar de evento.
-    expect(await screen.findByText(/Cambiar/)).toBeInTheDocument()
+    for (const titulo of ['Sincronización', 'Aspecto', 'Quién eres', 'Evento', 'Estadísticas', 'La app']) {
+      expect(await screen.findByText(titulo)).toBeInTheDocument()
+    }
+    // Solo Sincronización arranca abierto: a Ajustes se llega porque algo no va.
+    const abiertos = [...document.querySelectorAll('.acordeon[open]')]
+    expect(abiertos).toHaveLength(1)
+    expect(abiertos[0]).toHaveTextContent('Sincronización')
+  })
+
+  it('elegirse en Ajustes se ve al momento en el badge de la cabecera', async () => {
+    await abrirEjemplo()
+    expect(screen.getByRole('button', { name: 'Elegir usuario' })).toBeInTheDocument()
+
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
+    await userEvent.click(await screen.findByText('Quién eres'))
+
+    // La primera persona del evento de ejemplo, sea quien sea.
+    const opciones = document.querySelectorAll('.acordeon .persona-opcion')
+    expect(opciones.length).toBeGreaterThan(0)
+    await userEvent.click(opciones[0])
+
+    // El badge de arriba se entera sin recargar: la identidad es compartida.
+    expect(document.querySelector('.appbar .userbadge .un').textContent).not.toBe('Elígete')
+  })
+
+  it('el apartado «Aspecto» deja cambiar el tamaño del texto', async () => {
+    await abrirEjemplo()
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
+    await userEvent.click(await screen.findByText('Aspecto'))
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Enorme' }))
+    expect(document.documentElement.getAttribute('data-texto')).toBe('enorme')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Normal' }))
+    // «Normal» es el valor de origen y no escribe atributo: vive en el CSS.
+    expect(document.documentElement.getAttribute('data-texto')).toBeNull()
   })
 })

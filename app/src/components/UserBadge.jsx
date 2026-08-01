@@ -4,21 +4,14 @@ import { updatePerson } from '../db.js'
 import { tap } from '../lib/native.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
+import { useIdentidad } from '../lib/identidad.js'
 
-// El "usuario" es una persona del evento (§ barra superior). Quién eres se guarda
-// por dispositivo (localStorage), NO se sincroniza — cada móvil elige su identidad.
+// El "usuario" es una persona del evento (§ barra superior). Quién eres vive en
+// `lib/identidad.js` porque ahora lo comparten dos sitios: este badge y el
+// apartado «Quién eres» de Ajustes; elegirte en uno tiene que verse en el otro.
 // Lo que sí es un hecho (y sincroniza) es tu emoji y tu estado, guardados en la
 // propia persona. La foto es aparte: vive solo en este móvil (lib/avatares.js).
-function meKey(eventId) { return `ballena.me:${eventId}` }
-export function getMeId(eventId) {
-  try { return localStorage.getItem(meKey(eventId)) } catch { return null }
-}
-function setMeId(eventId, id) {
-  try {
-    if (id) localStorage.setItem(meKey(eventId), id)
-    else localStorage.removeItem(meKey(eventId))
-  } catch { /* almacenamiento no disponible */ }
-}
+export { getMeId } from '../lib/identidad.js'
 
 // Estados de coña para tocar rápido (editables a mano igualmente).
 const ESTADOS = [
@@ -41,23 +34,11 @@ function Cara({ emoji, foto, className }) {
 }
 
 export default function UserBadge({ eventId, persons }) {
-  const [meId, setMe] = useState(() => getMeId(eventId))
+  const { meId, me, elegir, salir } = useIdentidad(eventId, persons)
   const [open, setOpen] = useState(false)
   const [foto, setFoto] = useState(null)
 
-  // Al cambiar de evento, releer la identidad guardada para ese evento.
-  useEffect(() => { setMe(getMeId(eventId)) }, [eventId])
   useEffect(() => { setFoto(leerFoto(eventId, meId)) }, [eventId, meId])
-
-  const me = persons.find((p) => p.id === meId) || null
-
-  // Si la persona guardada ya no existe (borrada / evento distinto), olvidarla.
-  useEffect(() => {
-    if (meId && persons.length && !me) { setMeId(eventId, null); setMe(null) }
-  }, [meId, persons, me, eventId])
-
-  function choose(id) { setMeId(eventId, id); setMe(id) }
-  function salir() { setMeId(eventId, null); setMe(null) }
 
   function aplicarFoto(dataUrl) {
     guardarFoto(eventId, meId, dataUrl)
@@ -91,7 +72,7 @@ export default function UserBadge({ eventId, persons }) {
           me={me}
           foto={foto}
           onFoto={aplicarFoto}
-          onChoose={choose}
+          onChoose={elegir}
           onSalir={salir}
           onClose={() => setOpen(false)}
         />,
