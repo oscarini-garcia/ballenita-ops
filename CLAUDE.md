@@ -67,8 +67,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   gasto llevan tono propio porque informa — es el único color además del de los saldos.
 - **Tipografía** (`lib/tamano.js`, SPECS §14.11): cuerpo a 17 px y **un solo número**
   (`--escala`) del que cuelga toda la escala `--t-*`. **De fábrica va en Grande**
-  (×1,12); Ajustes → Aspecto la mueve (Normal/Grande/Enorme). No pongas tamaños en
-  píxeles sueltos: usa los tokens.
+  (×1,12); Ajustes → Aspecto la mueve (Normal/Grande/Enorme). **No pongas `fontSize`,
+  `fontWeight` ni colores en un `style={{…}}`**: no pasan por la escala ni por el tema, y
+  `src/estilos.test.js` te para en seco diciéndote qué usar. Los inline de fontanería
+  (`marginTop`, `display`) no molestan y se quedan.
 - **Esqueleto** (SPECS §14.10): `.app` es una columna de `100dvh` —cabecera · `.body`
   (`flex:1; min-height:0; overflow-y:auto`) · barra—. Nada es `position: fixed`, así que
   nada se solapa. No añadas relleno al final de `.body` para esquivar la barra.
@@ -221,5 +223,4 @@ la app funciona en modo solo-local.
 nuevo (`public/favicon.svg` sigue siendo el emoji sobre un cuadrado) · **compartir** los avatares con
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
-`Dish.ingredientes`) · sacar los ~96 estilos inline de las
-pantallas a CSS (rompen los temas).
+`Dish.ingredientes`).

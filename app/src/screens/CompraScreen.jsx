@@ -125,7 +125,7 @@ export default function CompraScreen({ eventId }) {
                 onClick={() => toggle(it)}
                 style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', opacity: .6, borderTop: i ? '1px solid var(--line-soft)' : 'none' }}
               >
-                <div className="av" style={{ background: 'var(--spout)', color: '#fff' }}>✓</div>
+                <div className="av hecho">✓</div>
                 <div className="main">
                   <div className="n" style={{ textDecoration: 'line-through' }}>{it.texto}</div>
                   <div className="sub">

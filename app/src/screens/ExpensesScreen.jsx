@@ -33,8 +33,8 @@ export default function ExpensesScreen({ eventId, event }) {
   return (
     <div className="body">
       <div className="card tight" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div><div className="sub" style={{ fontSize: 12, color: 'var(--ink-faint)' }}>Gasto total del evento</div>
-          <div className="tnum" style={{ fontSize: 22, fontWeight: 850 }}>{formatCents(total, event.currency)}</div></div>
+        <div><div className="cifra-l">Gasto total del evento</div>
+          <div className="tnum cifra">{formatCents(total, event.currency)}</div></div>
         <div className="pill neutral">{expenses.length} gastos</div>
       </div>
 
@@ -191,7 +191,7 @@ function ExpenseModal({ event, eventId, families, persons, gasto, onClose }) {
         <div className="chips">
           {persons.map((p) => (
             <button key={p.id} className={`chip${participants.has(p.id) ? ' on' : ''}`} onClick={() => toggle(p.id)}>
-              {p.name} <span style={{ opacity: .7, fontSize: 11 }}>×{p.pesoReparto}</span>
+              {p.name} <span className="apunte dentro">×{p.pesoReparto}</span>
             </button>
           ))}
         </div>

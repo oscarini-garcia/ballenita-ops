@@ -876,6 +876,15 @@ entre 5,3 y 6,0:1 en oscuro, con las luminancias de los trazos dentro de un
 margen de 0,06 —, así que ninguno grita por encima de otro. Que es exactamente lo
 que hacían los emoji a los que sustituyen.
 
+**Y lo escrito a pelo en el JSX se recoge.** Dieciséis `style={{ fontSize: 13 }}` y
+`fontWeight: 850` repartidos por cinco pantallas se saltaban `--escala` y la
+escala de pesos: «Enorme» crecía la app **menos** las cabeceras de día de Cenas,
+los subtítulos de Planes, el total de Gastos y las cifras de Estadísticas. Eso
+era un defecto del control de tamaño, no desorden. Ahora son clases (`.cifra`,
+`.dia-cena`, `.anfitrion`, `.apunte`…) y **`src/estilos.test.js` impide que
+vuelvan**, señalando fichero, línea y qué usar en su lugar. Los otros setenta
+inline —`marginTop`, `display`, `textAlign`— no molestan a nadie y se quedan.
+
 **Los pesos bajan.** Los títulos de 800 a 650, las filas de 650 a 550, los
 importes de 750 a 620, los botones de 750 a 600, y fuera el `letter-spacing`
 negativo agresivo. Misma familia —la del sistema, que es la de iOS— y mismo
