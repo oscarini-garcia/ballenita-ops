@@ -157,6 +157,40 @@ pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
   nada más**: las decisiones ya tomadas se quedan fuera salvo que sean justo lo que se
   reabre o que las pida yo.
 
+### Cómo se hace una hoja de opciones (la vara es `meeting-ops-air`)
+
+Sus hojas de `specs/design/` son mejores que lo que se hacía aquí, y esto es lo que las
+hace mejores. Vale para diseño y también para cualquier decisión que se me traiga.
+
+1. **El título es la frase del problema, no la etiqueta del tema.** «Los dos verbos detrás
+   de una fila, cuando las palabras son demasiado grandes para estar ahí», no «Verbos».
+   Quien abre la hoja ya sabe qué se decide antes de mirar nada.
+2. **Ficha de contexto arriba, en una línea**: qué versión está dibujada como «ahora», a
+   qué medida se dibuja (`390 pt`) y con qué paleta. Sin eso, no se sabe si lo que se
+   compara es lo que hay puesto.
+3. **Separa los defectos de las decisiones, y hazlo antes de las opciones.** «Antes de las
+   opciones · dos arreglos que no se eligen»: lo que está mal se arregla y se cuenta, no se
+   somete a votación. Sobre la mesa queda solo lo que de verdad tiene alternativas.
+4. **Números medidos, no adjetivos.** «32 intercambios antes, 2 después»; «92 pt cada
+   palabra»; «16 pt es el ancho de un pulgar». Si digo que algo no cabe, digo cuánto le
+   falta.
+5. **Dibujado al tamaño al que se sirve**, con el **contenido real de la app** repetido
+   igual en todas las opciones, para que lo único que cambie sea el tratamiento. Nada de
+   texto de relleno ni de cajas grises.
+6. **La hoja es un argumento con partes**, no una galería: «Parte uno · lo que cuestan las
+   palabras». Cada opción dice **qué cuesta y quién lo paga**, no si es bonita.
+7. **Enseña las combinaciones** cuando las haya («A2 con D1 y C1»): muchas veces la buena
+   no es ninguna de las cinco sino dos de ellas.
+8. **La hoja se queda en el repo**, en `docs/diseño/*.html`, y el CSS o el spec la citan
+   por nombre y código de opción (`ver docs/diseño/iconos.html · I4`). Un artefacto
+   publicado se pierde; un fichero versionado explica dentro de seis meses por qué una
+   variable vale lo que vale. Publicar el artefacto es además de eso, no en vez de eso.
+
+Y una regla de oficio que ya me ha mordido: **una maqueta se comprueba en un navegador
+antes de enseñarla**, midiendo lo que dice enseñar. Un `.oscuro .t-pastilla` con espacio
+—descendiente, cuando las dos clases van en el mismo elemento— dejó cinco opciones pintadas
+exactamente igual y con toda la pinta de estar bien.
+
 ## Estado y pendientes
 
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
