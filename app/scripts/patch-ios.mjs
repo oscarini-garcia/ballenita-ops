@@ -80,6 +80,53 @@ if (existsSync(pbxPath)) {
   console.warn('[patch-ios] ⚠ No encuentro project.pbxproj; revisa docs/IOS.md.')
 }
 
+// 2 bis) Que el identificador del paquete siga siendo el que dice la configuración.
+//
+// `cap add ios` lee `appId` **al generar** el proyecto y `cap sync` no vuelve a
+// tocarlo: si `ios/` se creó cuando el valor era otro, o alguien lo escribió a
+// mano en Xcode, el binario se queda con un identificador distinto del que
+// declara `capacitor.config.json` — y nada avisa.
+//
+// El fallo que produce llega tardísimo y no se parece a su causa: el Worker
+// verifica el token de Apple contra `APPLE_AUD_IOS`, que es ese mismo
+// identificador, así que **no entra nadie** y la app se queda en la pantalla de
+// acceso diciendo «audiencia no admitida». Para entonces ya archivaste, subiste
+// y creaste la ficha en App Store Connect, que va atada al identificador y no se
+// puede renombrar.
+//
+// No se corrige solo a propósito: cambiar el identificador invalida los perfiles
+// de aprovisionamiento y la firma, y hacerlo por detrás con Xcode abierto deja
+// el proyecto en un estado que nadie pidió. Se avisa, fuerte, y se arregla en
+// Xcode en diez segundos.
+if (existsSync(pbxPath)) {
+  const { appId } = JSON.parse(readFileSync('capacitor.config.json', 'utf8'))
+  const puestos = [...readFileSync(pbxPath, 'utf8').matchAll(/PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);/g)]
+    .map((c) => c[1].trim().replace(/^"|"$/g, ''))
+    .filter((v) => !v.includes('$('))
+
+  const distintos = [...new Set(puestos)].filter((v) => v !== appId)
+
+  if (!appId) {
+    console.warn('[patch-ios] ⚠ capacitor.config.json no tiene appId; no puedo comprobar el identificador.')
+  } else if (!distintos.length) {
+    console.log(`[patch-ios] El identificador del paquete es «${appId}».`)
+  } else {
+    console.warn('')
+    console.warn('[patch-ios] ═══════════════════════════════════════════════════════════')
+    console.warn('[patch-ios] ⚠ EL IDENTIFICADOR DEL PAQUETE NO COINCIDE')
+    console.warn(`[patch-ios]   Xcode dice:                 ${distintos.join(', ')}`)
+    console.warn(`[patch-ios]   capacitor.config.json dice: ${appId}`)
+    console.warn('[patch-ios]')
+    console.warn('[patch-ios]   Con este desajuste NO ENTRA NADIE: el Worker rechaza el token')
+    console.warn('[patch-ios]   de Apple por «audiencia no admitida» (APPLE_AUD_IOS).')
+    console.warn('[patch-ios]')
+    console.warn(`[patch-ios]   Arréglalo: Xcode → target App → Signing & Capabilities →`)
+    console.warn(`[patch-ios]   Bundle Identifier → ${appId}`)
+    console.warn('[patch-ios] ═══════════════════════════════════════════════════════════')
+    console.warn('')
+  }
+}
+
 // 3) Solo iPhone.
 //
 // La plantilla de Capacitor deja el proyecto como universal
