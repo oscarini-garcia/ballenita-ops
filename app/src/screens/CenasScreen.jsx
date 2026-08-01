@@ -28,18 +28,18 @@ export default function CenasScreen({ eventId }) {
       {dinners.map((c) => (
         <div className="card" key={c.id}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <div style={{ fontWeight: 800, textTransform: 'capitalize' }}>{fmtDay(c.dia)}</div>
+            <div className="dia-cena">{fmtDay(c.dia)}</div>
             <button className="btn sm ghost" onClick={() => removeDinner(c.id)}>borrar</button>
           </div>
 
           <div className="grid2" style={{ marginTop: 8 }}>
             <div className="card tight" style={{ padding: 8 }}>
               <div className="sec-h" style={{ margin: 0 }}>Mayores</div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>{bungaName(c.bungaMayoresId)}</div>
+              <div className="anfitrion">{bungaName(c.bungaMayoresId)}</div>
             </div>
             <div className="card tight" style={{ padding: 8 }}>
               <div className="sec-h" style={{ margin: 0 }}>Niños</div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>{bungaName(c.bungaNinosId)}</div>
+              <div className="anfitrion">{bungaName(c.bungaNinosId)}</div>
             </div>
           </div>
 
@@ -48,7 +48,7 @@ export default function CenasScreen({ eventId }) {
               {c.platoIds.map((id) => dishById[id]).filter(Boolean).map((d) => (
                 <div key={d.id} style={{ display: 'flex', gap: 8, padding: '4px 0', alignItems: 'center' }}>
                   <span className="pill neutral" style={{ minWidth: 92, textAlign: 'center' }}>{catLabel(d.categorias?.[0])}</span>
-                  <span style={{ fontSize: 13.5 }}>{d.name}{d.esFavorito ? ' ⭐' : ''}</span>
+                  <span className="plato-n">{d.name}{d.esFavorito ? ' ⭐' : ''}</span>
                 </div>
               ))}
             </div>
@@ -116,14 +116,14 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
             </select></div>
         </div>
 
-        <label>Platos <span style={{ color: 'var(--ink-faint)', fontWeight: 500 }}>(varios por tipo)</span></label>
+        <label>Platos <span className="apunte">(varios por tipo)</span></label>
         <div className="chips">
           {dishes.map((d) => (
             <button key={d.id} className={`chip${platoIds.has(d.id) ? ' on' : ''}`} onClick={() => toggle(d.id)}>
               {d.name}{d.esFavorito ? ' ⭐' : ''}
             </button>
           ))}
-          {dishes.length === 0 && <span style={{ fontSize: 13, color: 'var(--ink-faint)' }}>Catálogo vacío — crea uno abajo.</span>}
+          {dishes.length === 0 && <span className="apunte">Catálogo vacío — crea uno abajo.</span>}
         </div>
 
         <div className="card tight" style={{ marginTop: 10 }}>

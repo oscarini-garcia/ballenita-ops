@@ -83,8 +83,8 @@ export default function StatsScreen({ eventId, event, suelto = false }) {
 function Tile({ v, l }) {
   return (
     <div className="card tight" style={{ padding: 12 }}>
-      <div className="tnum" style={{ fontSize: 19, fontWeight: 850, letterSpacing: '-.02em' }}>{v}</div>
-      <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 600, marginTop: 2 }}>{l}</div>
+      <div className="tnum cifra sm">{v}</div>
+      <div className="cifra-l bajo">{l}</div>
     </div>
   )
 }

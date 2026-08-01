@@ -346,6 +346,42 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .balance-hero .big { font-size: var(--t-hero); font-weight: 700; letter-spacing: -.02em; margin: 3px 0 1px; }
 .balance-hero .s { font-size: var(--t-sub); color: #bcdcea; }
 
+/* ── Rangos que estaban escritos a pelo en el JSX ───────────────────────────
+   Eran 16 `style={{ fontSize: 13 }}` y `fontWeight: 850` repartidos por cinco
+   pantallas. Un número en píxeles no pasa por `--escala`, así que «Enorme» los
+   dejaba atrás: el ajuste de tamaño crecía la app **menos esos trozos**. Y un
+   peso a pelo se saltaba la bajada de voz de §14.13 y seguía gritando.
+
+   No es un capricho de orden: es la razón por la que el control de tamaño no
+   llegaba entero a Cenas, Planes, Gastos y Estadísticas. */
+
+/* La cifra grande de una tarjeta de resumen: el total de Gastos, cada baldosa
+   de Estadísticas. */
+.cifra { font-size: calc(22px * var(--escala)); font-weight: 650; letter-spacing: -.02em; }
+.cifra.sm { font-size: var(--t-title); }
+/* Su rótulo, encima o debajo. */
+.cifra-l { font-size: var(--t-label); color: var(--ink-faint); }
+.cifra-l.bajo { margin-top: 2px; font-weight: 550; }
+
+/* El día de una cena, y los dos bungas que hacen de anfitrión. */
+.dia-cena { font-weight: 650; text-transform: capitalize; }
+.anfitrion { font-weight: 600; font-size: var(--t-sub); }
+/* Un plato dentro de la ficha de una cena. */
+.plato-n { font-size: var(--t-sub); }
+/* Texto menor y apagado dentro de un rótulo o un chip: «(varios por tipo)»,
+   «Catálogo vacío», el peso de reparto de una persona. */
+.apunte { font-size: var(--t-label); color: var(--ink-faint); font-weight: 500; }
+.apunte.dentro { opacity: .7; font-size: var(--t-micro); }
+/* El título de un plan y su línea de debajo. */
+.plan-n { font-weight: 600; font-size: var(--t-row); }
+/* Rótulo corto delante de un mando: «Eres:». */
+.rotulo-mando { font-size: var(--t-label); font-weight: 600; color: var(--ink-soft); }
+/* Un selector de fecha que va dentro de una fila de chips, no a ancho completo. */
+.fecha-chip { width: auto; padding: 7px 11px; font-size: var(--t-sub); }
+/* La marca de un artículo ya comprado. Blanco fijo era el único color a pelo que
+   quedaba; sobre el acento, `--foam-2` es lo correcto en las dos caras. */
+.av.hecho { background: var(--spout); color: var(--foam-2); }
+
 .note { font-size: var(--t-sub); line-height: 1.45; color: var(--ink-soft);
   background: color-mix(in srgb, var(--spout) 7%, var(--foam-2));
   border: 1px dashed var(--line); border-radius: var(--r); padding: 11px 13px; }
