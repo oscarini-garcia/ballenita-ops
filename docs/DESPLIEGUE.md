@@ -338,7 +338,7 @@ en `app/package.json`, mergea a `main`, y el workflow publica el OTA.
 | Todo da 401 de repente | Cambió `SESION_SECRETO`; hay que volver a entrar |
 | El punto de la cabecera se queda ámbar | Hay cambios en la cola que el servidor no acepta. La consola del navegador lista cuáles y por qué |
 | En iOS, «esta versión no trae el acceso con Apple» | La cáscara instalada es anterior al plugin. Hace falta binario nuevo, no un OTA |
-| En iOS, «Apple canceló el acceso (error 1001)» | 1001 es *cancelado*, y sale igual cuando la hoja ni se presenta. Si la hoja **no** aparece: iCloud sin sesión, Apple ID sin verificación en dos pasos, Tiempo de uso restringiendo, o binario sin la capacidad «Sign in with Apple» (eso último pide compilación nueva). Mientras tanto, «Usar solo en este móvil» deja trabajar y lo apuntado sube al entrar |
+| En iOS, «Apple canceló el acceso (error 1001)» | 1001 es *cancelado*, y sale igual en tres casos. Si la hoja **no** aparece: iCloud sin sesión, Apple ID sin verificación en dos pasos, Tiempo de uso restringiendo, o binario sin la capacidad «Sign in with Apple» (eso último pide compilación nueva). Si aparece y Apple dice **«Registro no completado»**: es la cuenta, no la app — contrato pendiente en `developer.apple.com/account`, términos de iCloud sin aceptar, o un registro a medias que hay que revocar en Ajustes → Inicio de sesión y seguridad. Mientras tanto, «Usar solo en este móvil» deja trabajar y lo apuntado sube al entrar |
 | El OTA no baja | Comprueba `otaManifiesto` en `config.json`, que el release exista y que subiste la versión en `app/package.json` |
 
 Trazas en vivo del Worker:
