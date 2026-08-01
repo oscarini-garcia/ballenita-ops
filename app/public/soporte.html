@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ayuda · Ballena Ops</title>
+<meta name="description" content="Cómo se usa Ballena Ops, qué hacer cuando algo no va y a quién escribir.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!--
+  La otra URL que exige la ficha de la App Store: la página de soporte. Apple la
+  comprueba antes de la revisión, igual que la de privacidad.
+
+  Va suelta y con los estilos dentro por el mismo motivo: tiene que seguir en pie
+  aunque la aplicación no arranque, que es justo cuando alguien viene a buscarla.
+-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --fondo: #EDF3F5; --papel: #fff; --tinta: #10262F; --suave: #4A6673;
+    --linea: #D8E4E9; --azul: #0E7CA6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fondo: #071820; --papel: #0D2530; --tinta: #E8F2F6; --suave: #93AFBA;
+            --linea: #16394A; --azul: #4FC3E8; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--tinta);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    padding: 32px 20px 64px; }
+  main { max-width: 42rem; margin: 0 auto; background: var(--papel);
+    border: 1px solid var(--linea); border-radius: 16px; padding: 28px 26px 34px; }
+  h1 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 4px; }
+  h2 { font-size: 18px; letter-spacing: -.01em; margin: 32px 0 8px; }
+  h3 { font-size: 15.5px; margin: 20px 0 4px; }
+  p, li { color: var(--suave); }
+  li { margin-bottom: 6px; }
+  strong { color: var(--tinta); }
+  a { color: var(--azul); }
+  .lede { font-size: 15px; margin: 0 0 24px; }
+  .pie { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--linea);
+    font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ayuda 🐳</h1>
+  <p class="lede">
+    Ballena Ops organiza los viajes de un grupo de amigos: los gastos compartidos
+    entre familias, las cenas y los planes. Esta página es para cuando algo no va.
+  </p>
+
+  <h2>Cómo se entra</h2>
+  <p>
+    El acceso es <strong>por invitación</strong> y solo desde la app de iOS. La
+    primera vez: pulsa <strong>Entrar con Apple</strong>; si todavía no tienes
+    acceso, la app te enseña un código. Pásalo por el grupo a quien lo administre,
+    que lo pega en <strong>Ajustes → Tu cuenta → Dar acceso</strong>. Vuelve a pulsar «Entrar
+    con Apple» y ya está.
+  </p>
+  <p>
+    En el navegador, Ballena Ops funciona como una libreta local de ese
+    dispositivo: se puede usar entera, pero no se sincroniza con el grupo. Para
+    compartir gastos hace falta la app de iOS.
+  </p>
+
+  <h2>Cuando algo no va</h2>
+
+  <h3>Dice «● local» y no sincroniza</h3>
+  <p>
+    Estás en el navegador o en la PWA instalada, no en la app de iOS. Ahí no hay
+    sincronización a propósito.
+  </p>
+
+  <h3>No veo un gasto que ha metido otro</h3>
+  <p>
+    Toca el <strong>punto de la cabecera</strong>, arriba a la derecha: sube lo
+    tuyo, trae lo del grupo y de paso comprueba si hay versión nueva de la app.
+    Se sincroniza solo al abrirse, al volver la conexión y cada minuto y medio,
+    pero iOS puede congelar la app en segundo plano.
+  </p>
+
+  <h3>Escribí algo sin cobertura</h3>
+  <p>
+    No se ha perdido: se queda en una cola dentro del móvil y sube en cuanto
+    vuelva la red. El punto de la cabecera se pone en ámbar mientras
+    haya cosas pendientes.
+  </p>
+
+  <h3>No veo los últimos cambios de la app</h3>
+  <p>
+    El punto de la cabecera comprueba también la versión cada vez que
+    sincronizas. Si aun así no la ves, <strong>Ajustes → La app → 🔄 Forzar la
+    última versión</strong> borra las cachés y recarga, sin tener que borrar y
+    reinstalar nada.
+  </p>
+
+  <h3>«Esta versión de la app no trae el acceso con Apple»</h3>
+  <p>
+    Tu app es de antes de que existiera el acceso. Actualízala desde la App Store:
+    esto no se arregla con el botón de comprobar.
+  </p>
+
+  <h3>Los saldos no me cuadran</h3>
+  <p>
+    Los saldos se calculan en tu móvil a partir de los gastos, y no se
+    sincronizan nunca: si a alguien le salen otros números, es que a uno de los
+    dos le falta algún gasto por sincronizar. Sincronizad los dos y volved a
+    mirar.
+  </p>
+
+  <h2>Eliminar tu cuenta</h2>
+  <p>
+    Desde la propia app: <strong>Ajustes → Tu cuenta → Eliminar mi cuenta</strong>. Se deshace
+    el vínculo con tu Apple ID y se le avisa a Apple. Los gastos y las cenas que
+    apuntaste se quedan, porque son del grupo y quitarlos descuadraría los saldos
+    de los demás.
+  </p>
+
+  <h2>Privacidad</h2>
+  <p>
+    Sin anuncios, sin analítica y sin rastreo. Lo que se guarda, dónde y durante
+    cuánto está en la <a href="/privacidad">política de privacidad</a>.
+  </p>
+
+  <div class="pie">
+    <p>
+      ¿Sigue sin ir? Escribe a
+      <a href="mailto:oscarini@gmail.com">oscarini@gmail.com</a> contando qué
+      hacías y qué pasó. Si puedes, di también la versión que aparece en
+      <strong>Ajustes → La app</strong>.
+    </p>
+  </div>
+</main>
+</body>
+</html>

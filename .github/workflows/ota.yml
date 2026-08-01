@@ -60,9 +60,6 @@ jobs:
       # build ya no necesita ningún secreto de sincronización.
       - if: steps.check.outputs.publish == 'true'
         run: npm run build:app
-        env:
-          VITE_ONESIGNAL_APP_ID: ${{ secrets.VITE_ONESIGNAL_APP_ID }}
-          VITE_PUSH_ENDPOINT: ${{ secrets.VITE_PUSH_ENDPOINT }}
 
       # Un bundle con el marcador de ejemplo dejaría a todos los móviles
       # apuntando a una API que no existe, y encima se aplicaría solo.
@@ -73,6 +70,19 @@ jobs:
             echo "::error file=app/public/config.json::config.json todavía tiene el marcador EJEMPLO; sustitúyelo antes de publicar un OTA."
             exit 1
           fi
+
+      # Las dos URL que exige la ficha de la App Store. Apple las comprueba, y un
+      # 404 es un rechazo sin llegar a que nadie mire la aplicación. Aquí se
+      # verifica que salen del build; que Pages las sirva, con curl (docs/APPSTORE.md, fase 4).
+      - name: Comprobar que privacidad y soporte siguen en el bundle
+        if: steps.check.outputs.publish == 'true'
+        run: |
+          for pagina in privacidad soporte; do
+            if [ ! -s "dist/$pagina.html" ]; then
+              echo "::error::falta dist/$pagina.html; la ficha de la App Store apunta a esa URL."
+              exit 1
+            fi
+          done
 
       - name: Empaquetar bundle + manifiesto
         if: steps.check.outputs.publish == 'true'

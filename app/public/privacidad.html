@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacidad · Ballena Ops</title>
+<meta name="description" content="Qué guarda Ballena Ops, dónde y durante cuánto tiempo.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!--
+  Página obligatoria de la ficha de la App Store: Apple pide una URL de política
+  de privacidad y la comprueba antes de la revisión. Un 404 aquí es un rechazo
+  sin llegar a que nadie mire la aplicación.
+
+  Es HTML suelto y no una pantalla de la PWA a propósito: tiene que poder leerse
+  sin instalar nada, desde el navegador de quien revisa, y seguir en pie aunque
+  la aplicación no arranque. Por eso también lleva sus estilos dentro.
+-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --fondo: #EDF3F5; --papel: #fff; --tinta: #10262F; --suave: #4A6673;
+    --linea: #D8E4E9; --azul: #0E7CA6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fondo: #071820; --papel: #0D2530; --tinta: #E8F2F6; --suave: #93AFBA;
+            --linea: #16394A; --azul: #4FC3E8; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--tinta);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    padding: 32px 20px 64px; }
+  main { max-width: 42rem; margin: 0 auto; background: var(--papel);
+    border: 1px solid var(--linea); border-radius: 16px; padding: 28px 26px 34px; }
+  h1 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 4px; }
+  h2 { font-size: 18px; letter-spacing: -.01em; margin: 32px 0 8px; }
+  p, li { color: var(--suave); }
+  li { margin-bottom: 6px; }
+  strong { color: var(--tinta); }
+  a { color: var(--azul); }
+  .fecha { font-size: 13px; color: var(--suave); margin: 0 0 24px; }
+  .pie { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--linea);
+    font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
+  th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--linea);
+    vertical-align: top; color: var(--suave); }
+  th { color: var(--tinta); font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacidad 🐳</h1>
+  <p class="fecha">Ballena Ops · última revisión: agosto de 2026</p>
+
+  <p>
+    Ballena Ops es la libreta de un grupo de amigos concreto para organizar sus
+    viajes: los gastos compartidos, las cenas y los planes. No es un servicio
+    abierto, no se vende nada y no hay ningún negocio detrás. Esta página cuenta
+    exactamente qué se guarda y dónde.
+  </p>
+
+  <h2>Lo que no hacemos</h2>
+  <ul>
+    <li><strong>No hay publicidad</strong> ni espacios vendidos a nadie.</li>
+    <li><strong>No hay analítica</strong>: ni Google Analytics, ni contadores, ni
+      informes de fallos automáticos.</li>
+    <li><strong>No hay rastreo</strong>. No se sigue a nadie entre aplicaciones ni
+      entre sitios web, ni se comparte nada con corredores de datos. Por eso la
+      aplicación tampoco pide el permiso de seguimiento de iOS.</li>
+    <li><strong>No se vende ni se cede nada</strong> a terceros.</li>
+    <li><strong>No hay perfilado</strong> ni decisiones automatizadas.</li>
+  </ul>
+
+  <h2>Lo que se guarda</h2>
+  <table>
+    <tr><th>Dato</th><th>Para qué</th><th>Dónde</th></tr>
+    <tr>
+      <td>El identificador que Apple da a esta aplicación al entrar (un código
+        largo, distinto para cada app)</td>
+      <td>Reconocer que quien abre la app es del grupo</td>
+      <td>Base de datos del grupo</td>
+    </tr>
+    <tr>
+      <td>Un nombre corto, para reconocerse en la lista</td>
+      <td>Que el grupo sepa quién es quién</td>
+      <td>Base de datos del grupo</td>
+    </tr>
+    <tr>
+      <td>Lo que se apunta en la app: eventos, familias, gastos, liquidaciones,
+        cenas, planes y la lista de la compra</td>
+      <td>Es la aplicación</td>
+      <td>Base de datos del grupo y copia en cada móvil</td>
+    </tr>
+    <tr>
+      <td>Un identificador del dispositivo, generado por la propia app</td>
+      <td>Saber cuándo sincronizó cada móvil</td>
+      <td>Base de datos del grupo</td>
+    </tr>
+    <tr>
+      <td>Tu foto de perfil, si eliges una</td>
+      <td>Verte a ti mismo en la app</td>
+      <td><strong>Solo en tu móvil</strong>: no se sube a ningún sitio</td>
+    </tr>
+  </table>
+
+  <p style="margin-top:14px">
+    Apple puede facilitar una dirección de correo al entrar por primera vez. Si
+    llega, se guarda junto a la cuenta y no se usa para nada más: no se manda
+    ningún correo desde aquí, ni comercial ni de ninguna otra clase.
+  </p>
+
+  <h2>Entrar sin estar invitado no deja rastro</h2>
+  <p>
+    El acceso a Ballena Ops es <strong>por invitación</strong>. Quien pulsa
+    «Entrar con Apple» sin que alguien del grupo lo haya dado de alta antes
+    recibe un mensaje diciéndolo, y <strong>no se crea ninguna cuenta ni se
+    guarda ningún dato de ese intento</strong>: ni el identificador, ni el
+    correo, ni el hecho de haberlo intentado. No hay, por tanto, nada que
+    eliminar después.
+  </p>
+  <p>
+    La demostración con datos de ejemplo, que se abre desde esa misma pantalla,
+    funciona entera dentro del móvil, con datos inventados y sin hablar con
+    ningún servidor.
+  </p>
+
+  <h2>Dónde vive todo esto</h2>
+  <ul>
+    <li>En <strong>tu propio móvil</strong>, para que la app funcione sin
+      cobertura. Se borra al eliminar la aplicación.</li>
+    <li>En una base de datos <strong>Cloudflare D1</strong>, a la que solo llega
+      el servidor de este proyecto. No hay más proveedores: ni servicios de
+      avisos, ni almacenamiento de terceros, ni SDK de nadie dentro de la app.</li>
+  </ul>
+  <p>
+    Los datos se conservan mientras el grupo siga usando la aplicación. Un evento
+    o un gasto borrado dentro de la app deja de mostrarse y de enviarse a los
+    móviles.
+  </p>
+
+  <h2>Eliminar tu cuenta</h2>
+  <p>
+    Desde la propia aplicación, en <strong>Ajustes → Tu cuenta → Eliminar mi cuenta</strong>.
+    Se elimina el vínculo entre tu Apple ID y el grupo y los dispositivos desde
+    los que sincronizabas, y se le pide a Apple que revoque la autorización, de
+    modo que Ballena Ops desaparece de «Apps que usan tu Apple ID». No hace falta
+    escribirle a nadie ni pasar por ninguna web.
+  </p>
+  <p>
+    Lo que <strong>no</strong> se borra son los hechos del grupo: los gastos que
+    pagaste, las cenas que cocinaste, los planes que votaste. No son datos de tu
+    cuenta, son del grupo —los demás siguen debiendo o cobrando el mismo dinero— y
+    borrarlos descuadraría los saldos de todo el mundo. Si quieres que además se
+    vaya eso, escribe al correo de abajo y se hace a mano.
+  </p>
+
+  <h2>Menores</h2>
+  <p>
+    En el grupo hay niños, y aparecen en la aplicación como participantes de un
+    gasto o de una cena: un nombre y poco más. No tienen cuenta, no entran en la
+    aplicación y no se recoge de ellos nada distinto de eso. Quienes gestionan
+    esos datos son sus propias familias, que son las que usan la app.
+  </p>
+
+  <h2>Tus derechos</h2>
+  <p>
+    Puedes pedir acceso a lo que hay guardado sobre ti, su corrección, su
+    supresión o una copia, escribiendo al correo de abajo. Al ser un grupo de
+    amigos, la vía práctica y más rápida suele ser decirlo en el grupo.
+  </p>
+
+  <div class="pie">
+    <p>
+      Responsable y contacto: <a href="mailto:oscarini@gmail.com">oscarini@gmail.com</a><br>
+      ¿Algo no funciona? <a href="/soporte">Página de ayuda</a>
+    </p>
+  </div>
+</main>
+</body>
+</html>

@@ -16,6 +16,7 @@ import { useSyncEngine } from './sync/engine.js'
 import { isNative, tap } from './lib/native.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
+import { enDemo, salirDemo } from './lib/demo.js'
 import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
@@ -52,6 +53,9 @@ export default function App() {
   // Quien no puede entrar con Apple sigue en local (ver AccesoScreen). Es una
   // decisión de este móvil, así que se recuerda y no se vuelve a preguntar.
   const [soloLocal, setSoloLocal] = useState(modoLocal)
+  // La demostración abre la puerta igual, pero **no** se recuerda entre
+  // arranques y lo que siembra se borra al salir. Ver `lib/demo.js`.
+  const [demo, setDemo] = useState(enDemo)
   useEffect(() => { cargarConfiguracion().then(setConfiguracion) }, [])
 
   const sync = useSyncEngine()
@@ -113,13 +117,14 @@ export default function App() {
   // Solo la app de iOS entra: la sincronización con el grupo vive en la cáscara
   // nativa. En el navegador y en la PWA instalada, Ballena Ops es una libreta
   // local de ese dispositivo y no pide nada.
-  if (isNative() && estaConfigurada(configuracion) && !sesion && !soloLocal) {
+  if (isNative() && estaConfigurada(configuracion) && !sesion && !soloLocal && !demo) {
     return (
       <div className="app">
         <AccesoScreen
           configuracion={configuracion}
           onEntrar={setSesion}
           onLocal={() => setSoloLocal(true)}
+          onDemo={(id) => { setDemo(true); if (id) pick(id) }}
         />
       </div>
     )
@@ -157,10 +162,25 @@ export default function App() {
           <div className="ti">{event.name}</div>
           <div className="su">{event.lugar || 'Ballena Ops'}</div>
         </div>
-        {/* El punto vuelve a la cabecera, y ahora es el botón de sincronizarlo
-            todo: los datos del grupo y, detrás, la versión de la app. Los
-            ajustes se han ido abajo a la derecha, que es donde llega el pulgar. */}
-        <SyncDot sync={sync} onClick={sincronizarTodoAhora} />
+        {/* En demostración la pastilla **sustituye** al punto, no se suma a él.
+            La cabecera tiene sitio para tres cosas y el punto no significa nada
+            aquí: en una demostración no hay nada que sincronizar, y enseñarlo en
+            verde sería mentir. La pastilla dice lo único que importa —que todo lo
+            que se ve es inventado— y es además la salida. */}
+        {demo ? (
+          <button
+            className="pill demo-pill"
+            title="Salir de la demostración"
+            onClick={async () => { tap(); await salirDemo(); pick(null); setDemo(false) }}
+          >
+            demostración · salir
+          </button>
+        ) : (
+          /* El punto vuelve a la cabecera, y ahora es el botón de sincronizarlo
+             todo: los datos del grupo y, detrás, la versión de la app. Los
+             ajustes se han ido abajo a la derecha, que es donde llega el pulgar. */
+          <SyncDot sync={sync} onClick={sincronizarTodoAhora} />
+        )}
       </header>
 
       {tab === 'hoy' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}

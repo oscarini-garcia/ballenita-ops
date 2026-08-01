@@ -33,6 +33,14 @@ APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
 # Secretos, que NO van aquí. Se registran con `wrangler secret put`:
 #   SESION_SECRETO  · clave con la que este Worker firma las sesiones
 #   TOKEN_SERVICIO  · credencial de la siembra desde JSONBin (/api/importar)
+#
+# Y tres más, solo para la revocación al darse de baja (directriz 5.1.1(v) de
+# Apple). Sin ellos la baja funciona igual —la cuenta se elimina— pero no se le
+# avisa a Apple, y la app se queda en «Apps que usan tu Apple ID». Ver
+# docs/APPSTORE.md §2:
+#   APPLE_CLAVE_P8  · el contenido del .p8 de Sign in with Apple, tal cual
+#   APPLE_CLAVE_ID  · el Key ID de esa clave (10 caracteres)
+#   APPLE_EQUIPO    · el Team ID de la cuenta de desarrollador (10 caracteres)
 
 [observability]
 enabled = true

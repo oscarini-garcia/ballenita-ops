@@ -91,3 +91,17 @@ export const listarCuentas = () => peticion('/api/cuentas')
 
 export const gestionarCuenta = (cuerpo) =>
   peticion('/api/cuentas', { method: 'POST', body: JSON.stringify(cuerpo) })
+
+/**
+ * Elimina la cuenta propia (directriz 5.1.1(v) de la App Store).
+ *
+ * El código de Apple es opcional: sirve para que el Worker revoque además la
+ * autorización ante Apple. Sin él la cuenta se elimina igual y la respuesta lo
+ * dice en `revocado_en_apple`, que es lo que la pantalla enseña.
+ */
+export const eliminarMiCuenta = (codigoApple = null) =>
+  peticion('/api/cuenta/baja', {
+    method: 'POST',
+    plataforma: 'ios',
+    body: JSON.stringify({ codigo_apple: codigoApple }),
+  })

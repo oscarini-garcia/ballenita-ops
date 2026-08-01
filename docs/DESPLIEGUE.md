@@ -131,11 +131,20 @@ APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
 > y ese identificador es la clave con la que reconocemos a cada persona. Mal
 > puesto, la misma persona tendría una cuenta distinta en el móvil y en la web.
 
-### 3.3 Nada de claves privadas
+### 3.3 Entrar no necesita ninguna clave privada
 
-Este montaje **no** usa el flujo de servidor de Apple, así que no hace falta
-generar ni custodiar ninguna clave `.p8`. El cliente obtiene un token de
-identidad y el Worker verifica su firma contra las claves públicas de Apple.
+Para **el acceso**, este montaje no usa el flujo de servidor de Apple: el cliente
+obtiene un token de identidad y el Worker verifica su firma contra las claves
+públicas de Apple. Un secreto menos que rotar, y ningún fallo de firma posible en
+el camino por el que entra todo el mundo todos los días.
+
+Hay exactamente **una** cosa que sí pide una clave `.p8`, y es la baja de cuenta:
+Apple no se conforma con que la app olvide a quien se va, exige que se le avise
+para que Ballena Ops desaparezca de «Apps que usan tu Apple ID». Es la mitad
+invisible de la directriz 5.1.1(v), hace falta solo para enviar a la App Store, y
+está en [`APPSTORE.md`](APPSTORE.md), fase 1. Sin esa clave la baja funciona igual —la
+cuenta se elimina— pero no se avisa a Apple, y la app lo dice al terminar en vez
+de callárselo.
 
 ### 3.4 El nombre solo llega una vez
 
@@ -213,6 +222,19 @@ compartidos viven en la app de iOS.
 
 Sigue mereciendo la pena publicarla: es donde se prueba la interfaz sin compilar
 nada, y es el mismo código que va dentro de la app.
+
+Y hay dos páginas que **no** son la app y que se sirven desde aquí:
+
+```
+https://ballenita-ops.galoopa.store/privacidad
+https://ballenita-ops.galoopa.store/soporte
+```
+
+Son las dos URL que exige la ficha de la App Store, y Apple las comprueba antes
+de que nadie mire la aplicación: un 404 ahí es un rechazo administrativo. Son
+HTML suelto (`app/public/`) para que sigan en pie aunque la app no arranque, que
+es justo cuando alguien viene a buscarlas. Compruébalas con `curl` en cuanto
+Pages esté publicando ([`APPSTORE.md`](APPSTORE.md), fase 4).
 
 `app/public/config.json` ya está relleno y sin marcadores:
 

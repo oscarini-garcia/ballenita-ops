@@ -2,6 +2,7 @@ import { useState } from 'react'
 import WhaleLogo from '../components/WhaleLogo.jsx'
 import { entrarConApple } from '../auth/apple.js'
 import { activarModoLocal, guardarSesion } from '../auth/sesion.js'
+import { activarDemo } from '../lib/demo.js'
 import { tap } from '../lib/native.js'
 
 /**
@@ -18,8 +19,16 @@ import { tap } from '../lib/native.js'
  * fuera de la propia libreta el fin de semana del viaje no lo arregla nadie. De
  * ahí la salida en local: se entra a apuntar, y lo apuntado sube el día que la
  * puerta abra.
+ *
+ * Y una tercera puerta, que resuelve un problema **distinto** aunque se le
+ * parezca: la demostración. La local es para quien es del grupo y no puede
+ * entrar, y por eso arranca **vacía** y lo que se escriba en ella acaba
+ * subiendo. La demostración es para quien no es del grupo —el equipo de
+ * revisión de Apple, sin ir más lejos—, arranca **llena** de un camping
+ * inventado y no sube nada nunca. Una app vacía no enseña lo que hace, que es
+ * justo lo que hay que enseñarle a quien revisa. El porqué está en `lib/demo.js`.
  */
-export default function AccesoScreen({ configuracion, onEntrar, onLocal }) {
+export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo }) {
   const [entrando, setEntrando] = useState(false)
   const [error, setError] = useState(null)
   const [identificador, setIdentificador] = useState(null)
@@ -46,6 +55,11 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal }) {
     tap()
     activarModoLocal()
     onLocal?.()
+  }
+
+  async function demostracion() {
+    tap()
+    onDemo?.(await activarDemo())
   }
 
   async function copiar() {
@@ -86,6 +100,14 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal }) {
               <button className="btn sm ghost" onClick={copiar}>
                 {copiado ? '✓ copiado' : 'copiar código'}
               </button>
+              {/* Que no se haya guardado nada no es un consuelo: es el motivo por
+                  el que aquí no hay ningún «eliminar mi solicitud». Quien no
+                  entra no deja cuenta que borrar, y conviene decirlo donde se
+                  lee y no solo en la política de privacidad. */}
+              <p className="note">
+                Mientras tanto no hemos guardado nada tuyo: sin acceso no se crea
+                ninguna cuenta ni queda registro de este intento.
+              </p>
             </>
           )}
         </div>
@@ -98,6 +120,15 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal }) {
         Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda
         aquí. Lo que apuntes se sube entero en cuanto consigas entrar, así que no
         se pierde nada por empezar así.
+      </p>
+
+      <button className="btn block ghost" onClick={demostracion}>
+        Ver una demostración con datos de ejemplo
+      </button>
+      <p className="note">
+        ¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo
+        funciona. No hace falta cuenta, no se conecta a nada y al salir no queda
+        rastro.
       </p>
     </div>
   )

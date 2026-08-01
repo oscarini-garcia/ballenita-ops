@@ -73,6 +73,52 @@ export function explicarFalloDeApple(error) {
 }
 
 /**
+ * Abre la hoja del sistema y devuelve lo que Apple conteste.
+ *
+ * Está extraído porque hay **dos** momentos que pasan por la hoja: entrar y
+ * darse de baja. El segundo la necesita para conseguir el código con el que el
+ * Worker le dice a Apple que el vínculo se acabó (`api/src/revocacion.js`).
+ *
+ * Que el plugin no exista significa binario antiguo, y eso se distingue aquí; lo
+ * demás lo diagnostica `explicarFalloDeApple`, que es donde está el matiz.
+ */
+async function autorizar() {
+  let plugin
+  try {
+    ;({ SignInWithApple: plugin } = await import('@capacitor-community/apple-sign-in'))
+  } catch {
+    throw new Error(
+      'Esta versión de la app no trae el acceso con Apple. Hace falta una compilación nueva; no basta con una actualización por OTA.',
+    )
+  }
+
+  try {
+    return (await plugin.authorize({ scopes: 'name' }))?.response ?? {}
+  } catch (error) {
+    throw new Error(explicarFalloDeApple(error))
+  }
+}
+
+/**
+ * Un código de autorización recién emitido, para revocar la sesión ante Apple
+ * al darse de baja.
+ *
+ * Se pide en el momento de la baja y no se guarda de una vez para siempre: el
+ * porqué está en `api/src/revocacion.js`. Devuelve `null` en vez de lanzar si
+ * algo va mal —sin plugin, hoja cancelada, Apple que no contesta—, porque quien
+ * llama está a mitad de una baja de cuenta y **eso no puede fallar**. Quedarse
+ * sin avisar a Apple es peor que avisarle, pero muchísimo mejor que dejar a
+ * alguien sin poder irse.
+ */
+export async function codigoDeAutorizacionDeApple() {
+  try {
+    return (await autorizar()).authorizationCode ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Devuelve `{ token, cuenta }` o lanza un error con un mensaje legible. El
  * error de «todavía no tienes acceso» lleva además el identificador que hay que
  * pasarle a quien administre el grupo.
@@ -87,28 +133,8 @@ export async function entrarConApple(configuracion) {
     throw new Error('Esta instalación todavía no tiene configurada la API.')
   }
 
-  // Las dos formas de fallar aquí piden arreglos muy distintos, y confundirlas
-  // manda a buscar donde no es. Que el plugin no exista significa binario
-  // antiguo; que exista y falle suele ser la capacidad «Sign in with Apple» sin
-  // marcar en Xcode, o sencillamente que se canceló la hoja.
-  let plugin
-  try {
-    ;({ SignInWithApple: plugin } = await import('@capacitor-community/apple-sign-in'))
-  } catch {
-    throw new Error(
-      'Esta versión de la app no trae el acceso con Apple. Hace falta una compilación nueva; no basta con una actualización por OTA.',
-    )
-  }
-
-  let idToken = null
-  let nombre = ''
-  try {
-    const respuesta = await plugin.authorize({ scopes: 'name' })
-    idToken = respuesta?.response?.identityToken ?? null
-    nombre = [respuesta?.response?.givenName, respuesta?.response?.familyName].filter(Boolean).join(' ')
-  } catch (error) {
-    throw new Error(explicarFalloDeApple(error))
-  }
+  const { identityToken: idToken, givenName, familyName } = await autorizar()
+  const nombre = [givenName, familyName].filter(Boolean).join(' ')
 
   if (!idToken) throw new Error('Apple no devolvió un token de identidad.')
 

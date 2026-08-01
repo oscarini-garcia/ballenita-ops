@@ -194,6 +194,16 @@ button, input, select { font: inherit; color: inherit; }
   border-radius: 8px; padding: 7px 9px; font-size: var(--t-body); line-height: 1; cursor: pointer; }
 .appbar .iconbtn:active { transform: translateY(1px); }
 
+/* Pastilla de demostración. Escrita y permanente, no un icono: durante una
+   demostración todo lo que se ve es inventado, y esa es la única señal de que
+   no se está mirando el evento de verdad del grupo. Es además la salida, y
+   ocupa el sitio del punto de sincronización —no se suma a él—, porque en una
+   demostración no hay nada que sincronizar. */
+.appbar .demo-pill { flex: none; border: none; cursor: pointer; color: var(--appbar-ink);
+  background: rgba(255,255,255,.2); letter-spacing: .02em; min-height: var(--toque);
+  padding-inline: 11px; }
+.appbar .demo-pill:active { transform: translateY(1px); }
+
 /* Punto de estado de la sincronización. Verde al día · amarillo con cola · rojo
    sin red · gris solo local. Vuelve a la cabecera, y ahora **es el botón de
    sincronizar todo**: un toque sube los datos, trae la copia del grupo y de paso
@@ -591,7 +601,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .acceso-aviso .note { color: #a9cede; margin: 0; }
 .acceso-codigo { display: block; width: 100%; word-break: break-all; font-size: var(--t-label);
   background: rgba(0,0,0,.25); border-radius: 6px; padding: 8px; }
-.acceso-aviso .btn.ghost { color: #eaf6fb; border-color: rgba(255,255,255,.3); }
+/* El fondo de esta pantalla es oscuro siempre —no sigue la cara clara del tema—,
+   así que lo apagado del `ghost` y de `note` hay que reponerlo aquí: con sus
+   colores de siempre, tinta sobre papel, quedarían ilegibles. El tamaño sí sale
+   de la escala, como todo lo demás. */
+.acceso .btn.ghost { color: #eaf6fb; border-color: rgba(255,255,255,.3); background: transparent; }
+.acceso > .note { color: #a9cede; font-size: var(--t-label); line-height: 1.5; margin: 0 auto;
+  max-width: 340px; background: none; padding: 0; }
 
 /* Sección de cuentas en Ajustes (solo administradores). */
 .cuenta-fila { display: flex; align-items: center; gap: 10px; padding: 9px 0;

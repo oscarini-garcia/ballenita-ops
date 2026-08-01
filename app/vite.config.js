@@ -24,6 +24,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         clientsClaim: true,
         skipWaiting: true,
+        // `/privacidad` y `/soporte` son páginas sueltas, no rutas de la SPA: son
+        // las dos URL que exige la ficha de la App Store y Apple las comprueba.
+        // Sin esta lista, el service worker contestaría a esas navegaciones con
+        // el `index.html` de la app y quien las abriera vería la aplicación en
+        // vez de la página —incluido, con mala suerte, quien revisa—.
+        navigateFallbackDenylist: [/^\/privacidad/, /^\/soporte/],
       },
       manifest: {
         name: 'Ballena Ops',

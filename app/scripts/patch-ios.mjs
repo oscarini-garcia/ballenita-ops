@@ -1,7 +1,12 @@
-// Aplica automáticamente el fix del rebote (rubber-band) del scroll al proyecto iOS
-// generado por Capacitor, para no tener que tocar Xcode a mano. Idempotente: se puede
-// ejecutar todas las veces. Se engancha a `npm run sync:ios`. Si ios/ aún no existe
-// (no has corrido `npx cap add ios`), no hace nada.
+// Aplica al proyecto iOS generado por Capacitor lo que no cabe en la web: el fix
+// del rebote (rubber-band) del scroll, la declaración de que esto es una app de
+// iPhone, el cumplimiento de exportación y el nombre bajo el icono. Idempotente:
+// se puede ejecutar todas las veces. Se engancha a `npm run sync:ios`. Si ios/
+// aún no existe (no has corrido `npx cap add ios`), no hace nada.
+//
+// Todo esto va aquí y no a mano en Xcode porque **`ios/` no se versiona**: lo
+// regenera `cap add ios`, y cualquier cosa puesta a mano se perdería en la
+// siguiente regeneración sin que nadie recuerde por qué volvió el problema.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -75,7 +80,88 @@ if (existsSync(pbxPath)) {
   console.warn('[patch-ios] ⚠ No encuentro project.pbxproj; revisa docs/IOS.md.')
 }
 
-// 3) Apuntar el storyboard al MainViewController (en vez del CAPBridgeViewController).
+// 3) Solo iPhone.
+//
+// La plantilla de Capacitor deja el proyecto como universal
+// (`TARGETED_DEVICE_FAMILY = "1,2"`), y eso tiene una consecuencia que no aparece
+// hasta el final del todo: App Store Connect exige capturas de iPad de 13
+// pulgadas y no deja enviar sin ellas. Se puede sortear haciéndolas en el
+// simulador, pero entonces se publica para iPad una interfaz pensada para el
+// pulgar —pestañas abajo, una sola columna—: capturas honradas de algo que nadie
+// ha mirado en esa pantalla.
+//
+// Así que se declara lo que es: una aplicación de iPhone. Añadir iPad más
+// adelante es quitar estas líneas y diseñarlo en serio.
+if (existsSync(pbxPath)) {
+  const proyecto = readFileSync(pbxPath, 'utf8')
+  if (!proyecto.includes('TARGETED_DEVICE_FAMILY = "1,2"')) {
+    console.log('[patch-ios] Ya estaba declarada como aplicación de iPhone.')
+  } else {
+    writeFileSync(pbxPath, proyecto.replaceAll('TARGETED_DEVICE_FAMILY = "1,2"', 'TARGETED_DEVICE_FAMILY = 1'))
+    console.log('[patch-ios] Solo iPhone: no se pedirán capturas de iPad ✅')
+  }
+}
+
+const plistPath = join(IOS_APP, 'Info.plist')
+
+// 4) Declarar el cumplimiento de exportación en el Info.plist.
+//
+// Ballena Ops solo usa HTTPS, que es criptografía exenta; pero si no se declara,
+// App Store Connect lo pregunta en **cada** subida y deja la build retenida
+// hasta que alguien conteste. Contestarlo aquí, una vez, ahorra ese paso en
+// todas las siguientes.
+if (existsSync(plistPath)) {
+  const plist = readFileSync(plistPath, 'utf8')
+  if (plist.includes('ITSAppUsesNonExemptEncryption')) {
+    console.log('[patch-ios] El cumplimiento de exportación ya estaba declarado.')
+  } else {
+    const cierre = plist.lastIndexOf('</dict>')
+    if (cierre === -1) {
+      console.warn('[patch-ios] ⚠ Info.plist no tiene la forma esperada; declara la exportación en Xcode.')
+    } else {
+      const declaracion = '\t<key>ITSAppUsesNonExemptEncryption</key>\n\t<false/>\n'
+      writeFileSync(plistPath, plist.slice(0, cierre) + declaracion + plist.slice(cierre))
+      console.log('[patch-ios] Cumplimiento de exportación declarado ✅')
+    }
+  }
+}
+
+// 5) El nombre que se ve bajo el icono.
+//
+// Capacitor escribe `appName` en el Info.plist **al generar** el proyecto, y
+// `cap sync` no lo renombra después: cambiar `capacitor.config.json` en un
+// proyecto ya creado no tiene ningún efecto y el teléfono sigue enseñando el
+// nombre viejo. En garciadoral-ops eso costó un rechazo por la directriz 2.3.8,
+// que exige que el nombre de la ficha y el del dispositivo se parezcan.
+//
+// Se sincroniza aquí, en cada `sync:ios`, para que la única fuente sea
+// `capacitor.config.json`.
+if (existsSync(plistPath)) {
+  const { appName } = JSON.parse(readFileSync('capacitor.config.json', 'utf8'))
+  const plist = readFileSync(plistPath, 'utf8')
+  const clave = /(<key>CFBundleDisplayName<\/key>\s*<string>)([^<]*)(<\/string>)/
+  const puesto = plist.match(clave)?.[2]
+
+  if (!appName) {
+    console.warn('[patch-ios] ⚠ capacitor.config.json no tiene appName; el nombre se queda como está.')
+  } else if (puesto === appName) {
+    console.log(`[patch-ios] El nombre ya era «${appName}».`)
+  } else if (puesto !== undefined) {
+    writeFileSync(plistPath, plist.replace(clave, `$1${appName}$3`))
+    console.log(`[patch-ios] Nombre en pantalla: «${puesto}» → «${appName}» ✅`)
+  } else {
+    const cierre = plist.lastIndexOf('</dict>')
+    if (cierre === -1) {
+      console.warn('[patch-ios] ⚠ Info.plist no tiene la forma esperada; pon el nombre en Xcode.')
+    } else {
+      const declaracion = `\t<key>CFBundleDisplayName</key>\n\t<string>${appName}</string>\n`
+      writeFileSync(plistPath, plist.slice(0, cierre) + declaracion + plist.slice(cierre))
+      console.log(`[patch-ios] Nombre en pantalla declarado: «${appName}» ✅`)
+    }
+  }
+}
+
+// 6) Apuntar el storyboard al MainViewController (en vez del CAPBridgeViewController).
 const sbPath = join(IOS_APP, 'Base.lproj', 'Main.storyboard')
 if (!existsSync(sbPath)) {
   console.warn('[patch-ios] ⚠ No encuentro Main.storyboard. Pon la clase de la vista a "MainViewController" a mano en Xcode (ver docs/IOS.md).')

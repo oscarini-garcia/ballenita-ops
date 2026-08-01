@@ -900,6 +900,61 @@ mismo trazo que el resto y se recolorea con `--whale`. El icono de la app —el 
 la pantalla de inicio— sigue siendo `public/favicon.svg` y se cambia cuando haya
 dibujo nuevo.
 
+### 14.11 Lo que la App Store obliga a que exista
+
+Tres piezas del producto no salen de ninguna necesidad del grupo: salen de que la
+aplicación se distribuya por la App Store. Conviene que quede escrito, porque
+desde dentro parecen adornos y no lo son. La secuencia de publicación está en
+[`APPSTORE.md`](APPSTORE.md).
+
+**El modo de demostración** (`app/src/lib/demo.js`). El acceso es por invitación,
+de modo que quien no ha sido dado de alta —el equipo de revisión de Apple, sin ir
+más lejos— no ve absolutamente nada. Sin una salida, eso es un rechazo por la
+directriz 2.1 sin que nada esté mal. La salida es un segundo botón en la pantalla
+de acceso que abre la app entera con el evento de ejemplo de `seedExample()`,
+sembrado en la base local, sin sesión y por tanto sin sincronización: es el modo
+solo-local de siempre, con datos dentro. La marca vive en `sessionStorage` —una
+demostración se acaba al cerrar la app— y una **pastilla escrita y permanente** en
+la cabecera la señala y es a la vez la salida: durante una demostración todo lo
+que se ve es inventado, y esa es la única señal de que no es el viaje de verdad.
+La pastilla **sustituye** al punto de sincronización en vez de sumarse a él: la
+cabecera tiene sitio para tres cosas (§14.10) y aquí no hay nada que sincronizar,
+así que un punto en verde estaría mintiendo.
+
+No hay que confundirla con **«usar solo en este móvil»** (§14.9), que se le parece
+y resuelve lo contrario. Esa es para quien **sí** es del grupo y no consigue
+entrar: arranca **vacía** y lo que se escriba acaba subiendo cuando la puerta
+abra. La demostración es para quien **no** es del grupo: arranca **llena** y no
+sube nada nunca. Una app vacía no enseña lo que hace, que es justo lo que hay que
+enseñarle a quien revisa.
+
+**Eliminar la cuenta** (Ajustes → *Eliminar mi cuenta*). La directriz 5.1.1(v)
+exige que quien puede crear una cuenta pueda eliminarla desde dentro de la app.
+Se elimina el vínculo entre el Apple ID y el grupo, y los dispositivos; **no** se
+eliminan los hechos del grupo —gastos, cenas, planes—, porque no son datos de esa
+cuenta sino del grupo, y borrarlos descuadraría los saldos de todos los demás.
+La otra mitad de la directriz es invisible: hay que **avisar a Apple**
+(`api/src/revocacion.js`) para que la app desaparezca de «Apps que usan tu Apple
+ID». Es lo único de todo el sistema que necesita una clave privada, el código de
+autorización se pide en el momento de la baja y no se guarda nunca, y si la
+revocación falla **la baja sigue adelante**: lo que no puede ocurrir es que
+alguien no pueda irse porque un servidor ajeno no respondió. La pantalla lo dice
+cuando pasa, en vez de callárselo.
+
+Aquí no hace falta un «retirar mi solicitud» como el de `garciadoral-ops`, y el
+motivo es que **entrar sin invitación no guarda nada**: el Worker responde 403 sin
+escribir en la base. No hay cuenta que borrar, y eso se dice en la propia pantalla
+de acceso y en las notas de revisión.
+
+**Nada de terceros en el binario.** OneSignal y `@capacitor/push-notifications`
+estaban en el `package.json` y eran inertes: sin `VITE_ONESIGNAL_APP_ID` no se
+inicializaba nada y no había servidor que enviara ningún aviso. Se retiraron
+antes del primer envío. Entraban igualmente en el binario, y OneSignal es de los
+SDK que Apple obliga a declarar con su manifiesto de privacidad firmado, además
+de tener que recogerse en las etiquetas de privacidad de la ficha. El día que se
+quieran avisos, el camino corto es APNs directo desde el Worker —lo que hace
+`garciadoral-ops`— y no un intermediario.
+
 ---
 
 ## 15. Registro de decisiones

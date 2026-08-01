@@ -72,6 +72,47 @@ export async function anotarAcceso(db, cuentaId) {
   await db.prepare('UPDATE cuenta SET ultimoAcceso = ? WHERE id = ?').bind(ahoraISO(), cuentaId).run();
 }
 
+/**
+ * Cuántas cuentas administradoras quedarían si esta se fuera.
+ *
+ * Se consulta **antes** de la baja, mientras su titular todavía figura. Que se
+ * vaya la última administradora es legítimo —impedirlo no lo es, la 5.1.1(v) no
+ * admite excepciones— pero deja al grupo sin nadie que pueda dar de alta a otros
+ * desde la app, y cuando eso se note nadie recordará que ocurrió. Queda dicho en
+ * la respuesta y en el log.
+ */
+export async function administradoresRestantes(db, exceptoId) {
+  const fila = await db
+    .prepare("SELECT COUNT(*) AS total FROM cuenta WHERE rol = 'administrador' AND activa = 1 AND id != ?")
+    .bind(exceptoId)
+    .first();
+  return fila?.total ?? 0;
+}
+
+/**
+ * Baja de una cuenta, a petición de su titular (directriz 5.1.1(v)).
+ *
+ * Se va **todo lo que identifica a esa persona ante este servidor**: la fila de
+ * `cuenta` —con su `appleSub`, su nombre y su correo— y los dispositivos desde
+ * los que sincronizaba. Aquí sí es un borrado físico y no un `borrado = 1`: una
+ * fila marcada seguiría guardando el identificador de Apple de alguien que ha
+ * pedido que se le olvide, que es exactamente lo contrario de lo que pide la
+ * directriz. Y puede serlo porque `cuenta` no se sincroniza con los móviles: no
+ * hay ninguna cola vieja que pueda resucitarla, que es lo que obliga a las
+ * lápidas en el registro del grupo.
+ *
+ * Lo que **no** se va son los hechos del grupo: los gastos que pagó, las cenas
+ * que cocinó, los planes que votó. No son datos de su cuenta, son del grupo —los
+ * demás siguen debiéndole o debiéndole a ella el mismo dinero— y borrarlos
+ * descuadraría los saldos de todos los demás. Lo que desaparece es el vínculo
+ * entre esos hechos y un identificador de Apple.
+ */
+export async function darDeBajaCuenta(db, cuentaId) {
+  await db.prepare('DELETE FROM dispositivo WHERE cuentaId = ?').bind(cuentaId).run();
+  await db.prepare('DELETE FROM cuenta WHERE id = ?').bind(cuentaId).run();
+  return { baja: true };
+}
+
 export async function anotarDispositivo(db, { id, cuentaId, plataforma }) {
   await db
     .prepare(
