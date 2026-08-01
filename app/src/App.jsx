@@ -14,6 +14,7 @@ import { useSyncEngine } from './sync/engine.js'
 import { isNative, tap } from './lib/native.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
+import { enDemo, salirDemo } from './lib/demo.js'
 import { haySesion, leerSesion } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
@@ -41,6 +42,9 @@ export default function App() {
   // hay API configurada, que es el modo solo-local de siempre).
   const [configuracion, setConfiguracion] = useState(undefined)
   const [sesion, setSesion] = useState(() => leerSesion())
+  // La demostración es la única forma de ver la app sin estar invitado, y por eso
+  // abre la puerta igual que una sesión. Ver `lib/demo.js`.
+  const [demo, setDemo] = useState(enDemo)
   useEffect(() => { cargarConfiguracion().then(setConfiguracion) }, [])
 
   const sync = useSyncEngine()
@@ -87,10 +91,14 @@ export default function App() {
   // Solo la app de iOS entra: la sincronización con el grupo vive en la cáscara
   // nativa. En el navegador y en la PWA instalada, Ballena Ops es una libreta
   // local de ese dispositivo y no pide nada.
-  if (isNative() && estaConfigurada(configuracion) && !sesion) {
+  if (isNative() && estaConfigurada(configuracion) && !sesion && !demo) {
     return (
       <div className="app">
-        <AccesoScreen configuracion={configuracion} onEntrar={setSesion} />
+        <AccesoScreen
+          configuracion={configuracion}
+          onEntrar={setSesion}
+          onDemo={(id) => { setDemo(true); if (id) pick(id) }}
+        />
       </div>
     )
   }
@@ -119,8 +127,18 @@ export default function App() {
           <div className="ti">{event.name}</div>
           <div className="su">{event.lugar || 'Ballena Ops'}</div>
         </div>
-        {/* Los ajustes son un botón de la cabecera: el estado de sincronización
-            ya no vive aquí, se ha mudado dentro de Ajustes. */}
+        {/* En demostración la pastilla se queda puesta, y es además la salida.
+            Es lo único que cambia el significado de todo lo que se ve: sin ella
+            se podría confundir un camping inventado con el del grupo. */}
+        {demo && (
+          <button
+            className="pill demo-pill"
+            title="Salir de la demostración"
+            onClick={async () => { tap(); await salirDemo(); pick(null); setDemo(false) }}
+          >
+            demostración · salir
+          </button>
+        )}
         <button
           className="iconbtn"
           title="Ajustes"

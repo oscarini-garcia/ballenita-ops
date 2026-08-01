@@ -8,11 +8,8 @@ import { Capacitor } from '@capacitor/core'
 const OTA_MANIFEST_URL =
   'https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json'
 
-// Push vía OneSignal. La App ID es pública (segura en el cliente). El envío se hace
-// desde el panel de OneSignal (manual) o desde un endpoint serverless propio que
-// guarde la REST key (VITE_PUSH_ENDPOINT); NUNCA se incrusta la REST key aquí. Sin
-// VITE_ONESIGNAL_APP_ID, la app funciona igual pero sin push (como el modo local).
-const ONESIGNAL_APP_ID = import.meta.env?.VITE_ONESIGNAL_APP_ID
+// Endpoint propio para avisar al grupo. Hoy no hay ninguno declarado, así que
+// `notifyGroup` es un no-op; ver el comentario de `registerPush`.
 const PUSH_ENDPOINT = import.meta.env?.VITE_PUSH_ENDPOINT
 
 export function isNative() {
@@ -88,24 +85,29 @@ export async function checkForOtaUpdate() {
   }
 }
 
-// --- Registro de push (OneSignal) ------------------------------------------
-// Inicializa OneSignal y suscribe el dispositivo. Con esto ya puedes enviar
-// avisos a mano desde el panel de OneSignal. El envío automático es fase aparte
-// (ver notifyGroup + docs/IOS.md). Devuelve 'onesignal' | null.
+// --- Registro de push ------------------------------------------------------
+//
+// **Hoy no hay push, y es una decisión, no un olvido.** Aquí estaban OneSignal y
+// `@capacitor/push-notifications`, los dos con código nativo y los dos inertes:
+// sin `VITE_ONESIGNAL_APP_ID` no se inicializaba nada y no había servidor que
+// enviara ningún aviso. Se retiraron antes del primer envío a la App Store por
+// tres motivos, en orden de peso:
+//
+//   1. OneSignal es un SDK de terceros de los que Apple obliga a declarar —con
+//      su manifiesto de privacidad firmado— desde 2024, y las etiquetas de
+//      privacidad de la ficha tendrían que recoger lo que recopila. Todo eso por
+//      una función que nadie estaba usando.
+//   2. Sin él, la ficha puede decir la verdad más limpia posible: sin analítica,
+//      sin rastreo y sin SDK de nadie dentro del binario.
+//   3. Un plugin de avisos en el binario invita a iOS a pedir el permiso de
+//      notificaciones sin nada detrás, que es la peor manera de gastarlo.
+//
+// Volver a ponerlo es `npm install`, reponer esta función, `npm run sync:ios` y
+// **un binario nuevo con su revisión**: los plugins nativos no viajan por OTA.
+// El día que se haga, el camino corto es el de garciadoral-ops —APNs directo
+// desde el Worker, sin intermediario—, que evita el SDK de terceros entero.
 export async function registerPush() {
-  if (!isNative()) return null
-  // Sin proveedor de push configurado NO pedimos permiso: un prompt sin nada
-  // detrás es mala UX (y si el usuario deniega, cuesta recuperarlo). Se activa
-  // solo cuando pongas VITE_ONESIGNAL_APP_ID (ver docs/IOS.md).
-  if (!ONESIGNAL_APP_ID) return null
-  try {
-    const OneSignal = (await import('onesignal-cordova-plugin')).default
-    OneSignal.initialize(ONESIGNAL_APP_ID)
-    await OneSignal.Notifications.requestPermission(true)
-    return 'onesignal'
-  } catch {
-    return null
-  }
+  return null
 }
 
 // --- Aviso al grupo (envío automático, opcional) ---------------------------

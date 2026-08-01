@@ -27,8 +27,9 @@ nativas reales: **háptica**, **compartir** (hoja nativa) y **push** (registro; 
   `CapacitorHttp` activado (para que el `fetch` del OTA no choque con CORS) y `CapacitorUpdater`
   en modo manual.
 - `app/src/lib/native.js` — puente seguro: háptica (`tap`), compartir (`share`), OTA
-  (`checkForOtaUpdate`), push (`registerPush`) y arranque (`initNative`). **En web hace no-op**,
-  así la PWA y los tests no se rompen.
+  (`checkForOtaUpdate`) y arranque (`initNative`). **En web hace no-op**, así la PWA y los tests
+  no se rompen. `registerPush()` sigue ahí y devuelve `null`: hoy no hay avisos, y el porqué
+  está más abajo.
 - `app/src/main.jsx` — llama a `initNative()` al arrancar.
 - `app/src/App.jsx` — háptica al cambiar de tab y botón 📤 de compartir en la cabecera.
 - `.github/workflows/ota.yml` — publica el bundle OTA en GitHub Releases.
@@ -61,6 +62,14 @@ falta tocar Xcode a mano**: `npm run sync:ios` ejecuta `scripts/patch-ios.mjs`, 
 no se compila y el arranque sale en negro) y reapunta el storyboard. Es idempotente, así que se
 aplica cada vez que sincronizas.
 
+El mismo script deja puestas otras tres cosas que hacen falta para la App Store y
+que se perderían en el siguiente `cap add ios` si se pusieran a mano en Xcode
+—`ios/` no se versiona—: el **cumplimiento de exportación**
+(`ITSAppUsesNonExemptEncryption`, que si no se pregunta en cada subida y retiene
+la build), que esto es **solo iPhone** (`TARGETED_DEVICE_FAMILY = 1`, o App Store
+Connect exigirá capturas de iPad de 13″) y el **nombre bajo el icono**
+(`CFBundleDisplayName` = `appName`, que es lo que pide la directriz 2.3.8).
+
 > Si el script avisa de que no reconoce el view controller (una versión de Capacitor con otro
 > template), ponlo a mano: en `Main.storyboard`, clase de la vista → `MainViewController`. El
 > `.swift` ya te lo habrá dejado creado.
@@ -88,7 +97,9 @@ npm run open:ios     # abre Xcode
   (`docs/DESPLIEGUE.md` §3). Tiene que estar también marcada en el App ID del portal de Apple;
   si falta en un sitio de los dos, Xcode firma sin protestar y el fallo aparece al pulsar
   «Entrar con Apple».
-- Añade la capacidad **Push Notifications** (para la fase de push).
+- **No** añadas *Push Notifications*: hoy no hay avisos y no hay plugin que los
+  pida (ver más abajo). Una capacidad marcada sin nada detrás solo sirve para
+  que iOS pida un permiso que no se va a usar.
 - **Iconos / splash**: las imágenes fuente ya están en `app/assets/` (`icon.png` 1024×1024
   cuadrado y opaco, y `splash.png` 2732×2732). Genera todos los tamaños con:
   ```bash
@@ -104,6 +115,10 @@ npm run open:ios     # abre Xcode
 2. **Distribute App ▸ App Store Connect ▸ Upload**.
 3. En App Store Connect: prueba en **TestFlight** (interno, casi sin review) y luego envía a
    **review** de la App Store.
+
+Todo lo que la tienda pide además del binario —la ficha, las capturas, el
+cuestionario de privacidad, las notas de revisión y los dos rechazos probables—
+está en [`APPSTORE.md`](APPSTORE.md), con la secuencia entera y quién hace qué.
 
 A partir de aquí, los cambios de web/JS **no** necesitan repetir esto: van por OTA.
 
@@ -125,47 +140,35 @@ A partir de aquí, los cambios de web/JS **no** necesitan repetir esto: van por 
 > reclama firma del bundle, se activa el firmado (par de claves) — ver su documentación; el
 > `checksum` sha256 ya va en el manifiesto.
 
-## Push con OneSignal
+## Push: hoy no hay, y es una decisión
 
-Elegido **OneSignal** (capa gratuita): gestiona APNs por ti. El cliente ya está cableado en
-`registerPush()` (plugin `onesignal-cordova-plugin`), gobernado por variables de entorno
-inyectadas en el build:
+Aquí estaban OneSignal y `@capacitor/push-notifications`, cableados en
+`registerPush()` y **inertes**: sin `VITE_ONESIGNAL_APP_ID` no se inicializaba
+nada, y no había ningún servidor que enviara un aviso. Se retiraron antes del
+primer envío a la App Store, por tres motivos en orden de peso:
 
-| Variable | Qué es | ¿Segura en el cliente? |
-| --- | --- | --- |
-| `VITE_ONESIGNAL_APP_ID` | App ID de OneSignal (suscribe el dispositivo) | ✅ Sí, es pública |
-| `VITE_PUSH_ENDPOINT` | URL de **tu** función serverless para el envío automático | ✅ Sí (no lleva la key) |
+1. OneSignal es de los SDK de terceros que Apple obliga a declarar con su
+   manifiesto de privacidad firmado, y las etiquetas de privacidad de la ficha
+   tendrían que recoger lo que recopila. Todo eso por una función que nadie
+   estaba usando.
+2. Sin él, la ficha puede decir la verdad más limpia posible: sin analítica, sin
+   rastreo y sin SDK de nadie dentro del binario.
+3. Un plugin de avisos en el binario invita a iOS a pedir el permiso de
+   notificaciones sin nada detrás, que es la peor manera de gastarlo: un «no»
+   dado de sopetón solo se recupera yendo a los Ajustes de iOS.
 
-> Hasta que no pongas `VITE_ONESIGNAL_APP_ID`, `registerPush()` **no pide permiso** de
-> notificaciones (evita el prompt prematuro sin nada detrás). El permiso se solicita solo
-> cuando OneSignal está configurado.
+`notifyGroup()` sigue en `native.js` y sigue siendo no-op sin
+`VITE_PUSH_ENDPOINT`. `registerPush()` devuelve `null` siempre.
 
-> ⚠️ **Nunca** metas la **REST API key** de OneSignal en el build: el repo es público (Pages) y
-> los bundles OTA también → quedaría expuesta y cualquiera podría mandar push a tu grupo.
+### El día que se quiera push
 
-### Puesta en marcha (una vez)
-
-1. Crea una app en **OneSignal** y elige la plataforma **iOS (APNs)**.
-2. Sube tu **APNs Auth Key (.p8)** al panel de OneSignal (la generas en el portal de Apple
-   Developer → *Keys*). OneSignal se encarga del resto de APNs.
-3. Copia la **App ID** y ponla como secret del repo `VITE_ONESIGNAL_APP_ID` (se inyecta en el
-   workflow OTA). La dirección de la API y el cliente de Apple **no** van aquí: viajan en
-   `app/public/config.json` y se leen en caliente (ver [`DESPLIEGUE.md`](DESPLIEGUE.md)).
-4. En Xcode, capacidad **Push Notifications** activada (Fase B).
-
-Con esto, cada dispositivo queda **suscrito** y ya puedes **enviar avisos a mano desde el panel
-de OneSignal** (o su API), sin exponer nada.
-
-### Envío automático ("otro añadió un gasto → aviso")
-
-Para disparar el push solo cuando pasa algo, hace falta la **REST key en un sitio no público**:
-
-1. Crea una mini **función serverless** (Cloudflare Workers / Vercel / Netlify Functions) que
-   guarde la REST key como secret y, al recibir un POST `{ title, message, url }`, llame a la API
-   de OneSignal (`/notifications`) para avisar al grupo.
-2. Pon su URL en `VITE_PUSH_ENDPOINT`.
-3. Llama a `notifyGroup({ title, message })` desde el código tras sincronizar un hecho nuevo
-   (p. ej. al guardar un gasto). Ya está listo en `native.js`; solo falta el punto de llamada.
-
-> Sin `VITE_PUSH_ENDPOINT`, `notifyGroup()` es no-op: la app funciona igual y los avisos se
-> mandan a mano desde el panel.
+Es `npm install`, reponer `registerPush()`, `npm run sync:ios` y **un binario
+nuevo con su revisión**: los plugins nativos no viajan por OTA. Y conviene no
+repetir el camino de antes. `garciadoral-ops` acabó hablando **APNs directamente
+desde el Worker** —clave `.p8` de APNs en un secreto de Cloudflare, sin
+intermediario—, lo que evita el SDK de terceros entero y una capa de privacidad
+que declarar. Su `api/src/apns.js` y su `docs/despliegue-cloudflare.md` §4.6 y
+§8.3 son el mapa; el bache conocido es que **el entorno de APNs tiene que
+coincidir con cómo se instaló la app** (`development` desde Xcode, `production`
+desde TestFlight o la App Store), y equivocarse da `BadDeviceToken` sin más
+explicación.

@@ -68,6 +68,13 @@ button, input, select { font: inherit; color: inherit; }
   border-radius: 7px; padding: 7px 9px; font-size: 16px; line-height: 1; cursor: pointer; }
 .appbar .iconbtn:active { transform: translateY(1px); }
 
+/* Pastilla de demostración. Escrita y permanente, no un icono: durante una
+   demostración todo lo que se ve es inventado, y esa es la única señal de que
+   no se está mirando el evento de verdad del grupo. Es además la salida. */
+.appbar .demo-pill { flex: none; border: none; cursor: pointer; color: var(--appbar-ink);
+  background: rgba(255,255,255,.2); letter-spacing: .02em; }
+.appbar .demo-pill:active { transform: translateY(1px); }
+
 /* Punto de estado de conexión/sync. Verde al día · amarillo con cola · rojo sin red.
    Vive en Ajustes (ya no en la cabecera, que ahora lleva el ⚙️). */
 .sync-dot { flex: none; background: color-mix(in srgb, var(--ink) 8%, transparent); border: none;
@@ -290,7 +297,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .acceso-aviso .note { color: #a9cede; margin: 0; }
 .acceso-codigo { display: block; width: 100%; word-break: break-all; font-size: 12px;
   background: rgba(0,0,0,.25); border-radius: 6px; padding: 8px; }
-.acceso-aviso .btn.ghost { color: #eaf6fb; border-color: rgba(255,255,255,.3); }
+/* El fondo de esta pantalla es oscuro siempre, en todos los temas, así que lo
+   apagado del `ghost` y de `note` hay que reponerlo aquí: con sus colores de
+   siempre —tinta sobre papel— quedarían ilegibles. */
+.acceso .btn.ghost { color: #eaf6fb; border-color: rgba(255,255,255,.3); background: transparent; }
+.acceso > .note { color: #a9cede; font-size: 12.5px; line-height: 1.5; margin: 0 auto;
+  max-width: 320px; background: none; padding: 0; }
 
 /* Sección de cuentas en Ajustes (solo administradores). */
 .cuenta-fila { display: flex; align-items: center; gap: 10px; padding: 9px 0;

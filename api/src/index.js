@@ -19,14 +19,17 @@
  *   POST /api/cambios   · aplica la cola del dispositivo y devuelve la instantánea
  *   GET  /api/cuentas   · quién tiene acceso (administradores)
  *   POST /api/cuentas   · alta, alta por invitación y baja (administradores)
+ *   POST /api/cuenta/baja · eliminar la cuenta propia (directriz 5.1.1(v) de Apple)
  *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
  */
 
 import { verificarTokenDeApple } from './apple.js';
 import { coincideEnTiempoConstante, emitirSesion, verificarSesion } from './sesion.js';
+import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
 import {
-  anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta, cuentaPorApple, cuentaPorId,
-  hayAlgunaCuenta, importarInstantanea, leerInstantanea, listarCuentas,
+  administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
+  cuentaPorApple, cuentaPorId, darDeBajaCuenta, hayAlgunaCuenta, importarInstantanea,
+  leerInstantanea, listarCuentas,
 } from './repositorio.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
@@ -217,6 +220,47 @@ async function cuentas(peticion, env) {
 }
 
 /**
+ * Baja de la cuenta, a petición de su titular.
+ *
+ * La directriz 5.1.1(v) de la App Store exige que quien puede crear una cuenta
+ * pueda eliminarla **desde dentro de la aplicación**, sin escribir a nadie ni
+ * pasar por una web. Aquí la cuenta es el vínculo entre un identificador de
+ * Apple y el acceso al grupo, y eliminarla es deshacer ese vínculo:
+ * `darDeBajaCuenta` explica qué se va y qué se queda.
+ *
+ * El orden importa. Primero se avisa a Apple, mientras todavía se sabe de quién
+ * hablamos, y después se deshace el vínculo; al revés, un fallo a mitad dejaría
+ * una autorización viva ante Apple sin nada aquí que la identifique. Que la
+ * revocación falle, en cambio, no detiene nada: lo que no puede ocurrir es que
+ * alguien se quede sin poder darse de baja porque un servidor ajeno no
+ * respondió.
+ */
+async function darDeBaja(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+  const { codigo_apple: codigo } = await peticion.json().catch(() => ({}));
+
+  const revocacion = await revocarEnApple(env, { codigo });
+  if (!revocacion.revocado) {
+    console.warn(`baja de ${cuenta.id}: no se revocó en Apple (${revocacion.motivo})`, revocacion.detalle || '');
+  }
+
+  const restantes = await administradoresRestantes(env.DB, cuenta.id);
+  if (cuenta.rol === 'administrador' && restantes === 0) {
+    console.warn(`baja de ${cuenta.id}: era la última cuenta administradora del grupo`);
+  }
+
+  await darDeBajaCuenta(env.DB, cuenta.id);
+
+  return json({
+    baja: true,
+    revocado_en_apple: revocacion.revocado,
+    motivo_revocacion: revocacion.revocado ? null : revocacion.motivo,
+    revocacion_configurada: hayRevocacionConfigurada(env),
+    administradores_restantes: restantes,
+  });
+}
+
+/**
  * Siembra de la base a partir de un volcado del documento de JSONBin, para no
  * empezar de cero con los eventos que el grupo ya tiene. Va con el token de
  * servicio y no con una sesión: se lanza desde un portátil, una sola vez.
@@ -238,6 +282,7 @@ const RUTAS = [
   ['POST', '/api/cambios', recibirCambios],
   ['GET', '/api/cuentas', cuentas],
   ['POST', '/api/cuentas', cuentas],
+  ['POST', '/api/cuenta/baja', darDeBaja],
   ['POST', '/api/importar', importar],
 ];
 

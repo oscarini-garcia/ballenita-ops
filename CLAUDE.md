@@ -16,6 +16,8 @@ plan con fecha de inicio/fin. Idioma: **solo español**.
 - **Código:** [`app/`](app/) — la PWA. Ver [`app/README.md`](app/README.md).
 - **Código:** [`api/`](api/) — el Worker de Cloudflare + D1.
 - **Despliegue:** [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) — Cloudflare, Apple y GitHub.
+- **App Store:** [`docs/APPSTORE.md`](docs/APPSTORE.md) — la secuencia entera para enviar el
+  binario y la ficha, con quién hace qué y cuándo.
 - **Desplegada** en Cloudflare Pages.
 
 ## Cómo trabajar en `app/`
@@ -79,17 +81,19 @@ app/src/
   lib/  reparto.js      motor de saldos (puro, testeado)  ·  config.js  config en caliente
         stats.js money.js ids.js skins.js native.js pwa.js
   auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo
+  lib/  demo.js         demostración sin cuenta (directriz 2.1 de Apple)
   sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
         tables.js
   screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats, EventSettings,
             Events, Acceso
   components/ WhaleLogo.jsx  ·  App.jsx  ·  theme.css / skins.css
   public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
+  public/privacidad.html · soporte.html   las dos URL que exige la ficha de la App Store
 
 api/
   src/  index.js        rutas del Worker   ·  repositorio.js  lectura/escritura sobre D1
         tablas.js       descriptor de tablas y conversión de tipos
-        apple.js sesion.js
+        apple.js sesion.js  ·  revocacion.js  avisar a Apple al darse de baja
   migraciones/0001_esquema.sql
   test/                 pruebas con node:sqlite contra el esquema real
   herramientas/sembrar-desde-jsonbin.mjs
@@ -103,7 +107,10 @@ api/
   `TOKEN_SERVICIO`, con `wrangler secret put`.
 - **Pruebas:** `.github/workflows/pruebas.yml` corre las dos suites en cada rama.
 - **OTA de iOS:** sin cambios (`ota.yml`); sube la versión en `app/package.json` y mergea.
-- Pasos completos en [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
+- **Lo que no viaja por OTA** es todo lo nativo: plugins, permisos, iconos y
+  `capacitor.config.json`. Eso obliga a `npm run sync:ios`, archivar y subir binario.
+- Pasos completos en [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md); los de la tienda, en
+  [`docs/APPSTORE.md`](docs/APPSTORE.md).
 
 ## Flujo de git (IMPORTANTE)
 
@@ -119,8 +126,17 @@ cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadí
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
 **Cromo repasado** (SPECS §14.10): ⚙️ en la cabecera, punto de sync mudado a Ajustes, badge
 de usuario con perfil editable (emoji/estado/foto local), modales que bloquean el scroll
-del fondo y modal de progreso al comprobar versión. 89 tests en la PWA + 22 en la API,
+del fondo y modal de progreso al comprobar versión. 102 tests en la PWA + 37 en la API,
 todos en verde.
+
+**Preparada para la App Store** (`docs/APPSTORE.md`): **baja de cuenta** desde Ajustes con
+revocación ante Apple (directriz 5.1.1(v), `api/src/revocacion.js` + `POST /api/cuenta/baja`),
+**modo de demostración** desde la pantalla de acceso —lo único que deja ver la app a quien no
+está invitado, que es el caso de quien la revisa (directriz 2.1, `app/src/lib/demo.js`)—,
+páginas de **privacidad** y **soporte** en `app/public/`, y `patch-ios.mjs` declarando el
+cumplimiento de exportación, «solo iPhone» y el nombre bajo el icono. Se **retiraron OneSignal
+y `@capacitor/push-notifications`**, que estaban inertes y metían un SDK de terceros en el
+binario: hoy no hay push, y el porqué está en `lib/native.js`.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
 `database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el

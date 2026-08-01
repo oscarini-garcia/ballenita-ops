@@ -2,6 +2,7 @@ import { useState } from 'react'
 import WhaleLogo from '../components/WhaleLogo.jsx'
 import { entrarConApple } from '../auth/apple.js'
 import { guardarSesion } from '../auth/sesion.js'
+import { activarDemo } from '../lib/demo.js'
 import { tap } from '../lib/native.js'
 
 /**
@@ -12,8 +13,12 @@ import { tap } from '../lib/native.js'
  * tu identificador—, así que la primera vez que entra alguien nuevo la API
  * responde con su código y esta pantalla lo enseña para que lo pase por el
  * chat del grupo.
+ *
+ * De ahí el segundo botón, que no es un adorno: sin él, quien no está invitado
+ * —el equipo de revisión de Apple, sin ir más lejos— no puede ver nada de la
+ * aplicación. El porqué está en `lib/demo.js`.
  */
-export default function AccesoScreen({ configuracion, onEntrar }) {
+export default function AccesoScreen({ configuracion, onEntrar, onDemo }) {
   const [entrando, setEntrando] = useState(false)
   const [error, setError] = useState(null)
   const [identificador, setIdentificador] = useState(null)
@@ -34,6 +39,11 @@ export default function AccesoScreen({ configuracion, onEntrar }) {
     } finally {
       setEntrando(false)
     }
+  }
+
+  async function demostracion() {
+    tap()
+    onDemo?.(await activarDemo())
   }
 
   async function copiar() {
@@ -74,10 +84,26 @@ export default function AccesoScreen({ configuracion, onEntrar }) {
               <button className="btn sm ghost" onClick={copiar}>
                 {copiado ? '✓ copiado' : 'copiar código'}
               </button>
+              {/* Que no se haya guardado nada no es un consuelo: es el motivo por
+                  el que aquí no hay ningún «eliminar mi solicitud». Quien no
+                  entra no deja cuenta que borrar, y conviene decirlo donde se
+                  lee y no solo en la política de privacidad. */}
+              <p className="note">
+                Mientras tanto no hemos guardado nada tuyo: sin acceso no se crea
+                ninguna cuenta ni queda registro de este intento.
+              </p>
             </>
           )}
         </div>
       )}
+
+      <button className="btn block ghost" style={{ marginTop: 18 }} onClick={demostracion}>
+        Ver una demostración con datos de ejemplo
+      </button>
+      <p className="note">
+        Se abre la app entera con un camping inventado, en este móvil y sin
+        conectarse a nada. No hace falta cuenta y no se toca nada del grupo.
+      </p>
     </div>
   )
 }

@@ -15,7 +15,11 @@ Splitwise **entre familias**, con backend propio en [`../api/`](../api/)
 - ✅ **Cenas, Planes, Agenda y Estadísticas.**
 - ✅ **Temas** (5 skins + Sistema + Aleatorio diario) en Ajustes.
 - ✅ **Motor de reparto** (`src/lib/reparto.js`), puro y con tests.
-- ✅ **Acceso con Apple** (`src/auth/`) y alta por invitación desde Ajustes.
+- ✅ **Acceso con Apple** (`src/auth/`) y alta por invitación desde Ajustes, con
+  **baja de cuenta** desde Ajustes y aviso a Apple (directriz 5.1.1(v)).
+- ✅ **Modo de demostración** desde la pantalla de acceso (`src/lib/demo.js`): la
+  app entera con un camping inventado, sin cuenta y sin servidor. Es lo único
+  que deja ver la aplicación a quien no está invitado.
 - ✅ **Sincronización** (`src/sync/`): cola de cambios → el servidor la aplica y
   devuelve la instantánea, que sustituye la copia local. Al abrir, al volver
   online/foreground y cada 90 s.
@@ -43,7 +47,14 @@ manifiesto OTA. Se lee **en caliente** al arrancar, así que cambiarlo no exige
 reconstruir ni publicar un OTA. No contiene secretos. Si no apunta a ninguna
 API, la app funciona **solo en local** y lo indica en la cabecera.
 
+`public/privacidad.html` y `public/soporte.html` son las dos URL que exige la
+ficha de la App Store (`/privacidad` y `/soporte`). Van sueltas y con los estilos
+dentro para que sigan en pie aunque la app no arranque, que es justo cuando
+alguien viene a buscarlas; el service worker tiene orden de no comérselas
+(`navigateFallbackDenylist` en `vite.config.js`).
+
 Pasos de despliegue: [`../docs/DESPLIEGUE.md`](../docs/DESPLIEGUE.md).
+Enviar a la App Store: [`../docs/APPSTORE.md`](../docs/APPSTORE.md).
 
 ## Desarrollo
 
@@ -62,8 +73,9 @@ que Dexie funcione sin navegador. Cada test arranca con la base de datos y el
 `localStorage` limpios (`src/test/setup.js`).
 
 - `src/lib/reparto.test.js` — motor de reparto (pesos, sobrante al céntimo, saldos, simplificación).
-- `src/lib/merge.test.js` — merge LWW + tombstones (convergencia entre dispositivos).
 - `src/db.test.js` — CRUD + **flujo real gasto → saldo** sobre IndexedDB, y coherencia del ejemplo.
+- `src/lib/demo.test.js` — el modo de demostración: que siembre, que no duplique y que al salir no deje rastro.
+- `src/appstore.test.js` — que las páginas de privacidad y soporte sigan ahí y con un correo de verdad.
 - `src/App.test.jsx` — render de la app y navegación (pilló un bug de transición real).
 
 **Al añadir una feature, añade su test:** lógica pura → un `.test.js` junto al módulo;
@@ -81,6 +93,13 @@ algo que toque datos → un test de `db`; algo de UI → un test de componente. 
 
 ## Despliegue
 
-GitHub Pages vía Actions (`.github/workflows/deploy.yml`), servido bajo
-`/ballenita-ops/`. En iOS: abrir en Safari → Compartir → **Añadir a pantalla de
-inicio** (necesario para offline persistente y notificaciones, §14.4).
+**Cloudflare Pages** conectado al repo (`cd app && npm ci && npm run build`,
+salida `app/dist`, base `/`): cada empujón a `main` republica. La app de iOS es
+una cáscara de Capacitor con esta misma web dentro, y se actualiza por **OTA**
+sin pasar por Apple —sube la versión en `package.json` y mergea—; solo un cambio
+**nativo** obliga a archivar y subir binario. Ver
+[`../docs/IOS.md`](../docs/IOS.md) y [`../docs/APPSTORE.md`](../docs/APPSTORE.md).
+
+En el navegador, «Añadir a pantalla de inicio» sigue siendo lo que da offline
+persistente (§14.4), pero ahí la app es una **libreta local**: la sincronización
+con el grupo vive solo en la app de iOS.

@@ -10,7 +10,8 @@ import UpdateModal from '../components/UpdateModal.jsx'
 import { useSkin, SKINS } from '../lib/skins.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { syncNow } from '../sync/engine.js'
-import { gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
+import { eliminarMiCuenta, gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
+import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
@@ -105,6 +106,8 @@ function CuentaSection() {
   const [aviso, setAviso] = useState(null)
   // Cuenta que se está renombrando: { id, nombre } o null.
   const [editando, setEditando] = useState(null)
+  // Baja de la cuenta: null en reposo · 'confirmando' · 'yendo' · el resultado.
+  const [baja, setBaja] = useState(null)
 
   const esAdmin = sesion?.cuenta?.rol === 'administrador'
 
@@ -161,6 +164,31 @@ function CuentaSection() {
     borrarSesion()
     await olvidarTodo()
     window.location.reload()
+  }
+
+  /**
+   * Eliminar la cuenta. Lo exige la directriz 5.1.1(v) de la App Store: quien
+   * puede crear una cuenta tiene que poder eliminarla desde dentro de la app,
+   * sin escribirle a nadie.
+   *
+   * Se vuelve a pasar por la hoja de Apple antes, y no por ceremonia: de ahí
+   * sale el código con el que el Worker le dice a Apple que este vínculo se
+   * acabó. Si esa hoja se cancela o falla, la baja **sigue adelante** sin ella
+   * (`codigoDeAutorizacionDeApple` devuelve null): lo que no puede pasar es que
+   * alguien no pueda irse porque Apple no contestó.
+   */
+  async function eliminarCuenta() {
+    tap()
+    setBaja('yendo')
+    try {
+      const resultado = await eliminarMiCuenta(await codigoDeAutorizacionDeApple())
+      borrarSesion()
+      await olvidarTodo()
+      setBaja(resultado)
+    } catch (e) {
+      setBaja(null)
+      setAviso(`No se pudo eliminar la cuenta: ${String(e.message ?? e)}`)
+    }
   }
 
   if (!sesion) return null
@@ -235,7 +263,87 @@ function CuentaSection() {
       )}
 
       {aviso && <div className="note" role="status">{aviso}</div>}
+
+      {/* Eliminar la cuenta va al final y en rojo, lejos de «Salir», con la que
+          se confunde a la primera mirada: una deja de sincronizar en este móvil
+          y la otra deshace el acceso al grupo para siempre. */}
+      <div className="sec-h">Eliminar mi cuenta</div>
+      <div className="note">
+        Deshace el vínculo entre tu Apple ID y el grupo, y se lo dice a Apple para
+        que Ballena Ops desaparezca de «Apps que usan tu Apple ID». Los gastos,
+        cenas y planes que apuntaste se quedan: son del grupo, y borrarlos
+        descuadraría los saldos de todos los demás. Para volver a entrar haría
+        falta que alguien te diera de alta otra vez.
+      </div>
+      <button className="btn sm danger" style={{ marginTop: 8 }} onClick={() => { tap(); setBaja('confirmando') }}>
+        Eliminar mi cuenta
+      </button>
+
+      {baja && <BajaModal estado={baja} onCancelar={() => setBaja(null)} onConfirmar={eliminarCuenta} />}
     </>
+  )
+}
+
+/**
+ * Confirmación de la baja, y después su resultado.
+ *
+ * El resultado no se despacha con un «listo»: dice si se pudo avisar a Apple.
+ * Si no se pudo —sin clave en el Worker, o la hoja de Apple cancelada—, la
+ * cuenta está eliminada igual pero la aplicación sigue figurando en la lista del
+ * Apple ID, y eso solo lo puede quitar su titular desde los ajustes de iOS.
+ * Callárselo sería dejar a alguien creyendo que se fue del todo.
+ */
+function BajaModal({ estado, onCancelar, onConfirmar }) {
+  useBloqueoDeScroll()
+  const hecha = typeof estado === 'object' && estado !== null
+  const yendo = estado === 'yendo'
+
+  return (
+    <div className="modal-bg" onClick={hecha ? undefined : onCancelar}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>{hecha ? 'Cuenta eliminada' : '¿Eliminar tu cuenta?'}</h2>
+
+        {hecha ? (
+          <>
+            <p className="note">
+              Tu acceso al grupo ya no existe y este móvil se ha quedado vacío.
+            </p>
+            <p className="note">
+              {estado.revocado_en_apple
+                ? 'También se lo hemos dicho a Apple: Ballena Ops ya no figura entre las apps que usan tu Apple ID.'
+                : 'No hemos podido avisar a Apple, así que Ballena Ops puede seguir apareciendo en Ajustes de iOS → tu nombre → Inicio de sesión y seguridad → Iniciar sesión con Apple. Ahí puedes quitarla.'}
+            </p>
+            {estado.administradores_restantes === 0 && (
+              <p className="note">
+                Eras la última cuenta que administraba el grupo: ya no queda nadie
+                que pueda dar de alta a otros desde la app.
+              </p>
+            )}
+            <div style={{ marginTop: 16 }}>
+              <button className="btn block" onClick={() => window.location.reload()}>Cerrar</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="note">
+              Se elimina tu cuenta y los dispositivos desde los que sincronizabas.
+              No se puede deshacer: para volver, alguien del grupo tendría que
+              darte de alta otra vez.
+            </p>
+            <p className="note">
+              Apple te va a pedir que te identifiques una vez más. Es de donde
+              sale el permiso para avisarle de que te vas.
+            </p>
+            <div style={{ marginTop: 16, display: 'grid', gap: 8 }}>
+              <button className="btn block danger" disabled={yendo} onClick={onConfirmar}>
+                {yendo ? 'Eliminando…' : 'Sí, eliminar mi cuenta'}
+              </button>
+              <button className="btn block ghost" disabled={yendo} onClick={onCancelar}>Cancelar</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   )
 }
 
