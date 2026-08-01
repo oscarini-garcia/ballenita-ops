@@ -3,14 +3,51 @@
   --line: #d5e1e6; --line-soft: #e4ecef; --spout: #1fa6d6; --spout-deep: #0e7ca6;
   --abyss: #08202c; --gold: #e7a33e;
   --owe: #e5544b; --owe-bg: #fce9e7; --owed: #2e9e6b; --owed-bg: #e4f3ec;
-  --r: 7px;
+  --r: 9px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   /* Superficies que los temas (skins) pueden repintar. */
   --app-bg: var(--foam);
   --appbar-bg: linear-gradient(150deg, var(--abyss), #0d2d3c);
   --appbar-ink: #eaf6fb;
   --whale: #3cbdea;
+
+  /* ── Tipografía ────────────────────────────────────────────────────────────
+     Un solo número, y toda la escala cuelga de él. Las proporciones están
+     decididas; lo que no lo está es cuánto mide el conjunto, porque esto se lee
+     en un móvil, al sol, y con cuarenta y tantos años. Ajustes mueve `--escala`
+     y los siete rangos se mueven juntos (lib/tamano.js).
+
+     Los rangos suben con respecto a lo que había: el cuerpo pasa de 14 a 17 px,
+     que es lo que iOS llama *body* y lo que de verdad se está leyendo. Una lista
+     de gastos a 12 px se lee bien sentado en el sofá y no se lee en la puerta de
+     un supermercado, que es donde se usa.
+
+     Se declaran **una sola vez**: un tema cambia de qué color es una cosa, nunca
+     cuánto mide, así que una copia bajo otro selector solo podría discrepar. */
+  --escala: 1.12;
+  --t-hero:  calc(30px * var(--escala));   /* la cifra grande de Saldos */
+  --t-title: calc(21px * var(--escala));   /* títulos de modal y de cabecera */
+  --t-body:  calc(17px * var(--escala));   /* el cuerpo: lo que se lee */
+  --t-row:   calc(16px * var(--escala));   /* el nombre de una fila */
+  --t-sub:   calc(14px * var(--escala));   /* la línea de debajo */
+  --t-label: calc(13px * var(--escala));   /* rótulos de campo */
+  --t-micro: calc(11.5px * var(--escala)); /* pastillas y rótulos de sección */
+  /* Lo que mide un objetivo tocable. 44 px es el suelo de iOS y no se baja. */
+  --toque: 44px;
+
+  /* El fondo de una fila que se desliza, y tiene que ser **opaco**: por debajo
+     van los verbos, y con el `rgba` translúcido de las tarjetas de los temas de
+     cristal se transparentaría el rojo de «Borrar» a través de toda la fila.
+     Aquí `--foam-2` ya es opaco; los tres temas que no lo tienen lo pisan en
+     skins.css. */
+  --fila-solida: var(--foam-2);
 }
+
+/* Las tres tallas. La de fábrica es **Grande** y por eso su ×1,12 está arriba,
+   en `--escala`, y no aquí: el valor de origen vive en un sitio solo, y las dos
+   que quedan son desvíos de él. Ver lib/tamano.js. */
+:root[data-texto="normal"] { --escala: 1; }
+:root[data-texto="enorme"] { --escala: 1.26; }
 @media (prefers-color-scheme: dark) {
   :root {
     --foam: #071a24; --foam-2: #0c2734; --ink: #eaf3f6; --ink-soft: #9fbcc7; --ink-faint: #6a8b98;
@@ -28,7 +65,8 @@ html { background: var(--app-bg) fixed; }
 body {
   margin: 0; font-family: var(--font); color: var(--ink);
   background: var(--app-bg) fixed;
-  -webkit-font-smoothing: antialiased; line-height: 1.5;
+  font-size: var(--t-body);
+  -webkit-font-smoothing: antialiased; line-height: 1.45;
   /* Tacto tipo app: sin rebote al llegar al final del scroll, sin doble-tap-zoom,
      y sin selección accidental de texto ni menú del long-press. En Safari algunos
      de estos son "best effort"; dentro de la cáscara nativa (WKWebView) se cumplen
@@ -47,10 +85,18 @@ input, textarea, [contenteditable="true"], .selectable {
 button, input, select { font: inherit; color: inherit; }
 .tnum { font-variant-numeric: tabular-nums; }
 
-.app { max-width: 520px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column;
-  background: transparent; }
+/* La columna es cabecera · contenido · barra, y el de en medio es lo único que
+   se desplaza. Nada se solapa porque nada se superpone: las dos barras son
+   `flex: none` y el cuerpo se queda con lo que sobra, así que una lista de
+   cualquier largo termina encima de la barra y empieza debajo de la cabecera.
+   `min-height: 0` en `.body` es lo que hace eso verdad — sin él, una lista larga
+   estira la columna en vez de desplazarse dentro, y su final se va debajo de la
+   barra. (Es el arreglo estructural de lo que antes se parcheaba con 86 px de
+   relleno al final del cuerpo, que fallaba en cuanto la barra crecía.) */
+.app { max-width: 520px; margin: 0 auto; height: 100dvh; display: flex; flex-direction: column;
+  background: transparent; overflow: hidden; }
 
-.appbar { position: sticky; top: 0; z-index: 5; background: var(--appbar-bg);
+.appbar { position: relative; flex: none; z-index: 5; background: var(--appbar-bg);
   color: var(--appbar-ink); display: flex; align-items: center; gap: 11px;
   /* Compensa la barra de estado (status-bar-style black-translucent) y el notch
      en horizontal, para que el contenido no se solape con la hora/batería. */
@@ -58,130 +104,180 @@ button, input, select { font: inherit; color: inherit; }
            12px calc(16px + env(safe-area-inset-left)); }
 .appbar .logo { width: 34px; height: 34px; flex: none; }
 .appbar .grow { flex: 1 1 auto; min-width: 0; }
-.appbar .ti { font-weight: 800; font-size: 17px; letter-spacing: -.01em;
+.appbar .ti { font-weight: 800; font-size: var(--t-title); letter-spacing: -.015em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.appbar .su { font-size: 11.5px; color: var(--appbar-ink); opacity: .72;
+.appbar .su { font-size: var(--t-micro); color: var(--appbar-ink); opacity: .78;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Botón redondeado genérico de la cabecera (⚙️, etc.). */
+/* Botón redondeado genérico de la cabecera. */
 .appbar .iconbtn { flex: none; background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink);
-  border-radius: 7px; padding: 7px 9px; font-size: 16px; line-height: 1; cursor: pointer; }
+  border-radius: 8px; padding: 7px 9px; font-size: var(--t-body); line-height: 1; cursor: pointer; }
 .appbar .iconbtn:active { transform: translateY(1px); }
 
-/* Punto de estado de conexión/sync. Verde al día · amarillo con cola · rojo sin red.
-   Vive en Ajustes (ya no en la cabecera, que ahora lleva el ⚙️). */
-.sync-dot { flex: none; background: color-mix(in srgb, var(--ink) 8%, transparent); border: none;
-  border-radius: 7px; padding: 11px; cursor: pointer; display: grid; place-items: center; }
+/* Punto de estado de la sincronización. Verde al día · amarillo con cola · rojo
+   sin red · gris solo local. Vuelve a la cabecera, y ahora **es el botón de
+   sincronizar todo**: un toque sube los datos, trae la copia del grupo y de paso
+   comprueba si hay versión nueva de la app, contándolo paso a paso.
+
+   Un objetivo de 44 px alrededor de un punto de 12: el punto es lo que se lee y
+   el botón es lo que se apunta, y no son la misma medida. */
+.sync-dot { flex: none; background: none; border: none; cursor: pointer;
+  min-width: var(--toque); min-height: var(--toque); display: grid; place-items: center; padding: 0; }
 .sync-dot:active { transform: translateY(1px); }
-.sync-dot .d { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.sync-dot .d { width: 12px; height: 12px; border-radius: 50%; display: block;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 14%, transparent); }
+/* En Ajustes el punto va dentro de una tarjeta y ahí sí lleva su pastilla, para
+   que se lea como el icono de la fila y no como un lunar suelto. */
+.card .sync-dot { background: color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 8px;
+  min-width: 38px; min-height: 38px; }
 .sync-dot.checking .d { animation: syncpulse .8s ease-in-out infinite; }
 @keyframes syncpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.65); } }
 
-/* Indicador de usuario (quién eres). */
-.appbar .userbadge { flex: none; display: flex; align-items: center; gap: 7px; max-width: 128px;
-  background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink); border-radius: 7px;
-  padding: 4px 9px 4px 4px; cursor: pointer; }
-.appbar .userbadge:active { transform: translateY(1px); }
-.appbar .userbadge .uav { flex: none; width: 26px; height: 26px; border-radius: 6px; display: grid;
-  place-items: center; font-size: 15px; background: rgba(255,255,255,.16); overflow: hidden; }
-/* Foto de avatar (opcional y solo de este móvil): tapa el hueco del emoji. */
+/* La cara: la foto de este móvil si la hay, si no el emoji. Ya no vive en la
+   cabecera —el badge se retiró—, sino en Ajustes → Quién eres. */
 .ufoto { width: 100%; height: 100%; object-fit: cover; display: block; }
-.appbar .userbadge .utxt { display: flex; flex-direction: column; align-items: flex-start;
-  min-width: 0; line-height: 1.12; }
-.appbar .userbadge .un { max-width: 100%; font-size: 12px; font-weight: 700;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.appbar .userbadge .ust { max-width: 100%; font-size: 9.5px; font-weight: 600; opacity: .72;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* El hueco de abajo tiene que dejar pasar la tabbar ENTERA: su alto (~58px) más
-   el indicador de home de iOS, que la propia tabbar añade como padding. Sin ese
-   `env()` el final del scroll se metía debajo de la barra. */
-.body { flex: 1; display: flex; flex-direction: column; gap: 12px;
+/* Lo único que se desplaza. Ya no lleva relleno al final para esquivar la barra:
+   la barra ocupa su sitio en la columna y no se superpone a nada. */
+.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; gap: 12px;
   /* Laterales con safe-area para el notch en horizontal. */
-  padding: 14px calc(14px + env(safe-area-inset-right))
-           calc(86px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left)); }
+  padding: 14px calc(14px + env(safe-area-inset-right)) 22px calc(14px + env(safe-area-inset-left)); }
+/* Los hijos no encogen: sin esto, en una columna flexible una tarjeta larga se
+   comprime en vez de empujar el scroll. */
+.body > * { flex: none; }
+/* Con un modal abierto, el contenido de detrás no se mueve. Es la otra mitad de
+   `lib/scrollLock.js`: fijar el body de la página no basta desde que quien se
+   desplaza es este `div` y no el documento. */
+body.modal-abierto .body { overflow: hidden; }
 
-.sec-h { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+.sec-h { font-size: var(--t-micro); font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
   color: var(--ink-faint); margin: 4px 2px 0; display: flex; align-items: center; justify-content: space-between; }
 
 .card { background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r); padding: 12px; }
 .card.tight { padding: 8px 12px; }
 
-.row { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.row { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-top: 1px solid var(--line-soft); }
 .row:first-child { border-top: none; }
 .row .main { flex: 1; min-width: 0; }
-.row .main .n { font-size: 14px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row .main .sub { font-size: 12px; color: var(--ink-faint); }
-.row .amt { font-weight: 750; white-space: nowrap; }
+.row .main .n { font-size: var(--t-row); font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .main .sub { font-size: var(--t-sub); color: var(--ink-soft); }
+.row .amt { font-weight: 750; font-size: var(--t-row); white-space: nowrap; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
-.av { width: 34px; height: 34px; border-radius: 7px; flex: none; display: grid; place-items: center;
-  font-size: 17px; color: #fff; }
+.av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
+  font-size: var(--t-body); color: #fff; overflow: hidden; }
 
-.btn { border: none; border-radius: 7px; padding: 12px 16px; font-weight: 750; font-size: 15px;
-  cursor: pointer; background: var(--spout); color: #fff; }
+.btn { border: none; border-radius: 8px; padding: 12px 16px; font-weight: 750; font-size: var(--t-row);
+  min-height: var(--toque); cursor: pointer; background: var(--spout); color: #fff; }
 .btn:active { transform: translateY(1px); }
 .btn.block { width: 100%; }
 .btn.ghost { background: transparent; color: var(--spout-deep); border: 1px solid var(--line); }
-.btn.sm { padding: 7px 12px; font-size: 13px; border-radius: 6px; }
+/* La talla pequeña sigue siendo tocable: baja de cuerpo, no de altura. */
+.btn.sm { padding: 8px 12px; font-size: var(--t-sub); border-radius: 7px; min-height: 38px; }
 .btn.danger { background: var(--owe); }
 
-label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin: 10px 2px 4px; }
+label { display: block; font-size: var(--t-label); font-weight: 700; color: var(--ink-soft); margin: 12px 2px 5px; }
 input[type=text], input[type=number], input[type=date], input[type=email], select, textarea {
   width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
-  padding: 11px 12px; font-size: 16px; }
+  /* Nunca por debajo de 16 px: iOS hace zoom al enfocar el campo si el cuerpo
+     es menor. `--t-body` ya son 17 px de origen y sube con la escala. */
+  padding: 12px 12px; font-size: var(--t-body); }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); outline-offset: 1px; }
 
-.pill { font-size: 11px; font-weight: 750; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.pill { font-size: var(--t-micro); font-weight: 750; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .pill.owe { background: var(--owe-bg); color: var(--owe); }
 .pill.owed { background: var(--owed-bg); color: var(--owed); }
 .pill.neutral { background: color-mix(in srgb, var(--spout) 14%, transparent); color: var(--spout-deep); }
 .pill.fx { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--gold); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { border: 1px solid var(--line); background: var(--foam-2); border-radius: 999px; padding: 8px 12px;
-  font-size: 13px; font-weight: 650; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.chip { border: 1px solid var(--line); background: var(--foam-2); border-radius: 999px; padding: 9px 14px;
+  font-size: var(--t-sub); font-weight: 650; cursor: pointer; display: inline-flex; gap: 6px; align-items: center;
+  min-height: 38px; }
 .chip.on { background: var(--spout); border-color: var(--spout); color: #fff; }
 
-.tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px;
-  display: flex; justify-content: space-around; background: var(--foam-2); border-top: 1px solid var(--line-soft);
-  padding: 8px calc(4px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom))
+/* La barra. Deja de estar fija y pasa a ocupar su sitio al final de la columna:
+   fija se comía el último trozo de lo que se leía —de ahí los 86 px de relleno
+   que llevaba `.body` para esquivarla— y dejaba pasar el scroll por debajo.
+   Llega hasta el fondo físico de la pantalla y se come el indicador de home como
+   relleno propio, para que el color de la barra siga por debajo de él. */
+.tabbar { flex: none; display: flex; justify-content: space-around;
+  background: var(--foam-2); border-top: 1px solid var(--line-soft);
+  padding: 6px calc(4px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom))
            calc(4px + env(safe-area-inset-left)); z-index: 6; }
-.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-faint);
-  background: none; border: none; cursor: pointer; }
-.tab svg { width: 21px; height: 21px; }
-.tab span { font-size: 10px; font-weight: 650; }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: var(--toque); color: var(--ink-faint); background: none; border: none; cursor: pointer; padding: 4px 2px; }
+.tab svg { width: 23px; height: 23px; }
+.tab span { font-size: var(--t-micro); font-weight: 650; }
 .tab.on { color: var(--spout); }
 
-/* Control segmentado bajo la cabecera (Dinero → Gastos/Saldos, Cenas → Cenas/Compra,
-   Más → Stats/Ajustes). Es lo que permite bajar la barra inferior a 5 destinos. */
-.subnav-wrap { padding: 12px 14px 0; }
-.subnav { display: flex; gap: 4px; background: var(--line-soft); padding: 4px; border-radius: 9px; }
-.subnav button { flex: 1; padding: 9px 6px; border: none; background: none; cursor: pointer;
-  border-radius: 6px; font-weight: 750; font-size: 14px; color: var(--ink-soft); }
+/* Control segmentado bajo la cabecera (Dinero → Gastos/Saldos, Cenas → Cenas/Compra).
+   Es lo que permite bajar la barra inferior a 5 destinos. */
+.subnav-wrap { flex: none; padding: 12px 14px 0; }
+.subnav { display: flex; gap: 4px; background: var(--line-soft); padding: 4px; border-radius: 10px; }
+.subnav button { flex: 1; padding: 10px 6px; border: none; background: none; cursor: pointer;
+  border-radius: 7px; font-weight: 750; font-size: var(--t-row); color: var(--ink-soft); }
 .subnav button.on { background: var(--foam-2); color: var(--spout-deep);
   box-shadow: 0 1px 2px rgba(4, 18, 26, .10); }
 .subnav button:active { transform: translateY(1px); }
 
 .balance-hero { background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb; border: none;
   position: relative; overflow: hidden; }
-.balance-hero .l { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #7fc4e0; }
-.balance-hero .big { font-size: 28px; font-weight: 850; letter-spacing: -.02em; margin: 3px 0 1px; }
-.balance-hero .s { font-size: 12px; color: #a9cede; }
+.balance-hero .l { font-size: var(--t-micro); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #9ed4ea; }
+.balance-hero .big { font-size: var(--t-hero); font-weight: 850; letter-spacing: -.02em; margin: 3px 0 1px; }
+.balance-hero .s { font-size: var(--t-sub); color: #bcdcea; }
 
-.note { font-size: 12.5px; color: var(--ink-soft); background: color-mix(in srgb, var(--spout) 7%, var(--foam-2));
-  border: 1px dashed var(--line); border-radius: 7px; padding: 10px 12px; }
+.note { font-size: var(--t-sub); line-height: 1.45; color: var(--ink-soft);
+  background: color-mix(in srgb, var(--spout) 7%, var(--foam-2));
+  border: 1px dashed var(--line); border-radius: var(--r); padding: 11px 13px; }
 .note b { color: var(--ink); }
 
-.empty { text-align: center; color: var(--ink-faint); padding: 30px 16px; font-size: 14px; }
-.empty .e { font-size: 40px; display: block; margin-bottom: 8px; }
+.empty { text-align: center; color: var(--ink-faint); padding: 30px 16px; font-size: var(--t-row); }
+.empty .e { font-size: 42px; display: block; margin-bottom: 8px; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* El botón de crear, con la palabra puesta: un «+» a secas no dice si va a
+   apuntar un gasto, una cena o un plan. Pastilla y no cuadrado, porque ahora
+   tiene que crecer con el rótulo. */
 .fab { position: fixed; right: max(calc(16px + env(safe-area-inset-right)), calc(50% - 244px));
-  bottom: calc(78px + env(safe-area-inset-bottom)); width: 52px; height: 52px;
-  border-radius: 10px; background: var(--spout); color: #fff; border: none; font-size: 27px; cursor: pointer;
+  bottom: calc(78px + env(safe-area-inset-bottom)); min-height: 48px; padding: 0 18px 0 15px;
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 999px; background: var(--spout); color: #fff; border: none; cursor: pointer;
+  font-size: var(--t-row); font-weight: 750; letter-spacing: -.01em;
   box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--spout) 70%, transparent); z-index: 6; }
+.fab:active { transform: translateY(1px); }
+.fab .mas { font-size: calc(21px * var(--escala)); line-height: 1; font-weight: 400; }
+
+/* ── Filas que se deslizan ──────────────────────────────────────────────────
+   Los verbos viven detrás de la cara y el recorte del marco es lo que los tapa.
+   `touch-action: pan-y` reparte los gestos sin discutirlos: el vertical sigue
+   siendo de la página y el horizontal es de la fila. Ver components/Deslizable.jsx. */
+.deslizable { position: relative; overflow: hidden; border-radius: var(--r);
+  border: 1px solid var(--line-soft); touch-action: pan-y; }
+.deslizable-verbos { position: absolute; inset: 0; display: flex; justify-content: flex-end; }
+.deslizable-cara { position: relative; background: var(--fila-solida); padding: 0 12px; }
+/* Dentro de una fila deslizable la línea de arriba sobra: cada una es su propia
+   tarjeta y ya se separa de la siguiente. */
+.deslizable-cara .row { border-top: none; }
+
+/* Los dos verbos llevan **color propio** y no el del tema. `--spout-deep` es
+   cian claro en Abisal y `--owe` es salmón: con el blanco encima no se leen. Y
+   es lo correcto además de lo práctico —igual que el ámbar de `meeting-ops-air`,
+   un verbo destructivo es un hecho sobre la fila y no un acento decorativo—, así
+   que «Borrar» es el mismo rojo en los nueve temas. */
+.verbo { width: 76px; flex: none; display: grid; place-items: center; gap: 3px;
+  border: none; cursor: pointer; font-size: var(--t-label); font-weight: 750; padding: 0; }
+.verbo .g { font-size: var(--t-title); line-height: 1; }
+.verbo.editar { background: #1f6f8f; color: #eaf6fb; }
+.verbo.borrar { background: #a8322a; color: #ffe9e5; }
+.verbo:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
+
+/* Una lista de filas deslizables: separadas entre sí, porque cada una es su
+   propio objeto y su propio gesto. */
+.lista-deslizable { display: flex; flex-direction: column; gap: 8px; }
 /* `overscroll-behavior: contain` remata el bloqueo de scroll del fondo
    (lib/scrollLock.js): al llegar al final del modal el gesto no se propaga. */
 .modal-bg { position: fixed; inset: 0; background: rgba(4,18,26,.5); z-index: 20; display: flex; align-items: flex-end;
@@ -197,8 +293,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .modal.center { width: 90%; max-width: 460px; border-radius: 12px; padding: 18px 16px 22px;
   max-height: min(78vh, calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-.modal h2 { margin: 4px 0 2px; font-size: 19px; }
-.modal .x { float: right; background: none; border: none; font-size: 22px; color: var(--ink-faint); cursor: pointer; }
+.modal h2 { margin: 4px 0 2px; font-size: var(--t-title); }
+.modal .x { float: right; background: none; border: none; font-size: 26px; line-height: 1;
+  color: var(--ink-faint); cursor: pointer; padding: 0 4px; min-width: var(--toque); }
 
 /* Sheet del usuario: cabecera con la cara grande, acciones y lista de personas. */
 .perfil-cab { display: flex; align-items: center; gap: 12px; margin: 2px 0 10px; }
@@ -207,7 +304,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   border: 1px solid var(--line); }
 .perfil-txt { min-width: 0; }
 .perfil-txt h2 { margin: 0; }
-.perfil-sub { font-size: 12.5px; color: var(--ink-faint); }
+.perfil-sub { font-size: var(--t-label); color: var(--ink-faint); }
 .solo-movil { font-weight: 600; color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
 /* Barra de acciones pegada al fondo del sheet: el perfil trae muchos chips y
    «Guardar» se iba fuera de pantalla. El `-22px` compensa el padding del modal. */
@@ -215,55 +312,107 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   gap: 8px; margin-top: 14px; padding: 12px 0 22px; background: var(--foam);
   box-shadow: 0 -14px 14px -10px color-mix(in srgb, var(--abyss) 45%, transparent); }
 .perfil-secundarias { display: flex; gap: 8px; }
-.perfil-secundarias .btn { flex: 1; padding: 10px 12px; font-size: 14px; }
+.perfil-secundarias .btn { flex: 1; padding: 10px 12px; font-size: var(--t-sub); }
 .btn.ghost.danger-txt { color: var(--owe); border-color: color-mix(in srgb, var(--owe) 40%, transparent); }
 .oculto { display: none; }
 
 .lista-personas { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .persona-opcion { display: flex; align-items: center; gap: 10px; justify-content: flex-start; text-align: left; }
-.persona-opcion .pe { font-size: 18px; }
+.persona-opcion .pe { font-size: var(--t-title); }
 .persona-opcion.on { border-color: var(--spout); color: var(--spout-deep);
   background: color-mix(in srgb, var(--spout) 10%, transparent); }
 
-/* Modal de actualización: se busca/descarga/aplica la versión nueva a la vista,
-   para que la recarga se sienta intencionada (no un salto a la home). Antes era
-   un overlay a pantalla completa con un solo rótulo que iba cambiando; ahora es
-   un modal como los demás y enseña la lista de pasos y la versión en curso. */
-.update-modal { text-align: center; }
-.update-modal .whale { font-size: 52px; line-height: 1; animation: whalebob 1.7s ease-in-out infinite; }
-.update-modal h2 { margin: 6px 0 12px; }
+/* Modal de progreso: lo que está pasando, contado de arriba abajo. Lo pintan los
+   dos procesos largos —sincronizar todo desde el punto de la cabecera y
+   comprobar la versión desde Ajustes—, que son el mismo gesto a capas distintas
+   y por eso comparten figura. */
+.progreso-modal { text-align: center; }
+.progreso-modal .whale { font-size: 52px; line-height: 1; animation: whalebob 1.7s ease-in-out infinite; }
+.progreso-modal h2 { margin: 6px 0 12px; }
 
 /* La versión, bien grande: es el dato que se viene a comprobar. */
 .version-caja { display: grid; gap: 2px; justify-items: center; padding: 12px;
   background: color-mix(in srgb, var(--spout) 10%, var(--foam-2)); border: 1px solid var(--line);
   border-radius: var(--r); }
-.version-caja .l { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+.version-caja .l { font-size: var(--t-micro); font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
   color: var(--ink-faint); }
-.version-caja .v { font-size: 26px; font-weight: 850; letter-spacing: -.02em; color: var(--spout-deep); }
+.version-caja .v { font-size: calc(28px * var(--escala)); font-weight: 850; letter-spacing: -.02em;
+  color: var(--spout-deep); }
 /* Su gemela pequeña, en la ficha de Ajustes. */
-.version-grande { font-size: 19px; font-weight: 850; letter-spacing: -.02em; color: var(--spout-deep); }
+.version-grande { font-size: var(--t-title); font-weight: 850; letter-spacing: -.02em; color: var(--spout-deep); }
 
-.pasos { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 2px; text-align: left; }
-.pasos li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px;
-  font-size: 13.5px; font-weight: 650; }
+.pasos { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 3px; text-align: left; }
+.pasos li { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border-radius: 7px;
+  font-size: var(--t-sub); font-weight: 650; line-height: 1.35; }
 .pasos li .txt { flex: 1; min-width: 0; }
-.pasos li .marca { flex: none; font-size: 13px; }
+.pasos li .marca { flex: none; font-size: var(--t-sub); }
 .pasos li[data-estado="pendiente"] { color: var(--ink-faint); opacity: .6; }
 .pasos li[data-estado="hecho"] { color: var(--owed); }
-.pasos li[data-estado="ahora"] { background: color-mix(in srgb, var(--spout) 12%, transparent);
-  color: var(--spout-deep); }
-.pasos li[data-estado="ahora"] .marca { animation: syncpulse .8s ease-in-out infinite; }
+.pasos li[data-estado="fallo"] { color: var(--owe); background: var(--owe-bg); }
+/* Ni bien ni mal: «aquí no hay sincronización» es una respuesta, no una avería. */
+.pasos li[data-estado="aviso"] { color: var(--ink-soft); }
+.pasos li[data-estado="curso"], .pasos li[data-estado="ahora"] {
+  background: color-mix(in srgb, var(--spout) 12%, transparent); color: var(--spout-deep); }
+.pasos li[data-estado="curso"] .marca, .pasos li[data-estado="ahora"] .marca {
+  animation: syncpulse .8s ease-in-out infinite; }
 
-.update-modal .hint { margin-top: 10px; font-size: 12px; color: var(--ink-faint); }
-.update-modal .prog { margin: 14px auto 0; width: 100%; max-width: 220px; height: 6px; border-radius: 3px;
+.progreso-modal .hint { margin-top: 10px; font-size: var(--t-label); color: var(--ink-faint); }
+.progreso-modal .prog { margin: 14px auto 0; width: 100%; max-width: 220px; height: 6px; border-radius: 3px;
   background: var(--line-soft); overflow: hidden; }
-.update-modal .prog i { display: block; height: 100%; width: 42%; border-radius: 3px; background: var(--spout);
+.progreso-modal .prog i { display: block; height: 100%; width: 42%; border-radius: 3px; background: var(--spout);
   animation: progslide 1.15s ease-in-out infinite; }
 @keyframes progslide { 0% { transform: translateX(-110%); } 100% { transform: translateX(240%); } }
 @keyframes whalebob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
 @media (prefers-reduced-motion: reduce) {
-  .update-modal .whale, .update-modal .prog i, .pasos li[data-estado="ahora"] .marca { animation: none; }
+  .progreso-modal .whale, .progreso-modal .prog i,
+  .pasos li[data-estado="ahora"] .marca, .pasos li[data-estado="curso"] .marca { animation: none; }
 }
+
+/* ── Apartados plegables de Ajustes ─────────────────────────────────────────
+   Ajustes es una lista de cosas que casi nunca se tocan: enseñarlas todas
+   abiertas obliga a leerlas enteras para encontrar la única que se venía a
+   buscar. Uno solo abierto —Sincronización—, que es a lo que se entra.
+   El triángulo del navegador se retira y en su sitio va un ángulo a la derecha,
+   que es donde el pulgar lo espera en un teléfono. */
+.acordeon { background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r);
+  padding: 0 13px; }
+.acordeon > summary { display: flex; align-items: center; gap: 11px; min-height: var(--toque);
+  padding: 9px 0; font-size: var(--t-body); font-weight: 700; cursor: pointer; list-style: none; }
+.acordeon > summary::-webkit-details-marker { display: none; }
+.acordeon > summary::after { content: ''; margin-left: auto; flex: none; width: 9px; height: 9px;
+  border-right: 2px solid var(--ink-faint); border-bottom: 2px solid var(--ink-faint);
+  transform: rotate(45deg) translate(-2px, -2px); transition: transform .16s ease; }
+.acordeon[open] > summary::after { transform: rotate(-135deg) translate(-2px, -2px); }
+.acordeon > summary:focus-visible { outline: 2px solid var(--spout); outline-offset: 2px; border-radius: 6px; }
+.acordeon[open] > summary { border-bottom: 1px solid var(--line-soft); }
+/* La moneda del rótulo: la figura de los Ajustes de iOS, y se le da a todos los
+   apartados o a ninguno. Con dos puestas y siete sin nada la columna se lee como
+   un descuido. */
+.acordeon-moneda { flex: none; display: grid; place-items: center; width: 30px; height: 30px;
+  border-radius: 8px; font-size: var(--t-row);
+  background: color-mix(in srgb, var(--spout) 16%, transparent); }
+.acordeon-titulo { min-width: 0; }
+/* Lo que el apartado sigue diciendo con la solapa bajada. Apagado y pegado a la
+   flecha, para que se lea como una nota del rótulo y no como parte de él. */
+.acordeon-nota { margin-left: auto; padding-left: 10px; font-size: var(--t-label); font-weight: 500;
+  color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acordeon-cuerpo { display: flex; flex-direction: column; gap: 11px; padding: 13px 0 15px; }
+.acordeon-cuerpo > .sec-h:first-child { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { .acordeon > summary::after { transition: none; } }
+
+/* Una columna suelta, para meter una pantalla entera dentro de un apartado
+   (Estadísticas) sin que arrastre el relleno y el scroll de `.body`. */
+.pila { display: flex; flex-direction: column; gap: 12px; }
+
+/* Control segmentado de un campo: dos o tres opciones que se tocan y se ven en
+   el acto. Un `select` de tres esconde dos detrás de una rueda de iOS que tapa
+   media pantalla, y el tamaño del texto es justo lo que hay que ver aplicado. */
+.seg { display: flex; gap: 4px; padding: 4px; background: var(--line-soft); border-radius: 10px; }
+.seg button { flex: 1; min-height: 40px; padding: 8px 10px; border: none; background: none; cursor: pointer;
+  border-radius: 7px; font-weight: 700; font-size: var(--t-sub); color: var(--ink-soft); }
+.seg button[aria-pressed="true"] { background: var(--foam-2); color: var(--spout-deep);
+  box-shadow: 0 1px 2px rgba(4, 18, 26, .10); }
+.seg button:active { transform: translateY(1px); }
 
 /* Pantalla de acceso (Sign in with Apple). Es lo primero que ve alguien nuevo,
    así que va con el mismo fondo de la cabecera: la app se presenta entera antes
@@ -273,8 +422,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   padding: calc(24px + env(safe-area-inset-top)) 26px calc(24px + env(safe-area-inset-bottom));
   background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb; }
 .acceso-logo { width: 84px; height: 84px; margin: 0 auto; }
-.acceso h1 { font-size: 26px; font-weight: 850; margin: 0; }
-.acceso-texto { font-size: 14.5px; line-height: 1.5; color: #a9cede; margin: 0 auto; max-width: 320px; }
+.acceso h1 { font-size: calc(28px * var(--escala)); font-weight: 850; margin: 0; }
+.acceso-texto { font-size: var(--t-row); line-height: 1.5; color: #bcdcea; margin: 0 auto; max-width: 340px; }
 
 /* El botón de Apple mantiene su aspecto en los dos temas a propósito: es una
    marca ajena y su contraste está fijado por las normas de Apple. */
@@ -283,12 +432,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .btn.apple:disabled { opacity: .6; cursor: default; }
 
 .acceso-aviso { background: rgba(255,255,255,.08); border-radius: var(--r); padding: 14px;
-  font-size: 13.5px; line-height: 1.5; text-align: left; display: grid; gap: 8px; justify-items: start; }
+  font-size: var(--t-sub); line-height: 1.5; text-align: left; display: grid; gap: 8px; justify-items: start; }
 /* Los mensajes de error traen saltos de línea a propósito: separan el fallo de
    Apple, que es críptico, de la explicación de qué suele causarlo. */
 .acceso-aviso p { white-space: pre-line; margin: 0; }
 .acceso-aviso .note { color: #a9cede; margin: 0; }
-.acceso-codigo { display: block; width: 100%; word-break: break-all; font-size: 12px;
+.acceso-codigo { display: block; width: 100%; word-break: break-all; font-size: var(--t-label);
   background: rgba(0,0,0,.25); border-radius: 6px; padding: 8px; }
 .acceso-aviso .btn.ghost { color: #eaf6fb; border-color: rgba(255,255,255,.3); }
 
@@ -297,6 +446,6 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   border-bottom: 1px solid var(--line-soft); }
 .cuenta-fila:last-child { border-bottom: none; }
 .cuenta-fila .main { flex: 1; min-width: 0; }
-.cuenta-fila .n { font-weight: 700; font-size: 14px; }
-.cuenta-fila .sub { font-size: 11.5px; color: var(--ink-faint); }
+.cuenta-fila .n { font-weight: 700; font-size: var(--t-row); }
+.cuenta-fila .sub { font-size: var(--t-label); color: var(--ink-faint); }
 .cuenta-fila[data-activa="no"] { opacity: .55; }
