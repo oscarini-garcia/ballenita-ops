@@ -13,6 +13,7 @@
   --spout: #1f9fd0; --spout-deep: #7fdcf0; --abyss: #071a2b; --gold: #ffc24b;
   --owe: #ff8a7a; --owe-bg: rgba(255,122,102,.16); --owed: #5ee0a0; --owed-bg: rgba(94,224,160,.16);
   --appbar-bg: linear-gradient(150deg, #0b3a58, #0a2438); --appbar-ink: #eaf6fb; --whale: #38c6e8;
+  --fila-solida: #0e2f45;
 }
 :root[data-skin="abisal"] .appbar::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
@@ -47,6 +48,7 @@
   --spout: #c840ff; --spout-deep: #31e0ff; --abyss: #080611; --gold: #ffe15a;
   --owe: #ff6b8a; --owe-bg: rgba(255,61,120,.16); --owed: #39ff96; --owed-bg: rgba(57,255,150,.14);
   --appbar-bg: linear-gradient(120deg, #170b30, #0a1430); --appbar-ink: #eafcff; --whale: #31e0ff;
+  --fila-solida: #17122e;
 }
 :root[data-skin="verbena"] .card { box-shadow: 0 0 20px -6px rgba(120,60,255,.4); }
 :root[data-skin="verbena"] .appbar .ti { text-shadow: 0 0 14px rgba(49,224,255,.5); }
@@ -72,6 +74,7 @@
   --spout: #0e6fb0; --spout-deep: #eafffb; --abyss: #0b3a72; --gold: #ffe06a;
   --owe: #ffd0c8; --owe-bg: rgba(255,120,100,.22); --owed: #d6ffe8; --owed-bg: rgba(120,255,190,.22);
   --appbar-bg: linear-gradient(150deg, rgba(11,58,114,.5), rgba(18,70,184,.4)); --appbar-ink: #ffffff; --whale: #eafffb;
+  --fila-solida: #3ba7dd;
 }
 :root[data-skin="aqua"] .card,
 :root[data-skin="aqua"] input,

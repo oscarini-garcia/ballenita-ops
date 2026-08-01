@@ -96,7 +96,8 @@ app/src/
         tables.js
   screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats,
             EventSettings (= Ajustes, en acordeón), Events, Acceso
-  components/ Acordeon.jsx · ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx
+  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · ProgresoModal.jsx · SyncDot.jsx
+              WhaleLogo.jsx
   App.jsx  ·  theme.css / skins.css
   public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
 
@@ -139,14 +140,15 @@ abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo, todo plegado) 
 comido «Más» —Estadísticas, Quién eres (con tu perfil) y Evento son apartados—, cabecera de
 tres cosas con el punto verde que **sincroniza todo** (datos + versión de la app) con su
 lista de progreso, tipografía a 17 px ×1,12 de fábrica, y dos temas de máximo contraste.
-129 tests en la PWA + 28 en la API, todos en verde.
+**Deslizar una fila de gastos** descubre Editar y Borrar (§14.10-bis), y el botón de crear
+lleva la palabra puesta («+ Gasto»). 134 tests en la PWA + 28 en la API, todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
 `database_id`, registrar los secretos, dar de alta los identificadores de Apple, crear el
 proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
 la app funciona en modo solo-local.
 
-**Pendiente (ideas):** editar gastos/personas desde la UI · **compartir** los avatares con
+**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · **compartir** los avatares con
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
 `Dish.ingredientes`) · pulir contrastes de algún tema · sacar los ~96 estilos inline de las

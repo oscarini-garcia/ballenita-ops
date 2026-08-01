@@ -5,6 +5,7 @@ import {
   bungasOf, listDishes, addDish, DISH_CATEGORIES,
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import Fab from '../components/Fab.jsx'
 
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 const fmtDay = (d) => (d ? new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Sin día')
@@ -21,7 +22,7 @@ export default function CenasScreen({ eventId }) {
   return (
     <div className="body">
       {dinners.length === 0 && (
-        <div className="empty"><span className="e">🍳</span>Ninguna cena todavía.<br />Monta la primera con el botón +.</div>
+        <div className="empty"><span className="e">🍳</span>Ninguna cena todavía.<br />Monta la primera con «+ Cena».</div>
       )}
 
       {dinners.map((c) => (
@@ -58,7 +59,7 @@ export default function CenasScreen({ eventId }) {
         </div>
       ))}
 
-      <button className="fab" aria-label="Añadir cena" onClick={() => setOpen(true)}>+</button>
+      <Fab label="Cena" onClick={() => setOpen(true)} />
       {open && <AddDinnerModal eventId={eventId} bungas={bungas} dishes={dishes} onClose={() => setOpen(false)} />}
     </div>
   )

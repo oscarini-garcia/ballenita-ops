@@ -34,6 +34,13 @@
   --t-micro: calc(11.5px * var(--escala)); /* pastillas y rótulos de sección */
   /* Lo que mide un objetivo tocable. 44 px es el suelo de iOS y no se baja. */
   --toque: 44px;
+
+  /* El fondo de una fila que se desliza, y tiene que ser **opaco**: por debajo
+     van los verbos, y con el `rgba` translúcido de las tarjetas de los temas de
+     cristal se transparentaría el rojo de «Borrar» a través de toda la fila.
+     Aquí `--foam-2` ya es opaco; los tres temas que no lo tienen lo pisan en
+     skins.css. */
+  --fila-solida: var(--foam-2);
 }
 
 /* Las tres tallas. La de fábrica es **Grande** y por eso su ×1,12 está arriba,
@@ -232,10 +239,45 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .empty .e { font-size: 42px; display: block; margin-bottom: 8px; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* El botón de crear, con la palabra puesta: un «+» a secas no dice si va a
+   apuntar un gasto, una cena o un plan. Pastilla y no cuadrado, porque ahora
+   tiene que crecer con el rótulo. */
 .fab { position: fixed; right: max(calc(16px + env(safe-area-inset-right)), calc(50% - 244px));
-  bottom: calc(78px + env(safe-area-inset-bottom)); width: 52px; height: 52px;
-  border-radius: 10px; background: var(--spout); color: #fff; border: none; font-size: 27px; cursor: pointer;
+  bottom: calc(78px + env(safe-area-inset-bottom)); min-height: 48px; padding: 0 18px 0 15px;
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 999px; background: var(--spout); color: #fff; border: none; cursor: pointer;
+  font-size: var(--t-row); font-weight: 750; letter-spacing: -.01em;
   box-shadow: 0 10px 22px -6px color-mix(in srgb, var(--spout) 70%, transparent); z-index: 6; }
+.fab:active { transform: translateY(1px); }
+.fab .mas { font-size: calc(21px * var(--escala)); line-height: 1; font-weight: 400; }
+
+/* ── Filas que se deslizan ──────────────────────────────────────────────────
+   Los verbos viven detrás de la cara y el recorte del marco es lo que los tapa.
+   `touch-action: pan-y` reparte los gestos sin discutirlos: el vertical sigue
+   siendo de la página y el horizontal es de la fila. Ver components/Deslizable.jsx. */
+.deslizable { position: relative; overflow: hidden; border-radius: var(--r);
+  border: 1px solid var(--line-soft); touch-action: pan-y; }
+.deslizable-verbos { position: absolute; inset: 0; display: flex; justify-content: flex-end; }
+.deslizable-cara { position: relative; background: var(--fila-solida); padding: 0 12px; }
+/* Dentro de una fila deslizable la línea de arriba sobra: cada una es su propia
+   tarjeta y ya se separa de la siguiente. */
+.deslizable-cara .row { border-top: none; }
+
+/* Los dos verbos llevan **color propio** y no el del tema. `--spout-deep` es
+   cian claro en Abisal y `--owe` es salmón: con el blanco encima no se leen. Y
+   es lo correcto además de lo práctico —igual que el ámbar de `meeting-ops-air`,
+   un verbo destructivo es un hecho sobre la fila y no un acento decorativo—, así
+   que «Borrar» es el mismo rojo en los nueve temas. */
+.verbo { width: 76px; flex: none; display: grid; place-items: center; gap: 3px;
+  border: none; cursor: pointer; font-size: var(--t-label); font-weight: 750; padding: 0; }
+.verbo .g { font-size: var(--t-title); line-height: 1; }
+.verbo.editar { background: #1f6f8f; color: #eaf6fb; }
+.verbo.borrar { background: #a8322a; color: #ffe9e5; }
+.verbo:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
+
+/* Una lista de filas deslizables: separadas entre sí, porque cada una es su
+   propio objeto y su propio gesto. */
+.lista-deslizable { display: flex; flex-direction: column; gap: 8px; }
 /* `overscroll-behavior: contain` remata el bloqueo de scroll del fondo
    (lib/scrollLock.js): al llegar al final del modal el gesto no se propaga. */
 .modal-bg { position: fixed; inset: 0; background: rgba(4,18,26,.5); z-index: 20; display: flex; align-items: flex-end;

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { expensesOf, familiesOf, personsOf, addExpense, removeExpense } from '../db.js'
-import { eurosToCents, formatCents } from '../lib/money.js'
+import { expensesOf, familiesOf, personsOf, addExpense, updateExpense, removeExpense } from '../db.js'
+import { centsToEuros, eurosToCents, formatCents } from '../lib/money.js'
 import { now } from '../lib/ids.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import Deslizable from '../components/Deslizable.jsx'
+import Fab from '../components/Fab.jsx'
 
 export const CATEGORIES = [
   { id: 'compra_general', label: 'Compra general', icon: '🛒' },
@@ -18,7 +20,8 @@ export default function ExpensesScreen({ eventId, event }) {
   const expenses = useLiveQuery(() => expensesOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
-  const [open, setOpen] = useState(false)
+  // null = cerrado · 'nuevo' = alta · un gasto = edición de ese gasto.
+  const [ficha, setFicha] = useState(null)
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
 
   const total = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)
@@ -32,52 +35,81 @@ export default function ExpensesScreen({ eventId, event }) {
       </div>
 
       {expenses.length === 0 && (
-        <div className="empty"><span className="e">💸</span>Ningún gasto todavía.<br />Añade el primero con el botón +.</div>
+        <div className="empty"><span className="e">💸</span>Ningún gasto todavía.<br />Apunta el primero con «+ Gasto».</div>
       )}
 
-      <div className="card tight">
+      {/* Una tarjeta por gasto y cada una con su gesto: se desliza a la izquierda
+          para editarlo o borrarlo. El botón «borrar» que llevaba cada fila se
+          comía justo el hueco del importe, que es a lo que se entra aquí. */}
+      <div className="lista-deslizable">
         {expenses.map((e) => {
           const c = catOf(e.category)
           return (
-            <div className="row" key={e.id}>
-              <div className="av" style={{ background: 'color-mix(in srgb, var(--spout) 20%, transparent)', fontSize: 18 }}>{c.icon}</div>
-              <div className="main">
-                <div className="n">{e.description}</div>
-                <div className="sub">
-                  Pagó {e.payers?.map((p) => famName(p.familyId)).join(', ')}
-                  {e.currency && e.currency !== event.currency && <> · <span className="pill fx">{e.amountOriginal} {e.currency}</span></>}
+            <Deslizable
+              key={e.id}
+              verbos={
+                <>
+                  <button className="verbo editar" onClick={() => setFicha(e)}>
+                    <span className="g" aria-hidden>✏️</span>Editar
+                  </button>
+                  <button className="verbo borrar" onClick={() => removeExpense(e.id)}>
+                    <span className="g" aria-hidden>🗑️</span>Borrar
+                  </button>
+                </>
+              }
+            >
+              <div className="row">
+                <div className="av" style={{ background: 'color-mix(in srgb, var(--spout) 20%, transparent)' }}>{c.icon}</div>
+                <div className="main">
+                  <div className="n">{e.description}</div>
+                  <div className="sub">
+                    Pagó {e.payers?.map((p) => famName(p.familyId)).join(', ')}
+                    {e.currency && e.currency !== event.currency && <> · <span className="pill fx">{e.amountOriginal} {e.currency}</span></>}
+                  </div>
                 </div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
                 <div className="amt tnum">{formatCents(e.amountCents, event.currency)}</div>
-                <button className="btn sm ghost" style={{ marginTop: 4, padding: '2px 8px', fontSize: 11 }} onClick={() => removeExpense(e.id)}>borrar</button>
               </div>
-            </div>
+            </Deslizable>
           )
         })}
       </div>
 
-      <button className="fab" aria-label="Añadir gasto" onClick={() => setOpen(true)}>+</button>
+      <Fab label="Gasto" onClick={() => setFicha('nuevo')} />
 
-      {open && (
-        <AddExpenseModal
+      {ficha && (
+        <ExpenseModal
           event={event} eventId={eventId} families={families} persons={persons}
-          onClose={() => setOpen(false)}
+          gasto={ficha === 'nuevo' ? null : ficha}
+          onClose={() => setFicha(null)}
         />
       )}
     </div>
   )
 }
 
-function AddExpenseModal({ event, eventId, families, persons, onClose }) {
+/**
+ * La ficha de un gasto: la misma para apuntarlo y para corregirlo.
+ *
+ * Corregir no existía —había que borrar y volver a teclearlo entero, con su
+ * reparto—, y es lo que se venía a hacer la mitad de las veces que se abría un
+ * gasto: un 24,60 € que eran 26,40. Con `gasto` puesto, los campos arrancan con
+ * lo que ya había y al guardar se actualiza en vez de crear.
+ */
+function ExpenseModal({ event, eventId, families, persons, gasto, onClose }) {
   useBloqueoDeScroll()
-  const [description, setDescription] = useState('')
-  const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState(event.currency)
-  const [rate, setRate] = useState(1)
-  const [category, setCategory] = useState('compra_general')
-  const [payerFamily, setPayerFamily] = useState(families[0]?.id ?? '')
-  const [participants, setParticipants] = useState(() => new Set(persons.map((p) => p.id)))
+  const editando = Boolean(gasto)
+  const [description, setDescription] = useState(gasto?.description ?? '')
+  // El importe se enseña en su moneda original, que es como se tecleó.
+  const [amount, setAmount] = useState(
+    gasto ? String(gasto.amountOriginal ?? centsToEuros(gasto.amountCents)) : '',
+  )
+  const [currency, setCurrency] = useState(gasto?.currency ?? event.currency)
+  const [rate, setRate] = useState(gasto?.rate ?? 1)
+  const [category, setCategory] = useState(gasto?.category ?? 'compra_general')
+  const [payerFamily, setPayerFamily] = useState(gasto?.payers?.[0]?.familyId ?? families[0]?.id ?? '')
+  const [participants, setParticipants] = useState(
+    () => new Set(gasto?.participantIds ?? persons.map((p) => p.id)),
+  )
 
   const differsCurrency = currency !== event.currency
   function toggle(id) {
@@ -93,17 +125,20 @@ function AddExpenseModal({ event, eventId, families, persons, onClose }) {
     const amt = Number(amount)
     if (!description.trim() || !amt || !payerFamily || participants.size === 0) return
     const amountCents = eurosToCents(amt * (differsCurrency ? Number(rate) : 1))
-    await addExpense(eventId, {
+    const datos = {
       description: description.trim(),
       amountCents,
       currency,
       amountOriginal: amt,
       rate: differsCurrency ? Number(rate) : 1,
       category,
-      dateISO: now(),
       payers: [{ familyId: payerFamily, amountCents }],
       participantIds: [...participants],
-    })
+    }
+    // Al corregir se conserva la fecha original: es cuándo se gastó, no cuándo
+    // se cayó en la cuenta de que estaba mal apuntado.
+    if (editando) await updateExpense(gasto.id, datos)
+    else await addExpense(eventId, { ...datos, dateISO: now() })
     onClose()
   }
 
@@ -111,7 +146,7 @@ function AddExpenseModal({ event, eventId, families, persons, onClose }) {
     <div className="modal-bg" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose}>×</button>
-        <h2>Nuevo gasto</h2>
+        <h2>{editando ? 'Corregir gasto' : 'Nuevo gasto'}</h2>
 
         <label>Descripción</label>
         <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Compra grande Mercadona" autoFocus />
@@ -155,7 +190,7 @@ function AddExpenseModal({ event, eventId, families, persons, onClose }) {
           ))}
         </div>
 
-        <div style={{ marginTop: 16 }}><button className="btn block" onClick={submit}>Guardar gasto</button></div>
+        <div style={{ marginTop: 16 }}><button className="btn block" onClick={submit}>{editando ? 'Guardar los cambios' : 'Guardar gasto'}</button></div>
         <div className="note" style={{ marginTop: 10 }}>Se reparte por el <b>peso</b> de cada persona y el saldo se suma a su familia (§3).</div>
       </div>
     </div>

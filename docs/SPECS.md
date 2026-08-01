@@ -756,6 +756,52 @@ que tapar:
 Los dos siguen puestos. Un contador permite modales anidados (y el doble montaje
 de StrictMode). Todos los modales lo usan.
 
+### 14.10-bis Corregir y crear: el gesto de la fila y el botón con la palabra
+
+**Deslizar una fila descubre sus verbos** (`components/Deslizable.jsx`). Cada
+gasto llevaba un botón «borrar» puesto, siempre visible, que ocupaba justo el
+hueco del importe —lo que se viene a mirar en Dinero— y no dejaba sitio para
+«Editar». Ahora la fila enseña cuánto costó y se desliza a la izquierda para las
+dos cosas. Es el gesto de `garciadoral-ops` y de cualquier lista de iOS.
+
+Tres cosas que no salen gratis y que están resueltas:
+
+- **El desplazamiento vertical manda.** Se escucha con eventos de puntero, y
+  hasta que el gesto no se aparta 10 px no se decide de quién es: si baja más de
+  lo que se mueve a los lados, es de la página. `touch-action: pan-y` se lo dice
+  también al navegador, que así no espera nuestro veredicto para scrollar.
+- **El `click` que remata el arrastre se consume.** El navegador lo dispara al
+  soltar, y sin consumirlo entraba por el mismo sitio que un toque y cerraba la
+  fila en el gesto que acababa de abrirla. jsdom no lo emite, así que esto solo
+  se ve en un navegador de verdad.
+- **Con el teclado no hay nada que arrastrar**: los verbos son botones y
+  enfocarlos abre la fila. Cerrada, se ocultan con `visibility` para que no
+  queden en la ruta del tabulador.
+
+Dos detalles de color. La cara de la fila necesita un fondo **opaco**
+(`--fila-solida`), porque con el `rgba` translúcido de las tarjetas de los temas
+de cristal el rojo de «Borrar» se transparentaba a través de toda la fila; los
+tres temas afectados lo pisan en `skins.css`. Y los verbos llevan **color propio
+y no el del tema**: `--spout-deep` es cian claro en Abisal y `--owe` es salmón, y
+con blanco encima no se leen. Es lo correcto además de lo práctico — como el
+ámbar de `meeting-ops-air`, un verbo destructivo es un hecho sobre la fila y no
+un acento, así que «Borrar» es el mismo rojo en los nueve temas.
+
+**Corregir un gasto existe.** La misma ficha sirve para apuntarlo y para
+arreglarlo (`ExpenseModal`): con un gasto puesto, los campos arrancan con lo que
+había y al guardar se actualiza. Antes había que borrarlo y volver a teclearlo
+entero, con su reparto, por un 24,60 € que eran 26,40. Al corregir **se conserva
+`dateISO`**: es cuándo se gastó, no cuándo se cayó en la cuenta del error.
+
+El gesto va en la lista de gastos y solo ahí. Cenas y Planes no son filas sino
+tarjetas llenas de mandos —votos, fechas, confirmar—, no tienen presión de ancho,
+y una superficie que se arrastra por encima de todo eso pelearía con ellos.
+
+**El botón de crear lleva la palabra puesta** (`components/Fab.jsx`): «+ Gasto»,
+«+ Cena», «+ Plan». Un «+» a secas no dice qué va a crear y obligaba a acordarse
+de en qué pestaña estabas. Mismo sitio y mismo gesto; cambia la forma —pastilla
+en vez de cuadrado, porque ahora crece con el rótulo—, no el sistema.
+
 ### 14.11 Tipografía: un número y toda la escala
 
 El cuerpo pasa de 14 px a **17 px**, que es lo que iOS llama *body* y lo que de
