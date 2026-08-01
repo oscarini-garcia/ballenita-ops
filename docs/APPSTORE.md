@@ -187,7 +187,19 @@ sips -z 1024 1024 -s format png /tmp/icono.jpg --out app/assets/icon.png
 
 En Xcode:
 
-1. **Signing & Capabilities** → tu *Team*, y confirma el bundle id.
+1. **Signing & Capabilities** → tu *Team*, y **comprueba el Bundle Identifier**:
+   tiene que decir exactamente `com.garciadoral.ballenitaops`. `cap add ios` lo
+   lee de `capacitor.config.json` **al generar** el proyecto y `cap sync` no lo
+   corrige después, así que un proyecto creado con otro valor se queda con él
+   para siempre. El campo de la pestaña *General* es de solo lectura; se edita
+   aquí.
+
+   Con este desajuste **no entra nadie**: el Worker verifica el token de Apple
+   contra `APPLE_AUD_IOS`, que es ese mismo identificador, y responde «audiencia
+   no admitida». El fallo aparece cuando ya archivaste, subiste y creaste la
+   ficha —que va atada al identificador y no se puede renombrar—. `patch-ios.mjs`
+   lo comprueba en cada `sync:ios` y avisa, pero no lo corrige solo: cambiarlo
+   invalida los perfiles de aprovisionamiento y la firma.
 2. Añade la capacidad **Sign in with Apple**. No es opcional: sin ella la hoja
    nativa falla al abrirse y no entra nadie, aunque en el navegador todo vaya.
 3. **Version** (`MARKETING_VERSION`) `1.0` y **Build** (`CURRENT_PROJECT_VERSION`)

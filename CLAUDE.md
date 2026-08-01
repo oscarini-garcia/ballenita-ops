@@ -168,6 +168,13 @@ pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
   a la vez, no leyendo una lista. El artefacto enseña **lo que he pedido o lo que cambia, y
   nada más**: las decisiones ya tomadas se quedan fuera salvo que sean justo lo que se
   reabre o que las pida yo.
+- **Los comandos que me pasas para ejecutar van sin comentarios.** Nunca un `#` dentro del
+  bloque. Lo que haya que explicar —qué hace, qué variable tocar, qué esperar— va **fuera**,
+  en prosa, antes o después. Un bloque se copia entero y se pega en una terminal, muchas
+  veces desde el móvil: los comentarios lo alargan, envuelven líneas y hacen que haya que
+  leerlo para copiarlo, cuando lo único que se quiere es copiarlo. Esto vale para lo que se
+  pega en el chat, **no para el código del repositorio**, donde los comentarios que dicen
+  el porqué son media casa —mira `patch-ios.mjs` o `revocacion.js`— y no se tocan.
 
 ### Cómo se hace una hoja de opciones (la vara es `meeting-ops-air`)
 
