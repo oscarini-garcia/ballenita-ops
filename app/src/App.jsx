@@ -14,7 +14,7 @@ import { useSyncEngine } from './sync/engine.js'
 import { isNative, tap } from './lib/native.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
-import { haySesion, leerSesion } from './auth/sesion.js'
+import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
@@ -41,6 +41,9 @@ export default function App() {
   // hay API configurada, que es el modo solo-local de siempre).
   const [configuracion, setConfiguracion] = useState(undefined)
   const [sesion, setSesion] = useState(() => leerSesion())
+  // Quien no puede entrar con Apple sigue en local (ver AccesoScreen). Es una
+  // decisión de este móvil, así que se recuerda y no se vuelve a preguntar.
+  const [soloLocal, setSoloLocal] = useState(modoLocal)
   useEffect(() => { cargarConfiguracion().then(setConfiguracion) }, [])
 
   const sync = useSyncEngine()
@@ -87,10 +90,14 @@ export default function App() {
   // Solo la app de iOS entra: la sincronización con el grupo vive en la cáscara
   // nativa. En el navegador y en la PWA instalada, Ballena Ops es una libreta
   // local de ese dispositivo y no pide nada.
-  if (isNative() && estaConfigurada(configuracion) && !sesion) {
+  if (isNative() && estaConfigurada(configuracion) && !sesion && !soloLocal) {
     return (
       <div className="app">
-        <AccesoScreen configuracion={configuracion} onEntrar={setSesion} />
+        <AccesoScreen
+          configuracion={configuracion}
+          onEntrar={setSesion}
+          onLocal={() => setSoloLocal(true)}
+        />
       </div>
     )
   }

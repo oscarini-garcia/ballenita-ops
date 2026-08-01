@@ -11,7 +11,7 @@ import { useSkin, SKINS } from '../lib/skins.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { syncNow } from '../sync/engine.js'
 import { gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
-import { borrarSesion, leerSesion } from '../auth/sesion.js'
+import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
 
@@ -60,12 +60,22 @@ function SyncSection({ sync }) {
 
   const estado = sync ?? { isConfigured: detectada, online: true, status: state?.status ?? 'idle' }
   const d = estadoSync(estado)
+  // Hay grupo al otro lado, pero este móvil eligió seguir sin entrar.
+  const enLocal = estado.isConfigured && modoLocal() && !leerSesion()
 
   async function run() {
     tap()
     if (sync?.recheck) { await sync.recheck(); return }
     setState({ status: 'syncing' })
     setState(await syncNow())
+  }
+
+  // La puerta se vuelve a abrir recargando: App decide qué pintar al arrancar y
+  // así no hay dos sitios que recuerden si se entró o no.
+  function volverAIntentarlo() {
+    tap()
+    salirDeModoLocal()
+    window.location.reload()
   }
 
   return (
@@ -81,11 +91,23 @@ function SyncSection({ sync }) {
           {estado.isConfigured && <button className="btn sm ghost" onClick={run}>↻ Ahora</button>}
         </div>
       </div>
-      {estado.isConfigured ? (
+      {enLocal && (
+        <>
+          <div className="note">
+            Estás usando Ballena Ops <b>sin entrar</b>: lo que apuntas se queda en este móvil,
+            encolado. En cuanto consigas entrar con Apple sube todo de una vez —no hay que
+            volver a teclear nada—.
+          </div>
+          <button className="btn sm" style={{ marginTop: 8 }} onClick={volverAIntentarlo}>
+            Probar a entrar con Apple
+          </button>
+        </>
+      )}
+      {!enLocal && (estado.isConfigured ? (
         <div className="note">Los cambios se sincronizan solos entre los móviles del grupo (al abrir, al volver la conexión y cada poco). Todo funciona sin cobertura y cuadra al reconectar.</div>
       ) : (
         <div className="note">Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es donde vive el acceso con Apple.</div>
-      )}
+      ))}
     </>
   )
 }
