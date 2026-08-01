@@ -13,7 +13,8 @@
     "build:app": "vite build",
     "sync:ios": "npm run build:app && cap sync ios && npm run patch:ios",
     "patch:ios": "node scripts/patch-ios.mjs",
-    "open:ios": "cap open ios"
+    "open:ios": "cap open ios",
+    "assets:ios": "npx @capacitor/assets generate --ios"
   },
   "dependencies": {
     "@capacitor-community/apple-sign-in": "^7.1.0",

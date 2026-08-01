@@ -103,8 +103,11 @@ npm run open:ios     # abre Xcode
 - **Iconos / splash**: las imágenes fuente ya están en `app/assets/` (`icon.png` 1024×1024
   cuadrado y opaco, y `splash.png` 2732×2732). Genera todos los tamaños con:
   ```bash
-  npx @capacitor/assets generate --ios   # usa app/assets/icon.png y splash.png
+  npm run assets:ios   # = npx @capacitor/assets generate --ios
   ```
+  Lo que Apple exige de esa imagen —1024×1024, PNG **sin canal alfa**, sin
+  esquinas redondeadas— y cómo dejarla así con `sips` está en
+  [`APPSTORE.md`](APPSTORE.md), fase 5.
   > El icono usa la ballena del emoji (variante Noto, la que se ve en el render), no la de
   > Apple: el dibujo propietario de Apple no se puede empaquetar en un asset. Si algún día
   > quieres otro dibujo, sustituye `app/assets/icon.png` y vuelve a generar.

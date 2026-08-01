@@ -149,6 +149,42 @@ npm run open:ios
 `npm run sync:ios` deja puesto todo lo de la tabla del §1 que vive en el binario.
 Léele la salida: dice qué ha tocado y qué no ha sabido tocar.
 
+**El icono sale de `app/assets/icon.png`**, y `assets:ios` genera desde ahí todos
+los tamaños. Apple es estricta con esa imagen y el rechazo llega al subir, no al
+compilar:
+
+| Requisito | Por qué |
+|---|---|
+| **1024 × 1024** exactos | Es el que va a la ficha; los demás se derivan de él |
+| **PNG sin canal alfa** | `ITMS-90717`: un icono con transparencia se rechaza al subir |
+| **Sin esquinas redondeadas** | La máscara la pone iOS; si vienen dibujadas, se redondea dos veces |
+| **Sin márgenes propios** | El dibujo llega al borde, iOS ya recorta |
+| **sRGB** | Otro perfil se ve de otro color en el teléfono |
+
+En el Mac, con `sips`, que viene de serie. Primero mira lo que tienes:
+
+```bash
+sips -g pixelWidth -g pixelHeight -g hasAlpha -g space TU-IMAGEN.png
+```
+
+Si es cuadrada y `hasAlpha: no`, basta con ajustarla de tamaño:
+
+```bash
+sips -z 1024 1024 TU-IMAGEN.png --out app/assets/icon.png
+```
+
+Si dice `hasAlpha: yes`, hay que aplanarla antes; el rodeo por JPEG la compone
+sobre blanco, así que si el fondo tiene que ser otro color, píntalo tú primero:
+
+```bash
+sips -s format jpeg -s formatOptions best TU-IMAGEN.png --out /tmp/icono.jpg
+sips -z 1024 1024 -s format png /tmp/icono.jpg --out app/assets/icon.png
+```
+
+> **El icono es nativo: no viaja por OTA.** Cambiarlo obliga a `npm run
+> sync:ios`, archivar y subir binario, igual que un plugin. El de la web
+> (`app/public/favicon.svg`) es otro fichero y sí se republica solo con Pages.
+
 En Xcode:
 
 1. **Signing & Capabilities** → tu *Team*, y confirma el bundle id.
