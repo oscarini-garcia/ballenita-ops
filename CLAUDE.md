@@ -112,6 +112,29 @@ api/
   no apiles sobre historia ya fusionada.
 - Commits descriptivos; **corre `npm test` antes de push**. PR en **draft** por defecto.
 
+## Cómo se cuenta cada vuelta
+
+Lo que dice la respuesta es lo único que hay hasta que la pantalla lo confirme, y una
+pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
+
+- **Al mergear, tres cosas y en este orden:** (1) **qué ha cambiado**, en lista o tabla,
+  una línea por cambio y no un párrafo del que haya que sacarlos; (2) **qué versión tiene
+  que estar puesta**, con el número y dónde mirarlo —**Más → ⚙️ Ajustes → App**, «Versión
+  en curso», que sale de `app/package.json` inyectada por Vite—; y (3) **qué puede quedar
+  pendiente**, que es lo que más se cae porque la vuelta recién terminada es la que parece
+  terminada. Sin el número, la primera pregunta ante cualquier cosa que no se ve es «¿tengo
+  lo nuevo?» y no se puede contestar desde la pantalla; con él, si no coincide falta el OTA
+  y si coincide es un fallo y hay que ir a buscarlo.
+- **Si una vuelta no se ha mergeado, dilo con esas palabras**, con la rama, la PR y de qué
+  está esperando. Un resumen de trabajo hecho se lee como trabajo entregado, y desde el
+  móvil una rama abierta y una fusionada son indistinguibles.
+- **«Dame opciones» significa un artefacto, en línea y con cuatro como mínimo**, cada una
+  con **letra y número** (`A1`, `C3`) para que decidir quepa en una ficha corta y siga
+  siendo inequívoco con varias preguntas sobre la mesa. Las opciones se comparan mirándolas
+  a la vez, no leyendo una lista. El artefacto enseña **lo que he pedido o lo que cambia, y
+  nada más**: las decisiones ya tomadas se quedan fuera salvo que sean justo lo que se
+  reabre o que las pida yo.
+
 ## Estado y pendientes
 
 **Hecho:** eventos, familias/bungas/personas, gastos con reparto por familia + liquidación,
