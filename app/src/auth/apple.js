@@ -19,12 +19,68 @@
 import { isNative } from '../lib/native.js'
 
 /**
+ * Código numérico de `ASAuthorizationError`, que es lo único que de verdad
+ * distingue un fallo de otro. El puente de Capacitor entrega el `NSError` ya
+ * aplanado a texto («…AuthorizationError error 1001.»), así que se busca en el
+ * mensaje cuando no viene suelto.
+ */
+export function codigoDeApple(error) {
+  const suelto = Number(error?.code)
+  if (Number.isFinite(suelto) && suelto >= 1000 && suelto <= 1099) return suelto
+  const texto = String(error?.message ?? error ?? '')
+  const encontrado = texto.match(/AuthorizationError error (\d+)/) ?? texto.match(/\b(10\d\d)\b/)
+  return encontrado ? Number(encontrado[1]) : null
+}
+
+/**
+ * Traduce el fallo de la hoja de Apple a algo accionable.
+ *
+ * El matiz que costó una tarde: **1001 es «cancelado»**, no «falta la
+ * capacidad». Y iOS devuelve ese mismo 1001 en tres situaciones que piden
+ * arreglos distintos: la hoja no llega a presentarse, la hoja sale y Apple
+ * misma corta el registro («Sign Up Not Completed»), o uno la cierra. Ninguna se
+ * distingue desde el código —el `NSError` es idéntico—, así que la pregunta que
+ * las separa —¿qué llegaste a ver?— se le hace a quien mira la pantalla, con la
+ * salvedad de ordenar cada rama por lo que se puede tocar sin un Mac delante.
+ */
+export function explicarFalloDeApple(error) {
+  const codigo = codigoDeApple(error)
+  const motivo = String(error?.message ?? error ?? '').trim()
+
+  if (codigo === 1001 || (codigo === null && /cancel/i.test(motivo))) {
+    return (
+      'Apple canceló el acceso (error 1001). Apple no dice más, así que va por lo que hayas visto:\n\n' +
+      '• La hoja salió y Apple dijo «Registro no completado» → el atasco está en la ' +
+      'cuenta, no en la app. Por orden: en developer.apple.com/account, acepta el contrato ' +
+      'pendiente si lo hay (uno sin firmar rompe el acceso de todas tus apps a la vez); en ' +
+      'Ajustes → tu nombre, acepta los términos de iCloud si te los pide; en Ajustes → tu ' +
+      'nombre → Inicio de sesión y seguridad → Iniciar sesión con Apple, si Ballena Ops ya ' +
+      'aparece de un intento anterior, deja de usar la cuenta y empieza de cero.\n\n' +
+      '• La hoja no llegó a salir → este iPhone no tiene sesión de iCloud, ese Apple ID no ' +
+      'tiene la verificación en dos pasos, o Tiempo de uso está restringiendo. Los tres se ' +
+      'arreglan en Ajustes. Si aun así no sale, al binario le falta la capacidad «Sign in ' +
+      'with Apple» y hace falta compilación nueva (un OTA no basta).\n\n' +
+      '• La cerraste tú → vuelve a darle sin más.\n\n' +
+      'Mientras tanto puedes seguir en este móvil sin entrar: lo que apuntes se sube entero cuando entres.'
+    )
+  }
+
+  return (
+    `Apple no completó el acceso${motivo ? `: ${motivo}` : '.'}\n\n` +
+    'Lo más habitual es que falte la capacidad «Sign in with Apple» en el proyecto de Xcode ' +
+    '(Signing & Capabilities). Tiene que estar marcada ahí y en el App ID del portal de Apple.'
+  )
+}
+
+/**
  * Abre la hoja del sistema y devuelve lo que Apple conteste.
  *
- * Las dos formas de fallar aquí piden arreglos muy distintos, y confundirlas
- * manda a buscar donde no es. Que el plugin no exista significa binario
- * antiguo; que exista y falle suele ser la capacidad «Sign in with Apple» sin
- * marcar en Xcode, o sencillamente que se canceló la hoja.
+ * Está extraído porque hay **dos** momentos que pasan por la hoja: entrar y
+ * darse de baja. El segundo la necesita para conseguir el código con el que el
+ * Worker le dice a Apple que el vínculo se acabó (`api/src/revocacion.js`).
+ *
+ * Que el plugin no exista significa binario antiguo, y eso se distingue aquí; lo
+ * demás lo diagnostica `explicarFalloDeApple`, que es donde está el matiz.
  */
 async function autorizar() {
   let plugin
@@ -39,12 +95,7 @@ async function autorizar() {
   try {
     return (await plugin.authorize({ scopes: 'name' }))?.response ?? {}
   } catch (error) {
-    const motivo = String(error?.message ?? error ?? '').trim()
-    if (/cancel/i.test(motivo)) throw new Error('Has cancelado el acceso con Apple.')
-    throw new Error(
-      `Apple no completó el acceso${motivo ? `: ${motivo}` : '.'}\n\n` +
-        'Lo más habitual es que falte la capacidad «Sign in with Apple» en el proyecto de Xcode (Signing & Capabilities). Tiene que estar marcada ahí y en el App ID del portal de Apple.',
-    )
+    throw new Error(explicarFalloDeApple(error))
   }
 }
 
@@ -55,8 +106,8 @@ async function autorizar() {
  * Se pide en el momento de la baja y no se guarda de una vez para siempre: el
  * porqué está en `api/src/revocacion.js`. Devuelve `null` en vez de lanzar si
  * algo va mal —sin plugin, hoja cancelada, Apple que no contesta—, porque quien
- * llama está a mitad de una baja de cuenta y **eso no puede fallar**. Se queda
- * sin avisar a Apple, que es peor que avisarle, pero muchísimo mejor que dejar a
+ * llama está a mitad de una baja de cuenta y **eso no puede fallar**. Quedarse
+ * sin avisar a Apple es peor que avisarle, pero muchísimo mejor que dejar a
  * alguien sin poder irse.
  */
 export async function codigoDeAutorizacionDeApple() {

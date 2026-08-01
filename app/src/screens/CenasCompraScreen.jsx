@@ -6,8 +6,8 @@ import CompraScreen from './CompraScreen.jsx'
 // La lista de la compra es logística de comida (§6.6), así que en la Opción A de
 // UX vive dentro de «Cenas» como segunda sub-pestaña, en vez de suelta en la barra.
 const OPTIONS = [
-  { id: 'cenas', label: '🍳 Cenas' },
-  { id: 'compra', label: '🛒 Compra' },
+  { id: 'cenas', label: 'Cenas' },
+  { id: 'compra', label: 'Compra' },
 ]
 
 export default function CenasCompraScreen({ eventId, event }) {

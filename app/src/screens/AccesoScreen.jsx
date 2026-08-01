@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import WhaleLogo from '../components/WhaleLogo.jsx'
 import { entrarConApple } from '../auth/apple.js'
-import { guardarSesion } from '../auth/sesion.js'
+import { activarModoLocal, guardarSesion } from '../auth/sesion.js'
 import { activarDemo } from '../lib/demo.js'
 import { tap } from '../lib/native.js'
 
@@ -14,11 +14,21 @@ import { tap } from '../lib/native.js'
  * responde con su código y esta pantalla lo enseña para que lo pase por el
  * chat del grupo.
  *
- * De ahí el segundo botón, que no es un adorno: sin él, quien no está invitado
- * —el equipo de revisión de Apple, sin ir más lejos— no puede ver nada de la
- * aplicación. El porqué está en `lib/demo.js`.
+ * La puerta no puede ser un muro. Cuando Apple falla por algo que no se arregla
+ * desde el móvil —el binario sin la capacidad, el App ID a medias—, quedarse
+ * fuera de la propia libreta el fin de semana del viaje no lo arregla nadie. De
+ * ahí la salida en local: se entra a apuntar, y lo apuntado sube el día que la
+ * puerta abra.
+ *
+ * Y una tercera puerta, que resuelve un problema **distinto** aunque se le
+ * parezca: la demostración. La local es para quien es del grupo y no puede
+ * entrar, y por eso arranca **vacía** y lo que se escriba en ella acaba
+ * subiendo. La demostración es para quien no es del grupo —el equipo de
+ * revisión de Apple, sin ir más lejos—, arranca **llena** de un camping
+ * inventado y no sube nada nunca. Una app vacía no enseña lo que hace, que es
+ * justo lo que hay que enseñarle a quien revisa. El porqué está en `lib/demo.js`.
  */
-export default function AccesoScreen({ configuracion, onEntrar, onDemo }) {
+export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo }) {
   const [entrando, setEntrando] = useState(false)
   const [error, setError] = useState(null)
   const [identificador, setIdentificador] = useState(null)
@@ -39,6 +49,12 @@ export default function AccesoScreen({ configuracion, onEntrar, onDemo }) {
     } finally {
       setEntrando(false)
     }
+  }
+
+  function seguirEnLocal() {
+    tap()
+    activarModoLocal()
+    onLocal?.()
   }
 
   async function demostracion() {
@@ -97,12 +113,22 @@ export default function AccesoScreen({ configuracion, onEntrar, onDemo }) {
         </div>
       )}
 
-      <button className="btn block ghost" style={{ marginTop: 18 }} onClick={demostracion}>
+      <button className="btn block ghost" style={{ marginTop: 12 }} onClick={seguirEnLocal}>
+        Usar solo en este móvil
+      </button>
+      <p className="note">
+        Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda
+        aquí. Lo que apuntes se sube entero en cuanto consigas entrar, así que no
+        se pierde nada por empezar así.
+      </p>
+
+      <button className="btn block ghost" onClick={demostracion}>
         Ver una demostración con datos de ejemplo
       </button>
       <p className="note">
-        Se abre la app entera con un camping inventado, en este móvil y sin
-        conectarse a nada. No hace falta cuenta y no se toca nada del grupo.
+        ¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo
+        funciona. No hace falta cuenta, no se conecta a nada y al salir no queda
+        rastro.
       </p>
     </div>
   )

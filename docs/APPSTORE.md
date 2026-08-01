@@ -37,7 +37,7 @@ No hay que hacer nada de esto: está hecho y con sus pruebas.
 
 | Requisito de Apple | Dónde está resuelto |
 |---|---|
-| **5.1.1(v)** · eliminar la cuenta desde dentro de la app | Ajustes → **Eliminar mi cuenta** (`EventSettingsScreen.jsx`) y `POST /api/cuenta/baja` en el Worker |
+| **5.1.1(v)** · eliminar la cuenta desde dentro de la app | Ajustes → **Tu cuenta** → **Eliminar mi cuenta** (`EventSettingsScreen.jsx`) y `POST /api/cuenta/baja` en el Worker |
 | **5.1.1(v)** · avisar a Apple de la baja | `api/src/revocacion.js`. Necesita la clave del §2; sin ella la baja funciona y la app avisa de que no se pudo revocar |
 | **2.1** · que quien revisa pueda ver la app sin cuenta | **Modo de demostración** desde la pantalla de acceso (`app/src/lib/demo.js`) |
 | Política de privacidad | `app/public/privacidad.html` → `/privacidad` |
@@ -184,9 +184,10 @@ Recorrido mínimo, desde el teléfono y en este orden:
 3. Apuntar un gasto sin cobertura, recuperarla y ver que sube.
 4. Abrir la **demostración** desde la pantalla de acceso y salir de ella con la
    pastilla de la cabecera. Comprueba que al salir no queda ningún camping
-   inventado.
-5. **Eliminar la cuenta** desde Ajustes, con un móvil que no sea el tuyo si
-   puedes. Después vuelve a entrar: tiene que salir el código de siempre, porque
+   inventado. Prueba también «Usar solo en este móvil», que es la otra salida y
+   resuelve otra cosa: esa arranca vacía y lo apuntado sube al entrar.
+5. **Eliminar la cuenta** en Ajustes → Tu cuenta, con un móvil que no sea el
+   tuyo si puedes. Después vuelve a entrar: tiene que salir el código de siempre, porque
    ya no estás dado de alta. Es también el ensayo de la recuperación.
 
 Ese punto 5 es el que conviene ensayar de verdad: es lo que Apple va a mirar y
@@ -308,7 +309,7 @@ CÓMO FUNCIONA
 
 • Sin conexión. Todo vive en el móvil y se sincroniza cuando hay red; lo que se apunta sin cobertura sube después, solo. Un camping es exactamente el sitio donde esto hace falta.
 • Los saldos se calculan en tu móvil a partir de los gastos, y no se sincronizan nunca: no hay un número guardado en ningún sitio que pueda quedarse viejo.
-• Cinco aspectos completos, claro y oscuro, más uno que cambia cada día.
+• Claro y oscuro, diseñados por separado y no uno invertido, y tres tamaños de letra: se lee al sol y con cuarenta y tantos años.
 
 PRIVACIDAD
 
@@ -382,11 +383,15 @@ Everything is real and functional; nothing leaves the device and no server is
 involved. A permanent "demostración · salir" pill in the header marks the demo
 and exits it.
 
-Account deletion (guideline 5.1.1(v)): Settings (gear icon, top right) →
-"Eliminar mi cuenta". It deletes the account and its devices, and calls the Sign
-in with Apple REST API to revoke the token. Note that signing in *without* an
-invitation stores nothing at all — no account is created and no record of the
-attempt is kept — so there is nothing to delete in that state.
+(The other button on that screen, "Usar solo en este móvil", is for group
+members who cannot sign in — it opens an empty notebook that syncs later. The
+demo is the one to use for review, because it comes with data.)
+
+Account deletion (guideline 5.1.1(v)): Settings (rightmost tab, bottom bar) →
+"Tu cuenta" → "Eliminar mi cuenta". It deletes the account and its devices, and
+calls the Sign in with Apple REST API to revoke the token. Note that signing in
+*without* an invitation stores nothing at all — no account is created and no
+record of the attempt is kept — so there is nothing to delete in that state.
 
 Native capabilities in use: Sign in with Apple (native sheet), haptics and the
 system share sheet. The app is offline-first: all data lives in the device and

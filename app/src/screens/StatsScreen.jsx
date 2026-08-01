@@ -9,7 +9,9 @@ import { CATEGORIES } from './ExpensesScreen.jsx'
 
 const catLabel = (id) => CATEGORIES.find((c) => c.id === id)?.label ?? id
 
-export default function StatsScreen({ eventId, event }) {
+// `suelto` la pinta sin el `.body` (que es el contenedor que hace scroll): así
+// cabe dentro de un apartado de Ajustes sin arrastrar su relleno ni su scroll.
+export default function StatsScreen({ eventId, event, suelto = false }) {
   const expenses = useLiveQuery(() => expensesOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
@@ -32,11 +34,11 @@ export default function StatsScreen({ eventId, event }) {
   const cur = event.currency
 
   if (expenses.length === 0 && dinners.length === 0 && plans.length === 0) {
-    return <div className="body"><div className="empty"><span className="e">📊</span>Aún no hay nada que contar.<br />Añade gastos, cenas o planes.</div></div>
+    return <div className={suelto ? 'pila' : 'body'}><div className="empty"><span className="e">📊</span>Aún no hay nada que contar.<br />Añade gastos, cenas o planes.</div></div>
   }
 
   return (
-    <div className="body">
+    <div className={suelto ? 'pila' : 'body'}>
       <div className="grid2">
         <Tile v={formatCents(s.totalCents, cur)} l="Gasto total" />
         <Tile v={formatCents(s.perPersonAvgCents, cur)} l="Por persona (media)" />
@@ -81,8 +83,8 @@ export default function StatsScreen({ eventId, event }) {
 function Tile({ v, l }) {
   return (
     <div className="card tight" style={{ padding: 12 }}>
-      <div className="tnum" style={{ fontSize: 19, fontWeight: 850, letterSpacing: '-.02em' }}>{v}</div>
-      <div style={{ fontSize: 11, color: 'var(--ink-faint)', fontWeight: 600, marginTop: 2 }}>{l}</div>
+      <div className="tnum cifra sm">{v}</div>
+      <div className="cifra-l bajo">{l}</div>
     </div>
   )
 }

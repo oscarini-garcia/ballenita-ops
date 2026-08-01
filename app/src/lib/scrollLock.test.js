@@ -5,6 +5,7 @@ afterEach(() => {
   // Por si un test deja el contador a medias.
   for (let i = 0; i < 5; i += 1) liberarScrollDeFondo()
   document.body.removeAttribute('style')
+  document.body.classList.remove('modal-abierto')
 })
 
 describe('bloqueo de scroll del fondo', () => {
@@ -19,6 +20,17 @@ describe('bloqueo de scroll del fondo', () => {
     liberarScrollDeFondo()
     expect(document.body.style.position).toBe('')
     expect(document.body.style.top).toBe('')
+  })
+
+  it('marca el body para que el scroller de la app también se pare', () => {
+    // Desde que el esqueleto es una columna de 100dvh, quien se desplaza es
+    // `.body` (un div) y no el documento: fijar el body de la página no le hace
+    // nada, y de eso se encarga la clase (ver theme.css).
+    bloquearScrollDeFondo()
+    expect(document.body.classList.contains('modal-abierto')).toBe(true)
+
+    liberarScrollDeFondo()
+    expect(document.body.classList.contains('modal-abierto')).toBe(false)
   })
 
   it('con modales anidados solo libera el último en cerrarse', () => {

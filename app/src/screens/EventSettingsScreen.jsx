@@ -1,54 +1,45 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, removeFamily,
   bungasOf, addBunga, removeBunga,
   personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
+  listEvents,
 } from '../db.js'
+import Acordeon from '../components/Acordeon.jsx'
+import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
-import UpdateModal from '../components/UpdateModal.jsx'
-import { useSkin, SKINS } from '../lib/skins.js'
+import ProgresoModal from '../components/ProgresoModal.jsx'
+import StatsScreen from './StatsScreen.jsx'
+import { useTema, TEMAS } from '../lib/tema.js'
+import { useTamano, TAMANOS } from '../lib/tamano.js'
+import { useIdentidad } from '../lib/identidad.js'
+import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
-import { syncNow } from '../sync/engine.js'
 import { eliminarMiCuenta, gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
-import { borrarSesion, leerSesion } from '../auth/sesion.js'
+import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
-import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion } from '../lib/pwa.js'
+import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
+
+// El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
+// por dónde va en vez de un solo rótulo que parpadea.
+const PASOS_APP = ['checking', 'downloading', 'applying']
 
 const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
 // Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en tests).
 const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
 
-function EventoSection({ event, onChangeEvent }) {
-  return (
-    <>
-      <div className="sec-h">Evento</div>
-      <div className="card tight">
-        <div className="row">
-          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐳</div>
-          <div className="main">
-            <div className="n">{event?.name || 'Evento'}</div>
-            <div className="sub">{event?.lugar || 'Ballena Ops'}</div>
-          </div>
-          {onChangeEvent && <button className="btn sm ghost" onClick={onChangeEvent}>↔ Cambiar</button>}
-        </div>
-      </div>
-    </>
-  )
-}
-
 /**
- * Sincronización. Aquí es donde vive ahora el punto de estado: antes ocupaba
- * sitio en la cabecera para algo que se mira de uvas a peras, y la cabecera la
- * necesitábamos para el ⚙️.
+ * Sincronización, y es el apartado que se abre.
  *
- * `sync` llega desde App (el motor real). Sin él —montando la pantalla suelta,
- * p. ej. en un test— se apaña detectando la API por su cuenta.
+ * Sigue siendo lo que se viene a mirar cuando algo no cuadra, y el botón hace lo
+ * mismo que el punto de la cabecera: datos y app en una sola lista
+ * (`lib/sincronizarTodo.js`). Tener dos botones que hacen media cosa cada uno
+ * obligaba a acertar cuál era tu problema antes de dejarte mirar.
  */
-function SyncSection({ sync }) {
-  const [state, setState] = useState(null)
+function SyncSection({ sync, onSincronizarTodo }) {
   // La configuración se lee en caliente de config.json, así que llega después
   // del primer pintado en vez de estar horneada en el bundle.
   const [detectada, setDetectada] = useState(false)
@@ -59,34 +50,279 @@ function SyncSection({ sync }) {
     return () => { vivo = false }
   }, [sync])
 
-  const estado = sync ?? { isConfigured: detectada, online: true, status: state?.status ?? 'idle' }
+  const estado = sync ?? { isConfigured: detectada, online: true, status: 'idle' }
   const d = estadoSync(estado)
+  // Hay grupo al otro lado, pero este móvil eligió seguir sin entrar.
+  const enLocal = estado.isConfigured && modoLocal() && !leerSesion()
 
-  async function run() {
+  // La puerta se vuelve a abrir recargando: App decide qué pintar al arrancar y
+  // así no hay dos sitios que recuerden si se entró o no.
+  function volverAIntentarlo() {
     tap()
-    if (sync?.recheck) { await sync.recheck(); return }
-    setState({ status: 'syncing' })
-    setState(await syncNow())
+    salirDeModoLocal()
+    window.location.reload()
   }
 
   return (
     <>
-      <div className="sec-h">Sincronización</div>
       <div className="card tight">
         <div className="row">
-          <SyncDot sync={estado} onClick={run} />
+          <SyncDot sync={estado} onClick={onSincronizarTodo} />
           <div className="main">
             <div className="n">{d.title}</div>
             <div className="sub">{d.detalle}</div>
           </div>
-          {estado.isConfigured && <button className="btn sm ghost" onClick={run}>↻ Ahora</button>}
         </div>
       </div>
-      {estado.isConfigured ? (
-        <div className="note">Los cambios se sincronizan solos entre los móviles del grupo (al abrir, al volver la conexión y cada poco). Todo funciona sin cobertura y cuadra al reconectar.</div>
+      <button className="btn block" onClick={onSincronizarTodo}>↻ Sincronizar todo</button>
+      {enLocal && (
+        <>
+          <div className="note">
+            Estás usando Ballena Ops <b>sin entrar</b>: lo que apuntas se queda en este móvil,
+            encolado. En cuanto consigas entrar con Apple sube todo de una vez —no hay que
+            volver a teclear nada—.
+          </div>
+          <button className="btn sm" onClick={volverAIntentarlo}>
+            Probar a entrar con Apple
+          </button>
+        </>
+      )}
+      {!enLocal && (estado.isConfigured ? (
+        <div className="note">Un toque sube lo pendiente, trae la última copia del grupo y de paso mira si hay versión nueva de la app. Lo hace solo al abrir, al volver la conexión y cada poco: esto es para cuando tengas prisa.</div>
       ) : (
         <div className="note">Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es donde vive el acceso con Apple.</div>
+      ))}
+    </>
+  )
+}
+
+/**
+ * Aspecto: el tamaño del texto primero y el tema después.
+ *
+ * Ese orden y no el contrario. El tamaño es el ajuste que arregla un problema
+ * —no se lee— y el tema es el que se viene a curiosear; el que arregla algo va
+ * antes que el que entretiene.
+ */
+function AspectoSection() {
+  const { tema, elegir: elegirTema } = useTema()
+  const { tamano, elegir } = useTamano()
+
+  return (
+    <>
+      <label>Tamaño del texto</label>
+      {/* Segmentado y no desplegable: es lo único de esta pantalla cuyo efecto se
+          ve en el sitio, y una rueda de iOS encima taparía justo lo que hay que
+          mirar para decidir. */}
+      <div className="seg" role="group" aria-label="Tamaño del texto">
+        {TAMANOS.map((t) => (
+          <button key={t.id} type="button" aria-pressed={tamano === t.id} onClick={() => { tap(); elegir(t.id) }}>
+            {t.name}
+          </button>
+        ))}
+      </div>
+
+      <label>Claro u oscuro</label>
+      <div className="seg" role="group" aria-label="Claro u oscuro">
+        {TEMAS.map((t) => (
+          <button key={t.id} type="button" aria-pressed={tema === t.id} onClick={() => { tap(); elegirTema(t.id) }}>
+            {t.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="note">Las dos cosas se guardan <b>en este móvil</b> y mueven la app entera, no solo esta pantalla. «Automático» sigue al claro/oscuro del sistema.</div>
+    </>
+  )
+}
+
+// Estados de coña para tocar rápido (se puede escribir cualquiera igualmente).
+const ESTADOS = [
+  '🍺 de resaca', '🏖️ tirado en la toalla', '😴 echando la siesta',
+  '🐳 avistando ballenas', '💸 sin blanca', '🍷 vino en mano',
+  '🔥 a la parrilla', '🤿 buceando', '🫥 desaparecido en combate',
+  '🍤 en modo gamba', '🚗 haciendo de chófer', '🧴 poniéndome crema',
+]
+
+// Emojis rápidos para el avatar (también se escribe a mano).
+const AVATARES = ['🧑', '👩', '👨', '🧔', '👵', '👴', '🧒', '🐳', '🦑', '🦀', '🏄', '🕶️', '🍹', '🐙']
+
+/** Tu cara: la foto de este móvil si la hay, si no el emoji. */
+function Cara({ emoji, foto, className }) {
+  return (
+    <span className={className}>
+      {foto ? <img src={foto} alt="" className="ufoto" /> : (emoji || '🐳')}
+    </span>
+  )
+}
+
+/**
+ * Quién eres, y tu perfil.
+ *
+ * Aquí vivía solo el «cambiar de persona»; el resto —emoji, estado y foto— se
+ * editaba tocando tu nombre en la cabecera. Ese badge se ha retirado: en un
+ * móvil que es tuyo, recordarte quién eres cien veces al día es gastar el sitio
+ * de la cabecera en una pregunta que ya sabes. Así que el perfil baja aquí
+ * entero, y de paso deja de ser un modal: dentro de un apartado que ya está
+ * abierto, un modal encima era una ventana de más.
+ *
+ * El emoji y el estado son hechos del grupo y sincronizan. La foto no: vive solo
+ * en este móvil (`lib/avatares.js`, SPECS §14.10).
+ */
+function QuienEresSection({ eventId, persons }) {
+  const { meId, me, elegir, salir } = useIdentidad(eventId, persons)
+  const [foto, setFoto] = useState(null)
+  const [estado, setEstado] = useState('')
+  const [avatar, setAvatar] = useState('🧑')
+  // Borrador de la foto: `undefined` = sin tocar, `null` = quitarla, string = nueva.
+  const [fotoNueva, setFotoNueva] = useState(undefined)
+  const [aviso, setAviso] = useState(null)
+  const [guardado, setGuardado] = useState(false)
+  const archivo = useRef(null)
+
+  useEffect(() => { setFoto(leerFoto(eventId, meId)) }, [eventId, meId])
+
+  // Al cambiar de persona, resembrar los campos con los suyos.
+  useEffect(() => {
+    setEstado(me?.estado ?? '')
+    setAvatar(me?.avatar ?? '🧑')
+    setFotoNueva(undefined)
+    setAviso(null)
+    setGuardado(false)
+  }, [me])
+
+  const fotoActual = fotoNueva === undefined ? foto : fotoNueva
+
+  async function elegirFoto(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite volver a elegir la misma foto
+    if (!file) return
+    setAviso(null)
+    try {
+      setFotoNueva(await comprimirFoto(file))
+    } catch (error) {
+      setAviso(String(error?.message ?? error))
+    }
+  }
+
+  async function guardar() {
+    tap()
+    await updatePerson(me.id, { estado: estado.trim(), avatar: avatar || '🧑' })
+    if (fotoNueva !== undefined) {
+      guardarFoto(eventId, meId, fotoNueva)
+      setFoto(fotoNueva)
+      setFotoNueva(undefined)
+    }
+    setGuardado(true)
+  }
+
+  return (
+    <>
+      <div className="card tight">
+        <div className="row">
+          <Cara className="av" emoji={avatar} foto={fotoActual} />
+          <div className="main">
+            <div className="n">{me ? me.name : 'Sin elegir'}</div>
+            <div className="sub">{me ? (me.estado || 'Sin estado') : 'Nadie ha dicho quién es en este móvil'}</div>
+          </div>
+          {me && <button className="btn sm ghost" onClick={() => { tap(); salir() }}>Salir</button>}
+        </div>
+      </div>
+
+      {me && (
+        <>
+          <label>Tu foto <span className="solo-movil">(solo en este móvil)</span></label>
+          <div className="chips">
+            <button className="chip" onClick={() => { tap(); archivo.current?.click() }}>📷 {fotoActual ? 'Cambiar foto' : 'Poner foto'}</button>
+            {fotoActual && <button className="chip" onClick={() => { tap(); setFotoNueva(null) }}>🗑️ Quitar foto</button>}
+          </div>
+          <input
+            ref={archivo}
+            type="file"
+            accept="image/*"
+            onChange={elegirFoto}
+            className="oculto"
+            aria-label="Elegir foto de avatar"
+          />
+
+          <label>Tu emoji</label>
+          <div className="chips">
+            {AVATARES.map((a) => (
+              <button key={a} className={`chip${avatar === a ? ' on' : ''}`} onClick={() => { tap(); setAvatar(a) }}>{a}</button>
+            ))}
+          </div>
+          <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} placeholder="🙂" aria-label="Emoji a mano" />
+
+          <label>Tu estado</label>
+          <div className="chips">
+            {ESTADOS.map((x) => (
+              <button key={x} className={`chip${estado === x ? ' on' : ''}`} onClick={() => { tap(); setEstado(x) }}>{x}</button>
+            ))}
+          </div>
+          <input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="a mi bola…" aria-label="Estado a mano" />
+
+          {aviso && <div className="note" role="status">{aviso}</div>}
+
+          <button className="btn block" onClick={guardar}>Guardar mi perfil</button>
+          {guardado && <div className="pill owed" style={{ display: 'inline-block' }} role="status">✓ Guardado</div>}
+        </>
       )}
+
+      <div className="sec-h">{me ? 'Cambiar de persona' : 'Elige quién eres'}</div>
+      <div className="lista-personas">
+        {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en «Gente».</div>}
+        {persons.map((p) => (
+          <button
+            key={p.id}
+            className={`persona-opcion btn ghost${p.id === me?.id ? ' on' : ''}`}
+            onClick={() => { tap(); elegir(p.id) }}
+          >
+            <span className="pe">{p.avatar}</span>
+            <span>{p.name}{p.apodo ? ` · «${p.apodo}»` : ''}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="note">Quién eres se guarda <b>en este móvil</b> y no se sincroniza: cada uno elige la suya. El emoji y el estado sí los ve el grupo. «Salir» solo olvida la identidad aquí: no borra a nadie.</div>
+    </>
+  )
+}
+
+/** El evento en curso, y la lista para saltar a otro sin pasar por la portada. */
+function EventoSection({ event, onPickEvent }) {
+  const events = useLiveQuery(listEvents, [], [])
+
+  return (
+    <>
+      <div className="card tight">
+        <div className="row">
+          <div className="ico"><Icono nombre="evento" /></div>
+          <div className="main">
+            <div className="n">{event?.name || 'Evento'}</div>
+            <div className="sub">{event?.lugar || 'Ballena Ops'}</div>
+          </div>
+          <span className="pill neutral">en curso</span>
+        </div>
+      </div>
+
+      {events.filter((e) => e.id !== event?.id).length > 0 && (
+        <>
+          <div className="sec-h">Cambiar a</div>
+          <div className="lista-personas">
+            {events.filter((e) => e.id !== event?.id).map((e) => (
+              <button
+                key={e.id}
+                className="persona-opcion btn ghost"
+                onClick={() => { tap(); onPickEvent?.(e.id) }}
+              >
+                <span className="ico pe"><Icono nombre="evento" /></span>
+                <span>{e.name}{e.lugar ? ` · ${e.lugar}` : ''}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <button className="btn ghost block" onClick={() => { tap(); onPickEvent?.(null) }}>↔ Ver todos los eventos</button>
     </>
   )
 }
@@ -191,14 +427,11 @@ function CuentaSection() {
     }
   }
 
-  if (!sesion) return null
-
   return (
     <>
-      <div className="sec-h">Tu cuenta</div>
       <div className="card tight">
         <div className="row">
-          <div className="av" aria-hidden="true">🐳</div>
+          <div className="ico"><Icono nombre="llave" /></div>
           <div className="main">
             <div className="n">{sesion.cuenta?.nombre || 'Cuenta de Apple'}</div>
             <div className="sub">{esAdmin ? 'Administras el grupo' : 'Miembro del grupo'}</div>
@@ -373,114 +606,140 @@ function AppSection() {
 
   return (
     <>
-      <div className="sec-h">App</div>
       <div className="card tight">
         {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
         <div className="row">
-          <div className="av" style={{ background: 'var(--spout-deep)' }}>🐳</div>
+          <div className="ico"><Icono nombre="ballena" /></div>
           <div className="main">
             <div className="n">Ballena Ops</div>
             <div className="sub">Versión en curso</div>
           </div>
           <div className="version-grande tnum">v{APP_VERSION}</div>
         </div>
-        <div className="row">
-          <div className="main">
-            <div className="sub">¿No ves los últimos cambios? Trae la <b>más reciente</b> sin quitar y volver a añadir la app.</div>
-          </div>
-          <button className="btn sm" disabled={busy} onClick={actualizar}>🔄 Comprobar</button>
-        </div>
       </div>
+      <button className="btn block" disabled={busy} onClick={actualizar}>🔄 Forzar la última versión</button>
+      <div className="note">El punto de la cabecera ya comprueba la versión cada vez que sincronizas. Esto es el martillo: borra las cachés y recarga aunque el sistema diga que ya estás al día.</div>
       {recienActualizada && (
         <div className="pill owed" style={{ display: 'inline-block' }}>✓ Recién actualizada a la v{APP_VERSION}</div>
       )}
 
-      {busy && <UpdateModal paso={paso} version={APP_VERSION} />}
-    </>
-  )
-}
-
-function AspectoSection() {
-  const { pref, current, choose, reroll } = useSkin()
-  const currentName = SKINS.find((s) => s.id === current)?.name ?? current
-  return (
-    <>
-      <div className="sec-h">Aspecto</div>
-      <div className="chips">
-        {SKINS.map((s) => (
-          <button key={s.id} className={`chip${pref === s.id ? ' on' : ''}`} onClick={() => choose(s.id)}>
-            {s.emoji} {s.name}
-          </button>
-        ))}
-        <button className={`chip${pref === 'random' ? ' on' : ''}`} onClick={() => choose('random')}>🎲 Aleatorio</button>
-      </div>
-      {pref === 'random' ? (
-        <div className="note">🎲 Modo aleatorio: hoy toca <b>{currentName}</b>. El sistema cambia de tema solo <b>cada día</b>.
-          <div style={{ marginTop: 8 }}><button className="btn sm" onClick={reroll}>🎲 Tirar otra vez</button></div>
-        </div>
-      ) : (
-        <div className="note">Elige el tema del grupo (se guarda en tu móvil). «Sistema» sigue el claro/oscuro; «Aleatorio» cambia de tema cada día.</div>
+      {busy && (
+        <ProgresoModal
+          titulo="Buscando la última versión"
+          version={APP_VERSION}
+          pasos={PASOS_APP.map((p, i) => ({
+            texto: UPDATE_STEPS[p],
+            estado: i < PASOS_APP.indexOf(paso) ? 'hecho' : i === PASOS_APP.indexOf(paso) ? 'curso' : 'pendiente',
+          }))}
+          pista="No cierres la app: se recarga sola al terminar y volverás aquí, a Ajustes."
+        />
       )}
     </>
   )
 }
 
-export default function EventSettingsScreen({ eventId, event, onChangeEvent, sync }) {
+/**
+ * Ajustes, en apartados plegables.
+ *
+ * La figura es la de `garciadoral-ops`: `<details>`/`<summary>` del navegador,
+ * y **todos plegados**. Ajustes es una lista de cosas que casi nunca se tocan;
+ * dejar una abierta obliga a pasarle por encima para llegar a las demás. Con las
+ * diez plegadas la pantalla entera se lee de un vistazo y se toca la que se venía
+ * a buscar: un gesto en vez de un desplazamiento. Cada rótulo lleva su nota
+ * —«v0.2.0», «6», el tema puesto—, así que plegado no quiere decir mudo.
+ *
+ * Se ha comido lo que antes era «Más»: las estadísticas eran media pestaña de la
+ * barra inferior para algo que se mira al volver del viaje, y ahora son un
+ * apartado como los demás.
+ */
+export default function EventSettingsScreen({ eventId, event, onPickEvent, sync, onSincronizarTodo }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
 
   const [modal, setModal] = useState(null) // 'familia' | 'bunga' | 'persona'
+  const { me } = useIdentidad(eventId, persons)
+  const { tema: temaPuesto } = useTema()
+  const sesion = leerSesion()
 
   return (
     <div className="body">
-      <EventoSection event={event} onChangeEvent={onChangeEvent} />
-      <AspectoSection />
-      <CuentaSection />
-      <SyncSection sync={sync} />
-      <AppSection />
+      <Acordeon titulo="Sincronización" icono="sincronizar">
+        <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
+      </Acordeon>
 
-      <div className="sec-h">Familias <button className="btn sm ghost" onClick={() => setModal('familia')}>+ añadir</button></div>
-      <div className="card tight">
-        {families.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin familias todavía.</div>}
-        {families.map((f) => (
-          <div className="row" key={f.id}>
-            <div className="av" style={{ background: f.color }}>{f.avatar}</div>
-            <div className="main"><div className="n">{f.name}</div><div className="sub">{f.estado || '—'}</div></div>
-            <button className="btn sm danger" onClick={() => removeFamily(f.id)}>Borrar</button>
-          </div>
-        ))}
-      </div>
+      <Acordeon titulo="Aspecto" icono="aspecto" nota={TEMAS.find((t) => t.id === temaPuesto)?.name}>
+        <AspectoSection />
+      </Acordeon>
 
-      <div className="sec-h">Bungalows <button className="btn sm ghost" onClick={() => setModal('bunga')}>+ añadir</button></div>
-      <div className="card tight">
-        {bungas.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin bungas todavía.</div>}
-        {bungas.map((b) => (
-          <div className="row" key={b.id}>
-            <div className="av" style={{ background: 'var(--spout-deep)' }}>🏠</div>
-            <div className="main"><div className="n">{b.name}{b.alias ? ` · ${b.alias}` : ''}</div><div className="sub">{famName(b.familyId)}</div></div>
-            <button className="btn sm danger" onClick={() => removeBunga(b.id)}>Borrar</button>
-          </div>
-        ))}
-      </div>
+      <Acordeon titulo="Quién eres" icono="persona" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
+        <QuienEresSection eventId={eventId} persons={persons} />
+      </Acordeon>
 
-      <div className="sec-h">Gente <button className="btn sm ghost" onClick={() => setModal('persona')}>+ añadir</button></div>
-      <div className="card tight">
-        {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin gente todavía.</div>}
-        {persons.map((p) => (
-          <div className="row" key={p.id}>
-            <div className="av" style={{ background: families.find((f) => f.id === p.familyId)?.color || 'var(--ink-faint)' }}>{p.avatar}</div>
-            <div className="main">
-              <div className="n">{p.name}{p.apodo ? ` · «${p.apodo}»` : ''}</div>
-              <div className="sub">{famName(p.familyId)} · {p.edad} · peso {p.pesoReparto}</div>
+      <Acordeon titulo="Evento" icono="evento" nota={event?.name}>
+        <EventoSection event={event} onPickEvent={onPickEvent} />
+      </Acordeon>
+
+      <Acordeon titulo="Estadísticas" icono="grafico">
+        <StatsScreen eventId={eventId} event={event} suelto />
+      </Acordeon>
+
+      <Acordeon titulo="Familias" icono="familia" nota={families.length || null}>
+        <div className="card tight">
+          {families.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin familias todavía.</div>}
+          {families.map((f) => (
+            <div className="row" key={f.id}>
+              <div className="av" style={{ background: f.color }}>{f.avatar}</div>
+              <div className="main"><div className="n">{f.name}</div><div className="sub">{f.estado || '—'}</div></div>
+              <button className="btn sm danger" onClick={() => removeFamily(f.id)}>Borrar</button>
             </div>
-            <button className="btn sm danger" onClick={() => removePerson(p.id)}>Borrar</button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+        <button className="btn block" onClick={() => setModal('familia')}>+ Añadir familia</button>
+      </Acordeon>
 
-      <div className="note">🐳 El <b>peso de reparto</b> define cuánto cuenta cada persona al dividir un gasto por cabezas (un bebé 0, un niño 0,5, un adulto 1).</div>
+      <Acordeon titulo="Bungalows" icono="casa" nota={bungas.length || null}>
+        <div className="card tight">
+          {bungas.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin bungas todavía.</div>}
+          {bungas.map((b) => (
+            <div className="row" key={b.id}>
+              <div className="ico"><Icono nombre="casa" /></div>
+              <div className="main"><div className="n">{b.name}{b.alias ? ` · ${b.alias}` : ''}</div><div className="sub">{famName(b.familyId)}</div></div>
+              <button className="btn sm danger" onClick={() => removeBunga(b.id)}>Borrar</button>
+            </div>
+          ))}
+        </div>
+        <button className="btn block" onClick={() => setModal('bunga')}>+ Añadir bunga</button>
+      </Acordeon>
+
+      <Acordeon titulo="Gente" icono="persona" nota={persons.length || null}>
+        <div className="card tight">
+          {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin gente todavía.</div>}
+          {persons.map((p) => (
+            <div className="row" key={p.id}>
+              <div className="av" style={{ background: families.find((f) => f.id === p.familyId)?.color || 'var(--ink-faint)' }}>{p.avatar}</div>
+              <div className="main">
+                <div className="n">{p.name}{p.apodo ? ` · «${p.apodo}»` : ''}</div>
+                <div className="sub">{famName(p.familyId)} · {p.edad} · peso {p.pesoReparto}</div>
+              </div>
+              <button className="btn sm danger" onClick={() => removePerson(p.id)}>Borrar</button>
+            </div>
+          ))}
+        </div>
+        <button className="btn block" onClick={() => setModal('persona')}>+ Añadir persona</button>
+        <div className="note">🐳 El <b>peso de reparto</b> define cuánto cuenta cada persona al dividir un gasto por cabezas (un bebé 0, un niño 0,5, un adulto 1).</div>
+      </Acordeon>
+
+      {sesion && (
+        <Acordeon titulo="Tu cuenta" icono="llave" nota={sesion.cuenta?.nombre}>
+          <CuentaSection />
+        </Acordeon>
+      )}
+
+      <Acordeon titulo="La app" icono="ballena" nota={`v${APP_VERSION}`}>
+        <AppSection />
+      </Acordeon>
 
       {modal === 'familia' && <FamiliaModal eventId={eventId} onClose={() => setModal(null)} />}
       {modal === 'bunga' && <BungaModal eventId={eventId} families={families} onClose={() => setModal(null)} />}

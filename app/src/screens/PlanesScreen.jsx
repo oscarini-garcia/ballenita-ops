@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, addPlan, updatePlan, removePlan, personsOf } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import Fab from '../components/Fab.jsx'
 
 const VOTES = ['👍', '🤷', '👎']
 const fmtDay = (d) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -30,7 +31,7 @@ export default function PlanesScreen({ eventId }) {
   return (
     <div className="body">
       <div className="card tight" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-soft)' }}>Eres:</span>
+        <span className="rotulo-mando">Eres:</span>
         <select value={me} onChange={(e) => pickMe(e.target.value)} style={{ padding: '7px 10px' }}>
           <option value="">— elígete para votar —</option>
           {persons.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -38,7 +39,7 @@ export default function PlanesScreen({ eventId }) {
       </div>
 
       {plans.length === 0 && (
-        <div className="empty"><span className="e">🗺️</span>Ningún plan todavía.<br />Propón una idea con el botón +.</div>
+        <div className="empty"><span className="e">🗺️</span>Ningún plan todavía.<br />Propón una idea con «+ Plan».</div>
       )}
 
       {sorted.map((plan) => {
@@ -48,8 +49,8 @@ export default function PlanesScreen({ eventId }) {
           <div className="card" key={plan.id}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               <div>
-                <div style={{ fontWeight: 750, fontSize: 15 }}>{plan.titulo}</div>
-                <div className="sub" style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
+                <div className="plan-n">{plan.titulo}</div>
+                <div className="cifra-l">
                   {plan.dia ? fmtDay(plan.dia) : 'Sin día'}
                   {plan.costeEstimado ? ` · ~${(plan.costeEstimado / 100).toFixed(0)} €` : ''}
                   {plan.enlace ? <> · <a href={plan.enlace} target="_blank" rel="noreferrer">enlace</a></> : ''}
@@ -67,7 +68,7 @@ export default function PlanesScreen({ eventId }) {
             </div>
 
             <div className="chips" style={{ marginTop: 10, borderTop: '1px solid var(--line-soft)', paddingTop: 10 }}>
-              <input type="date" value={plan.dia || ''} onChange={(e) => updatePlan(plan.id, { dia: e.target.value || null })} style={{ width: 'auto', padding: '6px 10px', fontSize: 12 }} />
+              <input type="date" value={plan.dia || ''} onChange={(e) => updatePlan(plan.id, { dia: e.target.value || null })} className="fecha-chip" />
               {plan.dia && <button className="btn sm ghost" onClick={() => updatePlan(plan.id, { dia: null })}>quitar día</button>}
               {plan.estado === 'confirmado'
                 ? <button className="btn sm ghost" onClick={() => updatePlan(plan.id, { estado: 'votando' })}>a votación</button>
@@ -78,7 +79,7 @@ export default function PlanesScreen({ eventId }) {
         )
       })}
 
-      <button className="fab" aria-label="Proponer plan" onClick={() => setOpen(true)}>+</button>
+      <Fab label="Plan" onClick={() => setOpen(true)} />
       {open && <AddPlanModal eventId={eventId} onClose={() => setOpen(false)} />}
     </div>
   )
