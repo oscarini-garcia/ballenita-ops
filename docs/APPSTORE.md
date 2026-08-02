@@ -100,20 +100,26 @@ justamente la mitad de la 5.1.1(v) que Apple no ve pero comprueba por su cuenta.
 
 ```bash
 cd api
-wrangler secret put APPLE_CLAVE_P8    # pega el contenido del .p8 entero, con sus -----BEGIN-----
-wrangler secret put APPLE_CLAVE_ID    # el Key ID
-wrangler secret put APPLE_EQUIPO      # el Team ID
+wrangler secret put APPLE_CLAVE_P8
+wrangler secret put APPLE_CLAVE_ID
+wrangler secret put APPLE_EQUIPO
 npm run desplegar
 ```
+
+En el primero se pega el contenido del `.p8` **entero**, con sus líneas
+`-----BEGIN-----`; en el segundo el Key ID y en el tercero el Team ID.
 
 Comprobación de que el Worker está vivo y con la ruta nueva:
 
 ```bash
 curl -s https://ballena-ops-api.oscarini.workers.dev/api/salud
-# {"estado":"ok","ahora":"..."}
 curl -si -X POST https://ballena-ops-api.oscarini.workers.dev/api/cuenta/baja | head -1
-# HTTP/2 401  ← existe y pide sesión. Un 404 aquí significa que no desplegaste.
 ```
+
+El primero devuelve `{"estado":"ok","ahora":"…"}`. El segundo tiene que dar
+**401**: la ruta existe y pide sesión. Un **404** significa que no desplegaste —y
+`wrangler deploy` sube lo que hay **en disco**, así que comprueba antes que el
+`git pull` entró de verdad.
 
 ### Fase 3 · Publicar la web con las dos páginas — **el repositorio**, automático
 
@@ -126,9 +132,13 @@ No te lo saltes: es el fallo que más caro sale, porque llega **antes** de la
 revisión y en forma de rechazo administrativo.
 
 ```bash
-curl -sI https://ballenita-ops.galoopa.store/privacidad | head -1   # 200
-curl -sI https://ballenita-ops.galoopa.store/soporte    | head -1   # 200
+curl -sI https://ballenita-ops.galoopa.store/privacidad | head -1
+curl -sI https://ballenita-ops.galoopa.store/soporte    | head -1
 ```
+
+Las dos tienen que dar **200**. Mientras el dominio propio no esté apuntado,
+valen las de `ballenita-ops.pages.dev`: cambiar esa URL en la ficha después es
+gratis y no pasa por revisión.
 
 Ábrelas además en el móvil y lee el correo de contacto en voz alta. Si lo que ves
 es la aplicación en vez de la página, el service worker se ha comido la
@@ -140,11 +150,15 @@ navegación: la lista que lo impide está en `vite.config.js`
 ```bash
 cd app
 npm install
-npx cap add ios          # solo en macOS: hace pod install
-npm run sync:ios         # copia la web, sincroniza y aplica patch-ios.mjs
-npm run assets:ios       # iconos y splash desde app/assets/icon.png (1024×1024, opaca)
+npx cap add ios
+npm run sync:ios
+npm run assets:ios
 npm run open:ios
 ```
+
+`cap add ios` solo funciona en macOS, porque hace `pod install`. `sync:ios` copia
+la web, sincroniza los plugins y aplica `patch-ios.mjs`. `assets:ios` genera los
+iconos y el splash desde `app/assets/`.
 
 `npm run sync:ios` deja puesto todo lo de la tabla del §1 que vive en el binario.
 Léele la salida: dice qué ha tocado y qué no ha sabido tocar.
@@ -274,8 +288,38 @@ revisión en el §5.
 
 ### Fase 8 · Las capturas — **tú**, 1 hora
 
-Obligatorias las de **6,9″** (iPhone 16 Pro Max o equivalente). No hace falta
-teléfono: el simulador de Xcode da cualquier tamaño.
+Obligatorias las de **6,9″**, y solo esas: App Store Connect deriva de ellas el
+hueco de 6,5″ y lo dice en su propia pantalla («Using 6.9" Display»). No hace
+falta teléfono, basta el simulador.
+
+**Tiene que ser un Pro Max**, y esto es lo que hace perder la tarde: 6,9″ es el
+tamaño del *Pro Max*, no el del modelo base. Un iPhone 17 a secas es de 6,3″ y su
+captura sale a 1206 × 2622, que **no corresponde a ningún hueco** —hay 6,9″ y
+6,5″, pero no 6,3″—. App Store Connect la rechaza con «one or more screenshots
+are in the wrong format», que no dice ni una palabra del tamaño.
+
+| Simulador | Pulgadas | Captura | ¿Sirve? |
+|---|---|---|---|
+| iPhone 17 **Pro Max** / 16 Pro Max | 6,9″ | 1320 × 2868 | Sí |
+| iPhone 17 / 16 | 6,3″ | 1206 × 2622 | **No** |
+| iPhone 11 Pro Max | 6,5″ | 1242 × 2688 | Solo el hueco opcional |
+
+Comprueba qué simuladores tienes y saca las capturas sin salir de la terminal,
+que va más rápido que ⌘S cinco veces:
+
+```bash
+xcrun simctl list devices available | grep -i "Pro Max"
+xcrun simctl io booted screenshot ~/Desktop/captura-1.png
+sips -g pixelWidth -g pixelHeight -g hasAlpha ~/Desktop/captura-1.png
+```
+
+Si no aparece ninguno, se añade en Xcode → *Window* → *Devices and Simulators* →
+*Simulators* → **+**.
+
+Salen ya en sRGB, a 8 bits y sin canal alfa, que son las otras tres formas de que
+Apple diga «wrong format». Si tienes que reescalar una captura de otro tamaño,
+`sips` sirve, pero se nota: el texto de una lista de gastos escalado se lee
+blando, y es casi todo lo que hay en estas pantallas.
 
 **Sácalas del modo de demostración, nunca del evento real del grupo.** Las
 capturas son públicas: con los gastos de verdad dentro dejarían de serlo, y
