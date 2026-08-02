@@ -326,3 +326,57 @@ export async function guardarConfiguracionIA(db, campos = {}) {
       .run();
   }
 }
+
+// ---------------------------------------------------------------------------
+// Avisos: a qué aparatos hay que empujar
+// ---------------------------------------------------------------------------
+
+/**
+ * Apunta el token de APNs de este aparato.
+ *
+ * El mismo token puede aparecer en otra fila si alguien se fue y entró otro en
+ * el mismo teléfono: se limpia antes de escribirlo, porque un token duplicado
+ * significa avisar dos veces a un aparato y, peor, avisar de lo de otro.
+ */
+export async function guardarTokenPush(db, { dispositivoId, cuentaId, plataforma, tokenPush }) {
+  if (tokenPush) {
+    await db.prepare('UPDATE dispositivo SET tokenPush = NULL WHERE tokenPush = ? AND id != ?')
+      .bind(tokenPush, dispositivoId).run();
+  }
+  await db
+    .prepare(
+      `INSERT INTO dispositivo (id, cuentaId, plataforma, tokenPush, avisos)
+       VALUES (?, ?, ?, ?, 1)
+       ON CONFLICT(id) DO UPDATE SET cuentaId = excluded.cuentaId,
+                                     plataforma = COALESCE(excluded.plataforma, dispositivo.plataforma),
+                                     tokenPush = excluded.tokenPush`,
+    )
+    .bind(dispositivoId, cuentaId, plataforma || null, tokenPush || null)
+    .run();
+}
+
+/** Deja de avisar a este aparato, sin borrarlo: el permiso se retira en el
+ *  teléfono y se vuelve a conceder ahí mismo. */
+export async function silenciarDispositivo(db, dispositivoId, avisos) {
+  await db.prepare('UPDATE dispositivo SET avisos = ? WHERE id = ?')
+    .bind(avisos ? 1 : 0, dispositivoId).run();
+}
+
+/** Un token muerto no se reintenta: se borra y el teléfono se vuelve a dar de
+ *  alta solo la próxima vez que abra (ver `apns.js`). */
+export async function olvidarTokenPush(db, tokenPush) {
+  await db.prepare('UPDATE dispositivo SET tokenPush = NULL WHERE tokenPush = ?').bind(tokenPush).run();
+}
+
+/** Los aparatos de quien administra, que son los que reciben las peticiones de
+ *  acceso. Sin token o silenciados no cuentan. */
+export async function tokensDeAdministradores(db) {
+  return filas(
+    db,
+    `SELECT d.tokenPush AS token
+       FROM dispositivo d
+       JOIN cuenta c ON c.id = d.cuentaId
+      WHERE c.rol = 'administrador' AND c.activa = 1
+        AND d.avisos = 1 AND d.tokenPush IS NOT NULL AND d.tokenPush != ''`,
+  ).then((f) => f.map((x) => x.token));
+}

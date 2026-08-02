@@ -272,9 +272,11 @@ revocación ante Apple (directriz 5.1.1(v), `api/src/revocacion.js` + `POST /api
 **modo de demostración** desde la pantalla de acceso —lo único que deja ver la app a quien no
 está invitado, que es el caso de quien la revisa (directriz 2.1, `app/src/lib/demo.js`)—,
 páginas de **privacidad** y **soporte** en `app/public/`, y `patch-ios.mjs` declarando el
-cumplimiento de exportación, «solo iPhone» y el nombre bajo el icono. Se **retiraron OneSignal
-y `@capacitor/push-notifications`**, que estaban inertes y metían un SDK de terceros en el
-binario: hoy no hay push, y el porqué está en `lib/native.js`. La demostración convive con
+cumplimiento de exportación, «solo iPhone», el nombre bajo el icono y el permiso de avisos.
+**Hay avisos al móvil** (SPECS §14.17): APNs directo desde el Worker (`api/src/apns.js`,
+portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de terceros que se
+retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
+binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
 entrar, la demostración arranca llena y no sube nunca. 150 tests en la PWA + 37 en la API,
 todos en verde.

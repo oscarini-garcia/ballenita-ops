@@ -29,6 +29,9 @@ ORIGENES_PERMITIDOS = "http://localhost:5173"
 # Audiencia admitida del token de Apple: el identificador del paquete de la app.
 # No hay Services ID porque no hay acceso con Apple en la web.
 APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
+# Servidor de APNs: "pruebas" mientras se prueba desde Xcode, "produccion" con el
+# binario de la App Store. Sin claves de APNs no se empuja nada y no pasa nada.
+APNS_ENTORNO = "pruebas"
 
 # Secretos, que NO van aquí. Se registran con `wrangler secret put`:
 #   SESION_SECRETO  · clave con la que este Worker firma las sesiones
@@ -41,6 +44,8 @@ APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
 #   APPLE_CLAVE_P8  · el contenido del .p8 de Sign in with Apple, tal cual
 #   APPLE_CLAVE_ID  · el Key ID de esa clave (10 caracteres)
 #   APPLE_EQUIPO    · el Team ID de la cuenta de desarrollador (10 caracteres)
+#   APNS_CLAVE_P8   · contenido del fichero .p8 de la clave de APNs
+#   APNS_CLAVE_ID   · identificador de esa clave (Key ID)
 
 [observability]
 enabled = true

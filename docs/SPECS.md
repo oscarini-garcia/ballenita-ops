@@ -1068,13 +1068,49 @@ dos personas para algo que el servidor ya sabía.
   `garciadoral-ops`). Hoy solo hay uno —alguien ha entrado y todavía no es
   nadie— y es del administrador. Al enlazar la cuenta, el aviso desaparece
   porque ya no hay nada que hacer: no hay que marcar nada como leído ni ir a
-  borrar una fila que miente. **Todavía no hay push** —se retiró con el SDK de
-  terceros que lo traía—, así que se ve al abrir Ajustes; cuando lo haya, lo que
-  se empuje será exactamente esta lista, y por eso se escribe aparte.
+  borrar una fila que miente. **Y sí hay push** (§14.17): lo que se
+  empuja es exactamente esta lista, que es el motivo de que se escribiera
+  aparte antes de que hubiera por dónde empujarla.
 - **✅ Buscar la última versión desde la pantalla de acceso.** Estaba solo dentro
   de Ajustes, o sea detrás de la puerta: si lo que falla es justo la pantalla de
   acceso —y es la que más cambia—, había que entrar para poder arreglarlo
   entrando.
+
+### 14.17 Avisos al móvil: APNs directo, sin SDK de nadie
+
+OneSignal y `@capacitor/push-notifications` estuvieron aquí y **se retiraron**
+antes del primer envío a la App Store: los dos inertes —sin `APP_ID` no se
+inicializaba nada y no había servidor que enviara— y el primero, un SDK de
+terceros de los que Apple obliga a declarar con manifiesto de privacidad
+firmado. Volver así habría sido volver al mismo sitio.
+
+- **✅ Vuelve el plugin oficial y solo el plugin oficial.**
+  `@capacitor/push-notifications` no habla con ningún tercero: habla con iOS. Las
+  etiquetas de privacidad de la ficha siguen pudiendo decir «sin analítica, sin
+  rastreo y sin SDK de nadie».
+- **✅ Quien empuja es nuestro Worker** (`api/src/apns.js`, portado de
+  `garciadoral-ops`): APNs es una petición HTTP/2 con una cabecera de más y un
+  JWT ES256, y las dos cosas las sabe hacer el Worker con `fetch` y
+  `crypto.subtle`. Sin dependencias.
+- **✅ El JWT de proveedor se guarda 45 minutos**, no se firma en cada aviso:
+  Apple lo limita a uno cada veinte minutos y quien firma por petición acaba en
+  `TooManyProviderTokenUpdates`.
+- **✅ Un token muerto se borra, no se reintenta.** Ante un `410` o un
+  `BadDeviceToken` se olvida el token y el teléfono se da de alta solo la
+  próxima vez que abra.
+- **✅ El permiso se pide en Ajustes → Notificaciones, no al arrancar.** Al lado
+  está escrito qué se avisa. Un permiso que se pide en el primer segundo se
+  contesta que no, y solo se pide una vez en la vida.
+- **✅ El token vive en `dispositivo`** (migración `0004`), no en `cuenta`: una
+  persona tiene teléfono y iPad y quiere el aviso en los dos, y el token es de la
+  instalación. `avisos` es el permiso tal como está en ese aparato.
+- **✅ Hoy se avisa de una sola cosa**: alguien ha entrado con Apple y todavía no
+  es nadie del grupo, y llega **solo a quien administra**, que es quien puede
+  arreglarlo. El aviso no puede tumbar el alta que lo provocó: se manda sin
+  esperar y sin lanzar.
+- **⚠ No viaja por OTA.** Un plugin nativo exige `npm run sync:ios`, archivar y
+  **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
+  repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.
 
 ### 14.16 La IA: la clave vive en el servidor
 

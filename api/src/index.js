@@ -20,12 +20,14 @@
  *   GET  /api/cuentas   · quién tiene acceso (administradores)
  *   POST /api/cuentas   · enlazar con persona, eliminar, activar y renombrar (administradores)
  *   POST /api/cuenta/baja · eliminar la cuenta propia (directriz 5.1.1(v) de Apple)
+ *   POST /api/push      · apunta el token de APNs de este aparato, o lo silencia
  *   GET  /api/ia        · qué clave y qué modelo hay puestos (administradores)
  *   POST /api/ia        · los cambia (administradores)
  *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
  */
 
 import { verificarTokenDeApple } from './apple.js';
+import { enviarAviso, hayApnsConfigurado } from './apns.js';
 import { coincideEnTiempoConstante, emitirSesion, verificarSesion } from './sesion.js';
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
 import {
@@ -33,6 +35,7 @@ import {
   cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta, enlazarCuentaConPersona,
   hayAlgunaCuenta, importarInstantanea, leerInstantanea, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
+  guardarTokenPush, olvidarTokenPush, silenciarDispositivo, tokensDeAdministradores,
 } from './repositorio.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
@@ -120,6 +123,9 @@ async function abrirSesion(peticion, env) {
       const espera = await crearCuenta(env.DB, {
         id: idDeCuenta(), appleSub: sub, nombre, email, rol: 'miembro', activa: 0,
       });
+      // A quien administra le llega al teléfono. Si falla, la solicitud queda
+      // apuntada igual: el aviso es el recado, no el hecho.
+      await avisarDeSolicitud(env, espera.nombre).catch(() => {});
       return json(
         {
           error: 'en_espera',
@@ -260,6 +266,54 @@ async function cuentas(peticion, env) {
 }
 
 /**
+ * El aparato dice por dónde se le avisa.
+ *
+ * Se llama al abrir la app, siempre: el token de APNs **cambia** —al
+ * reinstalar, al restaurar una copia— y un token viejo es un aviso que no
+ * llega. Con `avisos: false` se silencia sin borrar nada, que es lo que hay que
+ * hacer cuando el permiso se retira desde los ajustes de iOS.
+ */
+async function registroDePush(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+  const { token = null, avisos = true } = await peticion.json().catch(() => ({}));
+  const dispositivoId = peticion.headers.get('X-Dispositivo') || `${cuenta.id}:desconocido`;
+
+  await guardarTokenPush(env.DB, {
+    dispositivoId,
+    cuentaId: cuenta.id,
+    plataforma: peticion.headers.get('X-Plataforma') || 'ios',
+    tokenPush: token,
+  });
+  if (avisos === false) await silenciarDispositivo(env.DB, dispositivoId, false);
+
+  return json({ ok: true, empuja: hayApnsConfigurado(env) });
+}
+
+/**
+ * Avisa a quien administra de que alguien acaba de pedir entrar.
+ *
+ * Es el primer aviso remoto de la app y el que justifica todo el cable: quien
+ * pide acceso se queda mirando una pantalla que dice «ya estás en la lista», y
+ * hasta que alguien no abra Ajustes por su cuenta, ahí sigue. No lanza y no se
+ * espera: un aviso que no sale **no puede tumbar el alta que lo provocó**.
+ */
+async function avisarDeSolicitud(env, nombre) {
+  if (!hayApnsConfigurado(env)) return;
+  const tokens = await tokensDeAdministradores(env.DB);
+  for (const token of tokens) {
+    const resultado = await enviarAviso(env, token, {
+      titulo: 'Alguien quiere entrar 🔑',
+      cuerpo: `${nombre || 'Alguien'} ha entrado con Apple y todavía no es nadie del grupo.`,
+      categoria: 'solicitud',
+      agrupa: 'solicitudes',
+      urgente: false,
+      datos: { ir: 'ajustes/cuentas' },
+    });
+    if (resultado.caducado) await olvidarTokenPush(env.DB, token);
+  }
+}
+
+/**
  * La clave de la IA y el modelo, para quien administra.
  *
  * La clave entra pero no sale: se responde siempre con la versión pública
@@ -342,6 +396,7 @@ const RUTAS = [
   ['GET', '/api/cuentas', cuentas],
   ['POST', '/api/cuentas', cuentas],
   ['POST', '/api/cuenta/baja', darDeBaja],
+  ['POST', '/api/push', registroDePush],
   ['GET', '/api/ia', configuracionIA],
   ['POST', '/api/ia', configuracionIA],
   ['POST', '/api/importar', importar],

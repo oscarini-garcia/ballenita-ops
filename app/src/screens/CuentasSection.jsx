@@ -4,10 +4,10 @@ import { personsOf, familiesOf, olvidarTodo } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
-import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA } from '../sync/api.js'
+import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, registrarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
-import { tap } from '../lib/native.js'
+import { estadoDePush, isNative, registerPush, tap } from '../lib/native.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
 import { porNombre } from '../lib/asignacion.js'
@@ -222,9 +222,58 @@ export default function CuentasSection({ eventId }) {
 export function NotificacionesSection() {
   const { esAdmin, cuentas } = useCuentas()
   const avisos = avisosPara({ cuentas: cuentas ?? [], esAdmin })
+  // 'granted' · 'denied' · 'prompt' · 'no-aplica' (web, o sin plugin).
+  const [permiso, setPermiso] = useState('no-aplica')
+  const [yendo, setYendo] = useState(false)
+
+  useEffect(() => { estadoDePush().then(setPermiso) }, [])
+
+  /**
+   * El permiso se pide **aquí** y no al arrancar: al lado está escrito qué se
+   * avisa, y un permiso que se pide en el primer segundo se contesta que no.
+   * El token se apunta en el servidor en cuanto Apple lo da.
+   */
+  async function activar() {
+    tap()
+    setYendo(true)
+    try {
+      const token = await registerPush()
+      if (token) await registrarPush(token, true)
+      setPermiso(await estadoDePush())
+    } finally { setYendo(false) }
+  }
 
   return (
     <>
+      {isNative() && (
+        <>
+          <div className="card tight">
+            <div className="row">
+              <div className="ico"><Icono nombre="aviso" /></div>
+              <div className="main">
+                <div className="n">
+                  {permiso === 'granted' ? 'Avisos encendidos' : 'Avisos apagados'}
+                </div>
+                <div className="sub">
+                  {permiso === 'granted' && 'Este móvil recibe los avisos aunque la app esté cerrada.'}
+                  {permiso === 'denied' && 'Los desactivaste en iOS: se vuelven a encender en Ajustes de iOS → Ballena Ops.'}
+                  {(permiso === 'prompt' || permiso === 'prompt-with-rationale') && 'Todavía no los has encendido en este móvil.'}
+                </div>
+              </div>
+              {permiso !== 'granted' && permiso !== 'denied' && (
+                <button className="btn sm" disabled={yendo} onClick={activar}>
+                  {yendo ? 'Pidiendo…' : 'Encender'}
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="note">
+            🐳 De momento se avisa de <b>una sola cosa</b>: alguien ha entrado con Apple y todavía no
+            es nadie del grupo. Llega solo a quien administra, porque es quien puede arreglarlo.
+          </div>
+        </>
+      )}
+
       {!esAdmin && (
         <div className="note">
           🐳 Por ahora los avisos son cosa de quien administra el grupo. Cuando haya avisos para
@@ -250,11 +299,12 @@ export function NotificacionesSection() {
         </div>
       )}
 
-      <div className="note">
-        🐳 Los avisos se ven <b>al abrir la app</b>. Todavía no hay notificaciones al móvil: se
-        retiraron con el SDK de terceros que las traía (`lib/native.js`), y cuando vuelvan, lo que
-        se empuje será exactamente esta lista.
-      </div>
+      {!isNative() && (
+        <div className="note">
+          🐳 Los avisos al móvil solo funcionan en la app de iOS. Aquí, en el navegador, esta lista
+          es lo que hay.
+        </div>
+      )}
     </>
   )
 }
