@@ -1,6 +1,6 @@
 {
   "name": "ballena-ops",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "type": "module",
   "description": "PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳",
@@ -14,7 +14,8 @@
     "sync:ios": "npm run build:app && cap sync ios && npm run patch:ios",
     "patch:ios": "node scripts/patch-ios.mjs",
     "open:ios": "cap open ios",
-    "assets:ios": "npx @capacitor/assets generate --ios"
+    "assets:ios": "npx @capacitor/assets generate --ios",
+    "iconos:web": "node scripts/iconos-web.mjs"
   },
   "dependencies": {
     "@capacitor-community/apple-sign-in": "^7.1.0",

@@ -9,8 +9,10 @@ import Icono from './Icono.jsx'
  * trazo que el resto de la app (`Icono`, rejilla de 24) y se recolorea con
  * `--whale` como todo lo demás.
  *
- * El icono de la app —el de la pantalla de inicio— es otra cosa y sigue siendo
- * el SVG de `public/favicon.svg`; ese se cambia cuando haya dibujo nuevo.
+ * El icono de la app —el de la pantalla de inicio— es otra cosa: sale de
+ * `assets/icon.png`, del que comen tanto el binario de iOS (`assets:ios`) como
+ * los PNG de la web y la PWA (`iconos:web`). Este trazo es la marca **dentro**
+ * de la app; aquel es la app vista desde fuera, y no tienen por qué coincidir.
  */
 export default function WhaleLogo({ className = '' }) {
   return (
