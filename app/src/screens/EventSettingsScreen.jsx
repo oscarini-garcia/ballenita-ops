@@ -9,7 +9,8 @@ import {
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
-import ProgresoModal from '../components/ProgresoModal.jsx'
+import ProgresoModal, { ListaDePasos } from '../components/ProgresoModal.jsx'
+import { formatearHace } from '../lib/hace.js'
 import StatsScreen from './StatsScreen.jsx'
 import { useTema, TEMAS } from '../lib/tema.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
@@ -39,7 +40,20 @@ const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '
  * (`lib/sincronizarTodo.js`). Tener dos botones que hacen media cosa cada uno
  * obligaba a acertar cuál era tu problema antes de dejarte mirar.
  */
+/**
+ * El apartado de Sincronización, con la figura de `garciadoral-ops`: el progreso
+ * se pinta **aquí**, debajo del botón, y se queda. No es un modal porque lo que
+ * ha ido pasando se lee después —para saber si aquello se subió o no— y una
+ * ventana que se cierra no deja nada.
+ *
+ * El punto de la cabecera sigue abriendo el suyo, porque allí un toque sin
+ * respuesta a la vista no diría nada; aquí, con el apartado abierto, la ventana
+ * sobra.
+ */
 function SyncSection({ sync, onSincronizarTodo }) {
+  const [pasos, setPasos] = useState(null)
+  const [ocupado, setOcupado] = useState(false)
+  const [aviso, setAviso] = useState(null)
   // La configuración se lee en caliente de config.json, así que llega después
   // del primer pintado en vez de estar horneada en el bundle.
   const [detectada, setDetectada] = useState(false)
@@ -52,6 +66,19 @@ function SyncSection({ sync, onSincronizarTodo }) {
 
   const estado = sync ?? { isConfigured: detectada, online: true, status: 'idle' }
   const d = estadoSync(estado)
+  const ultima = estado.ultima ?? null
+
+  // El botón hace el ciclo entero y lo va contando aquí mismo. Lo que ya está
+  // escrito se conserva: sin eso, cada fase borraría el relato de la anterior.
+  async function comprobarAhora() {
+    if (ocupado) return
+    tap()
+    setOcupado(true)
+    setAviso(null)
+    setPasos([])
+    await onSincronizarTodo?.({ alAvanzar: setPasos })
+    setOcupado(false)
+  }
   // Hay grupo al otro lado, pero este móvil eligió seguir sin entrar.
   const enLocal = estado.isConfigured && modoLocal() && !leerSesion()
 
@@ -74,7 +101,20 @@ function SyncSection({ sync, onSincronizarTodo }) {
           </div>
         </div>
       </div>
-      <button className="btn block" onClick={onSincronizarTodo}>↻ Sincronizar todo</button>
+      {/* En palabras y no en cifras: es un dato que se lee para tranquilizarse,
+          y «hoy a las 14:03» tranquiliza de un vistazo. */}
+      <div className="pista">
+        {ultima
+          ? `Última actualización: ${formatearHace(ultima)}.`
+          : 'Todavía no se ha podido actualizar.'}
+      </div>
+
+      <button className="btn block" disabled={ocupado} onClick={comprobarAhora}>
+        {ocupado ? 'Comprobando…' : '↻ Sincronizar todo'}
+      </button>
+
+      {pasos && <ListaDePasos pasos={pasos} onCopiado={setAviso} />}
+      {aviso && <div className="note" role="status">{aviso}</div>}
       {enLocal && (
         <>
           <div className="note">

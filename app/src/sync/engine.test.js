@@ -120,7 +120,10 @@ describe('syncNow', () => {
     const r = await syncNow()
 
     expect(r.status).toBe('synced')
+    // Viajan con el resultado, que es lo que hace que la pantalla pueda
+    // decirlo: la consola de Safari no se abre desde un iPhone.
     expect(r.rechazados).toHaveLength(1)
+    expect(r.rechazados[0].motivo).toMatch(/versión más reciente/)
     expect(aviso).toHaveBeenCalled()
     // La cola se vacía igualmente: reintentar un cambio obsoleto no lo arregla,
     // solo lo deja atascado para siempre.

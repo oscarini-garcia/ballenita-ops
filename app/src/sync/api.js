@@ -75,7 +75,25 @@ async function peticion(camino, opciones = {}) {
     throw new SesionCaducada()
   }
 
-  if (!respuesta.ok) throw new Error(`la API respondió ${respuesta.status}`)
+  if (!respuesta.ok) {
+    // El estado HTTP viaja con el error, y con él lo que el servidor haya
+    // explicado. Es lo que separa «la API contestó que no» de «la API no
+    // contestó»: un 500 es un fallo suyo, un 404 una dirección equivocada, y no
+    // tener número es que la petición no llegó a salir —red, DNS o certificado—.
+    // Sin esto, la pantalla acababa diciendo «no se ha podido: error», que es la
+    // misma palabra dos veces y no sirve para nada. Idea de `garciadoral-ops`.
+    let datos = null
+    try { datos = await respuesta.json() } catch { /* no era JSON: da igual */ }
+    const explicacion = datos?.error || datos?.motivo
+    const error = new Error(
+      explicacion
+        ? `la API respondió ${respuesta.status}: ${explicacion}`
+        : `la API respondió ${respuesta.status}`,
+    )
+    error.estado = respuesta.status
+    error.datos = datos
+    throw error
+  }
   return respuesta.json()
 }
 

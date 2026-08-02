@@ -1,5 +1,10 @@
-import { syncNow } from '../sync/engine.js'
+import { syncNow, ultimaSincronizacion } from '../sync/engine.js'
 import { comprobarActualizacion, UPDATE_STEPS } from './pwa.js'
+import { formatearHace } from './hace.js'
+
+// Inyectada por Vite. Va en el informe del fallo: sin saber qué versión lo dio,
+// un mensaje de error no sitúa nada.
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
 
 /**
  * Un botón, y hace las dos cosas en el orden que importa.
@@ -27,6 +32,19 @@ const MOTIVOS = {
   'sesion-caducada': 'la sesión ha caducado; vuelve a entrar con Apple',
 }
 
+/**
+ * Lo que se lleva al portapapeles cuando se toca un fallo: el motivo y lo mínimo
+ * que lo sitúa. El token no entra — no hace falta para nada de esto.
+ */
+export function informeDelFallo({ motivo, estado, ultima }) {
+  return [
+    `Ballena Ops v${APP_VERSION}`,
+    motivo,
+    estado ? `Estado HTTP: ${estado}` : null,
+    ultima ? `Última correcta: ${formatearHace(ultima)}` : 'Nunca ha llegado a sincronizar',
+  ].filter(Boolean).join('\n')
+}
+
 export async function sincronizarTodo({
   sincronizarDatos = syncNow,
   comprobarApp = comprobarActualizacion,
@@ -35,7 +53,11 @@ export async function sincronizarTodo({
   const pasos = []
   const pintar = () => { try { alAvanzar([...pasos]) } catch { /* la UI se cayó */ } }
   const abrir = (texto) => { pasos.push({ texto, estado: 'curso' }); pintar() }
-  const cerrar = (texto, estado) => { pasos[pasos.length - 1] = { texto, estado }; pintar() }
+  const cerrar = (texto, estado, extra = {}) => {
+    pasos[pasos.length - 1] = { texto, estado, ...extra }
+    pintar()
+  }
+  const anadir = (texto, estado) => { pasos.push({ texto, estado }); pintar() }
 
   // ── Los datos ──────────────────────────────────────────────────────────────
   abrir('Subiendo lo pendiente y trayendo lo nuevo…')
@@ -48,11 +70,26 @@ export async function sincronizarTodo({
 
   if (r?.status === 'synced') {
     cerrar('Datos al día: subido lo pendiente y traída la última copia', 'hecho')
+    // Lo que el servidor no aplicó se dice. La interfaz es optimista: eso se vio
+    // guardado un momento y ha desaparecido con la instantánea, así que callarlo
+    // se lee como que la app pierde cosas y no como un rechazo.
+    if (r.rechazados?.length) {
+      const n = r.rechazados.length
+      anadir(
+        `${n} ${n === 1 ? 'cambio no se ha guardado' : 'cambios no se han guardado'}: el servidor los ha rechazado`,
+        'fallo',
+      )
+    }
   } else if (r?.status === 'no-config') {
     cerrar('Sin sincronización: esta instalación va solo local', 'aviso')
   } else {
     const motivo = MOTIVOS[r?.status] ?? r?.error ?? r?.status ?? 'error'
-    cerrar(`No se han podido sincronizar los datos: ${motivo}`, 'fallo')
+    // El renglón del fallo se toca para llevárselo: un mensaje de TLS o un
+    // número de la API no se transcriben a mano desde un teléfono, y son justo
+    // lo que hay que enseñarle a quien pueda arreglarlo.
+    cerrar(`No se han podido sincronizar los datos: ${motivo}`, 'fallo', {
+      informe: informeDelFallo({ motivo, estado: r?.estado, ultima: r?.ultima ?? ultimaSincronizacion() }),
+    })
   }
 
   // ── La app ─────────────────────────────────────────────────────────────────

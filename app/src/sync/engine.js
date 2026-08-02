@@ -6,6 +6,29 @@ import * as api from './api.js'
 let syncing = false
 
 /**
+ * Cuándo fue la última vez que se sincronizó **bien**.
+ *
+ * Se guarda porque es lo primero que se mira cuando algo huele raro, y porque
+ * «al día» sin fecha no dice nada: puede llevar cinco minutos o tres días.
+ * Sobrevive a recargas, así que va a `localStorage` y no a memoria. Idea de
+ * `garciadoral-ops`, donde la línea se lee para tranquilizarse.
+ */
+const CLAVE_ULTIMA = 'ballena.sync.ultima'
+
+export function ultimaSincronizacion() {
+  try {
+    const v = Number(localStorage.getItem(CLAVE_ULTIMA))
+    return Number.isFinite(v) && v > 0 ? v : null
+  } catch {
+    return null
+  }
+}
+
+function apuntarUltima(cuando) {
+  try { localStorage.setItem(CLAVE_ULTIMA, String(cuando)) } catch { /* da igual */ }
+}
+
+/**
  * Un ciclo de sincronización: sube la cola, aplica lo que devuelve el servidor.
  *
  * El orden importa. La cola se vacía **hasta la marca que se subió**, no del
@@ -31,7 +54,14 @@ export async function syncNow() {
     if (cola.length) {
       const respuesta = await api.enviarCambios(cola.map(({ orden, ...cambio }) => cambio))
       instantanea = respuesta.instantanea
+      // Lo que el servidor no ha aplicado **hay que decirlo**, no solo apuntarlo
+      // en una consola que nadie abre desde un iPhone: la interfaz es optimista,
+      // así que un cambio rechazado se vio guardado un momento y desaparece con
+      // la instantánea siguiente. Sin aviso, eso no se lee como un error sino
+      // como que la app pierde cosas. (`garciadoral-ops`.)
       rechazados = (respuesta.resultados ?? []).filter((r) => !r.aplicado)
+      // La consola sigue sirviendo desarrollando; lo que no puede es ser el
+      // único sitio donde consta.
       if (rechazados.length) console.warn('Cambios no aplicados por el servidor:', rechazados)
     } else {
       instantanea = await api.traerInstantanea()
@@ -40,10 +70,19 @@ export async function syncNow() {
     if (corte) await vaciarCola(corte)
     if (instantanea?.tables) await importSnapshot(instantanea)
 
-    return { status: 'synced', at: Date.now(), rechazados }
+    const at = Date.now()
+    apuntarUltima(at)
+    return { status: 'synced', at, ultima: at, rechazados }
   } catch (error) {
-    if (error?.sesionCaducada) return { status: 'sesion-caducada' }
-    return { status: 'error', error: String(error?.message ?? error) }
+    if (error?.sesionCaducada) return { status: 'sesion-caducada', ultima: ultimaSincronizacion() }
+    return {
+      status: 'error',
+      // El motivo ya viene compuesto por el transporte, con el estado HTTP
+      // delante cuando lo hay (sync/api.js). Aquí no se recorta.
+      error: String(error?.message ?? error),
+      estado: error?.estado ?? null,
+      ultima: ultimaSincronizacion(),
+    }
   } finally {
     syncing = false
   }
@@ -133,5 +172,14 @@ export function useSyncEngine() {
     return r
   }
 
-  return { ...state, dirty, online, isConfigured, sync: syncNow, recheck }
+  return {
+    ...state,
+    dirty,
+    online,
+    isConfigured,
+    ultima: state.ultima ?? ultimaSincronizacion(),
+    rechazados: state.rechazados ?? [],
+    sync: syncNow,
+    recheck,
+  }
 }

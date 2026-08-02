@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { sincronizarTodo } from './sincronizarTodo.js'
+import { sincronizarTodo, informeDelFallo } from './sincronizarTodo.js'
 
 const alDia = () => Promise.resolve('al-dia')
 
@@ -66,6 +66,53 @@ describe('sincronizarTodo', () => {
     // Sin la copia, React vería siempre la misma referencia y no repintaría.
     expect(vistos[0]).not.toBe(vistos[1])
     expect(vistos[0]).toHaveLength(1)
+  })
+
+  it('lo que el servidor rechaza se dice, no se queda en la consola', async () => {
+    // La interfaz es optimista: un cambio rechazado se vio guardado un momento y
+    // desaparece con la instantánea. Callarlo se lee como que la app pierde cosas.
+    const pasos = await sincronizarTodo({
+      sincronizarDatos: () => Promise.resolve({
+        status: 'synced',
+        rechazados: [{ tabla: 'expenses', id: 'exp_1', motivo: 'obsoleto' }],
+      }),
+      comprobarApp: alDia,
+    })
+
+    expect(pasos).toHaveLength(3)
+    expect(pasos[0].estado).toBe('hecho')
+    expect(pasos[1]).toMatchObject({ estado: 'fallo' })
+    expect(pasos[1].texto).toMatch(/1 cambio no se ha guardado/)
+  })
+
+  it('un fallo trae su informe para llevárselo: no se transcribe a mano', async () => {
+    const pasos = await sincronizarTodo({
+      sincronizarDatos: () => Promise.resolve({
+        status: 'error',
+        error: 'la API respondió 500: base de datos no disponible',
+        estado: 500,
+        ultima: new Date('2026-08-12T09:00:00').getTime(),
+      }),
+      comprobarApp: alDia,
+    })
+
+    expect(pasos[0].estado).toBe('fallo')
+    expect(pasos[0].informe).toMatch(/Ballena Ops v/)
+    expect(pasos[0].informe).toMatch(/base de datos no disponible/)
+    expect(pasos[0].informe).toMatch(/Estado HTTP: 500/)
+    expect(pasos[0].informe).toMatch(/Última correcta:/)
+  })
+
+  it('sin fallo no hay informe que llevarse', async () => {
+    const pasos = await sincronizarTodo({
+      sincronizarDatos: () => Promise.resolve({ status: 'synced' }),
+      comprobarApp: alDia,
+    })
+    expect(pasos.every((p) => !p.informe)).toBe(true)
+  })
+
+  it('el informe dice cuándo fue la última correcta, o que nunca la hubo', () => {
+    expect(informeDelFallo({ motivo: 'x', ultima: null })).toMatch(/Nunca ha llegado a sincronizar/)
   })
 
   it('pasa los rótulos de cada fase de la actualización a la lista', async () => {

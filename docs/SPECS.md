@@ -638,6 +638,58 @@ dos ramas con la pregunta que las distingue: ¿llegó a salir la hoja de Apple?
 
 Pasos de despliegue: [`DESPLIEGUE.md`](DESPLIEGUE.md).
 
+### 14.9-bis Sincronizar como en `garciadoral-ops`: que se pueda saber qué ha pasado
+
+La mecánica no cambia —cola de cambios, el servidor manda, la instantánea
+sustituye la copia local—. Lo que cambia es **lo que se le cuenta a quien mira**,
+que es donde `garciadoral-ops` estaba resuelto y aquí no. El problema que
+resuelve es siempre el mismo: desde un iPhone no hay consola que abrir, así que
+lo que no salga en la pantalla no existe.
+
+**El estado HTTP viaja con el error** (`sync/api.js`). Antes cualquier fallo
+llegaba a la pantalla como «no se han podido sincronizar los datos: error», que
+es la misma palabra dos veces. Ahora el error lleva `estado` y, cuando el Worker
+explica algo en el cuerpo, también su texto. La distinción que interesa es
+«contestó que no» frente a «no contestó»: un **500** es un fallo del servidor, un
+**404** una dirección equivocada en `config.json`, y **no tener número** es que
+la petición no llegó a salir —red, DNS o certificado—. Son tres arreglos
+distintos y antes se veían iguales.
+
+**Lo que el servidor rechaza se dice** (`sync/engine.js` → `lib/sincronizarTodo.js`).
+Los cambios que vuelven con `aplicado: false` se contaban solo por `console.warn`.
+Y la interfaz es **optimista**: un cambio rechazado se vio guardado un momento y
+desaparece con la instantánea siguiente, así que callarlo no se lee como un
+rechazo sino como que la app pierde cosas. Ahora la lista de pasos añade un
+renglón en rojo con cuántos fueron.
+
+**Última actualización, en palabras** (`lib/hace.js`, copiado de `semana.js` de
+`garciadoral-ops`). El momento de la última sincronización **correcta** se apunta
+en `localStorage` (`ballena.sync.ultima`) y Ajustes lo enseña como «hoy a las
+14:03» o «hace 12 min». Es un dato que se lee para tranquilizarse, y «al día» sin
+fecha no dice nada: puede llevar cinco minutos o tres días. Los tramos no son
+arbitrarios —por debajo de cinco minutos el número exacto no añade nada, y a
+partir de una semana la hora ya no importa y sí la fecha—.
+
+**El fallo se toca para llevárselo.** Un renglón con estado `fallo` lleva un
+`informe` —versión de la app, motivo, estado HTTP y cuándo fue la última
+correcta— que se copia al portapapeles al tocarlo, subrayado con puntos para que
+se vea que hace algo. Nadie transcribe a mano un mensaje de TLS desde un
+teléfono, y es justo lo que hay que enseñarle a quien pueda arreglarlo. El token
+no entra en el informe: no hace falta para nada de esto.
+
+**En Ajustes el progreso se pinta en su sitio, sin ventana encima**
+(`ListaDePasos`, exportada de `ProgresoModal.jsx`). Es la figura de
+`garciadoral-ops`: la lista aparece debajo del botón y **se queda**, porque lo
+que ha ido pasando se relee después —para saber si aquello llegó a subir— y un
+modal que se cierra no deja nada. El punto de la cabecera **sigue abriendo el
+suyo**, porque allí un toque sin respuesta a la vista no diría nada; la
+diferencia la elige quien lo dispara, pasando `alAvanzar` a `sincronizarTodo()`.
+
+Lo que **no** se ha copiado: el porcentaje de descarga de la actualización.
+`lib/native.js` no expone ningún avance —`checkForOtaUpdate` no tiene callback de
+progreso—, así que la fase de la app sigue contándose por rótulos
+(«Descargando…») y no por cifra. Ponerlo exige tocar el puente nativo.
+
 ### 14.10 Cromo de la app: cabecera, barra inferior y modales
 
 Lo que rodea al contenido, que es donde se notan los roces del uso diario. Este
