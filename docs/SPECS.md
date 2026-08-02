@@ -1162,13 +1162,18 @@ Ahora, en la app nativa, el botón mira **primero** el OTA y lo aplica en el act
 (`CapacitorUpdater.reload()`), y solo si no había nada nuevo sigue con las
 cachés. En el navegador no cambia nada: ahí el OTA no existe.
 
-**Y el plugin que falta se detecta con `Capacitor.isPluginAvailable`, no con el
-`import()`.** El JavaScript de `@capacitor/push-notifications` viaja **dentro del
+**Y el plugin que falta no se detecta preguntando: se detecta porque la llamada
+no vuelve.** El JavaScript de `@capacitor/push-notifications` viaja **dentro del
 paquete OTA**, así que importarlo funciona aunque el binario no lleve su parte
-nativa; y al llamar a un plugin sin implementación nativa registrada, la promesa
-no se resuelve **ni se rechaza**. En un móvil de verdad eso era un «Pidiendo…»
-eterno. Con la comprobación —y un plazo de seis segundos como cinturón— la
-pantalla dice lo que pasa: hace falta un binario nuevo.
+nativa. Y `Capacitor.isPluginAvailable` tampoco sirve: devuelve `true` con que
+el JavaScript se haya registrado, que es lo que acaba de ocurrir al importarlo.
+
+Lo único que distingue de verdad es que **la promesa no se resuelve ni se
+rechaza**. Así que **todas** las llamadas al puente llevan plazo —seis segundos
+las que contesta el sistema, quince la que abre la hoja de permiso, que la
+contesta una persona pero aparece en el acto o no aparece— y al agotarse se dice
+lo que pasa: hace falta un binario nuevo. Un botón que puede quedarse en
+«Pidiendo…» para siempre es peor que uno que se rinde y lo cuenta.
 
 ### 14.16 La IA: la clave vive en el servidor
 

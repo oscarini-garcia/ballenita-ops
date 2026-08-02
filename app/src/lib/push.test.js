@@ -58,3 +58,34 @@ describe('registerPush', () => {
     expect(await registerPush()).toBe('tok_apns')
   })
 })
+
+describe('ninguna llamada al puente se queda colgada', () => {
+  it('si `checkPermissions` no vuelve, se acaba diciendo que falta el binario', async () => {
+    vi.useFakeTimers()
+    vi.doMock('@capacitor/push-notifications', () => ({
+      PushNotifications: { checkPermissions: () => new Promise(() => {}) },
+    }))
+    const { estadoDePush, SIN_PLUGIN } = await import('./native.js')
+    const esperando = estadoDePush()
+    await vi.advanceTimersByTimeAsync(6100)
+    expect(await esperando).toBe(SIN_PLUGIN)
+    vi.useRealTimers()
+  })
+
+  it('si la hoja de permiso no llega a aparecer, tampoco', async () => {
+    vi.useFakeTimers()
+    vi.doMock('@capacitor/push-notifications', () => ({
+      PushNotifications: {
+        checkPermissions: async () => ({ receive: 'prompt' }),
+        requestPermissions: () => new Promise(() => {}),
+        addListener: () => {},
+        register: () => {},
+      },
+    }))
+    const { registerPush, SIN_PLUGIN } = await import('./native.js')
+    const esperando = registerPush()
+    await vi.advanceTimersByTimeAsync(15100)
+    await expect(esperando).rejects.toThrow(SIN_PLUGIN)
+    vi.useRealTimers()
+  })
+})
