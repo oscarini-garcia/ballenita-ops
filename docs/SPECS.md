@@ -824,20 +824,6 @@ siempre en recarga, porque su último recurso es borrar cachés y recargar. Eso
 está bien detrás de un botón que se llama «Comprobar» y está fatal detrás de uno
 que se llama «Sincronizar».
 
-**Y «La app» es solo un botón.** El apartado tenía cuatro bloques: una tarjeta
-con «Ballena Ops · Versión en curso · v0.7.0» en grande, el botón, una nota de
-cuatro renglones y la pastilla de «Recién actualizada a la v0.7.0». Entre los
-tres, **la versión salía tres veces** —la cuarta es el propio rótulo del
-acordeón, «La app · v0.7.0», que es donde ya se mira—, y la nota explicaba
-fontanería: en qué se diferencia este botón del punto de la cabecera. Quien abre
-esto no viene a comparar mecanismos, viene a actualizar.
-
-Queda el botón («Actualizar la app») y un renglón que dice qué hace de más
-(«borra las cachés y recarga, aunque el sistema diga que ya estás al día»). La
-pastilla se queda porque aparece **después** de recargar y es la única confirmación
-de que aquello pasó, pero sin repetir el número: «✓ Recién actualizada». Se retira
-`.version-grande`, que no la usaba nadie más.
-
 **Ajustes, en apartados plegables.** `<details>`/`<summary>` del navegador, sin
 JavaScript por debajo (`components/Acordeon.jsx`): el elemento ya se abre al
 tocarlo y con Enter, ya se anuncia como plegado o desplegado a quien no ve, y el
@@ -1219,6 +1205,64 @@ firmado. Volver así habría sido volver al mismo sitio.
 - **⚠ No viaja por OTA.** Un plugin nativo exige `npm run sync:ios`, archivar y
   **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
   repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.
+
+### 14.18 El día es el de aquí, no el de Greenwich
+
+`toISOString().slice(0, 10)` sobre una fecha construida en local **resta las dos
+horas de verano** en España: la medianoche del 8 de agosto es el día 7 a las
+22:00Z. Con eso, el calendario de un viaje que empieza el 8 salía empezando el
+**7**, y la cena del primer día aparecía en la casilla del día anterior. `hoyISO`
+tenía el mismo defecto entre las 00:00 y las 02:00, y `diaSiguiente` devolvía el
+mismo día que le entraba.
+
+- **✅ `isoLocal(fecha)`** (`lib/dias.js`) compone el día con `getFullYear`,
+  `getMonth` y `getDate`, que es lo que ve quien mira el móvil. Lo usan `hoyISO`,
+  `diasDe` y `diaSiguiente`.
+- **✅ Las pruebas corren en `Europe/Madrid`** (`vite.config.js`), no en la zona
+  del contenedor. En UTC pasaban las 274 y el error seguía ahí: una suite que
+  corre en una zona horaria que no usa nadie del grupo no está probando el
+  calendario del grupo.
+
+### 14.19 La versión, abajo y tocable
+
+La pregunta «¿tengo lo nuevo o es que no funciona?» se hace mirando la pantalla
+donde tendría que verse el cambio, no dentro de la quinta solapa de Ajustes. Así
+que la versión baja a **Hoy**, en un pie a la derecha (`components/PieDeVersion.jsx`,
+figura de `garciadoral-ops`), y **se toca para buscar una nueva**: la respuesta a
+esa pregunta casi siempre es «actualiza», y un número que no se puede accionar
+obliga a irse a buscar el botón a otro sitio.
+
+Dentro de la app enseña la versión del **paquete OTA aplicado** —que es la que se
+está ejecutando— y no la que se horneó en el binario. Y en Ajustes, «La app» pasa
+a llamarse **Actualizar** y se queda en dos cosas: qué versión hay y el botón. Lo
+demás se leía una vez y estorbaba las demás.
+
+### 14.17-bis «Forzar la última versión» tiene que traer la última versión
+
+En la app de iOS hay **dos caminos** para una versión nueva y el botón solo
+recorría uno:
+
+| Camino | Qué trae | Cuándo corría |
+| --- | --- | --- |
+| Paquete **OTA** (`checkForOtaUpdate`) | El JS nuevo, del release de GitHub | **Solo al arrancar** la app |
+| *Service worker* (`forzarActualizacion`) | Cachés de la web | Al tocar el botón |
+
+Así que en el móvil se podía tocar «🔄 Forzar la última versión» las veces que
+hiciera falta y seguir en la de antes: lo que faltaba estaba en el otro camino, y
+el paquete descargado además esperaba al **siguiente** arranque para aplicarse.
+Un botón que promete una cosa y hace otra es peor que no tenerlo.
+
+Ahora, en la app nativa, el botón mira **primero** el OTA y lo aplica en el acto
+(`CapacitorUpdater.reload()`), y solo si no había nada nuevo sigue con las
+cachés. En el navegador no cambia nada: ahí el OTA no existe.
+
+**Y el plugin que falta se detecta con `Capacitor.isPluginAvailable`, no con el
+`import()`.** El JavaScript de `@capacitor/push-notifications` viaja **dentro del
+paquete OTA**, así que importarlo funciona aunque el binario no lleve su parte
+nativa; y al llamar a un plugin sin implementación nativa registrada, la promesa
+no se resuelve **ni se rechaza**. En un móvil de verdad eso era un «Pidiendo…»
+eterno. Con la comprobación —y un plazo de seis segundos como cinturón— la
+pantalla dice lo que pasa: hace falta un binario nuevo.
 
 ### 14.16 La IA: la clave vive en el servidor
 

@@ -9,7 +9,19 @@
  * F3 (qué enseña cuando hoy no es del evento) y G1 (una fila por día).
  */
 
-export const hoyISO = () => new Date().toISOString().slice(0, 10)
+/**
+ * Un día en AAAA-MM-DD **desde la fecha local**, y nunca por `toISOString()`.
+ *
+ * `toISOString()` convierte a UTC, y en España eso es dos horas atrás en verano:
+ * la medianoche del 8 de agosto es el 7 a las 22:00Z, así que el calendario de
+ * un viaje que empieza el 8 salía empezando el 7 y la cena del primer día
+ * aparecía el día de antes. En el contenedor de las pruebas —que va en UTC— no
+ * se veía; en el móvil de cualquiera del grupo, sí.
+ */
+export const isoLocal = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+export const hoyISO = () => isoLocal(new Date())
 
 /**
  * Todos los días del evento, del primero al último, **incluidos los vacíos**.
@@ -30,7 +42,7 @@ export function diasDe(event, apuntados = []) {
     // de dos meses no existe, y un bucle infinito cuelga la pestaña.
     let guarda = 0
     while (d <= ultimo && guarda++ < 60) {
-      dias.push(d.toISOString().slice(0, 10))
+      dias.push(isoLocal(d))
       d.setDate(d.getDate() + 1)
     }
     return dias
