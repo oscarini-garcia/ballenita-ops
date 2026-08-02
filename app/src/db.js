@@ -1,6 +1,7 @@
 import Dexie from 'dexie'
 import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
+import { pesoDe } from './lib/personas.js'
 
 // IndexedDB desde el día 1 (§14). Cada tabla guarda registros con `id` de cliente
 // y `updatedAt`. Desde la migración a la API propia (Worker + D1), IndexedDB deja
@@ -226,7 +227,7 @@ export async function addPerson(eventId, p) {
     edad,
     comeConMayores: p.comeConMayores ?? edad === 'adulto',
     cuentaComoAdultoReparto: p.cuentaComoAdultoReparto ?? edad === 'adulto',
-    pesoReparto: p.pesoReparto ?? (edad === 'adulto' ? 1 : 0.5),
+    pesoReparto: p.pesoReparto ?? pesoDe(edad),
     avatar: p.avatar ?? '🧑',
     estado: p.estado ?? '',
   })

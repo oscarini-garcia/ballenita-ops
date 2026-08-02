@@ -110,7 +110,7 @@ Modos de reparto:
 
 ### 3.3 Splits predefinidos por familia (el requisito clave) ⭐
 - Como hay familias de distinto tamaño, se puede definir un **split por defecto del evento** que tenga en cuenta a las familias.
-- Idea: cada gasto, por defecto, se reparte **por la suma del `peso_reparto` de las personas de cada familia participante** (§5). Así un niño con peso 0,5 cuenta la mitad automáticamente, sin reglas globales.
+- Idea: cada gasto, por defecto, se reparte **por la suma del `peso_reparto` de las personas de cada familia participante** (§5). Así un niño con peso 0,6 cuenta menos automáticamente, sin reglas globales.
 - Se pueden guardar **plantillas de reparto** ("split predefinido"):
   - *"Todos por persona"* (default): cada persona = 1 parte, las familias grandes pagan proporcionalmente más.
   - *"Solo adultos"*: los niños no cuentan (útil para el gasto de vino 🍷).
@@ -201,7 +201,8 @@ Se abandona el enum `niño/mayor/ambos` (ambiguo). En su lugar, cada persona tie
 - **Flags de comportamiento** independientes:
   - `come_con_mayores` (por defecto según edad; sobrescribible) → afecta a §6.4.
   - `cuenta_como_adulto_reparto` (por defecto según edad; sobrescribible) → afecta a §3.
-- **`peso_reparto`** (✅ decidido): **cuánto cuenta esta persona en el reparto por cabezas**, configurable **en su perfil**. Por defecto 1 (adulto); un niño puede ponerse a 0,5 o lo que el grupo acuerde, **por persona** — no es un ajuste global del evento. Un bebé podría ir a 0.
+- **`peso_reparto`** (✅ decidido): **cuánto cuenta esta persona en el reparto por cabezas**. Sale de la edad y no se teclea: **adulto = 1, niño = 0,6** (`lib/personas.js`). El campo libre existió y se retiró: pedía una decisión («¿un chaval de quince cuánto pesa?») cada vez que se apuntaba a alguien, y la respuesta era siempre una de las dos. Si algún día hace falta el bebé a 0, se añade a esa tabla y sale en los dos sitios a la vez.
+- **✅ Una persona es quien potencialmente tiene cuenta.** El alta sigue siendo por invitación (§14.9) y quien administra **enlaza la petición de acceso con la persona** que ya está apuntada. Por eso la lista de gente no es una lista de nombres para el reparto: es el censo del grupo, y de ahí que se edite en serio (§14.14).
 - Ejemplo: un **adolescente** = `niño` + `come_con_mayores: true` + `cuenta_como_adulto_reparto: true` + `peso_reparto: 1`. El antiguo "ambos" queda expresado de forma explícita y sin magia.
 - Los defaults hacen que el 90% de la gente se configure sola: adulto = flags true + peso 1; niño = flags false + peso a elegir en su perfil.
 
@@ -1012,6 +1013,31 @@ crea: `N1`–`N4`; dónde vive borrar: `D1`–`D4`).
 **Todo va ordenado por nombre.** Los ids son aleatorios (`lib/ids.js`), así que
 el orden de la base es el de un sorteo y una lista de nueve nombres sin orden se
 recorre entera cada vez.
+
+**Lo que la vuelta siguiente afinó, ya con la sección en la mano:**
+
+- **Guardar y borrar van en la misma línea, separados.** Apilados y pegados, el
+  rojo caía justo debajo del pulgar que acababa de dar a Guardar. El botón dice
+  solo el verbo; qué se lleva por delante lo dice la confirmación, entera.
+- **El emoji de una persona se elige de una galería**, además de escribirlo.
+  Teclearlo en un móvil es abrir el teclado de emoji y buscarlo, que es la
+  fricción por la que todo el mundo se quedaba con el 🧑 de fábrica.
+- **La edad son dos botones y el peso sale de ella** (§5.1), sin desplegable y
+  sin campo de peso.
+- **El evento en curso se edita con la misma figura** —se toca la ficha, sube la
+  hoja—, y al guardar **avisa de lo que se cae fuera de las fechas nuevas**: las
+  cenas y los planes de un día que deja de existir se borran, y se dice cuántos
+  son antes de tocar nada (`lib/evento.js`). Los gastos se cuentan y **no se
+  tocan**: la compra grande es del día antes de salir, y borrar dinero por mover
+  una fecha cambiaría los saldos de todos.
+- **El orden de Ajustes es el de lo que se toca**, no el del cableado: Aspecto ·
+  Evento · El grupo · Quién eres · Estadísticas · Sincronización · Tu cuenta ·
+  La app. Primero el viaje, al final la fontanería.
+- **Cada apartado recuerda si estaba abierto** (`localStorage`, por móvil).
+  Forzar la última versión recarga la app, y la recarga devolvía todas las
+  solapas plegadas: tocabas «actualizar» dentro de «La app» y volvías a una
+  lista de solapas cerradas sin saber si había pasado algo. Ahora vuelve al
+  mismo sitio y además se desplaza hasta él.
 
 ### 14.12 Un solo tema, y sus dos caras
 
