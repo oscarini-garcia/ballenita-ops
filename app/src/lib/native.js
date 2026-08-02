@@ -90,6 +90,21 @@ export async function checkForOtaUpdate({ aplicarYa = false } = {}) {
   }
 }
 
+/**
+ * La versión del paquete OTA que está aplicado, que dentro de la app es **la
+ * que cuenta**: la de `package.json` es la que se horneó en el binario, y con un
+ * OTA encima ya no es la que se está ejecutando.
+ */
+export async function versionInstalada() {
+  if (!isNative()) return null
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
+    return (await CapacitorUpdater.current())?.bundle?.version ?? null
+  } catch {
+    return null
+  }
+}
+
 // --- Registro de push ------------------------------------------------------
 //
 // **Hay push, y llega por APNs directo desde nuestro Worker.** Aquí estuvieron
@@ -116,7 +131,22 @@ export async function checkForOtaUpdate({ aplicarYa = false } = {}) {
 // con «te lo han denegado» deja a alguien tocando un botón que no hace nada.
 export const SIN_PLUGIN = 'sin-plugin'
 
+/**
+ * El plugin, o `SIN_PLUGIN` si este binario no lo trae.
+ *
+ * **El `import()` no vale para averiguarlo**, y esto costó un «Pidiendo…»
+ * eterno en un móvil de verdad: el JavaScript del plugin viaja **dentro del
+ * paquete OTA**, así que importarlo siempre funciona aunque el binario no lleve
+ * su parte nativa. Y llamando a un plugin cuya implementación nativa no está
+ * registrada, la promesa no se resuelve **ni se rechaza**: se queda ahí.
+ *
+ * `Capacitor.isPluginAvailable` existe exactamente para esta pregunta, y el
+ * plazo de después es el cinturón: si algún día una versión de Capacitor
+ * contesta que sí y luego se cuelga igual, se acaba diciendo lo mismo en vez de
+ * dejar la pantalla girando.
+ */
 async function plugin() {
+  if (Capacitor?.isPluginAvailable?.('PushNotifications') === false) throw new Error(SIN_PLUGIN)
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications')
     return PushNotifications
@@ -125,11 +155,23 @@ async function plugin() {
   }
 }
 
+/** Una llamada nativa con plazo. Pasado el plazo, se da por no implementada. */
+async function conPlazo(promesa, ms = 6000) {
+  let reloj
+  try {
+    return await Promise.race([
+      promesa,
+      new Promise((_, no) => { reloj = setTimeout(() => no(new Error(SIN_PLUGIN)), ms) }),
+    ])
+  } finally { clearTimeout(reloj) }
+}
+
 export async function registerPush() {
   if (!isNative()) return null
   const PushNotifications = await plugin()
+  const estado = await conPlazo(PushNotifications.checkPermissions())
   try {
-    const estado = await PushNotifications.checkPermissions()
+    // La hoja de iOS la contesta una persona, así que esta no lleva plazo.
     const permiso = estado.receive === 'granted'
       ? estado
       : await PushNotifications.requestPermissions()
@@ -166,7 +208,7 @@ export async function estadoDePush() {
   if (!isNative()) return 'no-aplica'
   try {
     const PushNotifications = await plugin()
-    const { receive } = await PushNotifications.checkPermissions()
+    const { receive } = await conPlazo(PushNotifications.checkPermissions())
     return receive // 'granted' · 'denied' · 'prompt' · 'prompt-with-rationale'
   } catch (e) {
     return e?.message === SIN_PLUGIN ? SIN_PLUGIN : 'no-aplica'

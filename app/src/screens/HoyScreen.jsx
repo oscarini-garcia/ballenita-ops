@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { dinnersOf, plansOf, bungasOf, listDishes } from '../db.js'
 import Icono from '../components/Icono.jsx'
+import PieDeVersion from '../components/PieDeVersion.jsx'
 import {
   diasDe, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, fmtDiaCorto,
 } from '../lib/dias.js'
@@ -86,6 +87,8 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
           </button>
         ))}
       </div>
+
+      <PieDeVersion />
     </div>
   )
 }

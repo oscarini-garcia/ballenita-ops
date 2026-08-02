@@ -542,22 +542,20 @@ function AppSection() {
 
   return (
     <div ref={caja}>
+      {/* Dos cosas y ninguna más: qué versión hay puesta y el botón de traer la
+          que falte. Todo lo que había alrededor —el rótulo «Ballena Ops», la
+          explicación del martillo— se leía una vez y estorbaba las demás. */}
       <div className="card tight">
-        {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
         <div className="row">
           <div className="ico"><Icono nombre="ballena" /></div>
           <div className="main">
-            <div className="n">Ballena Ops</div>
-            <div className="sub">Versión en curso</div>
+            <div className="n">Versión en curso</div>
+            {recienActualizada && <div className="sub">Recién actualizada ✓</div>}
           </div>
           <div className="version-grande tnum">v{APP_VERSION}</div>
         </div>
       </div>
-      <button className="btn block" disabled={busy} onClick={actualizar}>🔄 Forzar la última versión</button>
-      <div className="note">El punto de la cabecera ya comprueba la versión cada vez que sincronizas. Esto es el martillo: borra las cachés y recarga aunque el sistema diga que ya estás al día.</div>
-      {recienActualizada && (
-        <div className="pill owed" style={{ display: 'inline-block' }}>✓ Recién actualizada a la v{APP_VERSION}</div>
-      )}
+      <button className="btn block" disabled={busy} onClick={actualizar}>🔄 Actualizar</button>
 
       {busy && (
         <ProgresoModal
@@ -650,7 +648,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         </Acordeon>
       )}
 
-      <Acordeon titulo="La app" icono="ballena" nota={`v${APP_VERSION}`}>
+      <Acordeon titulo="Actualizar" icono="sincronizar" nota={`v${APP_VERSION}`}>
         <AppSection />
       </Acordeon>
 

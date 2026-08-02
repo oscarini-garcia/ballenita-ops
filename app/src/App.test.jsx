@@ -129,7 +129,7 @@ describe('App — navegación', () => {
     await abrirEjemplo()
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
 
-    for (const titulo of ['Sincronización', 'Aspecto', 'Quién eres', 'Evento', 'Estadísticas', 'La app']) {
+    for (const titulo of ['Sincronización', 'Aspecto', 'Quién eres', 'Evento', 'Estadísticas', 'Actualizar']) {
       expect(await screen.findByText(titulo)).toBeInTheDocument()
     }
     // Todos plegados: la lista entera se lee de un vistazo y se toca la que toca.

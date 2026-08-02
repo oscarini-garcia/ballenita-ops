@@ -8,13 +8,17 @@
  * más se usa— y el propio campo **no deja** elegir un día anterior.
  */
 
+import { isoLocal } from './dias.js'
+
 /** El día siguiente a `iso`, en el mismo formato. */
 export function diaSiguiente(iso) {
   if (!iso) return ''
   const d = new Date(iso + 'T00:00:00')
   if (Number.isNaN(d.getTime())) return ''
   d.setDate(d.getDate() + 1)
-  return d.toISOString().slice(0, 10)
+  // `isoLocal` y no `toISOString()`: en España este último resta dos horas y
+  // devolvía el mismo día (ver `lib/dias.js`).
+  return isoLocal(d)
 }
 
 /**
