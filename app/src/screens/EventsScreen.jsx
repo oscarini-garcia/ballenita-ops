@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { finPara } from '../lib/fechas.js'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listEvents, createEvent, seedExample } from '../db.js'
+import { listEvents, createEvent, seedExample, NOMBRE_DEMO } from '../db.js'
 import WhaleLogo from '../components/WhaleLogo.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 
@@ -41,7 +41,7 @@ export default function EventsScreen({ onPick }) {
         <button className="btn block" onClick={() => setOpen(true)}>+ Nuevo evento</button>
         {events.length === 0 && (
           <button className="btn ghost block" onClick={async () => onPick(await seedExample())}>
-            Cargar ejemplo «Ballenita 2026»
+            Cargar el evento «{NOMBRE_DEMO}»
           </button>
         )}
       </div>

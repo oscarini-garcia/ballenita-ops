@@ -23,7 +23,7 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   const cenas = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const planes = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
-  const platos = useLiveQuery(listDishes, [], [])
+  const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
 
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
   const cual = diaQueEnsenaHoy(dias)

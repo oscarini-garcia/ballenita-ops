@@ -53,12 +53,31 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
+- **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
+  **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
+  este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
+  el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
+- **Lo que cae fuera de las fechas se aparta, no se esconde** (SPECS §14.10-quater,
+  `lib/evento.js` · `porDia`): Cenas y Planes se ordenan por día y lo que ya no pertenece al
+  evento baja al final marcado. Esconderlo lo dejaría invisible pero contando en Estadísticas
+  y ocupando bunga.
+- **El evento «Demo» es un cajón de arena** (SPECS §14.9-quater): cenas, planes, gastos y
+  compra ya colgaban de su evento, pero `dishes` era un catálogo global y el Demo escribía
+  ahí. Ahora un plato puede llevar `eventId` —sin él es de todos, con él es solo de ese
+  evento—, y el Demo se reconoce por `events.esDemo`. `listDishes(evento)` y
+  `addDish(campos, evento)` reciben el evento. En la API, dos columnas nuevas
+  (`migraciones/0005_*.sql`, `npm run migrar:remoto5` si la base ya existía).
+- **Salir de la cuenta sube la cola antes de borrar** (SPECS §14.9-ter, `lib/salida.js`):
+  `olvidarTodo()` se lleva también el `outbox`, así que salir con cambios sin subir los
+  perdía para siempre —se leía como «he vuelto a entrar y el evento ha desaparecido»—. Ahora
+  se intenta subir; si no puede, **no borra**: dice cuántos y por qué, y salir es una segunda
+  pulsación.
 - **Toda escritura pasa por `escribir()`/`removeRow()` en `db.js`**, que guardan el dato y su
   entrada en la cola **en la misma transacción**. No escribas en `db.<tabla>` directamente:
   el cambio no subiría nunca.
 - **Auth:** Sign in with Apple **solo en la app de iOS**; el Worker firma una sesión propia
   (JWT HS256, 90 días). Quien entra queda apuntado en una **sala de espera** y no entra hasta que
-  el administrador **lo enlaza con una persona** (SPECS §14.15). Administrador hay **uno y escrito
+  el administrador **lo enlaza con una persona** (SPECS §14.18). Administrador hay **uno y escrito
   a mano** (`lib/admin.js`); la primera cuenta de una instalación vacía nace administradora.
 - **La clave de la IA vive en el servidor** (tabla `configuracion`, SPECS §14.16) y no vuelve
   entera a ningún móvil: es una credencial de pago.
@@ -111,6 +130,7 @@ app/src/
         fechas.js             el fin se propone solo y nunca va antes del inicio
         admin.js              quién administra (uno, escrito a mano) · avisos.js  lo pendiente
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
+        salida.js             salir sin perder lo que no ha subido
         hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
         scrollLock.js avatares.js
   auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo
@@ -120,7 +140,7 @@ app/src/
   lib/  dias.js               los días de un evento y qué se hace en cada uno (puro)
         areas.js              el área elegida en cada sección, que no se olvida al salir
   screens/  Agenda(Hoy·Días), Dinero(Gastos·Saldos), Comidas(Cenas·Platos·Compra),
-            Planes, Stats, EventSettings (= Ajustes, en acordeón),
+            Planes(Planes·Ideas), Stats, EventSettings (= Ajustes, en acordeón),
             Grupo(familias+bungas+gente), Cuentas(+Notificaciones+IA), Events, Acceso
   components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Hoja.jsx · Icono.jsx
               ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx

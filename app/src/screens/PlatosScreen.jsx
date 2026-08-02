@@ -21,8 +21,8 @@ import Fab from '../components/Fab.jsx'
  */
 const etiqueta = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 
-export default function PlatosScreen() {
-  const platos = useLiveQuery(listDishes, [], [])
+export default function PlatosScreen({ event }) {
+  const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   // Todas las cenas de todos los eventos: es lo que hace falta para poder decir
   // «este plato está en tres cenas» antes de borrarlo.
   const cenas = useLiveQuery(() => db.dinners.toArray(), [], [])
@@ -129,7 +129,7 @@ function ModalPlato({ plato, usos, onClose }) {
       ingredientes: ingredientes.split(',').map((x) => x.trim()).filter(Boolean),
     }
     if (plato) await updateDish(plato.id, campos)
-    else await addDish(campos)
+    else await addDish(campos, event)
     onClose()
   }
 

@@ -26,7 +26,8 @@ export const COLUMNAS_COMUNES = ['updatedAt', 'creadoEn', 'borrado'];
 
 export const TABLAS = {
   events: {
-    columnas: ['name', 'lugar', 'currency', 'startDate', 'endDate', 'status'],
+    columnas: ['name', 'lugar', 'currency', 'startDate', 'endDate', 'status', 'esDemo'],
+    booleanos: ['esDemo'],
   },
   families: {
     columnas: ['eventId', 'name', 'color', 'avatar', 'estado'],
@@ -52,8 +53,10 @@ export const TABLAS = {
     columnas: ['eventId', 'dateISO', 'fromFamilyId', 'toFamilyId', 'amountCents'],
   },
   dishes: {
-    // Catálogo global: es la única tabla que no cuelga de un evento.
-    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes'],
+    // Catálogo compartido: es la única tabla que no cuelga de un evento… salvo
+    // los platos del Demo, que llevan su `eventId` para no mezclarse con los de
+    // verdad. Sin `eventId` el plato es de todos, que es el caso normal.
+    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes', 'eventId'],
     json: ['categorias', 'ingredientes'],
     booleanos: ['esFavorito'],
   },
@@ -61,10 +64,16 @@ export const TABLAS = {
     columnas: ['eventId', 'dia', 'platoIds', 'bungaMayoresId', 'bungaNinosId', 'queSeHace', 'cantidades'],
     json: ['platoIds'],
   },
+  planIdeas: {
+    // El otro catálogo compartido, hermano de `dishes`: lo que se repite de un
+    // viaje a otro. Ni día, ni estado, ni votos — esos son de cada agosto.
+    // `eventId` nulo = de todos; con valor, solo del Demo (§14.9-quater).
+    columnas: ['titulo', 'descripcion', 'ubicacion', 'enlace', 'costeEstimado', 'eventId'],
+  },
   plans: {
     columnas: [
       'eventId', 'titulo', 'descripcion', 'dia', 'costeEstimado',
-      'ubicacion', 'enlace', 'estado', 'votos',
+      'ubicacion', 'enlace', 'estado', 'votos', 'ideaId',
     ],
     json: ['votos'],
   },

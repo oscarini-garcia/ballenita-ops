@@ -7,6 +7,7 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, registrarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
+import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
 import { SIN_PLUGIN, estadoDePush, isNative, registerPush, tap } from '../lib/native.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
@@ -43,7 +44,7 @@ export function useCuentas() {
   return { sesion, esAdmin, cuentas, error, setError, cargar }
 }
 
-export default function CuentasSection({ eventId }) {
+export default function CuentasSection({ eventId, sincronizar }) {
   const { sesion, esAdmin, cuentas, error, setError, cargar } = useCuentas()
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
@@ -51,6 +52,9 @@ export default function CuentasSection({ eventId }) {
   const [enlazando, setEnlazando] = useState(null)
   const [borrando, setBorrando] = useState(null)
   const [baja, setBaja] = useState(null)
+  // Salir: null en reposo · 'yendo' mientras intenta subir la cola · el
+  // resultado de `comprobarAntesDeSalir` cuando no ha podido y hay que decidir.
+  const [salida, setSalida] = useState(null)
 
   if (!sesion) return null
 
@@ -75,10 +79,25 @@ export default function CuentasSection({ eventId }) {
     } catch (e) { setError(String(e.message ?? e)) }
   }
 
+  /**
+   * Salir, pero **subiendo antes lo que quede en la cola**.
+   *
+   * Los datos del grupo se van con la sesión —no tiene sentido dejarlos en un
+   * móvil que ya no va a poder actualizarlos— y eso incluía el `outbox`, que es
+   * lo apuntado que aún no había llegado al servidor. Al volver a entrar la
+   * instantánea es la única fuente, así que eso no volvía: se veía como «he
+   * salido y ha desaparecido el evento». Ver `lib/salida.js` y SPECS §14.9-ter.
+   */
   async function salir() {
     tap()
-    // Los datos del grupo se van con la sesión: no tiene sentido dejarlos en un
-    // móvil que ya no va a poder actualizarlos.
+    setError(null)
+    setSalida('yendo')
+    const r = await comprobarAntesDeSalir({ sincronizar })
+    if (r.seguro) return salirDeVerdad()
+    setSalida(r)
+  }
+
+  async function salirDeVerdad() {
     borrarSesion()
     await olvidarTodo()
     window.location.reload()
@@ -116,9 +135,24 @@ export default function CuentasSection({ eventId }) {
             <div className="n">{sesion.cuenta?.nombre || 'Cuenta de Apple'}</div>
             <div className="sub">{esAdmin ? `Administras el grupo · ${ADMINISTRADOR.nombre}` : 'Miembro del grupo'}</div>
           </div>
-          <button className="btn sm ghost" onClick={salir}>Salir</button>
+          <button className="btn sm ghost" disabled={salida === 'yendo'} onClick={salir}>
+            {salida === 'yendo' ? 'Subiendo…' : 'Salir'}
+          </button>
         </div>
       </div>
+
+      {/* Lo que no ha podido subir se dice con el número delante, que es lo que
+          se decide, y salir pasa a ser una segunda pulsación. Nadie pierde
+          trabajo por un botón que no avisaba. */}
+      {salida && salida !== 'yendo' && (
+        <div className="confirmar" role="alert">
+          <div className="que-se-lleva">{avisoDeSalida(salida)}</div>
+          <div className="grid2">
+            <button className="btn ghost" onClick={() => { tap(); setSalida(null) }}>Quedarme</button>
+            <button className="btn danger" onClick={() => { tap(); salirDeVerdad() }}>Salir igualmente</button>
+          </div>
+        </div>
+      )}
 
       {esAdmin && (
         <>

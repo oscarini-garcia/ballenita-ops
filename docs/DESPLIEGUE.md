@@ -58,6 +58,25 @@ Aplica el esquema:
 npm run migrar:remoto
 ```
 
+`0001` es el esquema **original**: lo que vino después lo añade cada migración
+por su cuenta, así que hay que pasarlas todas en orden. Aplicarlas de una en una
+sobre una base recién creada la deja igual que producción, que es lo que
+comprueba `api/test/d1.js`.
+
+```bash
+npm run migrar:remoto5
+npm run migrar:remoto6
+```
+
+La `0005` mantiene el evento «Demo» fuera del catálogo de platos (§14.9-quater);
+la `0006` añade el catálogo de ideas de plan (§14.18). Las de `main` —`0002` a
+`0004`— van antes. Correr una sobre una base que ya la tiene falla con
+«duplicate column name», que es la señal de que no hacía falta.
+
+> **Y después, despliega el Worker** (`npm run desplegar`). Las columnas nuevas
+> no sirven de nada mientras el Worker siga con el `tablas.js` viejo: no las
+> transmitiría, y la instantánea las devolvería vacías en cada sincronización.
+
 ---
 
 ## 2. Cloudflare: los secretos y el Worker

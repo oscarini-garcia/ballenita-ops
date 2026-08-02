@@ -36,6 +36,36 @@ export function loQueSeCaeFuera(fechas, { dinners = [], plans = [], expenses = [
   }
 }
 
+/**
+ * Ordena por día y **baja al final lo que se ha quedado fuera** de las fechas.
+ *
+ * Las cenas salían en el orden en que IndexedDB las devolvía, que no es ninguno,
+ * y sin mirar si su día pertenece al viaje. Con un evento que empieza el 15, una
+ * cena del 14 —de cuando las fechas eran otras, o de un dedo torcido al
+ * teclearlas— aparecía **la primera de la lista**, con el mismo aspecto que las
+ * de verdad. Lo primero que se ve de un viaje no puede ser un día que no existe.
+ *
+ * No se esconde, se aparta. Esconderla la dejaría invisible en Agenda y en
+ * Comidas mientras sigue contando en Estadísticas y ocupando bunga en el balance
+ * de anfitrión, que es exactamente el huérfano contra el que avisa este módulo.
+ * Aparte y marcada se ve, se entiende y se puede quitar.
+ *
+ * Lo que no tiene día va al final de lo de dentro: un plan sin fecha todavía no
+ * está en el calendario, así que tampoco se ha caído de él.
+ */
+const CLAVE = (f) => f.dia || '9999-99-99'
+const PORDIA = (a, b) => CLAVE(a).localeCompare(CLAVE(b))
+
+export function porDia(filas = [], fechas) {
+  const dentro = []
+  const fuera = []
+  for (const f of filas) {
+    if (f.dia && !dentroDeFechas(f.dia, fechas)) fuera.push(f)
+    else dentro.push(f)
+  }
+  return { dentro: dentro.sort(PORDIA), fuera: fuera.sort(PORDIA) }
+}
+
 /** «2 cenas y 1 plan» — para decirlo en la confirmación, en cristiano. */
 export function enPalabras({ cenas = [], planes = [] } = {}) {
   const partes = []

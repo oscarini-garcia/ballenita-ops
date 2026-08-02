@@ -62,7 +62,9 @@ describe('App — la puerta de acceso', () => {
       await screen.findByRole('button', { name: /Ver una demostración con datos de ejemplo/i }),
     )
 
-    expect(await screen.findByText('Ballenita 2026')).toBeInTheDocument()
+    // El nombre importa: en la lista de eventos «Demo» se distingue de un viaje
+    // de verdad, y «Ballenita 2026» no.
+    expect(await screen.findByText('Demo')).toBeInTheDocument()
     expect(enDemo()).toBe(true)
   })
 

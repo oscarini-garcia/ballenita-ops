@@ -24,8 +24,10 @@ const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '
  * Las dependencias se inyectan para poder probarlo sin service worker ni red.
  */
 
-// Por qué no ha podido, dicho como se lo contarías a alguien.
-const MOTIVOS = {
+// Por qué no ha podido, dicho como se lo contarías a alguien. Se exporta porque
+// salir de la cuenta hace la misma pregunta —«¿ha subido lo mío?»— y tiene que
+// contestarla con las mismas palabras (`lib/salida.js`).
+export const MOTIVOS = {
   'sin-sesion': 'no has entrado con Apple',
   offline: 'no hay conexión',
   busy: 'ya había una sincronización en marcha',

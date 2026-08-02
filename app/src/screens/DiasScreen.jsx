@@ -29,7 +29,7 @@ export default function DiasScreen({ eventId, event }) {
   const cenas = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const planes = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
-  const platos = useLiveQuery(listDishes, [], [])
+  const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   const [abierto, setAbierto] = useState(null)
 
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
@@ -134,7 +134,7 @@ function ModalDia({ eventId, dia, cena, planes, bungas, platos, onClose }) {
   }
   async function crearPlato() {
     if (!nuevo.trim() || nuevasCats.size === 0) return
-    const id = await addDish({ name: nuevo.trim(), categorias: [...nuevasCats] })
+    const id = await addDish({ name: nuevo.trim(), categorias: [...nuevasCats] }, event)
     setPlatoIds(new Set([...platoIds, id]))
     setNuevo(''); setNuevasCats(new Set())
   }

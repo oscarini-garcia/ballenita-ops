@@ -694,6 +694,73 @@ Lo que **no** se ha copiado: el porcentaje de descarga de la actualización.
 progreso—, así que la fase de la app sigue contándose por rótulos
 («Descargando…») y no por cifra. Ponerlo exige tocar el puente nativo.
 
+### 14.9-ter Salir de la cuenta sin llevarse la cola por delante
+
+**El fallo.** «Salir» (Ajustes → Tu cuenta) hacía `borrarSesion()` y
+`olvidarTodo()` de un tirón. Borrar la copia local está bien —los datos del grupo
+no se quedan en un móvil que ya no va a poder actualizarlos—, pero `olvidarTodo()`
+vacía también el **`outbox`**, que es lo apuntado que todavía no ha llegado al
+servidor. Al volver a entrar, la instantánea es la única fuente: lo que no había
+subido no vuelve. Visto desde fuera, **«he salido, he vuelto a entrar y el evento
+ha desaparecido»**.
+
+No hacía falta nada raro para caer en ello. Basta con haber apuntado sin
+cobertura, venir de «usar solo en este móvil» —donde por definición nada ha
+subido—, o que la última sincronización fallara. Y la promesa escrita en §14.9 es
+justo la contraria: *«los datos que se apunten aquí no se pierden: cada escritura
+deja su entrada en la cola»*.
+
+**El arreglo** (`lib/salida.js`, `comprobarAntesDeSalir`): antes de borrar nada se
+**intenta subir la cola**.
+
+- Cola vacía → se sale directo, sin preguntar. Salir no es el momento de esperar
+  a la red si no hay nada que esperar.
+- Sube entera → se sale igual: ya está todo en el servidor.
+- No sube (o sube a medias) → **no se borra nada**. Se dice **cuántos** cambios se
+  perderían y **por qué** no han subido —con los mismos motivos que la lista de
+  pasos, `MOTIVOS` se exporta de `sincronizarTodo.js`— y salir pasa a ser una
+  segunda pulsación («Quedarme» · «Salir igualmente»), con la figura de
+  `.confirmar` que ya usa el editor del grupo.
+
+El número va delante porque es lo que se decide: «3 cambios sin subir» permite
+elegir y «tienes cambios sin subir» no. Mismo criterio que §14.9-bis: lo que falla
+se cuenta, no se calla. Probado en `lib/salida.test.js` (la decisión) y en
+`screens/CuentaSalir.test.jsx` (que con cola pendiente **no se llama a
+`olvidarTodo`** hasta confirmar).
+
+### 14.9-quater El evento de ejemplo se llama «Demo», y es un cajón de arena
+
+**El nombre.** Se llamaba **«Ballenita 2026»**, que es exactamente como se
+llamaría un viaje de verdad. En la lista de eventos, al lado de los reales, no
+había forma de distinguirlo, y lo que se apuntara dentro parecía apuntado en el
+sitio bueno. El lugar y las fechas se quedan —sin ellos la app abre vacía y no
+enseña lo que hace—, pero el rótulo dice lo que es: `NOMBRE_DEMO` en `db.js`,
+usado por los dos caminos que siembran, la demostración de la pantalla de acceso
+(`lib/demo.js`, directriz 2.1) y el «Cargar el evento «Demo»» de la lista cuando
+no hay ninguno.
+
+**Y lo de dentro se queda dentro.** Cenas, planes, gastos y compra ya colgaban de
+su evento y nunca se mezclaron. **`dishes` era la única tabla suelta**: un
+catálogo global y a propósito —la paella no se reescribe cada verano—, pero el
+Demo escribía en ese mismo catálogo. Resultado: sus seis platos de mentira
+aparecían al preparar el viaje de verdad, y cualquier plato apuntado mientras se
+trasteaba se quedaba allí para siempre. Peor aún, se sembraban **solo si el
+catálogo estaba vacío**, así que en una instalación con platos de verdad la cena
+de ejemplo salía sin nada.
+
+Ahora un plato puede llevar `eventId`:
+
+- **Sin `eventId`** → catálogo compartido entre eventos. Es el caso normal y el
+  comportamiento de siempre.
+- **Con `eventId`** → el plato es solo de ese evento. Hoy eso solo le pasa al
+  Demo, que se reconoce por `events.esDemo`.
+
+`listDishes(evento)` y `addDish(campos, evento)` reciben el evento y deciden con
+eso; los cinco sitios que leen el catálogo se lo pasan. No hace falta índice: el
+catálogo se lee entero y son decenas de filas. En la API son dos columnas nuevas
+(`0005_demo_y_platos_por_evento.sql`); una base recién creada ya las trae en el
+esquema y una que ya existiera necesita `npm run migrar:remoto5` una sola vez.
+
 ### 14.10 Cromo de la app: cabecera, barra inferior y modales
 
 Lo que rodea al contenido, que es donde se notan los roces del uso diario. Este
@@ -931,6 +998,33 @@ Un detalle que solo se ve midiendo: la hoja dibujaba la fila de un día como
 tiene 237 con el lápiz — se recortaba en «El del…». La bunga bajó al titular de
 «Hoy» y al modal, que es donde hay sitio; en la fila sale solo cuando no hay
 plato que enseñar y el titular se quedaría en un «Cena» pelado.
+
+### 14.10-quater Lo que se cayó fuera de las fechas no abre la lista
+
+Un viaje que empieza el **15** y una cena del **14** saliendo como primera cosa de
+Comidas. Dos fallos a la vez, y el segundo tapaba al primero:
+
+1. **Las cenas no se ordenaban.** `dinnersOf()` devuelve lo que IndexedDB tenga a
+   bien devolver, que no es ningún orden. Los planes sí se ordenaban por día
+   desde el principio; las cenas, no.
+2. **Nadie miraba el calendario.** Una cena cuyo día ya no pertenece al evento
+   —porque las fechas se movieron después, o porque el dedo tecleó un 14 por un
+   16— se pintaba igual que las de verdad. Y como además abría la lista, lo
+   primero que se veía del viaje era un día que el viaje no tiene.
+
+`porDia(filas, evento)` en `lib/evento.js` devuelve `{ dentro, fuera }`: ordenado
+por día, y lo que cae fuera de `startDate`–`endDate` apartado. Lo usan **Comidas ·
+Cenas** y **Planes**, que son las dos listas que viven en un día. Lo que no tiene
+día va al final de lo de dentro: un plan sin fecha todavía no está en el
+calendario, así que tampoco se ha caído de él.
+
+**No se esconde, se aparta**, y ese es el punto. Esconderlo lo dejaría invisible
+en Agenda y en Comidas mientras **sigue contando en Estadísticas y ocupando bunga
+en el balance de anfitrión** — exactamente el huérfano contra el que avisa este
+módulo cuando se acortan las fechas. Va al final, bajo «Fuera de las fechas del
+viaje», con la pastilla `fuera del viaje` y un renglón que dice qué hacer: en
+Planes se le puede cambiar el día ahí mismo, y en Cenas se borra o se corrigen las
+fechas en Ajustes → Evento.
 
 ### 14.11 Tipografía: un número y toda la escala
 
@@ -1182,6 +1276,61 @@ Es el modelo de `garciadoral-ops` (`api/src/redaccion.js`) y la razón es la
 misma: es una credencial de pago y no debe viajar a ningún dispositivo, y la
 llamada al modelo sale del Worker —donde el texto se compone con lo que ya está
 en la base— y no del teléfono, así que el cliente no puede inyectarle nada.
+
+### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
+
+Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·
+**A3 · B3 · C1**.
+
+**El problema.** El encargo era que los planes se reutilizaran entre viajes
+«como los platos». Pero un plato es un nombre y unas categorías —compartirlo es
+compartir la fila, y por eso `dishes` pudo ser un catálogo plano desde el primer
+día—. Un plan lleva además **día, estado y votos**, y esos tres son de *ese*
+viaje. De los nueve campos de `addPlan()`, cuatro son de la idea, tres del viaje,
+uno es el vínculo y uno está a caballo (`costeEstimado`: la entrada a las cuevas
+es la misma cada año, pero el precio sube).
+
+**Tres cosas que no viajan nunca**, y no son decisiones de diseño sino
+consecuencias:
+
+- **Los votos.** `votos` es `{ personId: '👍' }` y las personas cuelgan de un
+  evento. Un plan traído de 2025 llegaría con votos de identificadores que en
+  2026 no existen: recuento 0 · 0 · 0 con tres emoji dentro, invisibles.
+- **El estado.** `confirmado` fue una decisión de aquel agosto. Una idea que
+  llega confirmada se cuela en la agenda sin que nadie la haya votado.
+- **El día.** El de entonces no es un día de este viaje, y ya sabemos qué le pasa
+  a lo que cae fuera de las fechas (§14.10-quater).
+
+**La forma: `planIdeas` ↔ `plans`**, que es la misma que `dishes` ↔ `dinners` y
+no un invento nuevo. `planIdeas` guarda lo que se repite —título, descripción,
+ubicación, enlace, coste orientativo—; `plans` sigue guardando la propuesta y
+añade `ideaId`. El catálogo es **compartido entre eventos** y admite el mismo
+`eventId` opcional que los platos, que es como el Demo tiene los suyos sin
+ensuciar los de verdad (§14.9-quater).
+
+**Se copia, no se enlaza** (C1). Traer una idea copia sus campos y a partir de
+ahí son dos cosas independientes. `ideaId` solo sirve para poder decir «3
+viajes» en el catálogo; no se lee para pintar nada. El coste es que corregir el
+enlace en el catálogo no arregla los viajes ya planeados; lo paga porque **un
+viaje pasado no cambia solo**, que es lo que uno espera de algo que ya ocurrió, y
+las estadísticas de 2025 siguen diciendo lo que decían.
+
+**Dos puertas** (B3), porque son dos preguntas distintas:
+
+- **Planes · Ideas**, área nueva. Cuesta **66 pt** de cuerpo —Planes tenía 699,6
+  y se queda en los 633,6 que ya tienen Agenda y Comidas, era la única sección
+  sin mando— y los paga porque un catálogo invisible no es un catálogo:
+  «¿qué hacíamos los otros años?» se pregunta en enero, no al crear.
+- **El atajo del modal**: «¿De las de siempre?» arriba de «+ Plan», para cuando
+  ya sabes qué quieres y solo no quieres volver a teclearlo.
+
+**Y el camino inverso**, que es lo que llena el catálogo: un plan que ha salido
+bien se guarda con «guardar idea» desde su propia fila, y entonces la fila lo
+dice («en ideas»). Sin eso el catálogo empieza vacío y se queda vacío.
+
+En la API son una tabla y una columna (`migraciones/0006_ideas_de_plan.sql`,
+`npm run migrar:remoto6` si la base ya existía).
+
 
 ### 14.12 Un solo tema, y sus dos caras
 

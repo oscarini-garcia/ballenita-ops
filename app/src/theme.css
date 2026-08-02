@@ -511,6 +511,7 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .version-caja .v { font-size: calc(28px * var(--escala)); font-weight: 700; letter-spacing: -.02em;
   color: var(--spout-deep); }
 /* Su gemela pequeña, en la ficha de Ajustes. */
+
 .version-grande { font-size: var(--t-title); font-weight: 700; letter-spacing: -.02em; color: var(--spout-deep); }
 
 .pasos { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 3px; text-align: left; }

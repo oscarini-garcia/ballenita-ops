@@ -5,19 +5,23 @@ import {
   bungasOf, listDishes, addDish, DISH_CATEGORIES,
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import { porDia } from '../lib/evento.js'
 import Fab from '../components/Fab.jsx'
 
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 const fmtDay = (d) => (d ? new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Sin día')
 
-export default function CenasScreen({ eventId }) {
+export default function CenasScreen({ eventId, event }) {
   const dinners = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
-  const dishes = useLiveQuery(listDishes, [], [])
+  const dishes = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   const [open, setOpen] = useState(false)
 
   const bungaName = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : '—' }
   const dishById = Object.fromEntries(dishes.map((d) => [d.id, d]))
+  // Por día, y lo que cae fuera de las fechas al final y marcado. Sin esto una
+  // cena del 14 en un viaje que empieza el 15 abría la lista como si tal cosa.
+  const { dentro, fuera } = porDia(dinners, event)
 
   return (
     <div className="body">
@@ -25,42 +29,64 @@ export default function CenasScreen({ eventId }) {
         <div className="empty"><span className="e">🍳</span>Ninguna cena todavía.<br />Monta la primera con «+ Cena».</div>
       )}
 
-      {dinners.map((c) => (
-        <div className="card" key={c.id}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <div className="dia-cena">{fmtDay(c.dia)}</div>
-            <button className="btn sm ghost" onClick={() => removeDinner(c.id)}>borrar</button>
-          </div>
-
-          <div className="grid2" style={{ marginTop: 8 }}>
-            <div className="card tight" style={{ padding: 8 }}>
-              <div className="sec-h" style={{ margin: 0 }}>Mayores</div>
-              <div className="anfitrion">{bungaName(c.bungaMayoresId)}</div>
-            </div>
-            <div className="card tight" style={{ padding: 8 }}>
-              <div className="sec-h" style={{ margin: 0 }}>Niños</div>
-              <div className="anfitrion">{bungaName(c.bungaNinosId)}</div>
-            </div>
-          </div>
-
-          {c.platoIds?.length > 0 && (
-            <div style={{ marginTop: 8 }}>
-              {c.platoIds.map((id) => dishById[id]).filter(Boolean).map((d) => (
-                <div key={d.id} style={{ display: 'flex', gap: 8, padding: '4px 0', alignItems: 'center' }}>
-                  <span className="pill neutral" style={{ minWidth: 92, textAlign: 'center' }}>{catLabel(d.categorias?.[0])}</span>
-                  <span className="plato-n">{d.name}{d.esFavorito ? ' ⭐' : ''}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {c.cantidades && <div className="note" style={{ marginTop: 8 }}><b>Cantidades:</b> {c.cantidades}</div>}
-          {c.queSeHace && <div className="note" style={{ marginTop: 8 }}><b>Qué se hace:</b> {c.queSeHace}</div>}
-        </div>
+      {dentro.map((c) => (
+        <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} />
       ))}
+
+      {fuera.length > 0 && (
+        <>
+          <div className="sec-h">Fuera de las fechas del viaje</div>
+          <div className="note">
+            {fuera.length === 1 ? 'Esta cena cae' : 'Estas cenas caen'} en un día que el evento ya no
+            tiene. No {fuera.length === 1 ? 'sale' : 'salen'} en Agenda, pero {fuera.length === 1 ? 'sigue' : 'siguen'}
+            {' '}contando en Estadísticas. Bórra{fuera.length === 1 ? 'la' : 'las'} o corrige las fechas
+            en <b>Ajustes → Evento</b>.
+          </div>
+          {fuera.map((c) => (
+            <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} fuera />
+          ))}
+        </>
+      )}
 
       <Fab label="Cena" onClick={() => setOpen(true)} />
       {open && <AddDinnerModal eventId={eventId} bungas={bungas} dishes={dishes} onClose={() => setOpen(false)} />}
+    </div>
+  )
+}
+
+function FichaDeCena({ cena: c, bungaName, dishById, fuera = false }) {
+  return (
+    <div className="card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+        <div className="dia-cena">{fmtDay(c.dia)}</div>
+        {fuera && <span className="pill owe">fuera del viaje</span>}
+        <button className="btn sm ghost" onClick={() => removeDinner(c.id)}>borrar</button>
+      </div>
+
+      <div className="grid2" style={{ marginTop: 8 }}>
+        <div className="card tight" style={{ padding: 8 }}>
+          <div className="sec-h" style={{ margin: 0 }}>Mayores</div>
+          <div className="anfitrion">{bungaName(c.bungaMayoresId)}</div>
+        </div>
+        <div className="card tight" style={{ padding: 8 }}>
+          <div className="sec-h" style={{ margin: 0 }}>Niños</div>
+          <div className="anfitrion">{bungaName(c.bungaNinosId)}</div>
+        </div>
+      </div>
+
+      {c.platoIds?.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          {c.platoIds.map((id) => dishById[id]).filter(Boolean).map((d) => (
+            <div key={d.id} style={{ display: 'flex', gap: 8, padding: '4px 0', alignItems: 'center' }}>
+              <span className="pill neutral" style={{ minWidth: 92, textAlign: 'center' }}>{catLabel(d.categorias?.[0])}</span>
+              <span className="plato-n">{d.name}{d.esFavorito ? ' ⭐' : ''}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {c.cantidades && <div className="note" style={{ marginTop: 8 }}><b>Cantidades:</b> {c.cantidades}</div>}
+      {c.queSeHace && <div className="note" style={{ marginTop: 8 }}><b>Qué se hace:</b> {c.queSeHace}</div>}
     </div>
   )
 }
@@ -86,7 +112,7 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
   }
   async function createDish() {
     if (!newName.trim() || newCats.size === 0) return
-    const id = await addDish({ name: newName.trim(), categorias: [...newCats] })
+    const id = await addDish({ name: newName.trim(), categorias: [...newCats] }, event)
     setPlatoIds(new Set([...platoIds, id]))
     setNewName(''); setNewCats(new Set())
   }

@@ -9,6 +9,7 @@ import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
 import ProgresoModal, { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
+import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
 import StatsScreen from './StatsScreen.jsx'
 import GrupoSection from './GrupoSection.jsx'
 import CuentasSection, { IASection, NotificacionesSection, useCuentas } from './CuentasSection.jsx'
@@ -638,7 +639,9 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
 
       {sesion && (
         <Acordeon titulo="Cuentas" icono="llave" nota={cuentas ? cuentas.length : null}>
-          <CuentasSection eventId={eventId} />
+          {/* `sincronizar` es lo que deja subir la cola antes de borrarla al
+              salir (§14.9-ter): sin él, salir con cambios sin subir los perdía. */}
+          <CuentasSection eventId={eventId} sincronizar={sync?.recheck} />
         </Acordeon>
       )}
 

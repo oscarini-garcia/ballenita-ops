@@ -3,7 +3,7 @@ import {
   createEvent, addFamily, addPerson, addExpense,
   expensesOf, personsOf, familiesOf,
   addSettlement, settlementsOf,
-  seedExample, listEvents, dinnersOf, plansOf, listDishes, bungasOf,
+  seedExample, listEvents, dinnersOf, plansOf, listDishes, addDish, getEvent, bungasOf,
   addShopItem, shopItemsOf, updateShopItem, removeShopItem, clearBoughtShopItems,
   addBunga, asignarBungaAFamilia, borrarFamilia,
   markBought, unmarkBought,
@@ -182,8 +182,27 @@ describe('seedExample — datos de ejemplo coherentes', () => {
     expect((await personsOf(ev)).length).toBe(6)
     expect((await dinnersOf(ev)).length).toBe(1)
     expect((await plansOf(ev)).length).toBe(3)
-    expect((await listDishes()).length).toBeGreaterThanOrEqual(6)
     expect((await shopItemsOf(ev)).length).toBe(4)
+  })
+
+  it('el Demo es un cajón de arena: sus platos no entran en el catálogo compartido', async () => {
+    const ev = await seedExample()
+    const evento = await getEvent(ev)
+    expect(evento.esDemo).toBe(true)
+
+    // Los seis de la cena de ejemplo están, pero solo para el Demo…
+    expect((await listDishes(evento)).length).toBeGreaterThanOrEqual(6)
+    // …y el catálogo de un evento de verdad sigue vacío. Antes se sembraban ahí
+    // y quedaban entre los buenos para siempre.
+    expect(await listDishes()).toEqual([])
+
+    // Y lo que se apunte dentro del Demo se queda dentro.
+    await addDish({ name: 'Sardinas', categorias: ['principal'] }, evento)
+    expect((await listDishes()).map((d) => d.name)).not.toContain('Sardinas')
+
+    // Mientras que un plato apuntado desde un evento normal es de todos.
+    await addDish({ name: 'Tortilla', categorias: ['principal'] })
+    expect((await listDishes()).map((d) => d.name)).toEqual(['Tortilla'])
   })
 
   it('la cena de ejemplo referencia platos y bungas válidos', async () => {
