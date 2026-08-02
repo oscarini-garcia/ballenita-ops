@@ -18,6 +18,7 @@ import { isNative, tap } from './lib/native.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
 import { enDemo, salirDemo } from './lib/demo.js'
+import { asegurarPush } from './lib/push.js'
 import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
@@ -92,6 +93,13 @@ export default function App() {
     })
     setSyncEnCurso(false)
   }
+
+  // El identificador de APNs se vuelve a apuntar en cada arranque, con sesión y
+  // con el permiso ya concedido. Es lo que Apple espera —el token cambia al
+  // reinstalar o restaurar— y es lo que faltaba: el permiso estaba dado, el
+  // servidor no tenía a dónde mandar, y el único botón que lo arreglaba se
+  // esconde precisamente cuando el permiso está dado. Ver `lib/push.js`.
+  useEffect(() => { if (sesion) asegurarPush() }, [sesion])
 
   // Si el Worker rechaza la sesión, el transporte ya la ha borrado: aquí solo
   // hay que volver a la puerta.
