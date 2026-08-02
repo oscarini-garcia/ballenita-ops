@@ -45,6 +45,58 @@ export async function listarModelos({ clave, buscar = fetch }) {
     .map((m) => ({ id: m.id, nombre: m.display_name || m.id }));
 }
 
+const FAMILIAS = ['opus', 'sonnet', 'haiku'];
+
+/** A qué familia pertenece un identificador: `claude-3-5-sonnet-…` → `sonnet`. */
+function familia(id) {
+  const texto = String(id || '').toLowerCase();
+  return FAMILIAS.find((f) => texto.includes(f)) || null;
+}
+
+/**
+ * El equivalente más cercano de un modelo que ya no existe.
+ *
+ * Devuelve `null` cuando no hay nada que cambiar —el modelo sigue en la lista, o
+ * no hay lista con la que comparar—, y si no, **el más nuevo de su misma
+ * familia**: quien puso `claude-3-5-sonnet` quería un Sonnet, y lo que quiere
+ * decir «el más cercano» es eso y no el modelo más caro que haya. Anthropic
+ * devuelve su lista con los últimos primero, así que el primero que coincide de
+ * familia ya es el más nuevo. Sin familia reconocible —una errata, un nombre de
+ * otra época— se coge el primero de la lista, que es el último que salió.
+ *
+ * El motivo de que esto exista: un modelo retirado no se nota al guardarlo. Se
+ * nota meses después, cuando alguien pulsa «¿Qué podríamos hacer?» y no pasa
+ * nada, y para entonces nadie relaciona las dos cosas.
+ */
+export function masCercano(modelo, modelos = []) {
+  if (!modelos.length) return null;
+  if (modelos.some((m) => m.id === modelo)) return null;
+  const suya = familia(modelo);
+  return (suya && modelos.find((m) => familia(m.id) === suya)) || modelos[0];
+}
+
+/**
+ * Hace la llamada con el modelo guardado y, **si ese modelo ya no existe, la
+ * repite con el más cercano y lo deja apuntado**.
+ *
+ * Solo entra al camino largo con un 404, que es lo que contesta Anthropic a un
+ * modelo que no reconoce: una clave mala (401) o una cuota agotada (429) no se
+ * arreglan cambiando de modelo, y reintentar ahí sería gastar dos llamadas para
+ * dar el mismo error. Si tampoco se puede traer la lista, se deja salir el error
+ * original: decir «no existe ese modelo» ayuda más que «no se pudo listar».
+ */
+export async function conModeloVigente({ clave, modelo, hacer, guardar, buscar = fetch }) {
+  try {
+    return { resultado: await hacer(modelo) };
+  } catch (e) {
+    if (e.estado !== 404) throw e;
+    const nuevo = masCercano(modelo, await listarModelos({ clave, buscar }).catch(() => []));
+    if (!nuevo) throw e;
+    await guardar(nuevo.id);
+    return { resultado: await hacer(nuevo.id), cambiado: { antes: modelo, ahora: nuevo.id } };
+  }
+}
+
 /**
  * ¿Vale la clave, y vale el modelo elegido?
  *

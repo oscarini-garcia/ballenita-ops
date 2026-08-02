@@ -1311,9 +1311,7 @@ Dos servicios nuevos, los dos en el Worker y los dos solo para quien administra
   mismo motivo por el que sale de ahí la llamada al modelo**: preguntarlo desde
   el teléfono exigiría mandarle la clave. En Ajustes el campo pasa a ser un
   desplegable; si la lista no llega se queda la caja de texto y se dice por qué,
-  que es mejor que un desplegable vacío. **El modelo guardado no desaparece de la
-  lista aunque Anthropic ya no lo ofrezca**: precisamente ese es el caso que hay
-  que poder ver.
+  que es mejor que un desplegable vacío.
 - **`POST /api/ia/probar`** hace **la llamada de verdad** con `max_tokens: 1` y
   contesta si funcionó y cuánto tardó. Se prueba **el par entero**, clave y
   modelo: una clave buena con un modelo retirado falla igual, y eso es la mitad
@@ -1322,6 +1320,29 @@ Dos servicios nuevos, los dos en el Worker y los dos solo para quien administra
 Cuando falla se dice con las palabras de Anthropic y su estado HTTP —«No funciona
 — la API respondió 401: invalid x-api-key»—, con el mismo criterio de §14.9-bis:
 «error» a secas no sirve para arreglar nada.
+
+**Y si el modelo apuntado ya no existe, se cambia solo por el más cercano**
+(`masCercano`, `conModeloVigente`). Un modelo retirado no rompe nada el día que
+lo retiran: rompe el día que alguien pide sugerencias, meses después, y para
+entonces nadie relaciona las dos cosas con «lo escribí mal». El más cercano es
+**el más nuevo de su misma familia** —quien puso un Sonnet quería un Sonnet, y
+darle un Opus le multiplica la factura sin habérselo pedido—; sin familia
+reconocible, el primero de la lista, que es el último que salió.
+
+Se sustituye en dos sitios y por dos motivos distintos:
+
+- Al **traer la lista**, porque ahí es donde se puede comparar. Se guarda en el
+  acto: enseñarlo sin guardarlo dejaría lo que se ve y lo que hay diciendo cosas
+  distintas hasta que alguien pulsara Guardar.
+- Al **usarlo** —probar o sugerir—, reintentando **solo con un 404**, que es lo
+  que contesta Anthropic a un modelo que no reconoce. Una clave mala (401) o una
+  cuota agotada (429) no se arreglan cambiando de modelo, y reintentar ahí sería
+  gastar dos llamadas para dar el mismo error. Esto es lo que hace que las
+  sugerencias se curen solas sin que nadie abra Ajustes.
+
+El cambio **se dice siempre**, en Ajustes y al probar («claude-3-5-sonnet ya no
+existe. Se ha puesto claude-sonnet-4-5, el más cercano»): sustituir en silencio
+dejaría a alguien usando un modelo que no eligió.
 
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 

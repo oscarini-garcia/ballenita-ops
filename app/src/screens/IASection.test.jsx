@@ -32,10 +32,14 @@ beforeEach(() => {
   localStorage.clear()
   localStorage.setItem('ballena.sesion', JSON.stringify({ token: 't', cuenta: { rol: 'administrador' } }))
   leerIA.mockResolvedValue({ ia: { hayClave: true, cola: 'ab12', guardadaEn: Date.now(), modelo: 'claude-haiku-4-5' } })
-  listarModelosIA.mockResolvedValue([
-    { id: 'claude-opus-5', nombre: 'Claude Opus 5' },
-    { id: 'claude-haiku-4-5', nombre: 'Claude Haiku 4.5' },
-  ])
+  listarModelosIA.mockResolvedValue({
+    modelos: [
+      { id: 'claude-opus-5', nombre: 'Claude Opus 5' },
+      { id: 'claude-haiku-4-5', nombre: 'Claude Haiku 4.5' },
+    ],
+    modelo: 'claude-haiku-4-5',
+    sustituto: null,
+  })
 })
 
 describe('los modelos', () => {
@@ -69,13 +73,34 @@ describe('los modelos', () => {
     expect(screen.getByText(/No se han podido traer los modelos/)).toBeInTheDocument()
   })
 
-  it('el modelo guardado no desaparece aunque ya no esté en la lista', async () => {
-    // Es el caso que hay que ver: Anthropic lo retiró y por eso no funciona.
-    leerIA.mockResolvedValue({ ia: { hayClave: true, cola: 'ab12', modelo: 'claude-viejo' } })
+  it('un modelo retirado se cambia solo por el más cercano, y se dice cuál', async () => {
+    // Es el caso que hay que ver: Anthropic lo retiró, y hasta ahora eso no se
+    // notaba aquí sino meses después, cuando alguien pedía sugerencias.
+    leerIA.mockResolvedValue({ ia: { hayClave: true, cola: 'ab12', modelo: 'claude-3-5-sonnet' } })
+    listarModelosIA.mockResolvedValue({
+      modelos: [{ id: 'claude-opus-5', nombre: 'Claude Opus 5' }, { id: 'claude-sonnet-4-5', nombre: 'Claude Sonnet 4.5' }],
+      modelo: 'claude-sonnet-4-5',
+      sustituto: { antes: 'claude-3-5-sonnet', ahora: 'claude-sonnet-4-5' },
+    })
+    render(<IASection />)
+
+    expect(await screen.findByText(/claude-3-5-sonnet ya no existe\. Se ha puesto claude-sonnet-4-5/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Modelo').value).toBe('claude-sonnet-4-5')
+  })
+
+  it('el modelo puesto no desaparece de la lista si nadie propone otro', async () => {
+    // Red de seguridad: un desplegable cuyo valor no está entre sus opciones se
+    // pinta en blanco y parece que no hay nada elegido.
+    leerIA.mockResolvedValue({ ia: { hayClave: true, cola: 'ab12', modelo: 'claude-raro' } })
+    listarModelosIA.mockResolvedValue({
+      modelos: [{ id: 'claude-opus-5', nombre: 'Claude Opus 5' }],
+      modelo: 'claude-raro',
+      sustituto: null,
+    })
     render(<IASection />)
 
     await screen.findByText(/el que hay puesto/)
-    expect(screen.getByLabelText('Modelo').value).toBe('claude-viejo')
+    expect(screen.getByLabelText('Modelo').value).toBe('claude-raro')
   })
 })
 
@@ -86,6 +111,18 @@ describe('probar', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Probar' }))
     expect(await screen.findByText(/Funciona: claude-haiku-4-5 ha contestado en 412 ms/)).toBeInTheDocument()
+  })
+
+  it('si el modelo ya no existe no dice «no funciona»: dice por cuál se ha cambiado', async () => {
+    probarIA.mockResolvedValue({
+      ok: true, modelo: 'claude-sonnet-4-5', ms: 380,
+      cambiado: { antes: 'claude-3-5-sonnet', ahora: 'claude-sonnet-4-5' },
+    })
+    render(<IASection />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Probar' }))
+    expect(await screen.findByText(/claude-3-5-sonnet ya no existe\. Se ha puesto claude-sonnet-4-5, el más cercano, y ha contestado en 380 ms/))
+      .toBeInTheDocument()
   })
 
   it('cuando no funciona dice qué ha pasado, no «error»', async () => {

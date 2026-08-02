@@ -88,7 +88,9 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 - **La clave de la IA vive en el servidor** (tabla `configuracion`, SPECS §14.16) y no vuelve
   entera a ningún móvil: es una credencial de pago. **El modelo se elige de una lista** que trae
   el Worker de Anthropic, y hay un botón que **prueba el par clave+modelo** con una llamada de
-  verdad (§14.16-bis, `api/src/ia.js`).
+  verdad (§14.16-bis, `api/src/ia.js`). **Si el modelo apuntado ya no existe se cambia solo por
+  el más nuevo de su familia** —al traer la lista, y al usarlo reintentando solo con un 404— y
+  se dice por cuál: un modelo retirado no rompe el día que lo retiran, rompe meses después.
 - **La web NO sincroniza**, a propósito: en navegador y PWA la app es una libreta local
   (`hayApi()` devuelve `false` si no es nativa). Ahorra todo el montaje web de Apple
   —Services ID, verificación de dominio— a cambio de exigir la app para participar.

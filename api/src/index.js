@@ -41,7 +41,7 @@ import {
 } from './repositorio.js';
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
-import { listarModelos, probar } from './ia.js';
+import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
 
@@ -380,16 +380,28 @@ async function avisarDeSolicitud(env, nombre) {
  * Los modelos que la clave guardada puede usar (SPECS §14.16-bis).
  *
  * La pregunta la hace el Worker y no el móvil porque la clave no sale de aquí.
+ *
+ * **Si el modelo apuntado ya no está en la lista, se cambia aquí mismo por el
+ * más cercano y se guarda.** Enseñarlo en la pantalla sin guardarlo dejaría lo
+ * que se ve y lo que hay diciendo cosas distintas hasta que alguien pulsara
+ * Guardar, y quien abre esta pantalla no tiene por qué saber que hacía falta.
  */
 async function modelosDeIA(peticion, env) {
   const cuenta = await cuentaAutenticada(peticion, env);
   if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
 
-  const { clave } = await leerConfiguracionIA(env.DB);
+  const { clave, modelo } = await leerConfiguracionIA(env.DB);
   if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
 
   try {
-    return json({ modelos: await listarModelos({ clave }) });
+    const modelos = await listarModelos({ clave });
+    const nuevo = masCercano(modelo, modelos);
+    if (nuevo) await guardarConfiguracionIA(env.DB, { modelo: nuevo.id });
+    return json({
+      modelos,
+      modelo: nuevo ? nuevo.id : modelo,
+      sustituto: nuevo ? { antes: modelo, ahora: nuevo.id } : null,
+    });
   } catch (e) {
     return json({ error: String(e.message ?? e) }, e.estado || 502);
   }
@@ -400,7 +412,8 @@ async function modelosDeIA(peticion, env) {
  *
  * Se prueba el par entero: una clave buena con un modelo retirado falla igual, y
  * eso antes no se veía hasta que alguien pulsaba «¿Qué podríamos hacer?» meses
- * después.
+ * después. Y si el modelo ya no existe no se contesta «no funciona»: se cambia
+ * por el más cercano y se prueba ese, que es lo que iba a hacer quien lo leyera.
  */
 async function probarIA(peticion, env) {
   const cuenta = await cuentaAutenticada(peticion, env);
@@ -410,7 +423,13 @@ async function probarIA(peticion, env) {
   if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
 
   try {
-    return json(await probar({ clave, modelo }));
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo,
+      hacer: (m) => probar({ clave, modelo: m }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
+    });
+    return json({ ...resultado, cambiado: cambiado || null });
   } catch (e) {
     return json({ error: String(e.message ?? e) }, e.estado || 502);
   }
@@ -443,13 +462,19 @@ async function sugerirPlanes(peticion, env) {
     ...descartadas,
   ].filter(Boolean);
 
+  const material = materialDelViaje({ evento, personas: personas || [], yaHay });
+
   try {
-    const propuestas = await pedirPropuestas({
+    // Si el modelo apuntado ya no existe, se propone con el más cercano en vez
+    // de no proponer nada: aquí hay alguien esperando cinco ideas, y «ese modelo
+    // no existe» no es algo que pueda arreglar quien pulsó el botón.
+    const { resultado, cambiado } = await conModeloVigente({
       clave,
       modelo,
-      material: materialDelViaje({ evento, personas: personas || [], yaHay }),
+      hacer: (m) => pedirPropuestas({ clave, modelo: m, material }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
     });
-    return json({ propuestas });
+    return json({ propuestas: resultado, cambiado: cambiado || null });
   } catch (e) {
     return json({ error: String(e.message ?? e) }, 502);
   }

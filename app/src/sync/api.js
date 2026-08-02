@@ -145,7 +145,14 @@ export const guardarIA = (cuerpo) =>
  * Los dos preguntan al Worker y no a Anthropic: la clave vive allí y no vuelve
  * entera a ningún móvil (§14.16). Ver `api/src/ia.js`.
  */
-export const listarModelosIA = () => peticion('/api/ia/modelos').then((r) => r.modelos || [])
+export const listarModelosIA = () =>
+  peticion('/api/ia/modelos').then((r) => ({
+    modelos: r.modelos || [],
+    // El que hay puesto **después** de comprobarlo: si el guardado ya no existe,
+    // el Worker lo cambia por el más cercano y lo cuenta en `sustituto`.
+    modelo: r.modelo || '',
+    sustituto: r.sustituto || null,
+  }))
 
 export const probarIA = () => peticion('/api/ia/probar', { method: 'POST', body: '{}' })
 

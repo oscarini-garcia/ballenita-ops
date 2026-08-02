@@ -410,9 +410,22 @@ export function IASection() {
   const [modelos, setModelos] = useState(null)
   const [probando, setProbando] = useState(false)
 
+  /**
+   * La lista, y con ella la comprobación de que el modelo apuntado sigue
+   * existiendo: si Anthropic lo ha retirado, el Worker lo cambia por el más
+   * cercano de su familia y lo deja guardado. Aquí solo hay que enseñar cuál se
+   * ha puesto — callarlo dejaría un modelo distinto del que alguien eligió sin
+   * que nadie se enterara.
+   */
   function traerModelos() {
     listarModelosIA()
-      .then(setModelos)
+      .then((r) => {
+        setModelos(r.modelos)
+        if (r.modelo) setModelo(r.modelo)
+        if (r.sustituto) {
+          setAviso(`${r.sustituto.antes} ya no existe. Se ha puesto ${r.sustituto.ahora}, el más cercano.`)
+        }
+      })
       .catch(() => setModelos([]))
   }
 
@@ -439,7 +452,10 @@ export function IASection() {
     setAviso(null)
     try {
       const r = await probarIA()
-      setAviso(`Funciona: ${r.modelo} ha contestado en ${r.ms} ms.`)
+      if (r.modelo) setModelo(r.modelo)
+      setAviso(r.cambiado
+        ? `${r.cambiado.antes} ya no existe. Se ha puesto ${r.cambiado.ahora}, el más cercano, y ha contestado en ${r.ms} ms.`
+        : `Funciona: ${r.modelo} ha contestado en ${r.ms} ms.`)
     } catch (e) {
       setAviso(`No funciona — ${String(e.message ?? e)}`)
     }
@@ -491,6 +507,8 @@ export function IASection() {
           desplegable vacío. */}
       {modelos?.length ? (
         <select id="ia-modelo" value={modelo} onChange={(e) => setModelo(e.target.value)}>
+          {/* Red de seguridad: un desplegable cuyo valor no está entre sus
+              opciones se pinta en blanco y parece que no hay nada elegido. */}
           {!modelos.some((m) => m.id === modelo) && modelo && (
             <option value={modelo}>{modelo} (el que hay puesto)</option>
           )}
