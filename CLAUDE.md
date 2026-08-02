@@ -175,6 +175,15 @@ pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
   a la vez, no leyendo una lista. El artefacto enseña **lo que he pedido o lo que cambia, y
   nada más**: las decisiones ya tomadas se quedan fuera salvo que sean justo lo que se
   reabre o que las pida yo.
+- **Pedir opciones no es pedir código: cuando pido opciones, no se implementa nada.** Se
+  piensa, se hace el artefacto en línea y se me da a escoger. Ahí acaba la vuelta: sin
+  ramas nuevas, sin PR, sin «y de paso he dejado hecha la parte fácil». Y esto vale
+  **aunque en el mismo mensaje haya pedido cambios concretos**: si en el encargo aparece
+  «dame opciones», lo que sale de esa vuelta es la hoja, y lo demás espera a que elija.
+  El motivo es que elegir mirando cinco dibujos y elegir mirando uno ya escrito no es lo
+  mismo: lo implementado empuja la decisión y encima hay que deshacerlo. Si algo del
+  encargo parece urgente y no depende de lo que se decide, se **dice** en la respuesta y
+  se espera al «sí».
 - **Los comandos que me pasas para ejecutar van sin comentarios.** Nunca un `#` dentro del
   bloque. Lo que haya que explicar —qué hace, qué variable tocar, qué esperar— va **fuera**,
   en prosa, antes o después. Un bloque se copia entero y se pega en una terminal, muchas
