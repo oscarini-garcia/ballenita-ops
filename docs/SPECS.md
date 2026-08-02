@@ -1222,6 +1222,18 @@ firmado. Volver así habría sido volver al mismo sitio.
   barato —se reescribe la misma fila— y silencioso: con el permiso concedido no
   aparece ninguna hoja. El botón de prueba lo hace también antes de mandar, para
   que arregle en vez de mandar a pulsar un botón que no está.
+- **✅ El registro no pierde el evento, y su error se cuenta con palabras.**
+  «Permiso dado, pero Apple no devuelve identificador» es verdad y no sirve de
+  nada. Detrás había dos cosas. Una, que los dos escuchas se ponían **sin esperar
+  el asa**: `addListener` cruza el puente y es asíncrono, así que iOS podía
+  contestar antes de que su escucha existiera y el token se perdía. Dos, que
+  `registrationError` se tiraba a la basura para devolver `null`, cuando lo que
+  trae es el diagnóstico entero —«no valid `aps-environment` entitlement string
+  found in application's signature» **es** la respuesta a por qué no llega ningún
+  aviso—. Ahora se esperan las asas, se sueltan al acabar (esto corre en cada
+  arranque: acumularlas es una fuga) y lo que falla **sube con su mensaje** hasta
+  la pantalla. Sin identificador **ni** error en ocho segundos queda `sin-token`,
+  que es el móvil sin red y no otra cosa.
 - **⚠ No viaja por OTA.** Un plugin nativo exige `npm run sync:ios`, archivar y
   **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
   repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.

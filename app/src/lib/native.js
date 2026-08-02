@@ -167,6 +167,9 @@ export const PLAZOS = {
   // probar esperando seis segundos de verdad no se prueba.
   puente: 6000,
   permiso: 15000,
+  // Lo que se espera al identificador de APNs. Llega en menos de un segundo con
+  // red; si no llega, es que no va a llegar.
+  registro: 8000,
 }
 
 async function conPlazo(promesa, ms = PLAZOS.puente) {
@@ -183,37 +186,54 @@ export async function registerPush() {
   if (!isNative()) return null
   const PushNotifications = await plugin()
   const estado = await conPlazo(PushNotifications.checkPermissions())
-  try {
-    // Quince segundos: la hoja de iOS aparece en el acto o no aparece nunca, y
-    // contestarla son dos toques. Si se agota, el diagnóstico es el mismo que el
-    // de `plugin()` —falta la parte nativa— y por eso `conPlazo` lanza
-    // `SIN_PLUGIN`. Y si alguien tardó de verdad más de quince segundos, el
-    // permiso queda concedido igual y la pantalla se corrige sola al volver.
-    const permiso = estado.receive === 'granted'
-      ? estado
-      : await conPlazo(PushNotifications.requestPermissions(), PLAZOS.permiso)
-    if (permiso.receive !== 'granted') return null
+  // Quince segundos: la hoja de iOS aparece en el acto o no aparece nunca, y
+  // contestarla son dos toques. Si se agota, el diagnóstico es el mismo que el
+  // de `plugin()` —falta la parte nativa— y por eso `conPlazo` lanza
+  // `SIN_PLUGIN`. Y si alguien tardó de verdad más de quince segundos, el
+  // permiso queda concedido igual y la pantalla se corrige sola al volver.
+  const permiso = estado.receive === 'granted'
+    ? estado
+    : await conPlazo(PushNotifications.requestPermissions(), PLAZOS.permiso)
+  if (permiso.receive !== 'granted') return null
 
-    // El token no vuelve de `register()`: llega por un evento, y puede tardar.
-    const token = await new Promise((resolve) => {
-      const fin = setTimeout(() => resolve(null), 8000)
-      PushNotifications.addListener('registration', ({ value }) => {
-        clearTimeout(fin)
-        resolve(value)
-      })
-      PushNotifications.addListener('registrationError', () => {
-        clearTimeout(fin)
-        resolve(null)
-      })
-      PushNotifications.register()
-    })
-    return token
-  } catch (e) {
-    // `SIN_PLUGIN` **sube**: es el único fallo que no se arregla desde el
-    // teléfono y el que la pantalla tiene que contar. Tragárselo aquí lo
-    // convertía en un «avisos apagados» cualquiera, que es mentira.
-    if (e?.message === SIN_PLUGIN) throw e
-    return null
+  // El token no vuelve de `register()`: llega por un evento, y puede tardar.
+  //
+  // Los dos escuchas se **esperan** antes de pedir el registro. `addListener`
+  // es asíncrono —devuelve el asa por promesa, cruzando el puente—, así que
+  // llamar a `register()` sin esperarla deja abierta la carrera a que iOS
+  // conteste antes de que su escucha exista. Perdido el evento, la pantalla
+  // decía «Apple no devuelve identificador»: verdad, y sin ninguna utilidad.
+  //
+  // Y las asas se sueltan al acabar: esto corre en **cada arranque**
+  // (`lib/push.js`), y unos escuchas que se acumulan son una fuga con forma de
+  // token registrado dos veces.
+  //
+  // **Lo que falla, sube.** Aquí había un `catch` que devolvía `null` para todo
+  // menos `SIN_PLUGIN`, y ese `null` es el que llegaba a la pantalla como «Apple
+  // no devuelve identificador» sin decir por qué, teniendo el porqué escrito en
+  // el evento de error. Un fallo con nombre es lo único que distingue «al
+  // binario le falta el permiso de avisos» de «no hay red» (SPECS §14.9-bis).
+  let dar
+  let fallar
+  const llegada = new Promise((resolve, reject) => { dar = resolve; fallar = reject })
+  const asas = await Promise.all([
+    PushNotifications.addListener('registration', ({ value }) => dar(value)),
+    // Lo que dice Apple aquí es el diagnóstico entero —«no valid
+    // 'aps-environment' entitlement string found in application's signature» es
+    // literalmente la respuesta a por qué no llega ningún aviso—, y hasta ahora
+    // se tiraba a la basura para devolver `null`.
+    PushNotifications.addListener('registrationError', (e) => {
+      fallar(new Error(`Apple rechazó el registro: ${e?.error || e?.message || 'sin motivo'}`))
+    }),
+  ])
+  let reloj
+  try {
+    const plazo = new Promise((acaba) => { reloj = setTimeout(() => acaba(null), PLAZOS.registro) })
+    await PushNotifications.register()
+    return await Promise.race([llegada, plazo])
+  } finally {
+    clearTimeout(reloj)
+    for (const asa of asas) await asa?.remove?.()
   }
 }
 

@@ -16,36 +16,37 @@
  * Es barato —`guardarTokenPush` reescribe la misma fila— y silencioso: con el
  * permiso ya concedido no aparece ninguna hoja.
  *
- * Devuelve una palabra, no un booleano, porque quien llama tiene que poder
- * decir **cuál de los eslabones** falta:
+ * Devuelve `{ estado, motivo }`, no un booleano, porque quien llama tiene que
+ * poder decir **cuál de los eslabones** falta:
  * - `no-aplica` — el navegador, donde no hay avisos que valgan.
- * - `granted` no llega a devolverse: si el permiso está, se sigue.
  * - `denied` · `prompt` · `sin-plugin` — el permiso, tal cual lo dice iOS.
- * - `sin-token` — permiso dado y aun así Apple no devuelve identificador. Es el
- *   síntoma de un binario sin `aps-environment`, o de estar sin red.
+ * - `sin-token` — permiso dado y aun así Apple no contesta en ocho segundos.
  * - `apuntado` — hecho: el servidor ya sabe a dónde mandar.
- * - `error` — la subida al servidor falló. No se toca la pantalla por esto.
+ * - `error` — con `motivo`. Aquí caen los dos fallos que **tienen palabras**:
+ *   lo que contestó Apple al registro («no valid 'aps-environment' entitlement
+ *   string found…» es la respuesta entera a por qué no llega ningún aviso) y lo
+ *   que contestó el servidor al guardar el identificador.
  */
 import { estadoDePush, isNative, registerPush } from './native.js'
 import { registrarPush } from '../sync/api.js'
 
+const porque = (e) => String(e?.message ?? e)
+
 export async function asegurarPush({ registrar = registerPush, apuntar = registrarPush } = {}) {
-  if (!isNative()) return 'no-aplica'
+  if (!isNative()) return { estado: 'no-aplica' }
   const permiso = await estadoDePush()
-  if (permiso !== 'granted') return permiso
+  if (permiso !== 'granted') return { estado: permiso }
   let token
   try {
     token = await registrar()
-  } catch {
-    // `sin-plugin` con el permiso puesto es imposible en un binario sano, y de
-    // todas formas aquí no hay a quién contárselo: esto corre solo al arrancar.
-    return 'error'
+  } catch (e) {
+    return { estado: 'error', motivo: porque(e) }
   }
-  if (!token) return 'sin-token'
+  if (!token) return { estado: 'sin-token' }
   try {
     await apuntar(token, true)
-  } catch {
-    return 'error'
+  } catch (e) {
+    return { estado: 'error', motivo: porque(e) }
   }
-  return 'apuntado'
+  return { estado: 'apuntado' }
 }
