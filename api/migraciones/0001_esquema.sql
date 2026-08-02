@@ -156,6 +156,21 @@ CREATE TABLE IF NOT EXISTS dinners (
   borrado         INTEGER NOT NULL DEFAULT 0
 );
 
+-- El catálogo de ideas de plan: lo que se repite de un viaje a otro. Hermano de
+-- `dishes`, y con el mismo trato del Demo (`eventId` nulo = de todos). Ver 0003.
+CREATE TABLE IF NOT EXISTS planIdeas (
+  id            TEXT PRIMARY KEY,
+  titulo        TEXT,
+  descripcion   TEXT,
+  ubicacion     TEXT,
+  enlace        TEXT,
+  costeEstimado INTEGER,
+  eventId       TEXT,
+  updatedAt     TEXT NOT NULL,
+  creadoEn      TEXT NOT NULL,
+  borrado       INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS plans (
   id            TEXT PRIMARY KEY,
   eventId       TEXT,
@@ -167,6 +182,9 @@ CREATE TABLE IF NOT EXISTS plans (
   enlace        TEXT,
   estado        TEXT,
   votos         TEXT,
+  -- De qué idea del catálogo salió. Se copia al traer, no se enlaza: esto solo
+  -- sirve para contar en cuántos viajes se ha usado. Ver 0003.
+  ideaId        TEXT,
   updatedAt     TEXT NOT NULL,
   creadoEn      TEXT NOT NULL,
   borrado       INTEGER NOT NULL DEFAULT 0

@@ -65,10 +65,16 @@ platos compartido) y hay que añadirlas una sola vez:
 
 ```bash
 npm run migrar:remoto2
+npm run migrar:remoto3
 ```
 
-Correrlo sobre una base que ya las tiene falla con «duplicate column name», que
-es la señal de que no hacía falta.
+La segunda añade el catálogo de ideas de plan (§14.15). Correr cualquiera de las
+dos sobre una base que ya las tiene falla con «duplicate column name», que es la
+señal de que no hacía falta.
+
+> **Y después, despliega el Worker** (`npm run desplegar`). Las columnas nuevas
+> no sirven de nada mientras el Worker siga con el `tablas.js` viejo: no las
+> transmitiría, y la instantánea las devolvería vacías en cada sincronización.
 
 ---
 

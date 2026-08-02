@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { plansOf, addPlan, updatePlan, removePlan, personsOf } from '../db.js'
+import { plansOf, addPlan, updatePlan, removePlan, personsOf, listPlanIdeas, guardarPlanComoIdea } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import { tap } from '../lib/native.js'
 import { porDia } from '../lib/evento.js'
 import { useIdentidad } from '../lib/identidad.js'
 import Fab from '../components/Fab.jsx'
@@ -68,6 +69,9 @@ export default function PlanesScreen({ eventId, event }) {
           {plan.estado === 'confirmado'
             ? <button className="btn sm ghost" onClick={() => updatePlan(plan.id, { estado: 'votando' })}>a votación</button>
             : <button className="btn sm" onClick={() => updatePlan(plan.id, { estado: 'confirmado' })}>confirmar</button>}
+          {plan.ideaId
+            ? <span className="pill neutral">en ideas</span>
+            : <button className="btn sm ghost" onClick={() => { tap(); guardarPlanComoIdea(plan, event) }}>guardar idea</button>}
           <button className="btn sm danger" onClick={() => removePlan(plan.id)}>borrar</button>
         </div>
       </div>
@@ -101,18 +105,36 @@ export default function PlanesScreen({ eventId, event }) {
       )}
 
       <Fab label="Plan" onClick={() => setOpen(true)} />
-      {open && <AddPlanModal eventId={eventId} onClose={() => setOpen(false)} />}
+      {open && <AddPlanModal eventId={eventId} event={event} onClose={() => setOpen(false)} />}
     </div>
   )
 }
 
-function AddPlanModal({ eventId, onClose }) {
+function AddPlanModal({ eventId, event, onClose }) {
   useBloqueoDeScroll()
+  const ideas = useLiveQuery(() => listPlanIdeas(event), [event?.id, event?.esDemo], [])
+  const [ubicacion, setUbicacion] = useState('')
   const [titulo, setTitulo] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [dia, setDia] = useState('')
   const [enlace, setEnlace] = useState('')
   const [coste, setCoste] = useState('')
+  // De qué idea del catálogo se rellenó, para poder contar en cuántos viajes se
+  // ha usado. Lo que se guarda son los campos de abajo: son copias (C1).
+  const [ideaId, setIdeaId] = useState(null)
+
+  // El atajo de B3: el catálogo también aparece **aquí**, cuando ya has decidido
+  // crear algo. El área «Ideas» responde a «¿qué hacíamos los otros años?»; esto
+  // responde a «esto ya lo tengo apuntado, no me lo hagas escribir otra vez».
+  function rellenarCon(idea) {
+    tap()
+    setIdeaId(idea.id)
+    setTitulo(idea.titulo ?? '')
+    setDescripcion(idea.descripcion ?? '')
+    setUbicacion(idea.ubicacion ?? '')
+    setEnlace(idea.enlace ?? '')
+    setCoste(idea.costeEstimado ? String(idea.costeEstimado / 100) : '')
+  }
 
   async function submit() {
     if (!titulo.trim()) return
@@ -120,8 +142,10 @@ function AddPlanModal({ eventId, onClose }) {
       titulo: titulo.trim(),
       descripcion: descripcion.trim(),
       dia: dia || null,
+      ubicacion: ubicacion.trim(),
       enlace: enlace.trim(),
       costeEstimado: coste ? Math.round(Number(coste) * 100) : null,
+      ideaId,
     })
     onClose()
   }
@@ -131,6 +155,21 @@ function AddPlanModal({ eventId, onClose }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose}>×</button>
         <h2>Nuevo plan</h2>
+        {ideas.length > 0 && (
+          <>
+            <label>¿De las de siempre? <span className="apunte">(rellena el resto)</span></label>
+            <div className="chips">
+              {ideas.map((i) => (
+                <button
+                  key={i.id}
+                  className={`chip${ideaId === i.id ? ' on' : ''}`}
+                  aria-pressed={ideaId === i.id}
+                  onClick={() => rellenarCon(i)}
+                >{i.titulo}</button>
+              ))}
+            </div>
+          </>
+        )}
         <label>Título</label>
         <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Excursión a las cuevas" autoFocus />
         <label>Descripción (opcional)</label>
@@ -139,6 +178,8 @@ function AddPlanModal({ eventId, onClose }) {
           <div><label>Día (opcional)</label><input type="date" value={dia} onChange={(e) => setDia(e.target.value)} /></div>
           <div><label>Coste/persona (opcional)</label><input type="number" inputMode="decimal" value={coste} onChange={(e) => setCoste(e.target.value)} placeholder="0" /></div>
         </div>
+        <label>Dónde (opcional)</label>
+        <input type="text" value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} placeholder="Cala del sur" />
         <label>Enlace (opcional)</label>
         <input type="text" value={enlace} onChange={(e) => setEnlace(e.target.value)} placeholder="https://…" />
         <div style={{ marginTop: 16 }}><button className="btn block" onClick={submit}>Proponer plan</button></div>

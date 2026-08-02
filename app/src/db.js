@@ -50,6 +50,20 @@ db.version(5).stores({
   tombstones: null,
 })
 
+// v6: el catálogo de ideas de plan (SPECS §14.15, `docs/diseño/planes-catalogo.html` · A3).
+//
+// Un plan es dos cosas a la vez: la **idea**, que se repite cada verano —«Playa
+// de la Cala», su ubicación, su enlace— y la **propuesta de este año**, con su
+// día, su estado y sus votos. Estaban en la misma fila, así que reutilizar un
+// plan de otro viaje habría arrastrado el día del año pasado y los votos de
+// gente que no viene.
+//
+// Es la misma figura que `dishes` ↔ `dinners` y no un invento nuevo: un
+// catálogo, y lo que se hace con él. Sin índice: son decenas de filas.
+db.version(6).stores({
+  planIdeas: '&id',
+})
+
 // ── Señal de cambios locales (para disparar la sync) ──
 let applyingRemote = false
 export function setApplyingRemote(v) { applyingRemote = v }
@@ -306,6 +320,82 @@ export const dinnersOf = (eventId) => db.dinners.where({ eventId }).sortBy('dia'
 export const updateDinner = (id, patch) => escribir('dinners', id, patch)
 export const removeDinner = (id) => removeRow('dinners', id)
 
+// ── Ideas de plan (catálogo compartido, §14.15) ──
+/**
+ * La idea: lo que se repite de un viaje a otro. Ni día, ni estado, ni votos —
+ * esos tres son de *ese* agosto y no viajan nunca (`traerIdeaAlViaje`).
+ *
+ * Comparte con los platos el trato del evento de demostración: sin `eventId` la
+ * idea es del catálogo de todos; con él, solo de ese evento, que hoy es
+ * únicamente el Demo. Sin eso, trastear en la demostración volvería a ensuciar
+ * el catálogo de verdad, que es lo que se acaba de arreglar en §14.9-quater.
+ */
+export async function addPlanIdea({ titulo, descripcion = '', ubicacion = '', enlace = '', costeEstimado = null }, evento = null) {
+  const eventId = evento?.esDemo ? evento.id : null
+  return escribir('planIdeas', uid('idea'), { titulo, descripcion, ubicacion, enlace, costeEstimado, eventId })
+}
+
+export async function listPlanIdeas(evento = null) {
+  const todas = await db.planIdeas.toArray()
+  const suyas = evento?.esDemo
+    ? todas.filter((i) => i.eventId === evento.id)
+    : todas.filter((i) => !i.eventId)
+  return suyas.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || '', 'es'))
+}
+
+export const updatePlanIdea = (id, patch) => escribir('planIdeas', id, patch)
+export const removePlanIdea = (id) => removeRow('planIdeas', id)
+
+/**
+ * Traer una idea al viaje: **se copia, no se enlaza**
+ * (`docs/diseño/planes-catalogo.html` · C1).
+ *
+ * A partir de aquí son dos cosas independientes. Corregir el enlace en el
+ * catálogo no reescribe los viajes ya planeados, que es lo que uno espera de
+ * algo que ya ocurrió. El `ideaId` se guarda solo para poder decir en el
+ * catálogo «3 viajes»; no se lee para pintar nada.
+ *
+ * Y nace limpia: sin día, sin votos y en «votando». Los tres no viajan, y no es
+ * una elección de diseño sino una consecuencia — los votos apuntan a personas de
+ * otro evento, «confirmado» fue una decisión de aquel agosto y el día de
+ * entonces no es un día de este viaje.
+ */
+export function traerIdeaAlViaje(eventId, idea) {
+  return addPlan(eventId, {
+    titulo: idea.titulo,
+    descripcion: idea.descripcion,
+    ubicacion: idea.ubicacion,
+    enlace: idea.enlace,
+    costeEstimado: idea.costeEstimado,
+    ideaId: idea.id,
+  })
+}
+
+/** El camino inverso: este plan ha salido bien, guárdalo para el año que viene. */
+export async function guardarPlanComoIdea(plan, evento = null) {
+  const ideaId = await addPlanIdea({
+    titulo: plan.titulo,
+    descripcion: plan.descripcion,
+    ubicacion: plan.ubicacion,
+    enlace: plan.enlace,
+    costeEstimado: plan.costeEstimado,
+  }, evento)
+  await updatePlan(plan.id, { ideaId })
+  return ideaId
+}
+
+/** En cuántos viajes se ha usado cada idea, para la nota de su fila. */
+export async function usoDeIdeas() {
+  const todos = await db.plans.toArray()
+  const cuenta = {}
+  for (const p of todos) {
+    if (!p.ideaId) continue
+    cuenta[p.ideaId] = (cuenta[p.ideaId] ?? new Set())
+    cuenta[p.ideaId].add(p.eventId)
+  }
+  return Object.fromEntries(Object.entries(cuenta).map(([k, v]) => [k, v.size]))
+}
+
 // ── Planes (§4) ──
 export async function addPlan(eventId, p) {
   return escribir('plans', uid('plan'), {
@@ -318,6 +408,10 @@ export async function addPlan(eventId, p) {
     enlace: p.enlace ?? '',
     estado: p.estado ?? 'votando',
     votos: p.votos ?? {},
+    // De qué idea del catálogo salió, si salió de una. Solo sirve para contar
+    // en cuántos viajes se ha usado: lo que se pinta son los campos de arriba,
+    // que son copias (C1).
+    ideaId: p.ideaId ?? null,
   })
 }
 export const plansOf = (eventId) => db.plans.where({ eventId }).toArray()

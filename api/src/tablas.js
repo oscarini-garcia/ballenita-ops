@@ -64,10 +64,16 @@ export const TABLAS = {
     columnas: ['eventId', 'dia', 'platoIds', 'bungaMayoresId', 'bungaNinosId', 'queSeHace', 'cantidades'],
     json: ['platoIds'],
   },
+  planIdeas: {
+    // El otro catálogo compartido, hermano de `dishes`: lo que se repite de un
+    // viaje a otro. Ni día, ni estado, ni votos — esos son de cada agosto.
+    // `eventId` nulo = de todos; con valor, solo del Demo (§14.9-quater).
+    columnas: ['titulo', 'descripcion', 'ubicacion', 'enlace', 'costeEstimado', 'eventId'],
+  },
   plans: {
     columnas: [
       'eventId', 'titulo', 'descripcion', 'dia', 'costeEstimado',
-      'ubicacion', 'enlace', 'estado', 'votos',
+      'ubicacion', 'enlace', 'estado', 'votos', 'ideaId',
     ],
     json: ['votos'],
   },

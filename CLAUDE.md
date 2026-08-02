@@ -53,6 +53,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
+- **Un plan es dos cosas** (SPECS §14.15, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
+  **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
+  este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
+  el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
 - **Lo que cae fuera de las fechas se aparta, no se esconde** (SPECS §14.10-quater,
   `lib/evento.js` · `porDia`): Cenas y Planes se ordenan por día y lo que ya no pertenece al
   evento baja al final marcado. Esconderlo lo dejaría invisible pero contando en Estadísticas
@@ -131,7 +135,7 @@ app/src/
   lib/  dias.js               los días de un evento y qué se hace en cada uno (puro)
         areas.js              el área elegida en cada sección, que no se olvida al salir
   screens/  Agenda(Hoy·Días), Dinero(Gastos·Saldos), Comidas(Cenas·Platos·Compra),
-            Planes, Stats, EventSettings (= Ajustes, en acordeón),
+            Planes(Planes·Ideas), Stats, EventSettings (= Ajustes, en acordeón),
             Grupo(familias+bungas+gente), Events, Acceso
   components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Hoja.jsx · Icono.jsx
               ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx

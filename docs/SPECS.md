@@ -1147,6 +1147,60 @@ recorre entera cada vez.
   lista de solapas cerradas sin saber si había pasado algo. Ahora vuelve al
   mismo sitio y además se desplaza hasta él.
 
+### 14.15 Un plan es dos cosas: la idea que se repite y la propuesta de este año
+
+Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·
+**A3 · B3 · C1**.
+
+**El problema.** El encargo era que los planes se reutilizaran entre viajes
+«como los platos». Pero un plato es un nombre y unas categorías —compartirlo es
+compartir la fila, y por eso `dishes` pudo ser un catálogo plano desde el primer
+día—. Un plan lleva además **día, estado y votos**, y esos tres son de *ese*
+viaje. De los nueve campos de `addPlan()`, cuatro son de la idea, tres del viaje,
+uno es el vínculo y uno está a caballo (`costeEstimado`: la entrada a las cuevas
+es la misma cada año, pero el precio sube).
+
+**Tres cosas que no viajan nunca**, y no son decisiones de diseño sino
+consecuencias:
+
+- **Los votos.** `votos` es `{ personId: '👍' }` y las personas cuelgan de un
+  evento. Un plan traído de 2025 llegaría con votos de identificadores que en
+  2026 no existen: recuento 0 · 0 · 0 con tres emoji dentro, invisibles.
+- **El estado.** `confirmado` fue una decisión de aquel agosto. Una idea que
+  llega confirmada se cuela en la agenda sin que nadie la haya votado.
+- **El día.** El de entonces no es un día de este viaje, y ya sabemos qué le pasa
+  a lo que cae fuera de las fechas (§14.10-quater).
+
+**La forma: `planIdeas` ↔ `plans`**, que es la misma que `dishes` ↔ `dinners` y
+no un invento nuevo. `planIdeas` guarda lo que se repite —título, descripción,
+ubicación, enlace, coste orientativo—; `plans` sigue guardando la propuesta y
+añade `ideaId`. El catálogo es **compartido entre eventos** y admite el mismo
+`eventId` opcional que los platos, que es como el Demo tiene los suyos sin
+ensuciar los de verdad (§14.9-quater).
+
+**Se copia, no se enlaza** (C1). Traer una idea copia sus campos y a partir de
+ahí son dos cosas independientes. `ideaId` solo sirve para poder decir «3
+viajes» en el catálogo; no se lee para pintar nada. El coste es que corregir el
+enlace en el catálogo no arregla los viajes ya planeados; lo paga porque **un
+viaje pasado no cambia solo**, que es lo que uno espera de algo que ya ocurrió, y
+las estadísticas de 2025 siguen diciendo lo que decían.
+
+**Dos puertas** (B3), porque son dos preguntas distintas:
+
+- **Planes · Ideas**, área nueva. Cuesta **66 pt** de cuerpo —Planes tenía 699,6
+  y se queda en los 633,6 que ya tienen Agenda y Comidas, era la única sección
+  sin mando— y los paga porque un catálogo invisible no es un catálogo:
+  «¿qué hacíamos los otros años?» se pregunta en enero, no al crear.
+- **El atajo del modal**: «¿De las de siempre?» arriba de «+ Plan», para cuando
+  ya sabes qué quieres y solo no quieres volver a teclearlo.
+
+**Y el camino inverso**, que es lo que llena el catálogo: un plan que ha salido
+bien se guarda con «guardar idea» desde su propia fila, y entonces la fila lo
+dice («en ideas»). Sin eso el catálogo empieza vacío y se queda vacío.
+
+En la API son una tabla y una columna (`migraciones/0003_ideas_de_plan.sql`,
+`npm run migrar:remoto3` si la base ya existía).
+
 ### 14.12 Un solo tema, y sus dos caras
 
 **Los nueve skins se van.** Eran nueve paletas: nueve sitios donde un contraste
