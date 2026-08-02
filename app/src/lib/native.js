@@ -59,7 +59,7 @@ export async function share({ title, text, url, dialogTitle } = {}) {
 // Flujo manual auto-alojado: leemos latest.json (versión + url del zip + checksum),
 // y si es más nuevo que el bundle instalado, lo descargamos y aplicamos. Solo en
 // nativo; en web/PWA el service worker ya se encarga de actualizar.
-export async function checkForOtaUpdate() {
+export async function checkForOtaUpdate({ aplicarYa = false } = {}) {
   if (!isNative()) return { status: 'skip' }
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
@@ -79,6 +79,11 @@ export async function checkForOtaUpdate() {
     // Se aplica en la próxima carga/apertura; notifyAppReady() (en initNative)
     // confirma que arrancó bien para que el plugin no haga rollback.
     await CapacitorUpdater.set(bundle)
+    // Con `aplicarYa` no se espera a ese próximo arranque: `reload()` cambia al
+    // paquete nuevo en el acto. Es lo que hace falta detrás de un botón que se
+    // llama «Forzar la última versión», porque quien lo toca ha venido a verla
+    // ahora y no la próxima vez que le apetezca abrir la app.
+    if (aplicarYa) await CapacitorUpdater.reload().catch(() => {})
     return { status: 'updated', version: manifest.version }
   } catch (e) {
     return { status: 'error', error: String(e?.message ?? e) }

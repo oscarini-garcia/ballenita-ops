@@ -26,6 +26,7 @@ import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/s
 import { tap } from '../lib/native.js'
 import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
+import { checkForOtaUpdate, isNative } from '../lib/native.js'
 
 // El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
 // por dónde va en vez de un solo rótulo que parpadea.
@@ -508,12 +509,24 @@ function AppSection() {
     caja.current?.scrollIntoView({ block: 'center' })
   }, [recienActualizada])
 
-  function actualizar() {
+  async function actualizar() {
     if (busy) return
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
     setTerminado(false)
     setPaso('checking') // abre el modal ya, sin esperar al primer aviso
     const inicio = Date.now()
+
+    // En la app de iOS la versión nueva **no** llega por el service worker: llega
+    // en un paquete OTA que hasta ahora solo se miraba al arrancar. Un botón que
+    // se llama «Forzar la última versión» y no lo miraba dejaba al teléfono en la
+    // de antes por mucho que se tocara.
+    if (isNative()) {
+      setPaso('downloading')
+      const ota = await checkForOtaUpdate({ aplicarYa: true })
+      // Si se aplicó, la webview ya se está recargando con el paquete nuevo.
+      if (ota.status === 'updated') return
+    }
+
     forzarActualizacion(setPaso, {
       // La recarga es inevitable (hay que cargar el JS nuevo), pero la retrasamos
       // un poco para que el progreso se vea de verdad y no sea un parpadeo.

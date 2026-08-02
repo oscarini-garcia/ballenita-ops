@@ -1112,6 +1112,25 @@ firmado. Volver así habría sido volver al mismo sitio.
   **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
   repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.
 
+### 14.17-bis «Forzar la última versión» tiene que traer la última versión
+
+En la app de iOS hay **dos caminos** para una versión nueva y el botón solo
+recorría uno:
+
+| Camino | Qué trae | Cuándo corría |
+| --- | --- | --- |
+| Paquete **OTA** (`checkForOtaUpdate`) | El JS nuevo, del release de GitHub | **Solo al arrancar** la app |
+| *Service worker* (`forzarActualizacion`) | Cachés de la web | Al tocar el botón |
+
+Así que en el móvil se podía tocar «🔄 Forzar la última versión» las veces que
+hiciera falta y seguir en la de antes: lo que faltaba estaba en el otro camino, y
+el paquete descargado además esperaba al **siguiente** arranque para aplicarse.
+Un botón que promete una cosa y hace otra es peor que no tenerlo.
+
+Ahora, en la app nativa, el botón mira **primero** el OTA y lo aplica en el acto
+(`CapacitorUpdater.reload()`), y solo si no había nada nuevo sigue con las
+cachés. En el navegador no cambia nada: ahí el OTA no existe.
+
 ### 14.16 La IA: la clave vive en el servidor
 
 Ajustes tiene un apartado **IA** que solo ve quien administra, con la clave de
