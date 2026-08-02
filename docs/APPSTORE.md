@@ -196,8 +196,12 @@ sips -z 1024 1024 -s format png /tmp/icono.jpg --out app/assets/icon.png
 ```
 
 > **El icono es nativo: no viaja por OTA.** Cambiarlo obliga a `npm run
-> sync:ios`, archivar y subir binario, igual que un plugin. El de la web
-> (`app/public/favicon.svg`) es otro fichero y sí se republica solo con Pages.
+> sync:ios`, archivar y subir binario, igual que un plugin.
+>
+> **El de la web sale del mismo `assets/icon.png`**, pero hay que regenerarlo a
+> mano: `npm i --no-save sharp && npm run iconos:web` deja los PNG en
+> `app/public/` y esos sí se republican solos con Pages. Si cambias el dibujo y
+> te saltas ese paso, la app instalada y el navegador enseñan iconos distintos.
 
 En Xcode:
 

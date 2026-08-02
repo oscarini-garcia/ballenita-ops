@@ -42,10 +42,18 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: base,
         scope: base,
-        // TODO: generar icon-192/512 PNG para un apple-touch-icon perfecto.
-        // Por ahora un SVG cubre el manifest y el favicon.
+        // Salen de `assets/icon.png`, el mismo dibujo del que come el icono de
+        // la app nativa (`npm run assets:ios`). Se regeneran con
+        // `npm run iconos:web` y están versionados en `public/`.
+        //
+        // El `maskable` va aparte y no como `purpose: 'any maskable'` en el
+        // mismo fichero: quien recorta se cree ese `maskable` y le corta la cola
+        // a la ballena, porque el dibujo llega casi al borde. El de 512 con
+        // margen es el que aguanta el círculo.
         icons: [
-          { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),
