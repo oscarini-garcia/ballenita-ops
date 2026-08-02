@@ -11,9 +11,9 @@
  * pantalla habrá que escribirla dos veces, con la garantía de que un día dirán
  * cosas distintas.
  *
- * Hoy la app **no tiene push** —se retiraron OneSignal y el plugin de Capacitor,
- * y el porqué está en `lib/native.js`—, así que el aviso se ve al abrir Ajustes.
- * Cuando lo haya, esta lista es exactamente la que se empuja.
+ * El servidor empuja esta misma cosa por APNs cuando alguien entra
+ * (`api/src/index.js` · `avisarDeSolicitud`), y aquí se vuelve a derivar para
+ * que la lista de Ajustes diga la verdad aunque el aviso no llegara al móvil.
  */
 
 /**
