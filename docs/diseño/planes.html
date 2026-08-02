@@ -1,0 +1,785 @@
+<title>Ballena Ops — Tres planes ya no caben en una pantalla, y ahora hay que meter dos secciones y un orden</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256; --ab-linea-suave: #17384a;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea; --abc-linea-suave: #e9eff2;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code, .coste code, .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .ballena { width: 30px; height: 30px; flex: none; }
+  .t-cab .crece { flex: 1; min-width: 0; }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-cab .su { font-size: var(--t-micro); opacity: .78; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .tarj.junta { padding: 0 12px; }
+
+  /* 9 px arriba y abajo dejan la fila en ~70,7, que es lo que mide una `.row`
+     real medida contra theme.css. Con 11 se iba a 74 y el dibujo mentía. */
+  .fila { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  /* El título de un plan es lo único que identifica su fila, así que dobla a dos
+     líneas en vez de recortarse: «Noche de juegos de mesa» son 257,8 pt y en la
+     fila cerrada solo hay 245. Se mide y se dice, no se esconde con puntos. */
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .oscuro .pil { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .pil { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .pil.ok { background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .pil.ok { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); background: none; color: var(--ab-soft); font-family: inherit;
+    min-height: 40px; display: inline-flex; align-items: center; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+  .chip.rojo { color: #fff; background: var(--ab-owe); border-color: var(--ab-owe); }
+  .claro .chip.rojo { background: var(--abc-owe); border-color: var(--abc-owe); }
+  .chip.lleno { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .chip.lleno { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .plan-n { font-weight: 600; font-size: var(--t-row); }
+  .cifra-l { font-size: var(--t-label); }
+  .oscuro .cifra-l { color: var(--ab-faint); } .claro .cifra-l { color: var(--abc-faint); }
+  .fecha-nativa { border-radius: 7px; padding: 12px; font-size: var(--t-body);
+    display: flex; justify-content: space-between; align-items: center; }
+  .oscuro .fecha-nativa { border: 1px solid var(--ab-linea); color: var(--ab-ink); }
+  .claro .fecha-nativa { border: 1px solid var(--abc-linea); color: var(--abc-ink); }
+
+  .verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--ab-linea); border-radius: 9px; color: var(--ab-soft); background: none; }
+  .claro .verbo-fila { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .verbo-fila svg { width: 19px; height: 19px; }
+
+  /* Deslizamiento a medias, para enseñar los verbos de K3 */
+  .deslizada { position: relative; overflow: hidden; }
+  .verbos { position: absolute; inset: 0 0 0 auto; display: flex; }
+  .verbo { width: 76px; display: grid; place-items: center; gap: 4px; font-size: var(--t-micro);
+    font-weight: 700; color: #eaf6fb; }
+  .verbo.ed { background: #1f6f8f; } .verbo.bo { background: #a8322a; }
+  .verbo svg { width: 19px; height: 19px; }
+  .cara { position: relative; transform: translateX(-152px); }
+  .oscuro .cara { background: var(--ab-tarjeta); } .claro .cara { background: var(--abc-tarjeta); }
+
+  /* Los cuatro mandos de áreas de la parte cuatro */
+  .t-sub { padding: 12px 14px 0; }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 10px; }
+  .oscuro .seg { background: var(--ab-linea-suave); } .claro .seg { background: var(--abc-linea-suave); }
+  .seg button { flex: 1; padding: 10px 6px; border: none; background: none; border-radius: 7px;
+    font-weight: 600; font-size: var(--t-row); font-family: inherit; white-space: nowrap; }
+  .oscuro .seg button { color: var(--ab-soft); } .claro .seg button { color: var(--abc-soft); }
+  .oscuro .seg button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
+  .claro .seg button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); box-shadow: 0 1px 2px rgba(16,42,55,.12); }
+
+  .subr { display: flex; gap: 22px; padding: 0 4px; }
+  .subr button { border: none; background: none; padding: 10px 0 9px; font-family: inherit;
+    font-size: var(--t-row); font-weight: 600; border-bottom: 2px solid transparent; }
+  .oscuro .subr { border-bottom: 1px solid var(--ab-linea); } .claro .subr { border-bottom: 1px solid var(--abc-linea); }
+  .oscuro .subr button { color: var(--ab-faint); } .claro .subr button { color: var(--abc-faint); }
+  .oscuro .subr button.on { color: var(--ab-ink); border-bottom-color: var(--ab-acento); }
+  .claro .subr button.on { color: var(--abc-ink); border-bottom-color: var(--abc-acento); }
+
+  .past { display: flex; gap: 8px; }
+  .past button { border-radius: 999px; padding: 8px 15px; font-family: inherit;
+    font-size: var(--t-sub); font-weight: 600; background: none; }
+  .oscuro .past button { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .past button { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .oscuro .past button.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .past button.on { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .titmando { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px 0; }
+  .titmando .h { font-size: var(--t-title); font-weight: 700; letter-spacing: -.015em; }
+  .titmando .m { display: flex; gap: 2px; padding: 3px; border-radius: 8px; }
+  .oscuro .titmando .m { background: var(--ab-linea-suave); } .claro .titmando .m { background: var(--abc-linea-suave); }
+  .titmando .m button { border: none; background: none; border-radius: 6px; padding: 6px 11px;
+    font-family: inherit; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .titmando .m button { color: var(--ab-faint); } .claro .titmando .m button { color: var(--abc-faint); }
+  .oscuro .titmando .m button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); }
+  .claro .titmando .m button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); }
+
+  .t-barra { display: flex; justify-content: space-around; padding: 7px 0 10px; }
+  .oscuro .t-barra { background: var(--ab-cromo); border-top: 1px solid var(--ab-linea); }
+  .claro .t-barra { background: var(--abc-cromo); border-top: 1px solid var(--abc-linea); }
+  .t-barra .p { width: 76.4px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ab-faint); }
+  .claro .t-barra .p { color: var(--abc-faint); }
+  .t-barra .p.on { color: var(--ab-acento-txt); } .claro .t-barra .p.on { color: var(--abc-acento-txt); }
+  .t-barra .p svg { width: 23px; height: 23px; }
+  .t-barra .p span { font-size: var(--t-micro); font-weight: 550; }
+
+  .regla { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue);
+    display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+  .regla .barra { height: 6px; border-radius: 3px; background: var(--linea-fuerte); }
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Planes y el mando de áreas</div>
+    <h1>Tres planes ya no caben en una pantalla, y ahora hay que meter dos secciones y un orden</h1>
+    <p class="entradilla">
+      Lo demás de la navegación ya está puesto (v0.6.0). Queda <b>Planes</b>, que es la única
+      sección sin tocar y la que peor lo lleva: cada plan es una tarjeta de <b>251,2 pt</b> con
+      tres botones de voto, un selector de fecha y otros tres botones, y en Planes solo hay
+      <b>663,5 pt</b> de cuerpo. Los tres planes de Ballenita 2026 suman 787,6: <b>ya hoy hay que
+      desplazar</b>. Encima el encargo añade dos secciones y un mando de orden, así que la altura
+      de la tarjeta deja de ser un detalle y pasa a ser la decisión. Y al final, la que afecta a
+      tres secciones a la vez: cómo se dibuja el mando de áreas.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.6.0 (<code>main</code>, 1b04631)</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Cuerpo de Planes:</b> 663,5 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Contenido:</b> los tres planes de la semilla de <code>db.js</code></span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Todas las alturas de esta hoja están medidas en un navegador contra <code>theme.css</code>,
+      no estimadas. Planes no tiene mando de áreas, así que su cuerpo es más alto que el de
+      Agenda o Comidas: 663,5 pt frente a 633,6.
+    </p>
+  </div>
+
+  <!-- ══════════════ DEFECTOS ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · cuatro arreglos que no se eligen</h2>
+    <p>
+      <b>1 · «Borrar» está siempre a la vista, a un toque y sin confirmación.</b> En una lista
+      donde lo normal es votar, el verbo destructivo comparte fila con los otros dos y va en rojo
+      lleno. Un roce borra el plan de todo el grupo y <b>no hay vuelta atrás</b>: <code>removePlan</code>
+      encola el borrado y sube en la siguiente sincronización. En Gastos esto se resolvió hace
+      tiempo escondiendo los verbos detrás del deslizamiento (§14.10-bis) y en el editor de gente,
+      mandando el borrado al fondo con lo que se lleva por delante.
+    </p>
+    <p class="linea-corte">
+      <b>2 · Un plan no se puede corregir.</b> <code>AddPlanModal</code> solo crea: el título, la
+      descripción, el coste, el enlace y la ubicación se teclean una vez y ya. Lo único editable
+      desde la tarjeta es el día y el estado. Es exactamente lo que pasaba con los gastos antes de
+      §14.10-bis y con los platos hasta la vuelta pasada.
+    </p>
+    <p class="linea-corte">
+      <b>3 · <code>descripcion</code> y <code>ubicacion</code> se guardan y no se enseñan nunca.</b>
+      El modal las pide —«Excursión a las cuevas» tiene ubicación «Cala del sur» en la semilla— y
+      la tarjeta no las pinta. Pedir un dato y no volver a enseñarlo es peor que no pedirlo.
+    </p>
+    <p class="linea-corte">
+      <b>4 · El selector de fecha nativo ocupa la mitad de la tarjeta.</b> 362 pt de ancho y 48 de
+      alto, dentro de cada plan, para algo que se toca <b>una vez en la vida del plan</b>. Y en el
+      navegador se pinta «08/10/2026», en formato americano, justo debajo de una línea que dice
+      «lun, 10 ago». El día se pone en el modal, como todo lo demás.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE UNO · LAS SECCIONES ══════════════ -->
+  <div class="parte">Parte uno · las dos secciones</div>
+  <p class="parte-intro">
+    El modelo tiene <code>estado: 'votando' | 'confirmado'</code> y nada más. Los dos rótulos
+    tienen que decir esa diferencia sin inventar un tercer estado, y <b>caben todos</b>: el más
+    largo es «Confirmados» con 116,9 pt de los 362 disponibles. Lo que cambia no es si caben, es
+    qué se espera de ti al leerlos.
+  </p>
+
+  <div class="grupo">
+    <h3>I · Cómo se llaman las dos secciones</h3>
+
+    <div class="tira-tel">
+      <!-- I3 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>Confirmados · 1</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>A votación · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- I1 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>Activos · 1</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>Disponibles · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- I2 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>En el plan · 1</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>Ideas · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- I4 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>Vamos · 1</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>Quizá · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="pie-tel">I3, I1, I2 e I4, con las filas de K2 puestas para que lo único que cambie sean los rótulos.</p>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">I3</span><span class="op-nombre">Confirmados · A votación</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Los dos rótulos <b>son</b> los dos estados del modelo, así que la pantalla y la base dicen lo mismo. Y el segundo no describe un cajón: dice qué se espera de ti al leerlo, que es que votes.</p>
+      <p class="coste"><b>Cuesta:</b> es el par más largo —116,9 y 96,6 pt de 362—, y aun así les sobra más de la mitad de la línea. <b>Lo paga</b> nadie.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I1</span><span class="op-nombre">Activos · Disponibles</span><span class="etq base">lo que decía el encargo</span></div>
+      <p class="op-idea">Las palabras del encargo, cortas (68,4 y 105,3 pt) y neutrales.</p>
+      <p class="coste"><b>Cuesta:</b> «activo» suena a que está pasando <b>ahora</b>, y un plan confirmado para el viernes no está pasando: el día 10 «Playa de la Cala» aparece bajo «Activos» tres días antes de existir. Y «disponible» suena a catálogo de cosas que se compran, no a ideas que el grupo se está pensando. <b>Lo paga</b> el plan confirmado del último día.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I2</span><span class="op-nombre">En el plan · Ideas</span></div>
+      <p class="op-idea">La más de andar por casa, que es el tono del proyecto. «Ideas» <b>invita a proponer</b> sin comprometer, que es lo que hace falta para que alguien apunte «noche de juegos de mesa» sin sentir que está convocando a nadie.</p>
+      <p class="coste"><b>Cuesta:</b> «En el plan» dentro de una sección llamada Planes es un juego de palabras y se lee dos veces. <b>Lo paga</b> la claridad, a cambio de simpatía — y es un cambio barato de deshacer si no gusta.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I4</span><span class="op-nombre">Vamos · Quizá</span></div>
+      <p class="op-idea">Dos palabras, las más cortas de las ocho (56 y 49,4 pt), cero ambigüedad sobre el compromiso y el humor de la casa.</p>
+      <p class="coste"><b>Cuesta:</b> «Quizá» pone en duda planes que a lo mejor solo están <b>sin votar todavía</b>: «Noche de juegos de mesa» tiene un solo voto porque lo acaban de proponer, no porque el grupo dude. <b>Lo paga</b> el que propone, que ve su idea archivada bajo «Quizá» a los diez segundos de escribirla.</p>
+    </div>
+
+    <div class="medida">
+      <span><b>Anchos medidos</b> (rótulo de sección, 12,9 px, 700, versalitas; caben 362):</span>
+      <span>Ideas 47,4</span><span>Quizá 49,4</span><span>Vamos 56</span><span>Activos 68,4</span>
+      <span>En el plan 91,7</span><span>A votación 96,6</span><span>Disponibles 105,3</span><span>Confirmados 116,9</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS · EL ORDEN ══════════════ -->
+  <div class="parte">Parte dos · el orden, y si hace falta un mando para elegirlo</div>
+  <p class="parte-intro">
+    El encargo pide poder ordenar por popularidad. La pregunta de verdad es si eso merece un mando
+    permanente: <b>un grupo de amigos apunta cinco planes en un viaje, no cincuenta</b>, y con
+    cinco filas de 70,7 pt se ven todas a la vez — ordenarlas es mirar, no filtrar. El mando cuesta
+    <b>42,7 pt</b> de la primera pantalla, que con las filas de K2 es media fila.
+  </p>
+
+  <div class="grupo">
+    <h3>J · El mando de orden</h3>
+
+    <div class="tira-tel">
+      <!-- J1 -->
+      <div class="tel oscuro">
+        <div class="t-cab">
+          <svg class="ballena" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping La Ballena Alegre</div></div>
+          <div class="punto"></div>
+        </div>
+        <div class="t-body">
+          <div class="chips"><button class="chip on">por día</button><button class="chip">por votos</button></div>
+          <div class="sec-h"><span>Confirmados · 1</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>A votación · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+        </div>
+        <div class="t-barra">
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></div>
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></div>
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></div>
+          <div class="p on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></div>
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></div>
+        </div>
+      </div>
+
+      <!-- J4 -->
+      <div class="tel oscuro">
+        <div class="t-cab">
+          <svg class="ballena" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping La Ballena Alegre</div></div>
+          <div class="punto"></div>
+        </div>
+        <div class="t-body">
+          <div class="sec-h"><span>Confirmados · 1</span><span>por día</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>A votación · 2</span><span>por votos</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+        </div>
+        <div class="t-barra">
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></div>
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></div>
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></div>
+          <div class="p on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></div>
+          <div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></div>
+        </div>
+      </div>
+
+      <!-- J2 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>Confirmados · 1</span><span class="pil">día ⇅</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>A votación · 2</span><span class="pil">votos ⇅</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+          <div class="sec-h"><span>El mando no ocupa alto…</span></div>
+          <div class="fila"><div class="txt"><div class="s">…pero la diana es de 12,9 px, dentro de un rótulo.</div></div></div>
+        </div>
+      </div>
+
+      <!-- J3 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>A votación · 2 · por votos ⇅</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+          <div class="sec-h"><span>El rótulo es el mando</span></div>
+          <div class="fila"><div class="txt"><div class="s">Nadie ha tocado nunca un rótulo de sección en esta app.</div></div></div>
+        </div>
+      </div>
+    </div>
+    <p class="pie-tel">J1, J4, J2 y J3. Los dos primeros, con la barra puesta para ver lo que ocupan de verdad.</p>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">J4</span><span class="op-nombre">Sin mando: los confirmados por día, lo que se vota por votos</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">El orden lo dicta la sección, y cada uno es el único que tiene sentido ahí. Lo confirmado <b>ya tiene día</b> y se lee en el orden en que va a pasar; lo que se está votando todavía no lo tiene —«Noche de juegos de mesa» no tiene ninguno—, así que lo que puede ordenarlo es cuánto gusta. El rótulo de sección lo dice en su lado derecho, que está vacío.</p>
+      <p class="coste"><b>Cuesta:</b> no se puede mirar «lo más votado de todo» ni «cuándo cae cada cosa» sin cambiar de sección mentalmente. <b>Lo paga</b> quien quería justo esa vista — y a cambio se ahorra un mando entero, 42,7 pt y una preferencia más que recordar. Cambiar de idea después es barato: J1 se añade encima sin mover nada.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">J1</span><span class="op-nombre">Dos chips arriba: «por día» y «por votos»</span></div>
+      <p class="op-idea">El mando se ve sin buscarlo, dice cuál está puesto y ordena las dos secciones a la vez. Es lo que pide el encargo, literal.</p>
+      <p class="coste"><b>Cuesta:</b> <b>42,7 pt</b> de la primera pantalla y un elemento de cromo en la sección más simple de la app —con cinco planes visibles a la vez, ordenar es mirar—. Y hay que decidir dónde se recuerda: por evento, o para siempre. <b>Lo paga</b> el primer plan, que empieza media fila más abajo.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">J2</span><span class="op-nombre">Un mando pequeño a la derecha de cada rótulo de sección</span></div>
+      <p class="op-idea">Cada sección ordena lo suyo y el mando <b>no cuesta ni un píxel de alto</b>: va en el hueco derecho del rótulo, que hoy está vacío.</p>
+      <p class="coste"><b>Cuesta:</b> dos mandos donde hay uno, y la diana es un texto de <b>12,9 px</b> — muy por debajo de los 44 pt de Apple, salvo que se le ponga un área de toque invisible que entonces se solapa con el rótulo. <b>Lo paga</b> el pulgar.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">J3</span><span class="op-nombre">Se toca el rótulo de la sección y alterna el orden</span></div>
+      <p class="op-idea">«A votación · 2 · por votos ⇅». El rótulo es el mando, cero cromo añadido y cero alto.</p>
+      <p class="coste"><b>Cuesta:</b> un rótulo de sección <b>no se ha tocado nunca</b> en esta app —ni en Gastos, ni en la Compra, ni en Días—, así que nadie va a intentarlo; y si lo intenta, la lista se reordena sin aviso. <b>Lo paga</b> quien nunca descubre que hay orden, que es casi todo el mundo.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES · LA ALTURA ══════════════ -->
+  <div class="parte">Parte tres · cuánto ocupa un plan, que es la decisión de verdad</div>
+  <p class="parte-intro">
+    Esta es la que manda: de ella depende si el grupo puede <b>comparar antes de votar</b> o tiene
+    que ir recordando lo que había más arriba. Con la tarjeta de hoy, y una vez puestos los dos
+    rótulos de sección, en la primera pantalla entran <b>dos planes de los tres</b>.
+  </p>
+
+  <div class="tabla-scroll">
+    <table class="comp">
+      <thead><tr><th>Opción</th><th>Alto de un plan</th><th>Planes en la 1.ª pantalla</th><th>Votar cuesta</th><th>Borrar cuesta</th></tr></thead>
+      <tbody>
+        <tr><td><b>K1</b> tarjeta de ahora</td><td class="num">251,2 pt</td><td class="num">2 de 3</td><td>1 toque</td><td>1 toque, sin confirmar</td></tr>
+        <tr><td><b>K2</b> fila que se abre</td><td class="num">70,7 · 176,6 abierta</td><td class="num">8</td><td>2 toques</td><td>abrir + confirmar</td></tr>
+        <tr><td><b>K3</b> fila deslizable</td><td class="num">70,7 pt</td><td class="num">8</td><td>1 toque</td><td>deslizar + tocar</td></tr>
+        <tr><td><b>K4</b> un solo pulgar</td><td class="num">70,7 pt</td><td class="num">8</td><td>1 toque</td><td>abrir + confirmar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grupo">
+    <h3>K · Cuánto ocupa un plan</h3>
+
+    <div class="tira-tel">
+      <!-- K1 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>Confirmados · 1</span></div>
+          <div class="tarj">
+            <div style="display:flex;justify-content:space-between;gap:8px">
+              <div><div class="plan-n">Playa de la Cala</div><div class="cifra-l">lun, 10 ago</div></div>
+              <span class="pil ok">confirmado</span>
+            </div>
+            <div class="chips" style="margin-top:10px"><button class="chip on">👍 3</button><button class="chip">🤷 0</button><button class="chip">👎 0</button></div>
+            <div style="margin-top:10px;border-top:1px solid var(--ab-linea);padding-top:10px">
+              <div class="fecha-nativa">08/10/2026 <span>🗓</span></div>
+              <div class="chips" style="margin-top:8px"><button class="chip">quitar día</button><button class="chip">a votación</button><button class="chip rojo">borrar</button></div>
+            </div>
+          </div>
+          <div class="sec-h"><span>A votación · 2</span></div>
+          <div class="tarj">
+            <div style="display:flex;justify-content:space-between;gap:8px">
+              <div><div class="plan-n">Excursión a las cuevas</div><div class="cifra-l">mié, 12 ago · ~12 €</div></div>
+              <span class="pil">votando</span>
+            </div>
+            <div class="chips" style="margin-top:10px"><button class="chip on">👍 2</button><button class="chip">🤷 1</button><button class="chip">👎 0</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- K2 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>Confirmados · 1</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>A votación · 2</span></div>
+          <div class="tarj">
+            <div style="display:flex;gap:11px;align-items:center">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+              <div style="flex:1;min-width:0"><div class="plan-n">Excursión a las cuevas</div><div class="cifra-l">mié, 12 ago · ~12 € · enlace</div></div>
+              <span class="pil">▴</span>
+            </div>
+            <div class="cifra-l" style="margin-top:8px">Hay que llevar calzado cerrado y linterna.</div>
+            <div class="chips" style="margin-top:10px">
+              <button class="chip on">👍 2</button><button class="chip">🤷 1</button><button class="chip">👎 0</button>
+              <button class="chip lleno">confirmar</button>
+            </div>
+          </div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- K3 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>A votación · 2</span></div>
+          <div class="tarj junta deslizada">
+            <div class="verbos">
+              <div class="verbo ed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg>Editar</div>
+              <div class="verbo bo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16M9.5 6.5V4h5v2.5"/><path d="M6.5 6.5 7.6 20a1.5 1.5 0 0 0 1.5 1.4h5.8a1.5 1.5 0 0 0 1.5-1.4l1.1-13.5"/></svg>Borrar</div>
+            </div>
+            <div class="fila cara"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><span class="pil">👍 2</span></div>
+          </div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><span class="pil">👍 0</span></div>
+          </div>
+          <div class="sec-h"><span>Dos gestos en la misma fila</span></div>
+          <div class="fila"><div class="txt"><div class="s">Tocar el recuento vota · deslizar edita o borra.</div></div></div>
+        </div>
+      </div>
+
+      <!-- K4 -->
+      <div class="tel oscuro">
+        <div class="t-body">
+          <div class="sec-h"><span>Confirmados · 1</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago · Cala del sur</div></div><span class="pil ok">👍 3</span></div>
+          </div>
+          <div class="sec-h"><span>A votación · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago · ~12 €</div></div><button class="chip on" style="min-height:44px">👍 2</button></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin día</div></div><button class="chip" style="min-height:44px">👍 0</button></div>
+          </div>
+          <div class="sec-h"><span>Se van 🤷 y 👎</span></div>
+          <div class="fila"><div class="txt"><div class="s">Un plan tiene los votos que tiene, y votar es un toque.</div></div></div>
+        </div>
+      </div>
+    </div>
+    <p class="pie-tel">K1, K2 (con el segundo plan abierto), K3 (deslizada a medias, a propósito) y K4.</p>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">K2</span><span class="op-nombre">Fila cerrada con el recuento a la derecha; se toca y se abre para votar</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Cerrada mide <b>70,7 pt</b> —una fila normal de la app— y enseña título, día, coste y el recuento. Al tocarla se abre <b>en el sitio</b>, a 176,6, y aparecen la descripción —que hoy se guarda y no se enseña—, los tres votos y «confirmar».</p>
+      <p class="coste"><b>Cuesta:</b> votar pasa de un toque a dos. <b>Lo paga</b> el que vota mucho, y se le devuelve en que <b>los tres planes se ven a la vez</b> —donde cabían dos, caben ocho—, que es justo lo que hace falta para comparar antes de votar. De 251,2 a 70,7 son <b>180,5 pt recuperados</b> por plan.</p>
+      <p class="coste"><b>Y un detalle que sale al medirlo:</b> con el icono, el recuento y sus huecos, al título le quedan <b>245 pt</b> en la fila cerrada. «Excursión a las cuevas» son 227,2 y cabe; <b>«Noche de juegos de mesa» son 257,8 y no</b>. Por eso el dibujo lleva ya las dos decisiones que lo resuelven: el título <b>dobla a dos líneas</b> —una fila larga sube a unos 92 pt, que siguen siendo la tercera parte de K1— y en la fila cerrada el recuento es <b>siempre el mismo número</b>, los pulgares arriba —«👍 0» en «Noche de juegos de mesa», que solo tiene un 🤷—; el desglose entero sale al abrirla, que es donde se vota. Que sea siempre el mismo número no es un ahorro de sitio: una columna donde a veces sale un 👍 y a veces un 🤷 no se puede comparar de un vistazo, y comparar es justo para lo que está. Recortar el título con puntos suspensivos habría sido la otra salida, y en una lista donde lo que se compara son los nombres es la peor.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K1</span><span class="op-nombre">La tarjeta de ahora, con todo abierto</span><span class="etq base">lo de ahora</span></div>
+      <p class="op-idea">Todo a la vista y votar es siempre un solo toque. Es lo único que tiene a favor, y no es poco.</p>
+      <p class="coste"><b>Cuesta:</b> 251,2 pt por plan, así que en la primera pantalla entran <b>dos de los tres</b> y comparar obliga a recordar. Y arrastra los cuatro defectos de arriba: «borrar» a un toque en rojo, el selector de fecha nativo ocupando la mitad, y la descripción sin sitio donde ponerse.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K3</span><span class="op-nombre">Fila deslizable, como en Gastos</span></div>
+      <p class="op-idea">La fila mide lo mismo que en K2 y reutiliza <code>Deslizable.jsx</code> tal cual: se desliza y salen Editar y Borrar, con lo que el defecto 1 y el 2 caen de golpe y con el patrón que la app <b>ya tiene</b>. Votar sigue siendo un toque, sobre el recuento.</p>
+      <p class="coste"><b>Cuesta:</b> mezcla dos gestos en la misma fila —tocar vota, deslizar edita— y la zona del recuento es de unos 60 pt. <b>Lo paga</b> quien iba a borrar y vota sin querer. Combina bien con K2 si el voto vive dentro de la fila <b>abierta</b> y no en la cerrada: entonces tocar abre, deslizar edita, y no compiten.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K4</span><span class="op-nombre">Un solo botón de voto: pulgar arriba, que se enciende</span></div>
+      <p class="op-idea">Se retiran 🤷 y 👎. La fila mide 70,7 igual que en K2 y votar vuelve a ser <b>un toque</b>: es la única que recupera el alto sin cobrar el segundo toque.</p>
+      <p class="coste"><b>Cuesta:</b> se pierde poder decir «me da igual» y «no», que es información real cuando hay que elegir entre dos planes del mismo día. Y hay <code>votos</code> guardados con 🤷 y 👎 en la base: habría que decidir si se cuentan como nada o se migran. <b>Lo paga</b> el modelo, que es lo único de esta hoja que no es reversible sin pensarlo.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO · EL MANDO ══════════════ -->
+  <div class="parte">Parte cuatro · cómo se dibuja el mando de áreas</div>
+  <p class="parte-intro">
+    Esta no es de Planes —Planes no tiene áreas—, pero se ve en <b>tres secciones a la vez</b>:
+    Agenda, Dinero y Comidas. Se decide una vez y vale para las tres, y tiene que aguantar las
+    <b>tres posiciones</b> de Comidas. Está puesto ya el L1, así que aquí lo que se decide es si
+    se cambia.
+  </p>
+
+  <div class="grupo">
+    <h3>L · El mando</h3>
+    <div class="tira-tel">
+      <div class="tel oscuro"><div class="t-sub"><div class="seg"><button class="on">Cenas</button><button>Platos</button><button>Compra</button></div></div><div style="height:14px"></div></div>
+      <div class="tel oscuro"><div class="t-sub" style="padding-bottom:0"><div class="subr"><button class="on">Cenas</button><button>Platos</button><button>Compra</button></div></div><div style="height:14px"></div></div>
+      <div class="tel oscuro"><div class="t-sub"><div class="past"><button class="on">Cenas</button><button>Platos</button><button>Compra</button></div></div><div style="height:14px"></div></div>
+      <div class="tel oscuro"><div class="t-sub"><div class="titmando"><div class="h">Cenas</div><div class="m"><button class="on">Cenas</button><button>Platos</button><button>Compra</button></div></div></div><div style="height:14px"></div></div>
+    </div>
+    <p class="pie-tel">L1, L2, L3 y L4, los cuatro con las tres posiciones de Comidas.</p>
+
+    <div class="tira-tel">
+      <div class="tel claro"><div class="t-sub"><div class="seg"><button class="on">Cenas</button><button>Platos</button><button>Compra</button></div></div><div style="height:14px"></div></div>
+      <div class="tel claro"><div class="t-sub"><div class="seg"><button class="on">Hoy</button><button>Días</button></div></div><div style="height:14px"></div></div>
+    </div>
+    <p class="pie-tel">L1 en la cara clara, con tres posiciones y con dos.</p>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">L1</span><span class="op-nombre">Segmentado, el que ya está puesto</span><span class="etq rec">recomendada</span><span class="etq base">lo de ahora</span></div>
+      <p class="op-idea">Pastilla llena sobre fondo hundido, el patrón de iOS. Con tres posiciones da <b>115,3 pt por hueco</b> —dos veces y media el mínimo de 44 de Apple— y con dos, 175. Ya existe en <code>SubNav.jsx</code> con su test.</p>
+      <p class="coste"><b>Cuesta:</b> <b>66 pt de alto</b> —54 el control y 12 de aire— en las tres secciones que lo llevan. <b>No lo paga nadie</b>: cambiarlo cuesta más que dejarlo, y ya está probado en la app de verdad.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">L2</span><span class="op-nombre">Subrayado</span></div>
+      <p class="op-idea">Más ligero: el control baja de 54 a <b>43 pt</b>, once menos en tres secciones. Y aguantaría cuatro o cinco posiciones, porque cada una ocupa lo que mide su palabra.</p>
+      <p class="coste"><b>Cuesta:</b> es el idioma de Android/Material y la app es de iPhone. Y la diana deja de ser un hueco repartido para ser el ancho del texto: en Comidas van bien (60,7 · 62,8 · 77,8), pero en Agenda <b>«Días» son 43,8 pt</b>, justo por debajo de los 44. <b>Lo paga</b> el dedo gordo, y solo en una de las tres secciones — que es peor que si fuera en todas, porque no se aprende.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">L3</span><span class="op-nombre">Pastillas sueltas a la izquierda</span></div>
+      <p class="op-idea">Las mismas que ya se usan para las categorías de la compra y para los votos, así que no añade ningún patrón nuevo.</p>
+      <p class="coste"><b>Cuesta:</b> y ahí está el problema — una pastilla ya significa <b>filtro o etiqueta</b> en esta app, y aquí significaría «pantalla». Dos significados para el mismo dibujo. <b>Lo paga</b> la consistencia que se ganó al retirar los emoji del cromo.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">L4</span><span class="op-nombre">Título grande y conmutador pequeño a la derecha</span></div>
+      <p class="op-idea">El área activa se dice dos veces —en el título y en el mando—, así que nunca se pierde el sitio.</p>
+      <p class="coste"><b>Cuesta:</b> repite la palabra a dos centímetros de sí misma, y el conmutador se queda en <b>75,3 pt por hueco</b> frente a los 115,3 de L1: sigue por encima del mínimo, pero es un <b>35 % menos de diana</b> a cambio de decir dos veces lo mismo. Y el hueco depende del largo del título. <b>Lo paga</b> el pulgar, sin recibir nada.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte cinco · las combinaciones</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>I3</span><span>J4</span><span>K2</span><span>L1</span></div>
+    <p>
+      <b>Confirmados · A votación</b>, cada sección con su orden natural y sin mando, filas de
+      70,7 pt que se abren para votar, y el mando de áreas como está. Con esto los tres planes se
+      ven a la vez, «borrar» sale de la lista y se va al fondo del editor, y de paso caen los
+      cuatro defectos de arriba: la descripción y la ubicación tienen dónde salir, el día se pone
+      en el modal y el selector de fecha nativo desaparece de la tarjeta.
+      <b>Nada de esto toca el esquema</b>, así que sale en un OTA.
+    </p>
+    <p>
+      <b>Si quieres votar de un toque</b> y estás dispuesto a perder «me da igual» y «no»:
+      <span class="receta" style="display:inline"><span>I3</span><span>J4</span><span>K4</span><span>L1</span></span>
+      — misma altura que K2 y sin el segundo toque. Es la única rama que <b>toca el modelo</b>:
+      hay que decidir qué pasa con los 🤷 y 👎 ya guardados.
+    </p>
+    <p>
+      <b>Si prefieres el gesto que ya conoces de Gastos:</b>
+      <span class="receta" style="display:inline"><span>I3</span><span>J4</span><span>K2</span><span>+K3</span><span>L1</span></span>
+      — la fila se abre al tocarla (K2) y además se desliza para Editar y Borrar (K3). Los dos
+      gestos no compiten porque el voto vive dentro de la fila abierta. Es la más completa y la
+      que más código nuevo pide.
+    </p>
+    <p>
+      <b>Si el encargo del orden era literal</b> y quieres el mando aunque cueste 42,7 pt:
+      <span class="receta" style="display:inline"><span>I3</span><span>J1</span><span>K2</span><span>L1</span></span>.
+    </p>
+    <p style="font-size:13.5px">
+      Esta hoja vive en <code>docs/diseño/planes.html</code>, al lado de
+      <code>navegacion.html</code>, de la que salió lo ya implementado (A1 · B2 · C1 · D1 · E1 ·
+      F3 · G1 · H1). Cuando algo de aquí se implemente, el CSS o el spec lo citan por código.
+    </p>
+  </div>
+
+</div>
+</div>
