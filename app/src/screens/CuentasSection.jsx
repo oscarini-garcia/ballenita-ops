@@ -4,7 +4,7 @@ import { personsOf, familiesOf, olvidarTodo } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
-import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, registrarPush, probarPush } from '../sync/api.js'
+import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, listarModelosIA, probarIA, registrarPush, probarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
@@ -415,13 +415,63 @@ export function IASection() {
   const [clave, setClave] = useState('')
   const [modelo, setModelo] = useState('')
   const [aviso, setAviso] = useState(null)
+  // Los modelos los trae el Worker con la clave guardada: preguntárselo a
+  // Anthropic desde aquí exigiría mandarle la clave al móvil. `null` mientras no
+  // se sabe, `[]` cuando se preguntó y no hay.
+  const [modelos, setModelos] = useState(null)
+  const [probando, setProbando] = useState(false)
+
+  /**
+   * La lista, y con ella la comprobación de que el modelo apuntado sigue
+   * existiendo: si Anthropic lo ha retirado, el Worker lo cambia por el más
+   * cercano de su familia y lo deja guardado. Aquí solo hay que enseñar cuál se
+   * ha puesto — callarlo dejaría un modelo distinto del que alguien eligió sin
+   * que nadie se enterara.
+   */
+  function traerModelos() {
+    listarModelosIA()
+      .then((r) => {
+        setModelos(r.modelos)
+        if (r.modelo) setModelo(r.modelo)
+        if (r.sustituto) {
+          setAviso(`${r.sustituto.antes} ya no existe. Se ha puesto ${r.sustituto.ahora}, el más cercano.`)
+        }
+      })
+      .catch(() => setModelos([]))
+  }
 
   useEffect(() => {
     if (!esAdmin) return
     leerIA()
-      .then((r) => { setIa(r.ia); setModelo(r.ia.modelo) })
+      .then((r) => {
+        setIa(r.ia)
+        setModelo(r.ia.modelo)
+        // Sin clave no hay a quién preguntar; el desplegable aparece al ponerla.
+        if (r.ia.hayClave) traerModelos()
+      })
       .catch((e) => setAviso(String(e.message ?? e)))
   }, [esAdmin])
+
+  /**
+   * Probar es una llamada de verdad con un token de respuesta, y prueba **el
+   * par**: una clave buena con un modelo retirado falla igual, y eso antes no se
+   * veía hasta que alguien pulsaba «¿Qué podríamos hacer?» meses después.
+   */
+  async function probar() {
+    tap()
+    setProbando(true)
+    setAviso(null)
+    try {
+      const r = await probarIA()
+      if (r.modelo) setModelo(r.modelo)
+      setAviso(r.cambiado
+        ? `${r.cambiado.antes} ya no existe. Se ha puesto ${r.cambiado.ahora}, el más cercano, y ha contestado en ${r.ms} ms.`
+        : `Funciona: ${r.modelo} ha contestado en ${r.ms} ms.`)
+    } catch (e) {
+      setAviso(`No funciona — ${String(e.message ?? e)}`)
+    }
+    setProbando(false)
+  }
 
   if (!esAdmin) {
     return <div className="note">🐳 Esto lo lleva {ADMINISTRADOR.nombre}.</div>
@@ -435,6 +485,8 @@ export function IASection() {
       setIa(r.ia)
       setClave('')
       setAviso('Guardado.')
+      // Con clave nueva la lista puede ser otra: se vuelve a preguntar.
+      if (r.ia.hayClave) traerModelos()
     } catch (e) { setAviso(String(e.message ?? e)) }
   }
 
@@ -459,10 +511,34 @@ export function IASection() {
         placeholder={ia?.hayClave ? 'Escribe una nueva para cambiarla' : 'sk-ant-…'}
       />
       <label htmlFor="ia-modelo">Modelo</label>
-      <input id="ia-modelo" type="text" value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="claude-sonnet-4-5" />
+      {/* Un desplegable con lo que hay de verdad, y no una caja de texto: el
+          modelo se escribía a mano y una errata no se veía al guardar sino
+          meses después, cuando alguien pedía sugerencias y no pasaba nada. Si la
+          lista no ha podido llegar se queda la caja, que es mejor que un
+          desplegable vacío. */}
+      {modelos?.length ? (
+        <select id="ia-modelo" value={modelo} onChange={(e) => setModelo(e.target.value)}>
+          {/* Red de seguridad: un desplegable cuyo valor no está entre sus
+              opciones se pinta en blanco y parece que no hay nada elegido. */}
+          {!modelos.some((m) => m.id === modelo) && modelo && (
+            <option value={modelo}>{modelo} (el que hay puesto)</option>
+          )}
+          {modelos.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+        </select>
+      ) : (
+        <input id="ia-modelo" type="text" value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="claude-sonnet-4-5" />
+      )}
+      {ia?.hayClave && modelos?.length === 0 && (
+        <div className="pista">No se han podido traer los modelos. Escribe el identificador a mano.</div>
+      )}
 
       <div className="editor-pie">
         <button className="btn" onClick={guardar}>Guardar</button>
+        {ia?.hayClave && (
+          <button className="btn ghost" disabled={probando} onClick={probar}>
+            {probando ? 'Probando…' : 'Probar'}
+          </button>
+        )}
       </div>
 
       {aviso && <div className="note" role="status">{aviso}</div>}
