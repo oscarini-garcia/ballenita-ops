@@ -1013,6 +1013,33 @@ tiene 237 con el lápiz — se recortaba en «El del…». La bunga bajó al tit
 «Hoy» y al modal, que es donde hay sitio; en la fila sale solo cuando no hay
 plato que enseñar y el titular se quedaría en un «Cena» pelado.
 
+### 14.10-quater Lo que se cayó fuera de las fechas no abre la lista
+
+Un viaje que empieza el **15** y una cena del **14** saliendo como primera cosa de
+Comidas. Dos fallos a la vez, y el segundo tapaba al primero:
+
+1. **Las cenas no se ordenaban.** `dinnersOf()` devuelve lo que IndexedDB tenga a
+   bien devolver, que no es ningún orden. Los planes sí se ordenaban por día
+   desde el principio; las cenas, no.
+2. **Nadie miraba el calendario.** Una cena cuyo día ya no pertenece al evento
+   —porque las fechas se movieron después, o porque el dedo tecleó un 14 por un
+   16— se pintaba igual que las de verdad. Y como además abría la lista, lo
+   primero que se veía del viaje era un día que el viaje no tiene.
+
+`porDia(filas, evento)` en `lib/evento.js` devuelve `{ dentro, fuera }`: ordenado
+por día, y lo que cae fuera de `startDate`–`endDate` apartado. Lo usan **Comidas ·
+Cenas** y **Planes**, que son las dos listas que viven en un día. Lo que no tiene
+día va al final de lo de dentro: un plan sin fecha todavía no está en el
+calendario, así que tampoco se ha caído de él.
+
+**No se esconde, se aparta**, y ese es el punto. Esconderlo lo dejaría invisible
+en Agenda y en Comidas mientras **sigue contando en Estadísticas y ocupando bunga
+en el balance de anfitrión** — exactamente el huérfano contra el que avisa este
+módulo cuando se acortan las fechas. Va al final, bajo «Fuera de las fechas del
+viaje», con la pastilla `fuera del viaje` y un renglón que dice qué hacer: en
+Planes se le puede cambiar el día ahí mismo, y en Cenas se borra o se corrigen las
+fechas en Ajustes → Evento.
+
 ### 14.11 Tipografía: un número y toda la escala
 
 El cuerpo pasa de 14 px a **17 px**, que es lo que iOS llama *body* y lo que de

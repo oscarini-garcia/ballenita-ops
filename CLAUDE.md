@@ -53,6 +53,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
+- **Lo que cae fuera de las fechas se aparta, no se esconde** (SPECS §14.10-quater,
+  `lib/evento.js` · `porDia`): Cenas y Planes se ordenan por día y lo que ya no pertenece al
+  evento baja al final marcado. Esconderlo lo dejaría invisible pero contando en Estadísticas
+  y ocupando bunga.
 - **El evento «Demo» es un cajón de arena** (SPECS §14.9-quater): cenas, planes, gastos y
   compra ya colgaban de su evento, pero `dishes` era un catálogo global y el Demo escribía
   ahí. Ahora un plato puede llevar `eventId` —sin él es de todos, con él es solo de ese

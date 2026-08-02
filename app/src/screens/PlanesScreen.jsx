@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, addPlan, updatePlan, removePlan, personsOf } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import { porDia } from '../lib/evento.js'
 import { useIdentidad } from '../lib/identidad.js'
 import Fab from '../components/Fab.jsx'
 
 const VOTES = ['👍', '🤷', '👎']
 const fmtDay = (d) => new Date(d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
 
-export default function PlanesScreen({ eventId }) {
+export default function PlanesScreen({ eventId, event }) {
   const plans = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const [open, setOpen] = useState(false)
@@ -29,7 +30,49 @@ export default function PlanesScreen({ eventId }) {
     else votos[me] = emoji
     updatePlan(plan.id, { votos })
   }
-  const sorted = [...plans].sort((a, b) => (a.dia || '9999').localeCompare(b.dia || '9999'))
+  // Mismo criterio que las cenas (`lib/evento.js`): por día, y lo que cayó fuera
+  // de las fechas al final y marcado. Un plan del 14 en un viaje que empieza el
+  // 15 no es el primer plan del viaje, y arriba del todo lo parecía.
+  const { dentro, fuera } = porDia(plans, event)
+
+  const ficha = (plan, esFuera = false) => {
+    const [yes, meh, no] = tally(plan.votos)
+    const mine = plan.votos?.[me]
+    return (
+      <div className="card" key={plan.id}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+          <div>
+            <div className="plan-n">{plan.titulo}</div>
+            <div className="cifra-l">
+              {plan.dia ? fmtDay(plan.dia) : 'Sin día'}
+              {plan.costeEstimado ? ` · ~${(plan.costeEstimado / 100).toFixed(0)} €` : ''}
+              {plan.enlace ? <> · <a href={plan.enlace} target="_blank" rel="noreferrer">enlace</a></> : ''}
+            </div>
+          </div>
+          <span className={`pill ${esFuera ? 'owe' : plan.estado === 'confirmado' ? 'owed' : 'neutral'}`}>
+            {esFuera ? 'fuera del viaje' : plan.estado}
+          </span>
+        </div>
+
+        <div className="chips" style={{ marginTop: 10 }}>
+          {VOTES.map((v, i) => (
+            <button key={v} className={`chip${mine === v ? ' on' : ''}`} onClick={() => vote(plan, v)} disabled={!me}>
+              {v} {[yes, meh, no][i]}
+            </button>
+          ))}
+        </div>
+
+        <div className="chips" style={{ marginTop: 10, borderTop: '1px solid var(--line-soft)', paddingTop: 10 }}>
+          <input type="date" value={plan.dia || ''} onChange={(e) => updatePlan(plan.id, { dia: e.target.value || null })} className="fecha-chip" />
+          {plan.dia && <button className="btn sm ghost" onClick={() => updatePlan(plan.id, { dia: null })}>quitar día</button>}
+          {plan.estado === 'confirmado'
+            ? <button className="btn sm ghost" onClick={() => updatePlan(plan.id, { estado: 'votando' })}>a votación</button>
+            : <button className="btn sm" onClick={() => updatePlan(plan.id, { estado: 'confirmado' })}>confirmar</button>}
+          <button className="btn sm danger" onClick={() => removePlan(plan.id)}>borrar</button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="body">
@@ -43,42 +86,19 @@ export default function PlanesScreen({ eventId }) {
         <div className="empty"><span className="e">🗺️</span>Ningún plan todavía.<br />Propón una idea con «+ Plan».</div>
       )}
 
-      {sorted.map((plan) => {
-        const [yes, meh, no] = tally(plan.votos)
-        const mine = plan.votos?.[me]
-        return (
-          <div className="card" key={plan.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-              <div>
-                <div className="plan-n">{plan.titulo}</div>
-                <div className="cifra-l">
-                  {plan.dia ? fmtDay(plan.dia) : 'Sin día'}
-                  {plan.costeEstimado ? ` · ~${(plan.costeEstimado / 100).toFixed(0)} €` : ''}
-                  {plan.enlace ? <> · <a href={plan.enlace} target="_blank" rel="noreferrer">enlace</a></> : ''}
-                </div>
-              </div>
-              <span className={`pill ${plan.estado === 'confirmado' ? 'owed' : 'neutral'}`}>{plan.estado}</span>
-            </div>
+      {dentro.map((plan) => ficha(plan))}
 
-            <div className="chips" style={{ marginTop: 10 }}>
-              {VOTES.map((v, i) => (
-                <button key={v} className={`chip${mine === v ? ' on' : ''}`} onClick={() => vote(plan, v)} disabled={!me}>
-                  {v} {[yes, meh, no][i]}
-                </button>
-              ))}
-            </div>
-
-            <div className="chips" style={{ marginTop: 10, borderTop: '1px solid var(--line-soft)', paddingTop: 10 }}>
-              <input type="date" value={plan.dia || ''} onChange={(e) => updatePlan(plan.id, { dia: e.target.value || null })} className="fecha-chip" />
-              {plan.dia && <button className="btn sm ghost" onClick={() => updatePlan(plan.id, { dia: null })}>quitar día</button>}
-              {plan.estado === 'confirmado'
-                ? <button className="btn sm ghost" onClick={() => updatePlan(plan.id, { estado: 'votando' })}>a votación</button>
-                : <button className="btn sm" onClick={() => updatePlan(plan.id, { estado: 'confirmado' })}>confirmar</button>}
-              <button className="btn sm danger" onClick={() => removePlan(plan.id)}>borrar</button>
-            </div>
+      {fuera.length > 0 && (
+        <>
+          <div className="sec-h">Fuera de las fechas del viaje</div>
+          <div className="note">
+            {fuera.length === 1 ? 'Este plan cae' : 'Estos planes caen'} en un día que el evento ya no
+            tiene, así que no {fuera.length === 1 ? 'sale' : 'salen'} en Agenda. Cámbia{fuera.length === 1 ? 'le' : 'les'} el
+            día aquí mismo, quíta{fuera.length === 1 ? 'selo' : 'selo'} o corrige las fechas en <b>Ajustes → Evento</b>.
           </div>
-        )
-      })}
+          {fuera.map((plan) => ficha(plan, true))}
+        </>
+      )}
 
       <Fab label="Plan" onClick={() => setOpen(true)} />
       {open && <AddPlanModal eventId={eventId} onClose={() => setOpen(false)} />}
