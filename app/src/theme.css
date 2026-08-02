@@ -296,7 +296,11 @@ body.modal-abierto .body { overflow: hidden; }
 .btn.danger { background: var(--owe); }
 
 label { display: block; font-size: var(--t-label); font-weight: 700; color: var(--ink-soft); margin: 12px 2px 5px; }
-input[type=text], input[type=number], input[type=date], input[type=email], select, textarea {
+/* `password` estaba fuera de la lista, y la única caja de contraseña que tiene
+   la app —la clave de Anthropic— salía con el borde cuadrado del navegador y
+   sin el `width: 100%`: más estrecha que la de al lado y de otra familia. Se
+   veía en el móvil, no en los tests. */
+input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], select, textarea {
   width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
   /* Nunca por debajo de 16 px: iOS hace zoom al enfocar el campo si el cuerpo
@@ -411,6 +415,26 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
   background: color-mix(in srgb, var(--spout) 7%, var(--foam-2));
   border: 1px dashed var(--line); border-radius: var(--r); padding: 11px 13px; }
 .note b { color: var(--ink); }
+
+/* ── Campo y traza (la figura de garciadoral-ops) ────────────────────────────
+   Un campo es su rótulo, el control y **debajo la línea que lo explica**. La
+   pista pegada al control y no suelta: separada se lee como si fuera del campo
+   siguiente. El rótulo ya trae su margen de arriba, así que aquí solo hace
+   falta juntar la pista con lo que explica. */
+.campo + .campo { margin-top: 2px; }
+.campo > .pista { margin: 5px 2px 0; line-height: 1.4; }
+
+/* Lo que ha contestado el servidor, tal cual. Un fallo de Anthropic trae modelo,
+   estado HTTP y mensaje: en un renglón de prosa eso se lee mal y se copia peor,
+   y los saltos de línea son la mitad de la información. Monoespaciada porque lo
+   que va dentro son identificadores, no frases. */
+.traza { margin: 12px 0 0; padding: 11px 13px; border-radius: var(--r);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--t-sub); line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+  background: var(--foam-2); border: 1px solid var(--line); color: var(--ink-soft); }
+.traza.bien { color: var(--owed); border-color: color-mix(in srgb, var(--owed) 35%, var(--line)); }
+.traza.mal { color: var(--owe); background: var(--owe-bg);
+  border-color: color-mix(in srgb, var(--owe) 35%, var(--line)); }
 
 .empty { text-align: center; color: var(--ink-faint); padding: 30px 16px; font-size: var(--t-row); }
 .empty .e { font-size: 42px; display: block; margin-bottom: 8px; }
