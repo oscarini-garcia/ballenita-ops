@@ -63,5 +63,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx}'],
+    // Las pruebas corren en **la zona horaria del grupo**, no en la del
+    // contenedor. Con UTC pasaban en verde mientras el calendario de un viaje
+    // que empieza el 8 de agosto salía empezando el 7 en cualquier móvil de
+    // España: `toISOString()` resta dos horas en verano (ver `lib/dias.js`).
+    env: { TZ: 'Europe/Madrid' },
   },
 })

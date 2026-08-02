@@ -26,6 +26,7 @@ import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/s
 import { tap } from '../lib/native.js'
 import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
+import { checkForOtaUpdate, isNative } from '../lib/native.js'
 
 // El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
 // por dónde va en vez de un solo rótulo que parpadea.
@@ -508,12 +509,24 @@ function AppSection() {
     caja.current?.scrollIntoView({ block: 'center' })
   }, [recienActualizada])
 
-  function actualizar() {
+  async function actualizar() {
     if (busy) return
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
     setTerminado(false)
     setPaso('checking') // abre el modal ya, sin esperar al primer aviso
     const inicio = Date.now()
+
+    // En la app de iOS la versión nueva **no** llega por el service worker: llega
+    // en un paquete OTA que hasta ahora solo se miraba al arrancar. Un botón que
+    // se llama «Forzar la última versión» y no lo miraba dejaba al teléfono en la
+    // de antes por mucho que se tocara.
+    if (isNative()) {
+      setPaso('downloading')
+      const ota = await checkForOtaUpdate({ aplicarYa: true })
+      // Si se aplicó, la webview ya se está recargando con el paquete nuevo.
+      if (ota.status === 'updated') return
+    }
+
     forzarActualizacion(setPaso, {
       // La recarga es inevitable (hay que cargar el JS nuevo), pero la retrasamos
       // un poco para que el progreso se vea de verdad y no sea un parpadeo.
@@ -529,22 +542,20 @@ function AppSection() {
 
   return (
     <div ref={caja}>
+      {/* Dos cosas y ninguna más: qué versión hay puesta y el botón de traer la
+          que falte. Todo lo que había alrededor —el rótulo «Ballena Ops», la
+          explicación del martillo— se leía una vez y estorbaba las demás. */}
       <div className="card tight">
-        {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
         <div className="row">
           <div className="ico"><Icono nombre="ballena" /></div>
           <div className="main">
-            <div className="n">Ballena Ops</div>
-            <div className="sub">Versión en curso</div>
+            <div className="n">Versión en curso</div>
+            {recienActualizada && <div className="sub">Recién actualizada ✓</div>}
           </div>
           <div className="version-grande tnum">v{APP_VERSION}</div>
         </div>
       </div>
-      <button className="btn block" disabled={busy} onClick={actualizar}>🔄 Forzar la última versión</button>
-      <div className="note">El punto de la cabecera ya comprueba la versión cada vez que sincronizas. Esto es el martillo: borra las cachés y recarga aunque el sistema diga que ya estás al día.</div>
-      {recienActualizada && (
-        <div className="pill owed" style={{ display: 'inline-block' }}>✓ Recién actualizada a la v{APP_VERSION}</div>
-      )}
+      <button className="btn block" disabled={busy} onClick={actualizar}>🔄 Actualizar</button>
 
       {busy && (
         <ProgresoModal
@@ -637,7 +648,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         </Acordeon>
       )}
 
-      <Acordeon titulo="La app" icono="ballena" nota={`v${APP_VERSION}`}>
+      <Acordeon titulo="Actualizar" icono="sincronizar" nota={`v${APP_VERSION}`}>
         <AppSection />
       </Acordeon>
 

@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   diasDe, resumenDeDia, diaQueEnsenaHoy, rotuloDelDia, titularDeCena,
-  numeroYDia, diasEntre, platoQueManda,
+  numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal,
 } from './dias.js'
+import { diaSiguiente, finPara } from './fechas.js'
 
 // Ballenita 2026, que es la semilla real de `db.js`: 8–15 de agosto.
 const EVENTO = { startDate: '2026-08-08', endDate: '2026-08-15' }
@@ -158,5 +159,43 @@ describe('los pedazos sueltos', () => {
     expect(platoQueManda([ACEITUNAS, PAELLA, SANDIA])).toBe(PAELLA)
     expect(platoQueManda([ACEITUNAS, SANDIA])).toBe(ACEITUNAS)
     expect(platoQueManda([])).toBeNull()
+  })
+})
+
+/**
+ * Estas pruebas corren en `Europe/Madrid` (ver `vite.config.js`), que es donde
+ * vive el grupo. En UTC pasaban todas **y el error seguía ahí**: en verano
+ * España va dos horas por delante, así que la medianoche del 8 de agosto es el
+ * día 7 a las 22:00Z, `toISOString()` devolvía el día de antes, y el calendario
+ * de un viaje que empieza el 8 salía empezando el 7 — con la cena del primer
+ * día en la casilla del día anterior.
+ */
+describe('el día local, y no el de Greenwich', () => {
+  it('la medianoche del 8 de agosto es el 8, no el 7', () => {
+    expect(isoLocal(new Date('2026-08-08T00:00:00'))).toBe('2026-08-08')
+  })
+
+  it('los primeros minutos y los últimos del día son ese día', () => {
+    expect(isoLocal(new Date('2026-08-08T00:30:00'))).toBe('2026-08-08')
+    expect(isoLocal(new Date('2026-08-08T23:59:00'))).toBe('2026-08-08')
+  })
+
+  it('en invierno, con una hora de diferencia, tampoco se mueve', () => {
+    expect(isoLocal(new Date('2026-01-15T00:00:00'))).toBe('2026-01-15')
+  })
+
+  it('hoy es hoy', () => {
+    const ahora = new Date()
+    expect(hoyISO()).toBe(
+      `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`,
+    )
+  })
+
+  it('y el fin que se propone es el día siguiente de verdad', () => {
+    expect(diaSiguiente('2026-08-08')).toBe('2026-08-09')
+    expect(diaSiguiente('2026-08-31')).toBe('2026-09-01')
+    expect(diaSiguiente('2026-12-31')).toBe('2027-01-01')
+    expect(finPara('2026-08-08', '')).toBe('2026-08-09')
+    expect(finPara('2026-08-08', '2026-08-15')).toBe('2026-08-15')
   })
 })
