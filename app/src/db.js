@@ -176,6 +176,22 @@ export const familiesOf = (eventId) => db.families.where({ eventId }).toArray()
 export const updateFamily = (id, patch) => escribir('families', id, patch)
 export const removeFamily = (id) => removeRow('families', id)
 
+/**
+ * Borrar una familia **suelta lo que colgaba de ella**: su bunga vuelve a estar
+ * libre y su gente se queda sin familia.
+ *
+ * Sin esto, borrar dejaba `familyId` apuntando a algo que ya no existe, y eso no
+ * es un hueco: es un dato falso. Es además lo que la confirmación promete
+ * (`GrupoSection` · D1), y una confirmación que dice lo que no pasa es peor que
+ * no tenerla.
+ */
+export async function borrarFamilia(eventId, familyId) {
+  const [bungas, persons] = await Promise.all([bungasOf(eventId), personsOf(eventId)])
+  for (const b of bungas) if (b.familyId === familyId) await updateBunga(b.id, { familyId: null })
+  for (const p of persons) if (p.familyId === familyId) await updatePerson(p.id, { familyId: null })
+  await removeFamily(familyId)
+}
+
 // ── Bungas ──
 export async function addBunga(eventId, { name, alias = '', familyId = null }) {
   return escribir('bungas', uid('bunga'), { eventId, name, alias, familyId })
@@ -183,6 +199,21 @@ export async function addBunga(eventId, { name, alias = '', familyId = null }) {
 export const bungasOf = (eventId) => db.bungas.where({ eventId }).toArray()
 export const updateBunga = (id, patch) => escribir('bungas', id, patch)
 export const removeBunga = (id) => removeRow('bungas', id)
+
+/**
+ * Emparejar una familia con un bunga desde el lado de la familia. El vínculo
+ * vive en `bunga.familyId` y es uno a uno, así que asignar uno **libera** el
+ * que esa familia tuviera antes: si no, la familia acabaría con dos y los
+ * desplegables de disponibles dejarían de cuadrar.
+ * Con `bungaId = null` se limita a soltar el que hubiera.
+ */
+export async function asignarBungaAFamilia(eventId, familyId, bungaId = null) {
+  const todos = await bungasOf(eventId)
+  for (const b of todos) {
+    if (b.id === bungaId && b.familyId !== familyId) await updateBunga(b.id, { familyId })
+    else if (b.id !== bungaId && b.familyId === familyId) await updateBunga(b.id, { familyId: null })
+  }
+}
 
 // ── Personas ──
 export async function addPerson(eventId, p) {

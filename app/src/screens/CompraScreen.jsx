@@ -5,6 +5,7 @@ import {
   clearBoughtShopItems, SHOP_CATEGORIES, personsOf,
 } from '../db.js'
 import { tap } from '../lib/native.js'
+import { useIdentidad } from '../lib/identidad.js'
 
 const catOf = (id) => SHOP_CATEGORIES.find((c) => c.id === id) ?? SHOP_CATEGORIES.at(-1)
 
@@ -27,9 +28,11 @@ export default function CompraScreen({ eventId }) {
   const [texto, setTexto] = useState('')
   const [categoria, setCategoria] = useState('otros')
 
-  // Identidad ligera ya ligada globalmente (se elige en Planes, §14). Aquí solo se lee
-  // para firmar la compra con quién la marca.
-  const me = localStorage.getItem(`ballena.person.${eventId}`) || ''
+  // Quién eres, para firmar quién marcó la compra. Sale de `lib/identidad.js`,
+  // igual que en la cabecera y en Ajustes: esta pantalla leía la llave vieja
+  // (`ballena.person.<evento>`), que ya no escribe nadie, así que firmaba en
+  // blanco todas las compras.
+  const { meId: me } = useIdentidad(eventId, persons)
   const nameOf = (id) => persons.find((p) => p.id === id)?.name ?? 'alguien'
 
   async function add() {

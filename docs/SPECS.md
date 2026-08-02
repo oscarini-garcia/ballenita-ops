@@ -65,6 +65,9 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 - **✅ Modelo: cada familia tiene su bunga (1 a 1 en v1).** El bunga es el alojamiento de una familia — no se asigna persona a persona, sino **familia ↔ bunga**. La persona "hereda" el bunga de su familia.
 - **✅ Decidido:** en v1, **1 familia = 1 bunga** exactamente. Los casos raros (familia grande con 2 bungas, dos familias pequeñas compartiendo uno) **se apañan a mano** por ahora; se revisará si aparece la necesidad real. Menos modelo, cubre lo normal.
 - Los bungas se usan además como **sede rotatoria de las comidas** (§6): cada día se decide qué bunga acoge la comida de los mayores y cuál la de los niños, repartiendo la carga.
+- **✅ El emparejamiento se pide por los dos lados, y solo ofrece lo libre.** El vínculo se guarda en un sitio único (`bunga.familyId`), pero se pregunta tanto al crear una familia (campo **Bunga**) como al crear un bunga (campo **Familia**), porque quien monta el grupo no siempre empieza por el mismo sitio. Las dos listas enseñan **únicamente lo que no tiene pareja**, y ninguna de las dos preselecciona: van con **«— ninguno —»** de fábrica, ya que una familia recién creada no tiene bunga y elegirlo por ella se lo quitaría a otra en silencio. Cuando no queda nada libre, el formulario lo dice en vez de enseñar una lista vacía. Asignar desde la familia **libera** el bunga que tuviera antes (`asignarBungaAFamilia` en `db.js`), que es lo que mantiene el 1 a 1.
+- **✅ Un bunga huérfano vuelve a estar libre.** Si se borra la familia, su `familyId` apunta a algo que ya no existe: la fila dice «sin familia» —no un guion— y el bunga vuelve a salir como disponible. Sin esto quedaba atado a un fantasma y no había manera de reasignarlo. La lógica es pura y está en `app/src/lib/asignacion.js`.
+- **✅ Dónde vive todo esto: una ficha por familia** (`G2`) y una **hoja de elección** para el bunga (`A3`), elegidas sobre las cinco colocaciones dibujadas y medidas en [`docs/diseño/gente.html`](diseño/gente.html). Ver §14.14.
 
 ### 2.4 Gente / participantes (común pero se instancia por evento)
 
@@ -714,7 +717,8 @@ estirarse cuando algo no va. Es la resolución de `garciadoral-ops`. De paso se
 comió lo que era «Más»: las estadísticas eran media pestaña de primer nivel para
 algo que se mira al volver del viaje, y ahora son un apartado de Ajustes.
 
-Barra: **Hoy · Dinero · Cenas · Planes · Ajustes**.
+Barra: **Agenda · Dinero · Comidas · Planes · Ajustes** (ver §14.10-ter, que es
+donde se cuenta por qué esos cinco nombres y qué hay dentro de cada uno).
 
 **Cabecera: la ballena, dónde estás y el punto.** Tres cosas, y el badge de
 «quién eres» **se retiró**. Decía tu nombre en todas las pantallas y todo el
@@ -854,6 +858,79 @@ y una superficie que se arrastra por encima de todo eso pelearía con ellos.
 de en qué pestaña estabas. Mismo sitio y mismo gesto; cambia la forma —pastilla
 en vez de cuadrado, porque ahora crece con el rótulo—, no el sistema.
 
+### 14.10-ter Cinco secciones y sus áreas
+
+Las opciones, dibujadas a 390 pt y con los números medidos contra `theme.css`,
+están en [`docs/diseño/navegacion.html`](diseño/navegacion.html). Lo elegido:
+**A1 · B2 · C1 · D1 · E1 · F3 · G1**, más **H1** para el botón de editar un día.
+
+| Sección | Áreas | Por qué |
+|---|---|---|
+| **Agenda** | Hoy · Días | El rótulo nombra la sección, no su primera área |
+| **Dinero** | Gastos · Saldos | Sin tocar: ya estaba bien |
+| **Comidas** | Cenas · Platos · Compra | Cabe la comida de mediodía sin retocar la barra |
+| **Planes** | — | |
+| **Ajustes** | acordeón | |
+
+**El rótulo nombra la sección, no su primera área.** La primera pestaña se
+llamaba «Hoy» y ahora es «Agenda»: una pestaña «Hoy» que contiene un área «Hoy»
+deja de decir dónde estás para decir dónde estabas al entrar. Cuesta que el
+destino más visitado pierda la palabra más corta —«Hoy» son 28 pt y «Agenda»
+55—, y se paga una sola vez. Por lo mismo la segunda área es «Días» y no
+«Evento»: el nombre del evento ya está en la cabecera y en Ajustes hay **otro**
+apartado llamado «Evento», que es donde se cambian sus fechas.
+
+**«Hoy» contesta la pregunta con la que se abre la app y se calla lo demás**
+(opción E1). El titular de la cena y los planes del día; ni el dinero, ni la
+compra, ni una lista de deberes. Y para los otros trescientos cincuenta y siete
+días del año, **enseña el día más próximo diciendo lo que es** (F3): «el primer
+día, dentro de 6 días», «el último día, hace 5». Antes decía «la agenda está
+vacía, añade cenas y planes», que era mentira —había ocho días apuntados— y hacía
+que alguien volviera a apuntar lo que ya estaba.
+
+**«Días» es una fila por día, todos, también los vacíos** (G1). La agenda hacía
+`if (!cena && !planes) return null` y un viaje de ocho días con cosas en tres
+enseñaba tres filas; el día vacío es justo el que hay que tocar para llenarlo.
+Una fila mide 70,7 pt, así que los ocho caben en los 633,6 del cuerpo y se ve de
+un vistazo cuál está libre — una tarjeta por día no cabía ni con los ocho vacíos
+(874 pt). El lápiz es de 44 × 44 y la fila entera abre el mismo modal (H1): el
+botón está para decir que el día se edita, no para tener que acertarle.
+
+En el modal de un día se monta o se corrige **su cena** y se dice **qué planes
+caen en él**, que es todo lo que un día tiene. Un día no se crea ni se borra:
+existe porque el evento tiene esas fechas.
+
+**La compra se queda en Comidas, como tercera área** (D1). Al pasar la segunda a
+ser Platos se habría quedado sin sitio en la navegación entera. Es lo que se abre
+en el súper, de pie y con el carro, y ahí un toque de más se nota; con tres áreas
+el mando da 115,3 pt por hueco, dos veces y media el mínimo de Apple.
+
+**Platos es el catálogo, que no tenía pantalla.** `updateDish` y `removeDish`
+llevaban desde el primer día en `db.js` sin que los llamara nadie: la única alta
+era el «plato nuevo al vuelo» de dentro del modal de una cena, y un plato mal
+escrito se quedaba mal escrito para siempre. Como la tabla `dishes` es **global,
+sin `eventId`**, la errata viajaba a todos los viajes; eso lo dice ahora la
+propia pantalla, y borrar avisa de en cuántas cenas está metido el plato.
+
+**El área elegida se recuerda por sección** (`lib/areas.js`), en memoria y no en
+`localStorage`: es dónde estabas hace un minuto, no una preferencia. Cada mando
+era un `useState` de su pantalla y la pantalla se desmonta al cambiar de
+pestaña, así que volver a Agenda te devolvía a «Hoy» aunque estuvieras en «Días».
+
+**Quién eres es una sola cosa en toda la app.** Planes guardaba lo suyo en
+`ballena.person.<evento>` con su propio desplegable «Eres:» y `lib/identidad.js`
+—la de la cabecera y la de Ajustes → Quién eres— en `ballena.me:<evento>`. Dos
+llaves distintas: identificarse en Ajustes no servía para votar, y la Compra
+firmaba en blanco quién había comprado porque leía la llave que ya no escribe
+nadie. El desplegable de Planes se retiró y las dos pantallas pasan por
+`useIdentidad`.
+
+Un detalle que solo se ve midiendo: la hoja dibujaba la fila de un día como
+«Paella mixta en El del ruido», y puesto en la app son 268 pt en una fila que
+tiene 237 con el lápiz — se recortaba en «El del…». La bunga bajó al titular de
+«Hoy» y al modal, que es donde hay sitio; en la fila sale solo cuando no hay
+plato que enseñar y el titular se quedaría en un «Cena» pelado.
+
 ### 14.11 Tipografía: un número y toda la escala
 
 El cuerpo pasa de 14 px a **17 px**, que es lo que iOS llama *body* y lo que de
@@ -882,6 +959,59 @@ La escala se declara **una sola vez**, en `theme.css`: un tema cambia de qué
 color es una cosa, nunca cuánto mide, así que una copia bajo otro selector solo
 podría discrepar. Y `--toque: 44px` es el suelo de cualquier cosa tocable, que no
 se baja: los botones pequeños bajan de cuerpo, no de altura.
+
+### 14.14 El grupo: una ficha por familia, y la hoja que sube desde abajo
+
+Familias, Bungalows y Gente eran **tres acordeones seguidos** de Ajustes, con
+tres listas, tres botones y tres formularios. Lo que los une —qué familia duerme
+en qué bunga, quién es de qué familia— no salía en ninguno de los tres: para
+saber quiénes eran los García había que abrir Gente y leer la segunda línea de
+seis filas. Y no se podía **editar nada**: se creaba y se borraba, así que un
+nombre mal escrito se arreglaba borrando la familia, que se llevaba por delante
+su vínculo con el bunga y dejaba a su gente sin ella.
+
+Las opciones se dibujaron a 390 pt con la semilla de verdad y se midieron en un
+navegador, en dos hojas que siguen en el repo:
+[`docs/diseño/gente.html`](diseño/gente.html) (dónde vive: `G1`–`G5`; con qué se
+asigna: `A1`–`A4`) y [`docs/diseño/gente-editar.html`](diseño/gente-editar.html)
+(cómo se entra a editar: `E1`–`E4`; qué editor aparece: `F1`–`F4`; por dónde se
+crea: `N1`–`N4`; dónde vive borrar: `D1`–`D4`).
+
+**Lo elegido, y lo que cuesta:**
+
+- **G2 · una ficha por familia** (`screens/GrupoSection.jsx`). Cabecera con el
+  color y el emoji de la familia y su bunga en una pastilla; dentro, su gente.
+  Es la única colocación donde la relación completa **se lee sin tocar nada**. Se
+  paga en alto: con las tres familias de la semilla mide 868 pt contra los 643
+  útiles de un iPhone base, así que hay que rodar.
+- **«Sueltos»**, la otra mitad de G2: el bunga sin familia y quien no está en
+  ninguna —y que por tanto no entra en ningún reparto— dejan de ser un dato que
+  no está en ninguna parte y pasan a ser una fila que se ve.
+- **A3 · hoja de elección** (`components/Hoja.jsx`). Filas de 48 pt con el alias
+  entero. Lo que ya tiene dueño **se enseña apagado, no se esconde**: si el bunga
+  que buscas no está, quieres saber que lo tienen los García.
+- **E1 · se toca la fila y se edita.** La diana es la fila entera —358 × 74 la
+  cabecera de una familia, 334 × 43 una persona—, no un lápiz de 34 repetido
+  nueve veces por pantalla.
+- **F2 · el editor es la misma hoja.** Sube desde abajo, deja ver por encima la
+  ficha de la que sales y no se descoloca cuando aparece el teclado, que sube por
+  ese mismo borde. Es un componente para dos usos, no dos.
+- **N2 + N4 · cada cosa se crea donde vive.** La persona dentro de su ficha —y
+  por eso su formulario ya **no pregunta la familia**: la dice el sitio donde has
+  pulsado—, el bunga desde la pastilla de la cabecera, y solo la familia en el
+  botón del final, que así sigue siendo **uno lleno por pantalla** (§14.12). La
+  hoja de elegir bunga lleva su propia salida, «+ Bunga nuevo…»: quedarse sin
+  ninguno libre es un botón y no un callejón.
+- **D1 · borrar solo existe al fondo del editor, y dice qué se lleva.** Antes era
+  un botón rojo en cada renglón y sin confirmación, justo donde cae el pulgar al
+  rodar la lista. Ahora son tres toques y la confirmación dice la verdad: «Sus 3
+  personas se quedan sin familia y Bunga 1 vuelve a quedar libre», que es
+  exactamente lo que hace `borrarFamilia` en `db.js`. Para un bunga cuenta de
+  cuántas cenas es sede; para una persona, en cuántos gastos participa.
+
+**Todo va ordenado por nombre.** Los ids son aleatorios (`lib/ids.js`), así que
+el orden de la base es el de un sorteo y una lista de nueve nombres sin orden se
+recorre entera cada vez.
 
 ### 14.12 Un solo tema, y sus dos caras
 

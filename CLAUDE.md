@@ -102,6 +102,7 @@ app/src/
         stats.js money.js ids.js native.js pwa.js
         tema.js tamano.js     aspecto: cara del tema y tamaño del texto (por dispositivo)
         identidad.js          quién eres en un evento (compartido cabecera ↔ Ajustes)
+        asignacion.js         qué bungas y qué familias están libres (el 1 a 1)
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
         hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
         scrollLock.js avatares.js
@@ -109,10 +110,13 @@ app/src/
   lib/  demo.js         demostración sin cuenta (directriz 2.1 de Apple)
   sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
         tables.js
-  screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats,
-            EventSettings (= Ajustes, en acordeón), Events, Acceso
-  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Icono.jsx · ProgresoModal.jsx
-              SyncDot.jsx · WhaleLogo.jsx
+  lib/  dias.js               los días de un evento y qué se hace en cada uno (puro)
+        areas.js              el área elegida en cada sección, que no se olvida al salir
+  screens/  Agenda(Hoy·Días), Dinero(Gastos·Saldos), Comidas(Cenas·Platos·Compra),
+            Planes, Stats, EventSettings (= Ajustes, en acordeón),
+            Grupo(familias+bungas+gente), Events, Acceso
+  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Hoja.jsx · Icono.jsx
+              ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx
   App.jsx  ·  theme.css
   public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
   public/privacidad.html · soporte.html   las dos URL que exige la ficha de la App Store
@@ -175,6 +179,15 @@ pantalla que aún no lo confirma se ve igual que una donde no se hizo nada.
   a la vez, no leyendo una lista. El artefacto enseña **lo que he pedido o lo que cambia, y
   nada más**: las decisiones ya tomadas se quedan fuera salvo que sean justo lo que se
   reabre o que las pida yo.
+- **Pedir opciones no es pedir código: cuando pido opciones, no se implementa nada.** Se
+  piensa, se hace el artefacto en línea y se me da a escoger. Ahí acaba la vuelta: sin
+  ramas nuevas, sin PR, sin «y de paso he dejado hecha la parte fácil». Y esto vale
+  **aunque en el mismo mensaje haya pedido cambios concretos**: si en el encargo aparece
+  «dame opciones», lo que sale de esa vuelta es la hoja, y lo demás espera a que elija.
+  El motivo es que elegir mirando cinco dibujos y elegir mirando uno ya escrito no es lo
+  mismo: lo implementado empuja la decisión y encima hay que deshacerlo. Si algo del
+  encargo parece urgente y no depende de lo que se decide, se **dice** en la respuesta y
+  se espera al «sí».
 - **Los comandos que me pasas para ejecutar van sin comentarios.** Nunca un `#` dentro del
   bloque. Lo que haya que explicar —qué hace, qué variable tocar, qué esperar— va **fuera**,
   en prosa, antes o después. Un bloque se copia entero y se pega en una terminal, muchas
@@ -224,14 +237,22 @@ cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadí
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
 **La puerta de acceso ya no es un muro**: si Apple falla se puede seguir en local y lo
 apuntado sube al entrar (SPECS §14.9).
+**El grupo en una sola sección** (SPECS §14.14): una ficha por familia con su bunga en una
+pastilla y su gente dentro, «Sueltos» para lo que no está colocado, y **edición de verdad**
+—se toca la fila y sube una hoja desde abajo—. Borrar salió de los renglones y vive al fondo
+del editor diciendo qué se lleva. Decidido en `docs/diseño/gente.html` (G2 · A3) y
+`docs/diseño/gente-editar.html` (E1 · F2 · N2 · N4 · D1).
 **Repaso de UX/UI** (SPECS §14.10–14.12), inspirado en `meeting-ops-air` y
-`garciadoral-ops`: barra de **Hoy · Dinero · Cenas · Planes · Ajustes** con los ajustes
+`garciadoral-ops`: barra de **Agenda · Dinero · Comidas · Planes · Ajustes** con los ajustes
 abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo, todo plegado) que se ha
 comido «Más» —Estadísticas, Quién eres (con tu perfil) y Evento son apartados—, cabecera de
 tres cosas con el punto verde que **sincroniza todo** (datos + versión de la app) con su
 lista de progreso, tipografía a 17 px ×1,12 de fábrica, y dos temas de máximo contraste.
 **Deslizar una fila de gastos** descubre Editar y Borrar (§14.10-bis), y el botón de crear
-lleva la palabra puesta («+ Gasto»). **Un solo tema** (Abisal Sobrio, claro y oscuro),
+lleva la palabra puesta («+ Gasto»). **Cada sección se parte en áreas** con el mando de
+`SubNav` (§14.10-ter, opciones en `docs/diseño/navegacion.html`): Agenda es Hoy · Días —con
+la lista entera de días, vacíos incluidos, y su modal para editar cada uno— y Comidas es
+Cenas · Platos · Compra, con el catálogo de platos por fin editable. **Un solo tema** (Abisal Sobrio, claro y oscuro),
 **iconos de línea** con tono por categoría, pesos de letra más bajos y un solo botón lleno
 por pantalla (§14.12–14.13).
 
@@ -256,9 +277,8 @@ la app funciona en modo solo-local.
 de iOS (`assets:ios`) **y** la web/PWA (`npm run iconos:web`, sharp sin guardar). Se retiró
 `public/favicon.svg`, que hacía que la app instalada y el navegador enseñaran dibujos distintos.
 
-**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · el **camino del
-fallo de sincronización** sin ver contra una API real (§14.9-bis; está probado con tests, no en
-pantalla) · **compartir** los avatares con
+**Pendiente (ideas):** el **camino del fallo de sincronización** sin ver contra una API real
+(§14.9-bis; está probado con tests, no en pantalla) · **compartir** los avatares con
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
 `Dish.ingredientes`).
