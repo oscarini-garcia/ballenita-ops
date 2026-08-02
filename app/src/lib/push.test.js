@@ -88,3 +88,28 @@ describe('ninguna llamada al puente se queda colgada', () => {
     await expect(registerPush()).rejects.toThrow(SIN_PLUGIN)
   })
 })
+
+/**
+ * El caso que costó tres intentos: el plugin **está** en el binario —sale en
+ * `Capacitor.Plugins`— y aun así la pantalla se quedaba en «Pidiendo…». En la
+ * consola de Xcode se veía llegar el `Haptics` del toque y ninguna llamada más:
+ * el `await import()` del paquete no volvía nunca dentro de la cáscara.
+ */
+describe('el plugin se coge del puente, no se importa', () => {
+  it('si el puente lo tiene, no se toca el import', async () => {
+    const puente = {
+      checkPermissions: async () => ({ receive: 'granted' }),
+      addListener: (evento, fn) => { if (evento === 'registration') setTimeout(() => fn({ value: 'tok' }), 0) },
+      register: () => {},
+    }
+    vi.doMock('@capacitor/core', () => ({
+      Capacitor: { isNativePlatform: () => true, Plugins: { PushNotifications: puente } },
+    }))
+    // Si llegara a importarse, este módulo colgaría la promesa para siempre.
+    vi.doMock('@capacitor/push-notifications', () => new Promise(() => {}))
+
+    const { registerPush, estadoDePush } = await import('./native.js')
+    expect(await estadoDePush()).toBe('granted')
+    expect(await registerPush()).toBe('tok')
+  })
+})
