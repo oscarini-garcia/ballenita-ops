@@ -1,0 +1,760 @@
+<title>Ballena Ops — Una ficha por familia ya está elegida; ahora falta el verbo: cómo se crea y cómo se corrige</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, cara clara. Valores de verdad de theme.css. */
+    --ab-fondo: #f1f5f7; --ab-tarjeta: #ffffff; --ab-linea: #dde6ea; --ab-linea-f: #c3d2da;
+    --ab-ink: #12262f; --ab-soft: #4d6674; --ab-faint: #7c919d;
+    --ab-acento: #22708f; --ab-acento-txt: #1a6280; --ab-acento-bg: #e5eef2;
+    --ab-owe: #a8443a; --ab-owe-bg: #f7e6e3;
+    --fam-garcia: #E5544B; --fam-perez: #2E9E6B; --fam-solteros: #1FA6D6;
+
+    /* La escala de la app: 17 px × 1,12 de fábrica. */
+    --m-title: 23.5px; --m-body: 19px; --m-row: 17.9px; --m-sub: 15.7px;
+    --m-label: 14.6px; --m-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(29px, 5.6vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 62ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 66ch; }
+  .defectos b { color: var(--tinta); }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -18px 0 0; font-size: 15px; color: var(--tinta-suave); max-width: 66ch; }
+  .parte-intro b { color: var(--tinta); }
+
+  .rejilla { display: grid; gap: 16px; }
+  @media (min-width: 760px) { .rejilla { grid-template-columns: 1fr 1fr; } }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 62ch; font-size: 15px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .apuntes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .apuntes li { display: flex; gap: 9px; font-size: 14.5px; line-height: 1.45; color: var(--tinta-suave); }
+  .apuntes li::before { content: "+"; font-family: var(--mono); font-weight: 700; color: var(--acento); flex: none; }
+  .apuntes li[data-signo="menos"]::before { content: "−"; color: var(--coral); }
+
+  /* ── El lienzo: iPhone base, 390 pt ───────────────────────────────────── */
+  .rotulo-movil { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); display: block; margin-bottom: 7px; }
+  .movil { width: 390px; max-width: 100%; background: var(--ab-fondo); color: var(--ab-ink);
+    border: 1px solid var(--ab-linea-f); border-radius: 16px; overflow: hidden; font-family: var(--sans); }
+  .m-body { padding: 14px 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .m-cab { background: #0b1f2c; color: #e6eef3; display: flex; align-items: center; gap: 11px; padding: 10px 14px; }
+  .m-cab .ti { font-size: var(--m-title); font-weight: 650; letter-spacing: -.01em; }
+  .m-cab .su { font-size: var(--m-micro); opacity: .78; }
+  .m-cab .accion { margin-left: auto; font-size: var(--m-row); font-weight: 600; color: #8fbdd1; }
+
+  .m-sec { font-size: var(--m-micro); font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ab-faint); display: flex; align-items: center; }
+  .m-sec .accion { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: var(--m-sub);
+    color: var(--ab-acento-txt); font-weight: 600; }
+  .m-nota { font-size: var(--m-sub); line-height: 1.45; color: var(--ab-soft); }
+
+  .m-card { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); border-radius: 9px; padding: 8px 12px; }
+  .m-row { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-top: 1px solid var(--ab-linea); }
+  .m-row:first-child { border-top: none; }
+  .m-av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
+    font-size: var(--m-body); color: #fff; }
+  .m-av.chica { width: 28px; height: 28px; font-size: var(--m-sub); border-radius: 7px; }
+  .m-main { flex: 1; min-width: 0; display: block; }
+  .m-n { display: block; font-size: var(--m-row); font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-sub { display: block; font-size: var(--m-sub); color: var(--ab-soft); }
+  .m-row > .m-sub, .m-row > .m-btn, .m-row > .m-pill { flex: none; white-space: nowrap; }
+  .m-btn { border: none; border-radius: 8px; padding: 12px 16px; font-weight: 600; font-size: var(--m-row);
+    background: var(--ab-acento); color: #fff; width: 100%; font-family: inherit; text-align: center; }
+  .m-btn.fantasma { background: none; color: var(--ab-acento-txt); border: 1px solid var(--ab-linea-f); }
+  .m-btn.sm { padding: 8px 12px; font-size: var(--m-sub); border-radius: 7px; width: auto; font-weight: 550; }
+  .m-btn.peligro { background: none; color: var(--ab-owe); border: 1px solid color-mix(in srgb, var(--ab-owe) 40%, transparent); }
+  .m-pill { font-size: var(--m-micro); font-weight: 650; border-radius: 999px; padding: 4px 10px;
+    background: var(--ab-acento-bg); color: var(--ab-acento-txt); white-space: nowrap; flex: none; }
+  .m-pill.vacia { background: none; border: 1px dashed var(--ab-linea-f); color: var(--ab-faint); font-weight: 550; }
+
+  /* La ficha de familia de G2. */
+  .m-ficha { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); border-radius: 9px; overflow: hidden; }
+  .m-ficha-cab { display: flex; align-items: center; gap: 11px; padding: 10px 12px; }
+  .m-ficha-cab .m-n { font-size: var(--m-body); font-weight: 650; }
+  .m-ficha-cuerpo { padding: 0 12px 8px; }
+  .m-mini { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-top: 1px solid var(--ab-linea);
+    font-size: var(--m-sub); }
+  .m-mini .quien { flex: 1; color: var(--ab-ink); font-size: var(--m-row); font-weight: 500; }
+  .m-mini .dato { color: var(--ab-faint); font-size: var(--m-micro); }
+  .m-anadir { padding: 9px 0; font-size: var(--m-sub); color: var(--ab-acento-txt); font-weight: 600;
+    border-top: 1px solid var(--ab-linea); }
+
+  /* Marcas de la maqueta: diana del toque y cotas. */
+  /* Marca de la diana: por dentro, que la ficha recorta lo que se salga. */
+  .diana { box-shadow: inset 0 0 0 2px var(--ab-acento); border-radius: 8px;
+    background: color-mix(in srgb, var(--ab-acento) 7%, transparent); }
+  .cota { font-family: var(--mono); font-size: 11px; color: var(--ab-faint); }
+  .dedo { position: relative; }
+  .dedo::after { content: ''; position: absolute; right: 46px; top: 50%; width: 34px; height: 34px;
+    margin-top: -17px; border-radius: 50%; background: color-mix(in srgb, var(--ab-acento) 26%, transparent); }
+
+  /* Deslizable (E2) y modo editar (E4). */
+  .m-desliz { display: flex; align-items: stretch; }
+  .m-desliz .cuerpo { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px; padding: 10px 12px; }
+  .m-desliz .acciones { display: flex; }
+  .m-desliz .acciones span { display: grid; place-items: center; width: 74px; color: #fff;
+    font-size: var(--m-sub); font-weight: 600; }
+  .m-desliz .editar { background: var(--ab-acento); }
+  .m-desliz .borrar { background: var(--ab-owe); }
+  .m-quitar { width: 24px; height: 24px; border-radius: 50%; background: var(--ab-owe); color: #fff;
+    display: grid; place-items: center; font-weight: 700; flex: none; font-size: 15px; line-height: 1; }
+  .m-lapiz { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--ab-linea-f);
+    display: grid; place-items: center; flex: none; color: var(--ab-acento-txt); }
+  .m-lapiz svg { width: 19px; height: 19px; }
+
+  /* Editores: modal (F1), hoja (F2), en línea (F3), pantalla (F4). */
+  .m-fondo { background: color-mix(in srgb, #0b1f2c 45%, transparent); padding: 14px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .m-fondo.abajo { justify-content: flex-end; padding: 0; }
+  .m-modal { background: var(--ab-tarjeta); border-radius: 14px; padding: 16px 16px 18px;
+    display: flex; flex-direction: column; gap: 2px; }
+  .m-modal h4, .m-hoja h4 { margin: 0; font-size: var(--m-title); font-weight: 650; }
+  .m-hoja { background: var(--ab-tarjeta); border-radius: 16px 16px 0 0; padding: 8px 16px 18px;
+    display: flex; flex-direction: column; gap: 2px; }
+  .m-asa { width: 38px; height: 5px; border-radius: 999px; background: var(--ab-linea-f); align-self: center; margin-bottom: 8px; }
+  .m-label { display: block; font-size: var(--m-label); font-weight: 700; color: var(--ab-soft); margin: 12px 2px 5px; }
+  .m-campo { border: 1px solid var(--ab-linea-f); background: var(--ab-tarjeta); border-radius: 8px;
+    padding: 11px 12px; font-size: var(--m-body); display: flex; align-items: center; min-height: 44px; }
+  .m-campo.select::after { content: ''; margin-left: auto; width: 8px; height: 8px; flex: none;
+    border-right: 2px solid var(--ab-faint); border-bottom: 2px solid var(--ab-faint);
+    transform: rotate(45deg) translate(-3px, -3px); }
+  .m-campo.foco { outline: 2px solid var(--ab-acento); outline-offset: 1px; }
+  .m-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .m-chips { display: flex; gap: 8px; }
+  .m-chips span { width: 38px; height: 30px; border-radius: 8px; background: var(--ab-fondo);
+    display: grid; place-items: center; }
+  .m-chips span i { width: 16px; height: 16px; border-radius: 50%; display: block; }
+  .m-chips span.on { background: var(--ab-acento-bg); box-shadow: inset 0 0 0 1px var(--ab-acento); }
+
+  /* Hoja de elección A3, que es la figura ya elegida. */
+  .m-eleccion { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); border-radius: 14px; overflow: hidden; }
+  .m-eleccion h4 { margin: 0; padding: 13px 14px; font-size: var(--m-body); font-weight: 650;
+    border-bottom: 1px solid var(--ab-linea); }
+  .m-eleccion .op { display: flex; align-items: center; gap: 10px; padding: 0 14px; min-height: 48px;
+    font-size: var(--m-row); border-bottom: 1px solid var(--ab-linea); }
+  .m-eleccion .op:last-child { border-bottom: none; }
+  .m-eleccion .op .tic { margin-left: auto; color: var(--ab-acento-txt); font-weight: 700; }
+  .m-eleccion .op.apagada { color: var(--ab-faint); }
+  .m-eleccion .op.nueva { color: var(--ab-acento-txt); font-weight: 600; }
+
+  .combina { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px; padding: 18px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .combina h3 { font-family: var(--serif); font-size: 19px; font-weight: 600; margin: 0; }
+  .combina .par { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap;
+    border-top: 1px solid var(--linea); padding-top: 11px; }
+  .combina .par:first-of-type { border-top: none; padding-top: 0; }
+  .combina .codigo { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; flex: none; }
+  .combina p { margin: 0; font-size: 14.5px; color: var(--tinta-suave); max-width: 60ch; }
+
+  .cierre { background: var(--papel-2); border: 1px solid var(--linea); border-left: 4px solid var(--acento);
+    border-radius: 4px 12px 12px 4px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 21px; margin: 0; }
+  .cierre p { margin: 0; color: var(--tinta-suave); max-width: 62ch; }
+  .respuesta { font-family: var(--mono); font-size: 14px; background: var(--acento-suave); color: var(--acento);
+    border-radius: 7px; padding: 10px 13px; align-self: flex-start; font-weight: 600; }
+  .pie { font-size: 13.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    padding-top: 14px; margin: 0; }
+</style>
+
+<div class="hoja">
+  <div class="col">
+
+    <div class="masthead">
+      <div class="eyebrow">docs/diseño · gente-editar · continúa gente.html · G2 + A3</div>
+      <h1>La ficha por familia ya está elegida; ahora falta el verbo: cómo se crea y cómo se corrige</h1>
+      <p class="entradilla">
+        Con <b>G2</b> la pantalla enseña una ficha por familia, y con <b>A3</b> el bunga se elige en una
+        hoja. Las dos cosas dicen cómo se <i>ve</i>. Falta lo otro: <b>hoy no se puede editar nada</b>
+        —familias, bungas y personas solo se crean y se borran—, así que un nombre mal escrito se
+        arregla borrando. Esta hoja decide tres cosas y solo tres: <b>cómo se entra a editar</b>
+        (E1–E4), <b>qué aparece cuando entras</b> (F1–F4) y <b>por dónde se crea</b> (N1–N4). Borrar
+        va aparte, al final (D1–D4), porque hoy es lo más peligroso de la pantalla.
+      </p>
+      <div class="ficha">
+        <span>Dibujado sobre <b>G2 + A3</b>, ya elegidas</span>
+        <span><b>390 pt</b> de ancho · <b>643</b> de alto útil</span>
+        <span>Paleta <b>Abisal Sobrio</b>, cara clara · <b>17 px ×1,12</b></span>
+        <span>Contenido real: la semilla <b>Ballenita 2026</b></span>
+      </div>
+    </div>
+
+    <!-- ── Antes de las opciones ─────────────────────────────────────────── -->
+    <div class="defectos">
+      <h2>Antes de las opciones · tres cosas que no se eligen</h2>
+      <p>
+        <b>Borrar se va del renglón.</b> Hoy cada fila lleva su botón «Borrar» —92 × 38 pt, a 12 del
+        borde derecho— en una lista que se recorre con el pulgar y <b>sin confirmación</b>. Borrar una
+        familia se lleva por delante su vínculo con el bunga y deja a su gente sin ella. Sea cual sea
+        la opción que elijas, el botón rojo permanente desaparece de la fila; lo que se decide abajo
+        es <b>a dónde va</b>.
+      </p>
+      <p>
+        <b>El desplegable de familia se cae del formulario de persona.</b> Con G2, «+ Persona» se pulsa
+        <i>dentro</i> de la ficha de los García: la familia ya la dice el sitio donde has tocado.
+        Preguntarla otra vez es preguntar algo que acabas de contestar. No es una opción, es una
+        consecuencia de G2.
+      </p>
+      <p>
+        <b>Toda pantalla de edición guarda al vuelo o avisa.</b> La app es optimista y sincroniza sola;
+        un editor que se cierre perdiendo lo escrito sin decir nada se lee como que la app pierde
+        cosas, que es justo lo que SPECS §14.9-bis prohíbe. Eso lo cumplen las cuatro F.
+      </p>
+      <p class="linea-corte">
+        Y lo que <b>ya está escrito</b> y no se toca: qué bungas y qué familias están libres
+        (<code>lib/asignacion.js</code>) y el uno a uno al asignar (<code>asignarBungaAFamilia</code>).
+        Es exactamente lo que la hoja de A3 necesita para saber qué enseñar.
+      </p>
+    </div>
+
+    <div class="parte">Parte uno · cómo se entra a editar</div>
+    <p class="parte-intro">
+      Las cuatro llevan al mismo sitio: el editor que se decide en la parte dos. Se diferencian en
+      <b>cuántos toques</b> cuestan, en <b>cuánto cromo</b> dejan en la pantalla y en si alguien las
+      encuentra sin que se las expliquen. Las cuatro están dibujadas sobre <b>la misma ficha</b>.
+    </p>
+
+    <div class="rejilla">
+      <!-- E1 -->
+      <div class="opcion" data-marca="recomendada">
+        <div class="op-cab"><span class="op-letra">E1</span><span class="op-nombre">Tocar la fila</span><span class="etq rec">recomendada</span></div>
+        <p class="op-idea">La fila entera es el botón. Tocar la cabecera edita la familia; tocar a una persona la edita a ella.</p>
+        <div>
+          <span class="rotulo-movil">Ficha de los García</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-ficha">
+              <div class="m-ficha-cab diana">
+                <span class="m-av" style="background: var(--fam-garcia)">🏖️</span>
+                <span class="m-main"><span class="m-n">García</span><span class="m-sub">modo playa</span></span>
+                <span class="m-pill">Bunga 1 · piscina</span>
+              </div>
+              <div class="m-ficha-cuerpo">
+                <div class="m-mini"><span class="m-av chica" style="background: var(--fam-garcia)">🧑</span><span class="quien">Curro</span><span class="dato">adulto · 1</span></div>
+                <div class="m-mini"><span class="m-av chica" style="background: var(--fam-garcia)">🧑</span><span class="quien">Marta</span><span class="dato">adulto · 1</span></div>
+                <div class="m-anadir">+ Persona</div>
+              </div>
+            </div>
+            <div class="cota">Diana de la cabecera: 358 × 74 pt. La de una persona: 334 × 43.</div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>el toque libre</b>: la fila ya no puede servir para otra cosa (plegar la ficha, ver un detalle). Como no hay detalle que ver, casi no cuesta nada. <b>1 toque</b>, la diana más grande posible y cero cromo nuevo.</p>
+        <ul class="apuntes">
+          <li>La pastilla del bunga se queda como una diana propia dentro de la fila: tocarla abre la hoja A3 directamente, sin pasar por el editor.</li>
+          <li data-signo="menos">Nada en la pantalla dice que la fila se puede tocar: se descubre tocando.</li>
+        </ul>
+      </div>
+
+      <!-- E2 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">E2</span><span class="op-nombre">Deslizar la fila</span></div>
+        <p class="op-idea">El gesto que ya usa Gastos (§14.10-bis, <code>Deslizable.jsx</code>): se arrastra la fila y aparecen Editar y Borrar.</p>
+        <div>
+          <span class="rotulo-movil">Deslizando a Marta</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-ficha">
+              <div class="m-ficha-cab">
+                <span class="m-av" style="background: var(--fam-garcia)">🏖️</span>
+                <span class="m-main"><span class="m-n">García</span><span class="m-sub">modo playa</span></span>
+                <span class="m-pill">Bunga 1 · piscina</span>
+              </div>
+              <div class="m-ficha-cuerpo">
+                <div class="m-mini"><span class="m-av chica" style="background: var(--fam-garcia)">🧑</span><span class="quien">Curro</span><span class="dato">adulto · 1</span></div>
+              </div>
+              <div class="m-desliz">
+                <span class="cuerpo"><span class="m-av chica" style="background: var(--fam-garcia)">🧑</span><span class="m-main"><span class="m-n">Marta</span></span></span>
+                <span class="acciones"><span class="editar">Editar</span><span class="borrar">Borrar</span></span>
+              </div>
+            </div>
+            <div class="cota">74 pt por acción · el gesto ya existe y está testeado.</div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>descubrirse</b>, y lo paga quien no usa Gastos: un gesto sin marca no lo encuentra nadie. Compra <b>coherencia</b> —es el mismo verbo que en la otra lista de la app— y deja las dos acciones a <b>1 gesto + 1 toque</b>, sin cromo permanente.</p>
+        <ul class="apuntes">
+          <li>Es la única que ya está escrita: <code>Deslizable.jsx</code> con su test.</li>
+          <li data-signo="menos">Dentro de una ficha con dos niveles, deslizar la cabecera y deslizar a una persona se parecen demasiado: hay que decidir si la cabecera también desliza.</li>
+        </ul>
+      </div>
+
+      <!-- E3 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">E3</span><span class="op-nombre">Un lápiz en cada fila</span></div>
+        <p class="op-idea">Un botón visible al final de cada renglón. Nada que descubrir: se ve.</p>
+        <div>
+          <span class="rotulo-movil">Ficha con lápices</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-ficha">
+              <div class="m-ficha-cab">
+                <span class="m-av" style="background: var(--fam-garcia)">🏖️</span>
+                <span class="m-main"><span class="m-n">García</span><span class="m-sub">modo playa</span></span>
+                <span class="m-pill">Bunga 1</span>
+                <span class="m-lapiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5z"/><path d="M13.5 6.5 17.5 10.5"/></svg></span>
+              </div>
+              <div class="m-ficha-cuerpo">
+                <div class="m-mini"><span class="m-av chica" style="background: var(--fam-garcia)">🧑</span><span class="quien">Curro</span><span class="m-lapiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5z"/><path d="M13.5 6.5 17.5 10.5"/></svg></span></div>
+                <div class="m-mini"><span class="m-av chica" style="background: var(--fam-garcia)">🧑</span><span class="quien">Marta</span><span class="m-lapiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5z"/><path d="M13.5 6.5 17.5 10.5"/></svg></span></div>
+                <div class="m-anadir">+ Persona</div>
+              </div>
+            </div>
+            <div class="cota">Con la semilla entera: 9 lápices en pantalla.</div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>ruido</b>, y lo paga el dato: con 3 familias y 6 personas son <b>9 lápices</b> repitiendo el mismo dibujo, y en la cabecera el lápiz se pone al lado de la pastilla del bunga —dos cosas tocables a 8 pt una de otra—. Compra que <b>nadie tenga que descubrir nada</b>.</p>
+        <ul class="apuntes">
+          <li>Es la más explícita: si alguien pregunta «¿cómo cambio el nombre?», la respuesta está en la pantalla.</li>
+          <li data-signo="menos">El lápiz de 34 pt se queda por debajo del mínimo de 44 si no se le da relleno, y con relleno come el ancho del nombre.</li>
+          <li data-signo="menos">Va contra §14.13: cromo repetido en cada fila es justo lo que se quitó al bajar los pesos y los iconos.</li>
+        </ul>
+      </div>
+
+      <!-- E4 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">E4</span><span class="op-nombre">Modo Editar de la sección</span></div>
+        <p class="op-idea">Un «Editar» arriba pone la sección entera en modo edición, como las listas del sistema: mientras dura, cada fila enseña su ⊖ y se puede tocar para corregir.</p>
+        <div>
+          <span class="rotulo-movil">El grupo · en modo Editar</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-sec">El grupo<span class="accion">Hecho</span></div>
+            <div class="m-ficha">
+              <div class="m-ficha-cab">
+                <span class="m-quitar">−</span>
+                <span class="m-av" style="background: var(--fam-garcia)">🏖️</span>
+                <span class="m-main"><span class="m-n">García</span><span class="m-sub">modo playa</span></span>
+                <span class="m-pill">Bunga 1</span>
+              </div>
+              <div class="m-ficha-cuerpo">
+                <div class="m-mini"><span class="m-quitar">−</span><span class="quien">Curro</span><span class="dato">adulto · 1</span></div>
+                <div class="m-mini"><span class="m-quitar">−</span><span class="quien">Marta</span><span class="dato">adulto · 1</span></div>
+              </div>
+            </div>
+            <div class="m-nota">Fuera del modo, la pantalla vuelve a estar limpia: ni ⊖ ni lápices.</div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>un estado</b> —la pantalla tiene dos caras y hay que salir de una para volver a la otra— y <b>2 toques</b> para el primer arreglo. Compra el mejor sitio para borrar (dentro del modo, nunca al pasar el pulgar) y deja el día a día <b>sin una sola pieza de cromo</b>.</p>
+        <ul class="apuntes">
+          <li>Es el patrón que la gente ya conoce de las listas de iOS: no hay que explicarlo.</li>
+          <li>Aquí sí cabe reordenar familias, si algún día hiciera falta.</li>
+          <li data-signo="menos">Un modo que se queda puesto es un modo que confunde: hay que salir de él al cambiar de pestaña.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="parte">Parte dos · qué aparece cuando entras</div>
+    <p class="parte-intro">
+      Los cuatro editan <b>la misma familia con los mismos cinco campos</b> —nombre, emoji, estado,
+      bunga y color—, y en los cuatro el campo <b>Bunga</b> es la pastilla que abre la hoja A3, que ya
+      está decidida. Lo que cambia es la <b>figura</b> que aparece y lo que tapa.
+    </p>
+
+    <div class="rejilla">
+      <!-- F1 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">Modal centrado</span><span class="etq base">lo que hay</span></div>
+        <p class="op-idea">La figura de hoy para crear, reutilizada para editar: tarjeta centrada sobre el fondo oscurecido, con «Guardar» abajo.</p>
+        <div>
+          <span class="rotulo-movil">Editar familia · modal</span>
+          <div class="movil"><div class="m-fondo">
+            <div class="m-modal">
+              <h4>Editar familia</h4>
+              <span class="m-label">Nombre</span>
+              <div class="m-campo foco">García</div>
+              <div class="m-dos">
+                <div><span class="m-label">Emoji</span><div class="m-campo">🏖️</div></div>
+                <div><span class="m-label">Estado</span><div class="m-campo">modo playa</div></div>
+              </div>
+              <span class="m-label">Bunga</span>
+              <div class="m-campo select"><span class="m-pill">Bunga 1 · piscina</span></div>
+              <span class="m-label">Color</span>
+              <div class="m-chips"><span class="on"><i style="background: var(--fam-garcia)"></i></span><span><i style="background: var(--fam-perez)"></i></span><span><i style="background: var(--fam-solteros)"></i></span><span><i style="background: #E7A33E"></i></span><span><i style="background: #6E4C97"></i></span></div>
+              <div style="margin-top: 16px"><button class="m-btn">Guardar</button></div>
+            </div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>contexto</b>: tapa la ficha que estabas mirando, así que al elegir bunga ya no ves de quién era. Compra <b>cero código nuevo</b> —es el <code>Modal</code> que ya existe— y es la única que no hay que inventar.</p>
+      </div>
+
+      <!-- F2 -->
+      <div class="opcion" data-marca="recomendada">
+        <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">Hoja desde abajo</span><span class="etq rec">recomendada</span></div>
+        <p class="op-idea">La misma figura que A3, con asa arriba: sube desde el borde inferior, deja ver la ficha por encima y se baja arrastrando.</p>
+        <div>
+          <span class="rotulo-movil">Editar familia · hoja</span>
+          <div class="movil"><div class="m-fondo abajo">
+            <div style="padding: 14px 14px 0; opacity: .5">
+              <div class="m-ficha"><div class="m-ficha-cab">
+                <span class="m-av" style="background: var(--fam-garcia)">🏖️</span>
+                <span class="m-main"><span class="m-n">García</span><span class="m-sub">modo playa</span></span>
+              </div></div>
+            </div>
+            <div class="m-hoja">
+              <span class="m-asa"></span>
+              <h4>Editar familia</h4>
+              <span class="m-label">Nombre</span>
+              <div class="m-campo foco">García</div>
+              <div class="m-dos">
+                <div><span class="m-label">Emoji</span><div class="m-campo">🏖️</div></div>
+                <div><span class="m-label">Estado</span><div class="m-campo">modo playa</div></div>
+              </div>
+              <span class="m-label">Bunga</span>
+              <div class="m-campo select"><span class="m-pill">Bunga 1 · piscina</span></div>
+              <div style="margin-top: 14px"><button class="m-btn">Guardar</button></div>
+            </div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>un componente nuevo</b> —una hoja que hoy no existe—, pero es <b>el mismo</b> que pide A3, así que se escribe una vez y sirve para las dos. Compra que la ficha siga viéndose por encima y que cerrar sea un gesto hacia abajo, no buscar una ×.</p>
+        <ul class="apuntes">
+          <li>Una sola figura para elegir bunga (A3) y para editar: dos usos, un componente, un test.</li>
+          <li>El teclado no la descoloca: la hoja crece desde abajo, que es de donde sube el teclado.</li>
+        </ul>
+      </div>
+
+      <!-- F3 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">En línea, sobre la propia fila</span></div>
+        <p class="op-idea">Nada se abre: la fila se convierte en sus campos, se corrige ahí mismo y se cierra con «Hecho».</p>
+        <div>
+          <span class="rotulo-movil">La cabecera, editándose</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-ficha">
+              <div class="m-ficha-cab" style="gap: 8px">
+                <span class="m-campo" style="width: 54px; justify-content: center">🏖️</span>
+                <span class="m-campo foco" style="flex: 1; min-width: 0">García</span>
+                <span class="m-btn sm">Hecho</span>
+              </div>
+              <div class="m-ficha-cuerpo">
+                <div class="m-mini"><span class="m-sub" style="flex: 1">Estado</span><span class="m-campo" style="width: 168px">modo playa</span></div>
+                <div class="m-mini"><span class="m-sub" style="flex: 1">Bunga</span><span class="m-pill">Bunga 1 · piscina</span></div>
+                <div class="m-mini"><span class="m-sub" style="flex: 1">Color</span><span class="m-chips"><span class="on"><i style="background: var(--fam-garcia)"></i></span><span><i style="background: var(--fam-perez)"></i></span><span><i style="background: var(--fam-solteros)"></i></span></span></div>
+              </div>
+            </div>
+            <div class="m-nota">La ficha crece de 76 a 240 pt mientras se edita y empuja a las de abajo.</div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>que la pantalla se mueva bajo el dedo</b>: la ficha crece y desplaza a las demás, y con el teclado abierto media pantalla se va. Compra lo máximo: <b>0 capas</b> encima, se ve dónde estás y el cambio se ve al instante donde va a quedar.</p>
+        <ul class="apuntes">
+          <li>Para corregir una letra de un nombre es imbatible: tocar, escribir, hecho.</li>
+          <li data-signo="menos">Cinco campos no caben en el ancho de una fila: el emoji y el nombre sí, el resto baja a renglones, y entonces ya es un formulario dentro de la lista.</li>
+          <li data-signo="menos">Sin botón de cancelar: lo escrito ya está escrito. Hay que decidir si eso vale para el nombre de una familia.</li>
+        </ul>
+      </div>
+
+      <!-- F4 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre">Pantalla propia</span></div>
+        <p class="op-idea">Se entra a una pantalla entera, con su cabecera y su «Guardar» arriba a la derecha; se vuelve con la flecha.</p>
+        <div>
+          <span class="rotulo-movil">Editar familia · pantalla</span>
+          <div class="movil">
+            <div class="m-cab"><div><div class="ti">‹ García</div><div class="su">Editar familia</div></div><span class="accion">Guardar</span></div>
+            <div class="m-body">
+              <span class="m-label">Nombre</span>
+              <div class="m-campo foco">García</div>
+              <div class="m-dos">
+                <div><span class="m-label">Emoji</span><div class="m-campo">🏖️</div></div>
+                <div><span class="m-label">Estado</span><div class="m-campo">modo playa</div></div>
+              </div>
+              <span class="m-label">Bunga</span>
+              <div class="m-campo select"><span class="m-pill">Bunga 1 · piscina</span></div>
+              <span class="m-label">Color</span>
+              <div class="m-chips"><span class="on"><i style="background: var(--fam-garcia)"></i></span><span><i style="background: var(--fam-perez)"></i></span><span><i style="background: var(--fam-solteros)"></i></span><span><i style="background: #E7A33E"></i></span><span><i style="background: #6E4C97"></i></span></div>
+              <div style="margin-top: 18px"><button class="m-btn peligro">Borrar la familia</button></div>
+            </div>
+          </div>
+        </div>
+        <p class="coste">Cuesta <b>navegación</b>: la app no tiene pilas de pantallas —es barra abajo y acordeones—, así que hay que inventar el «atrás». Compra <b>sitio de sobra</b>: es la única donde el botón de borrar cabe abajo del todo, lejos del pulgar y con su confirmación.</p>
+        <ul class="apuntes">
+          <li>Aguanta cualquier campo que se añada mañana sin quedarse estrecha.</li>
+          <li data-signo="menos">Es la más pesada para cambiar una letra: entrar, corregir, guardar, volver.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="parte">Parte tres · por dónde se crea</div>
+    <p class="parte-intro">
+      Con G2 hay <b>tres cosas</b> que crear y cada una tiene su sitio natural: la <b>persona</b> dentro
+      de su ficha, el <b>bunga</b> cuando no queda ninguno libre, y la <b>familia</b> al final de todo.
+      Lo que se decide es si esos tres sitios son tres figuras distintas o una sola.
+    </p>
+
+    <div class="rejilla">
+      <!-- N1 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">N1</span><span class="op-nombre">Un botón por lista, al final</span><span class="etq base">lo que hay</span></div>
+        <p class="op-idea">Como hoy: «+ Añadir familia» debajo de la lista, y lo mismo para bungas y gente.</p>
+        <div>
+          <span class="rotulo-movil">Final de la sección</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-ficha"><div class="m-ficha-cab">
+              <span class="m-av" style="background: var(--fam-solteros)">🎉</span>
+              <span class="m-main"><span class="m-n">Solteros</span><span class="m-sub">sin dormir</span></span>
+              <span class="m-pill vacia">+ Bunga</span>
+            </div></div>
+            <button class="m-btn">+ Familia</button>
+            <button class="m-btn fantasma">+ Bunga suelto</button>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>bajar hasta el final</b> —con la semilla, 868 pt de rodar antes de ver el botón— y cuesta <b>dos botones llenos</b> en la misma pantalla, que va contra la regla de uno por pantalla (§14.12).</p>
+      </div>
+
+      <!-- N2 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">N2</span><span class="op-nombre">Cada cosa donde vive</span></div>
+        <p class="op-idea">«+ Persona» dentro de su ficha (ya viene con G2), «+ Bunga» en la pastilla vacía de la cabecera, y solo «+ Familia» abajo.</p>
+        <div>
+          <span class="rotulo-movil">Tres sitios, tres ámbitos</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-ficha">
+              <div class="m-ficha-cab">
+                <span class="m-av" style="background: var(--fam-solteros)">🎉</span>
+                <span class="m-main"><span class="m-n">Solteros</span><span class="m-sub">sin dormir</span></span>
+                <span class="m-pill vacia diana">+ Bunga</span>
+              </div>
+              <div class="m-ficha-cuerpo">
+                <div class="m-mini"><span class="m-av chica" style="background: var(--fam-solteros)">🧑</span><span class="quien">Pablo</span><span class="dato">adulto · 1</span></div>
+                <div class="m-anadir diana">+ Persona</div>
+              </div>
+            </div>
+            <button class="m-btn">+ Familia</button>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>aprender tres sitios</b> en vez de uno. Compra que el formulario llegue <b>medio relleno</b>: la persona ya sabe su familia y el bunga ya sabe a quién se asigna, así que el formulario de persona pierde un campo y el de bunga otro.</p>
+        <ul class="apuntes">
+          <li>Es la que sale gratis con G2: la ficha ya tiene esos dos huecos dibujados.</li>
+          <li>Un solo botón lleno en la pantalla, como manda §14.12.</li>
+        </ul>
+      </div>
+
+      <!-- N3 -->
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">N3</span><span class="op-nombre">Crear es editar una fila vacía</span></div>
+        <p class="op-idea">No hay formulario de «nuevo»: al final de cada lista hay una fila tenue que, al tocarla, se convierte en la fila de verdad ya en modo edición.</p>
+        <div>
+          <span class="rotulo-movil">La fila fantasma</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-ficha">
+              <div class="m-ficha-cab">
+                <span class="m-av" style="background: var(--fam-perez)">🍷</span>
+                <span class="m-main"><span class="m-n">Pérez</span><span class="m-sub">a por el vino</span></span>
+                <span class="m-pill">Bunga 2</span>
+              </div>
+              <div class="m-ficha-cuerpo">
+                <div class="m-mini"><span class="m-av chica" style="background: var(--fam-perez)">🧑</span><span class="quien">Ana</span><span class="dato">adulto · 1</span></div>
+                <div class="m-mini"><span class="m-av chica" style="background: var(--ab-linea)">＋</span><span class="m-campo foco" style="flex: 1">Luis|</span></div>
+              </div>
+            </div>
+            <div class="m-nota">Escribiendo el nombre ya se crea; lo demás (edad, peso) se toca después.</div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>medias criaturas</b>: una persona sin edad ni peso ya existe y ya cuenta para el reparto (peso 1 por defecto). Compra <b>lo más rápido que hay</b> para meter seis nombres seguidos: tocar, escribir, intro, escribir, intro.</p>
+        <ul class="apuntes">
+          <li>Un solo editor para crear y para corregir: menos código y menos test.</li>
+          <li data-signo="menos">Pide que todos los campos tengan un valor de fábrica sensato, y el peso de reparto es justo el que no lo tiene claro.</li>
+        </ul>
+      </div>
+
+      <!-- N4 -->
+      <div class="opcion" data-marca="recomendada">
+        <div class="op-cab"><span class="op-letra">N4</span><span class="op-nombre">Crear desde la propia hoja</span><span class="etq rec">recomendada con N2</span></div>
+        <p class="op-idea">La hoja de A3 lleva una última fila: «+ Bunga nuevo…». Cuando no queda ninguno libre, no hay que salir a otro sitio a crearlo.</p>
+        <div>
+          <span class="rotulo-movil">Hoja A3, con salida</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-eleccion">
+              <h4>Bunga de los Solteros</h4>
+              <div class="op">— ninguno —<span class="tic">✓</span></div>
+              <div class="op">🏠 Bunga 3 (el del fondo)</div>
+              <div class="op apagada">🏠 Bunga 1 · lo tienen los García</div>
+              <div class="op nueva">＋ Bunga nuevo…</div>
+            </div>
+            <div class="m-nota">Sin esta fila, «no queda ninguno libre» es un callejón: hay que cerrar, buscar la lista de bungas y volver.</div>
+          </div></div>
+        </div>
+        <p class="coste">Cuesta <b>una hoja encima de otra</b> —el formulario del bunga nuevo aparece sobre la de elección—, que es una capa más de las que a nadie le gustan. Compra que el aviso de «todos los bungas tienen familia» deje de ser un aviso y pase a ser <b>un botón</b>.</p>
+      </div>
+    </div>
+
+    <div class="parte">Parte cuatro · dónde vive borrar</div>
+    <p class="parte-intro">
+      Hoy borrar es un botón rojo en cada renglón y sin confirmación. Las cuatro opciones lo sacan de
+      ahí; se diferencian en <b>cuánto cuesta llegar</b> y en <b>cuánto cuesta equivocarse</b>. Y las
+      cuatro dicen lo mismo antes de hacerlo: <b>qué se lleva por delante</b> —«Los García tienen 3
+      personas y el Bunga 1» — porque hoy no lo dice nadie.
+    </p>
+
+    <div class="rejilla">
+      <div class="opcion" data-marca="recomendada">
+        <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">Al fondo del editor</span><span class="etq rec">recomendada</span></div>
+        <p class="op-idea">Borrar solo existe dentro del editor, abajo del todo, en fantasma rojo y con una confirmación que dice qué se lleva.</p>
+        <div>
+          <span class="rotulo-movil">Fondo del editor</span>
+          <div class="movil"><div class="m-body">
+            <span class="m-label">Color</span>
+            <div class="m-chips"><span class="on"><i style="background: var(--fam-garcia)"></i></span><span><i style="background: var(--fam-perez)"></i></span><span><i style="background: var(--fam-solteros)"></i></span></div>
+            <button class="m-btn">Guardar</button>
+            <button class="m-btn peligro">Borrar la familia</button>
+            <div class="m-nota">Al tocar: «Se borran los García. Sus <b>3 personas</b> se quedan sin familia y el <b>Bunga 1</b> vuelve a quedar libre.»</div>
+          </div></div>
+        </div>
+        <p class="coste"><b>3 toques</b> para borrar (entrar, borrar, confirmar) y <b>0</b> maneras de hacerlo sin querer al rodar la lista. Cuesta que borrar cinco cosas seguidas sea lento; pasa dos veces al año.</p>
+      </div>
+
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">Deslizando, como en Gastos</span></div>
+        <p class="op-idea">El rojo aparece solo al arrastrar la fila, y confirma antes de irse.</p>
+        <div>
+          <span class="rotulo-movil">Fila deslizada</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-card" style="padding: 0">
+              <div class="m-desliz">
+                <span class="cuerpo"><span class="m-av chica" style="background: var(--fam-garcia)">🧑</span><span class="m-main"><span class="m-n">Marta</span></span></span>
+                <span class="acciones"><span class="editar">Editar</span><span class="borrar">Borrar</span></span>
+              </div>
+            </div>
+            <div class="m-nota">Mismo gesto y mismo orden que en la lista de gastos.</div>
+          </div></div>
+        </div>
+        <p class="coste"><b>1 gesto + 2 toques</b>, y el rojo no está en pantalla el resto del tiempo. Cuesta que el gesto se puede empezar sin querer al rodar en diagonal, que es lo que pasa con el móvil en la mano y andando.</p>
+      </div>
+
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">Solo en modo Editar</span></div>
+        <p class="op-idea">El ⊖ de E4: borrar solo se puede mientras la sección está en modo edición, y hay que salir a propósito.</p>
+        <div>
+          <span class="rotulo-movil">Modo Editar</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-sec">El grupo<span class="accion">Hecho</span></div>
+            <div class="m-card">
+              <div class="m-row"><span class="m-quitar">−</span><span class="m-av" style="background: var(--fam-garcia)">🏖️</span><span class="m-main"><span class="m-n">García</span></span><span class="m-btn sm peligro">Borrar</span></div>
+            </div>
+          </div></div>
+        </div>
+        <p class="coste"><b>2 toques</b> desde el modo, y es imposible tocarlo fuera de él. Cuesta que solo tiene sentido si E4 gana: es la mitad de esa opción, no una suelta.</p>
+      </div>
+
+      <div class="opcion">
+        <div class="op-cab"><span class="op-letra">D4</span><span class="op-nombre">Menú al mantener pulsado</span></div>
+        <p class="op-idea">Pulsación larga sobre la fila y aparece un menú con Editar · Cambiar bunga · Borrar.</p>
+        <div>
+          <span class="rotulo-movil">Menú contextual</span>
+          <div class="movil"><div class="m-body">
+            <div class="m-eleccion">
+              <div class="op">Editar</div>
+              <div class="op">Cambiar de bunga</div>
+              <div class="op" style="color: var(--ab-owe)">Borrar</div>
+            </div>
+            <div class="m-nota">500 ms de espera antes de que aparezca.</div>
+          </div></div>
+        </div>
+        <p class="coste"><b>1 pulsación larga + 2 toques</b>, y cabe todo lo demás en el mismo menú. Cuesta <b>medio segundo</b> cada vez y no lo encuentra quien no lo busca; en iOS compite con el menú de selección de texto.</p>
+      </div>
+    </div>
+
+    <div class="parte">Parte cinco · las combinaciones</div>
+
+    <div class="combina">
+      <h3>Tres maneras completas de montarlo</h3>
+      <div class="par">
+        <span class="codigo">E1 + F2 + N2 + N4 + D1</span>
+        <p><b>La recomendada.</b> Se toca la fila, sube una hoja igual que la de elegir bunga, se crea cada cosa donde vive y borrar solo existe al fondo del editor. Una figura nueva en total —la hoja—, que se comparte con A3. Es la que menos cromo deja en la pantalla y la que menos maneras tiene de borrar algo sin querer.</p>
+      </div>
+      <div class="par">
+        <span class="codigo">E2 + F1 + N1 + D2</span>
+        <p><b>La barata.</b> Todo con lo que ya está escrito: deslizar (<code>Deslizable.jsx</code>) y el modal de siempre. Cero componentes nuevos, y a cambio el editar sigue tapando lo que estabas mirando y hay dos botones llenos al final.</p>
+      </div>
+      <div class="par">
+        <span class="codigo">E4 + F3 + N3 + D3</span>
+        <p><b>La de teclear a chorro.</b> Modo Editar, todo en línea, y crear es escribir en una fila vacía. Es la más rápida para montar el grupo de un evento nuevo de una sentada, y la que peor se lleva con un campo que no tenga valor de fábrica —el peso de reparto—.</p>
+      </div>
+      <div class="par">
+        <span class="codigo">E1 + F4</span>
+        <p><b>La que aguanta lo que venga.</b> Si mañana la familia tiene más campos (cuenta bancaria del bote, alergias, foto compartida), la pantalla propia es la única que no se queda estrecha. Hoy es mucho para cinco campos.</p>
+      </div>
+    </div>
+
+    <div class="cierre">
+      <h2>Lo que hace falta que digas</h2>
+      <p>
+        Una de cada parte, o una combinación entera. Con eso ya se puede escribir: la lógica de qué
+        está libre y el uno a uno ya están hechos y probados, y lo que falta es la figura.
+      </p>
+      <div class="respuesta">E1 · E2 · E3 · E4 — F1 · F2 · F3 · F4 — N1 · N2 · N3 · N4 — D1 · D2 · D3 · D4</div>
+      <p class="pie">
+        Dibujado a 390 pt sobre <b>G2 + A3</b> (ver <code>docs/diseño/gente.html</code>) con la semilla
+        <code>Ballenita 2026</code>. Las medidas salen de <code>theme.css</code>: fila de 44 de mínimo,
+        avatar de 36, acción de deslizar de 74, cuerpo a 17 px × 1,12. Cuando elijas, el spec cita esta
+        hoja por código: <code>ver docs/diseño/gente-editar.html · E1</code>.
+      </p>
+    </div>
+
+  </div>
+</div>
