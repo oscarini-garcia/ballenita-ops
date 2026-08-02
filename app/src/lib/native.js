@@ -165,7 +165,15 @@ async function plugin() {
  * «Pidiendo…» hasta que alguien mata la app. Un botón que puede colgarse para
  * siempre es peor que uno que se rinde y lo cuenta.
  */
-async function conPlazo(promesa, ms = 6000) {
+export const PLAZOS = {
+  // Lo que se le da al puente para contestar. Son objeto y no constantes para
+  // que las pruebas puedan bajarlos a milisegundos: un plazo que solo se puede
+  // probar esperando seis segundos de verdad no se prueba.
+  puente: 6000,
+  permiso: 15000,
+}
+
+async function conPlazo(promesa, ms = PLAZOS.puente) {
   let reloj
   try {
     return await Promise.race([
@@ -187,7 +195,7 @@ export async function registerPush() {
     // permiso queda concedido igual y la pantalla se corrige sola al volver.
     const permiso = estado.receive === 'granted'
       ? estado
-      : await conPlazo(PushNotifications.requestPermissions(), 15000)
+      : await conPlazo(PushNotifications.requestPermissions(), PLAZOS.permiso)
     if (permiso.receive !== 'granted') return null
 
     // El token no vuelve de `register()`: llega por un evento, y puede tardar.

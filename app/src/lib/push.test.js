@@ -59,21 +59,22 @@ describe('registerPush', () => {
   })
 })
 
+/**
+ * Con tiempo de verdad y plazos de milisegundos, no con temporizadores falsos:
+ * los falsos dejaban viva la promesa del plazo perdedor y Vitest la contaba
+ * como rechazo sin dueño, con la suite entera en verde y la ejecución en rojo.
+ */
 describe('ninguna llamada al puente se queda colgada', () => {
   it('si `checkPermissions` no vuelve, se acaba diciendo que falta el binario', async () => {
-    vi.useFakeTimers()
     vi.doMock('@capacitor/push-notifications', () => ({
       PushNotifications: { checkPermissions: () => new Promise(() => {}) },
     }))
-    const { estadoDePush, SIN_PLUGIN } = await import('./native.js')
-    const esperando = estadoDePush()
-    await vi.advanceTimersByTimeAsync(6100)
-    expect(await esperando).toBe(SIN_PLUGIN)
-    vi.useRealTimers()
+    const { estadoDePush, SIN_PLUGIN, PLAZOS } = await import('./native.js')
+    PLAZOS.puente = 20
+    expect(await estadoDePush()).toBe(SIN_PLUGIN)
   })
 
   it('si la hoja de permiso no llega a aparecer, tampoco', async () => {
-    vi.useFakeTimers()
     vi.doMock('@capacitor/push-notifications', () => ({
       PushNotifications: {
         checkPermissions: async () => ({ receive: 'prompt' }),
@@ -82,10 +83,8 @@ describe('ninguna llamada al puente se queda colgada', () => {
         register: () => {},
       },
     }))
-    const { registerPush, SIN_PLUGIN } = await import('./native.js')
-    const esperando = registerPush()
-    await vi.advanceTimersByTimeAsync(15100)
-    await expect(esperando).rejects.toThrow(SIN_PLUGIN)
-    vi.useRealTimers()
+    const { registerPush, SIN_PLUGIN, PLAZOS } = await import('./native.js')
+    PLAZOS.permiso = 20
+    await expect(registerPush()).rejects.toThrow(SIN_PLUGIN)
   })
 })
