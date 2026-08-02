@@ -42,5 +42,14 @@ export function familiasLibres(families = [], bungas = [], { paraBunga = null } 
   return families.filter((f) => !ocupadas.has(f.id))
 }
 
-/** «Bunga 1 (el de la piscina)» — el nombre con el alias, si lo tiene. */
+/** «Bunga 1 (el de la piscina)» — entero, para elegir: en una lista de bungas
+ *  hace falta el nombre **y** el mote para no dudar. */
 export const etiquetaBunga = (b) => (b ? (b.alias ? `${b.name} (${b.alias})` : b.name) : '')
+
+/** «El de la piscina» — como se le llama, para la pastilla de la ficha, donde
+ *  no caben 26 caracteres. Es el mismo criterio que usa Cenas desde siempre. */
+export const etiquetaCorta = (b) => (b ? (b.alias || b.name) : '')
+
+/** Por nombre y en español: los ids son aleatorios (`lib/ids.js`), así que sin
+ *  esto el orden de las listas es el de un sorteo. */
+export const porNombre = (a, b) => a.name.localeCompare(b.name, 'es')

@@ -176,6 +176,22 @@ export const familiesOf = (eventId) => db.families.where({ eventId }).toArray()
 export const updateFamily = (id, patch) => escribir('families', id, patch)
 export const removeFamily = (id) => removeRow('families', id)
 
+/**
+ * Borrar una familia **suelta lo que colgaba de ella**: su bunga vuelve a estar
+ * libre y su gente se queda sin familia.
+ *
+ * Sin esto, borrar dejaba `familyId` apuntando a algo que ya no existe, y eso no
+ * es un hueco: es un dato falso. Es además lo que la confirmación promete
+ * (`GrupoSection` · D1), y una confirmación que dice lo que no pasa es peor que
+ * no tenerla.
+ */
+export async function borrarFamilia(eventId, familyId) {
+  const [bungas, persons] = await Promise.all([bungasOf(eventId), personsOf(eventId)])
+  for (const b of bungas) if (b.familyId === familyId) await updateBunga(b.id, { familyId: null })
+  for (const p of persons) if (p.familyId === familyId) await updatePerson(p.id, { familyId: null })
+  await removeFamily(familyId)
+}
+
 // ── Bungas ──
 export async function addBunga(eventId, { name, alias = '', familyId = null }) {
   return escribir('bungas', uid('bunga'), { eventId, name, alias, familyId })

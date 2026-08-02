@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga } from './asignacion.js'
+import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta } from './asignacion.js'
 
 const FAMILIAS = [{ id: 'f1', name: 'García' }, { id: 'f2', name: 'Pérez' }, { id: 'f3', name: 'Solteros' }]
 const BUNGAS = [
@@ -48,10 +48,15 @@ describe('familiasLibres — lo que puede ofrecer el formulario de bunga', () =>
   })
 })
 
-describe('etiquetaBunga', () => {
-  it('nombre y alias, o solo nombre', () => {
+describe('etiquetas', () => {
+  it('la larga lleva nombre y alias, o solo nombre', () => {
     expect(etiquetaBunga(BUNGAS[0])).toBe('Bunga 1 (el de la piscina)')
     expect(etiquetaBunga(BUNGAS[1])).toBe('Bunga 2')
     expect(etiquetaBunga(null)).toBe('')
+  })
+  it('la corta es como se le llama, que es lo que cabe en la pastilla', () => {
+    expect(etiquetaCorta(BUNGAS[0])).toBe('el de la piscina')
+    expect(etiquetaCorta(BUNGAS[1])).toBe('Bunga 2')
+    expect(etiquetaCorta(null)).toBe('')
   })
 })

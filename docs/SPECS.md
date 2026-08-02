@@ -67,7 +67,7 @@ Estas áreas existen "de siempre" y se reutilizan, aunque su contenido normalmen
 - Los bungas se usan además como **sede rotatoria de las comidas** (§6): cada día se decide qué bunga acoge la comida de los mayores y cuál la de los niños, repartiendo la carga.
 - **✅ El emparejamiento se pide por los dos lados, y solo ofrece lo libre.** El vínculo se guarda en un sitio único (`bunga.familyId`), pero se pregunta tanto al crear una familia (campo **Bunga**) como al crear un bunga (campo **Familia**), porque quien monta el grupo no siempre empieza por el mismo sitio. Las dos listas enseñan **únicamente lo que no tiene pareja**, y ninguna de las dos preselecciona: van con **«— ninguno —»** de fábrica, ya que una familia recién creada no tiene bunga y elegirlo por ella se lo quitaría a otra en silencio. Cuando no queda nada libre, el formulario lo dice en vez de enseñar una lista vacía. Asignar desde la familia **libera** el bunga que tuviera antes (`asignarBungaAFamilia` en `db.js`), que es lo que mantiene el 1 a 1.
 - **✅ Un bunga huérfano vuelve a estar libre.** Si se borra la familia, su `familyId` apunta a algo que ya no existe: la fila dice «sin familia» —no un guion— y el bunga vuelve a salir como disponible. Sin esto quedaba atado a un fantasma y no había manera de reasignarlo. La lógica es pura y está en `app/src/lib/asignacion.js`.
-- **Pendiente de decidir dónde vive todo esto**: Familias, Bungalows y Gente son hoy tres acordeones de Ajustes y la relación no se ve en ninguno. Las opciones están dibujadas y medidas en [`docs/diseño/gente.html`](diseño/gente.html) — colocación `G1`–`G5`, control de asignación `A1`–`A4`.
+- **✅ Dónde vive todo esto: una ficha por familia** (`G2`) y una **hoja de elección** para el bunga (`A3`), elegidas sobre las cinco colocaciones dibujadas y medidas en [`docs/diseño/gente.html`](diseño/gente.html). Ver §14.14.
 
 ### 2.4 Gente / participantes (común pero se instancia por evento)
 
@@ -885,6 +885,59 @@ La escala se declara **una sola vez**, en `theme.css`: un tema cambia de qué
 color es una cosa, nunca cuánto mide, así que una copia bajo otro selector solo
 podría discrepar. Y `--toque: 44px` es el suelo de cualquier cosa tocable, que no
 se baja: los botones pequeños bajan de cuerpo, no de altura.
+
+### 14.14 El grupo: una ficha por familia, y la hoja que sube desde abajo
+
+Familias, Bungalows y Gente eran **tres acordeones seguidos** de Ajustes, con
+tres listas, tres botones y tres formularios. Lo que los une —qué familia duerme
+en qué bunga, quién es de qué familia— no salía en ninguno de los tres: para
+saber quiénes eran los García había que abrir Gente y leer la segunda línea de
+seis filas. Y no se podía **editar nada**: se creaba y se borraba, así que un
+nombre mal escrito se arreglaba borrando la familia, que se llevaba por delante
+su vínculo con el bunga y dejaba a su gente sin ella.
+
+Las opciones se dibujaron a 390 pt con la semilla de verdad y se midieron en un
+navegador, en dos hojas que siguen en el repo:
+[`docs/diseño/gente.html`](diseño/gente.html) (dónde vive: `G1`–`G5`; con qué se
+asigna: `A1`–`A4`) y [`docs/diseño/gente-editar.html`](diseño/gente-editar.html)
+(cómo se entra a editar: `E1`–`E4`; qué editor aparece: `F1`–`F4`; por dónde se
+crea: `N1`–`N4`; dónde vive borrar: `D1`–`D4`).
+
+**Lo elegido, y lo que cuesta:**
+
+- **G2 · una ficha por familia** (`screens/GrupoSection.jsx`). Cabecera con el
+  color y el emoji de la familia y su bunga en una pastilla; dentro, su gente.
+  Es la única colocación donde la relación completa **se lee sin tocar nada**. Se
+  paga en alto: con las tres familias de la semilla mide 868 pt contra los 643
+  útiles de un iPhone base, así que hay que rodar.
+- **«Sueltos»**, la otra mitad de G2: el bunga sin familia y quien no está en
+  ninguna —y que por tanto no entra en ningún reparto— dejan de ser un dato que
+  no está en ninguna parte y pasan a ser una fila que se ve.
+- **A3 · hoja de elección** (`components/Hoja.jsx`). Filas de 48 pt con el alias
+  entero. Lo que ya tiene dueño **se enseña apagado, no se esconde**: si el bunga
+  que buscas no está, quieres saber que lo tienen los García.
+- **E1 · se toca la fila y se edita.** La diana es la fila entera —358 × 74 la
+  cabecera de una familia, 334 × 43 una persona—, no un lápiz de 34 repetido
+  nueve veces por pantalla.
+- **F2 · el editor es la misma hoja.** Sube desde abajo, deja ver por encima la
+  ficha de la que sales y no se descoloca cuando aparece el teclado, que sube por
+  ese mismo borde. Es un componente para dos usos, no dos.
+- **N2 + N4 · cada cosa se crea donde vive.** La persona dentro de su ficha —y
+  por eso su formulario ya **no pregunta la familia**: la dice el sitio donde has
+  pulsado—, el bunga desde la pastilla de la cabecera, y solo la familia en el
+  botón del final, que así sigue siendo **uno lleno por pantalla** (§14.12). La
+  hoja de elegir bunga lleva su propia salida, «+ Bunga nuevo…»: quedarse sin
+  ninguno libre es un botón y no un callejón.
+- **D1 · borrar solo existe al fondo del editor, y dice qué se lleva.** Antes era
+  un botón rojo en cada renglón y sin confirmación, justo donde cae el pulgar al
+  rodar la lista. Ahora son tres toques y la confirmación dice la verdad: «Sus 3
+  personas se quedan sin familia y Bunga 1 vuelve a quedar libre», que es
+  exactamente lo que hace `borrarFamilia` en `db.js`. Para un bunga cuenta de
+  cuántas cenas es sede; para una persona, en cuántos gastos participa.
+
+**Todo va ordenado por nombre.** Los ids son aleatorios (`lib/ids.js`), así que
+el orden de la base es el de un sorteo y una lista de nueve nombres sin orden se
+recorre entera cada vez.
 
 ### 14.12 Un solo tema, y sus dos caras
 

@@ -102,6 +102,7 @@ app/src/
         stats.js money.js ids.js native.js pwa.js
         tema.js tamano.js     aspecto: cara del tema y tamaño del texto (por dispositivo)
         identidad.js          quién eres en un evento (compartido cabecera ↔ Ajustes)
+        asignacion.js         qué bungas y qué familias están libres (el 1 a 1)
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
         hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
         scrollLock.js avatares.js
@@ -110,9 +111,9 @@ app/src/
   sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
         tables.js
   screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats,
-            EventSettings (= Ajustes, en acordeón), Events, Acceso
-  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Icono.jsx · ProgresoModal.jsx
-              SyncDot.jsx · WhaleLogo.jsx
+            EventSettings (= Ajustes, en acordeón), Grupo(familias+bungas+gente), Events, Acceso
+  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Hoja.jsx · Icono.jsx
+              ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx
   App.jsx  ·  theme.css
   public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
   public/privacidad.html · soporte.html   las dos URL que exige la ficha de la App Store
@@ -233,6 +234,11 @@ cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadí
 **Backend propio** (Worker + D1), cola de cambios, Sign in with Apple y alta por invitación.
 **La puerta de acceso ya no es un muro**: si Apple falla se puede seguir en local y lo
 apuntado sube al entrar (SPECS §14.9).
+**El grupo en una sola sección** (SPECS §14.14): una ficha por familia con su bunga en una
+pastilla y su gente dentro, «Sueltos» para lo que no está colocado, y **edición de verdad**
+—se toca la fila y sube una hoja desde abajo—. Borrar salió de los renglones y vive al fondo
+del editor diciendo qué se lleva. Decidido en `docs/diseño/gente.html` (G2 · A3) y
+`docs/diseño/gente-editar.html` (E1 · F2 · N2 · N4 · D1).
 **Repaso de UX/UI** (SPECS §14.10–14.12), inspirado en `meeting-ops-air` y
 `garciadoral-ops`: barra de **Hoy · Dinero · Cenas · Planes · Ajustes** con los ajustes
 abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo, todo plegado) que se ha
@@ -261,7 +267,7 @@ todos en verde.
 proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
 la app funciona en modo solo-local.
 
-**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · **icono de la app**
+**Pendiente (ideas):** **icono de la app**
 nuevo (`public/favicon.svg` sigue siendo el emoji sobre un cuadrado) · **compartir** los avatares con
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa

@@ -1,18 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
-  familiesOf, addFamily, removeFamily,
-  bungasOf, addBunga, removeBunga, asignarBungaAFamilia,
-  personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
-  listEvents,
+  familiesOf, bungasOf, personsOf, updatePerson, olvidarTodo, listEvents,
 } from '../db.js'
-import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga } from '../lib/asignacion.js'
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
 import ProgresoModal, { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
 import StatsScreen from './StatsScreen.jsx'
+import GrupoSection from './GrupoSection.jsx'
 import { useTema, TEMAS } from '../lib/tema.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -27,8 +24,6 @@ import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpia
 // El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
 // por dónde va en vez de un solo rótulo que parpadea.
 const PASOS_APP = ['checking', 'downloading', 'applying']
-
-const COLORS = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
 // Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en tests).
 const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
@@ -697,12 +692,6 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
-  // Una familia borrada deja huérfanos a su bunga y a su gente. Decirlo con
-  // palabras («sin familia») es más útil que un guion, porque es justo lo que
-  // hay que arreglar.
-  const famName = (id) => families.find((f) => f.id === id)?.name ?? 'sin familia'
-
-  const [modal, setModal] = useState(null) // 'familia' | 'bunga' | 'persona'
   const { me } = useIdentidad(eventId, persons)
   const { tema: temaPuesto } = useTema()
   const sesion = leerSesion()
@@ -729,56 +718,8 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <StatsScreen eventId={eventId} event={event} suelto />
       </Acordeon>
 
-      <Acordeon titulo="Familias" icono="familia" nota={families.length || null}>
-        <div className="card tight">
-          {families.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin familias todavía.</div>}
-          {families.map((f) => {
-            const b = bungaDeFamilia(bungas, f.id)
-            return (
-              <div className="row" key={f.id}>
-                <div className="av" style={{ background: f.color }}>{f.avatar}</div>
-                <div className="main">
-                  <div className="n">{f.name}</div>
-                  <div className="sub">{[b ? etiquetaBunga(b) : 'sin bunga', f.estado].filter(Boolean).join(' · ')}</div>
-                </div>
-                <button className="btn sm danger" onClick={() => removeFamily(f.id)}>Borrar</button>
-              </div>
-            )
-          })}
-        </div>
-        <button className="btn block" onClick={() => setModal('familia')}>+ Añadir familia</button>
-      </Acordeon>
-
-      <Acordeon titulo="Bungalows" icono="casa" nota={bungas.length || null}>
-        <div className="card tight">
-          {bungas.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin bungas todavía.</div>}
-          {bungas.map((b) => (
-            <div className="row" key={b.id}>
-              <div className="ico"><Icono nombre="casa" /></div>
-              <div className="main"><div className="n">{b.name}{b.alias ? ` · ${b.alias}` : ''}</div><div className="sub">{famName(b.familyId)}</div></div>
-              <button className="btn sm danger" onClick={() => removeBunga(b.id)}>Borrar</button>
-            </div>
-          ))}
-        </div>
-        <button className="btn block" onClick={() => setModal('bunga')}>+ Añadir bunga</button>
-      </Acordeon>
-
-      <Acordeon titulo="Gente" icono="persona" nota={persons.length || null}>
-        <div className="card tight">
-          {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin gente todavía.</div>}
-          {persons.map((p) => (
-            <div className="row" key={p.id}>
-              <div className="av" style={{ background: families.find((f) => f.id === p.familyId)?.color || 'var(--ink-faint)' }}>{p.avatar}</div>
-              <div className="main">
-                <div className="n">{p.name}{p.apodo ? ` · «${p.apodo}»` : ''}</div>
-                <div className="sub">{famName(p.familyId)} · {p.edad} · peso {p.pesoReparto}</div>
-              </div>
-              <button className="btn sm danger" onClick={() => removePerson(p.id)}>Borrar</button>
-            </div>
-          ))}
-        </div>
-        <button className="btn block" onClick={() => setModal('persona')}>+ Añadir persona</button>
-        <div className="note">🐳 El <b>peso de reparto</b> define cuánto cuenta cada persona al dividir un gasto por cabezas (un bebé 0, un niño 0,5, un adulto 1).</div>
+      <Acordeon titulo="El grupo" icono="familia" nota={`${families.length} · ${bungas.length} · ${persons.length}`}>
+        <GrupoSection eventId={eventId} />
       </Acordeon>
 
       {sesion && (
@@ -791,132 +732,6 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <AppSection />
       </Acordeon>
 
-      {modal === 'familia' && <FamiliaModal eventId={eventId} families={families} bungas={bungas} onClose={() => setModal(null)} />}
-      {modal === 'bunga' && <BungaModal eventId={eventId} families={families} bungas={bungas} onClose={() => setModal(null)} />}
-      {modal === 'persona' && <PersonaModal eventId={eventId} families={families} onClose={() => setModal(null)} />}
     </div>
-  )
-}
-
-function Modal({ title, onClose, children, onSave }) {
-  useBloqueoDeScroll()
-  return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <button className="x" onClick={onClose}>×</button>
-        <h2>{title}</h2>
-        {children}
-        <div style={{ marginTop: 16 }}><button className="btn block" onClick={onSave}>Guardar</button></div>
-      </div>
-    </div>
-  )
-}
-
-function FamiliaModal({ eventId, families, bungas, onClose }) {
-  const [name, setName] = useState('')
-  const [color, setColor] = useState(COLORS[0])
-  const [avatar, setAvatar] = useState('👨‍👩‍👧')
-  const [estado, setEstado] = useState('')
-  // Sin asignar de fábrica: una familia recién creada no tiene bunga, y elegirlo
-  // por ella dejaría a otra sin el suyo sin que nadie lo haya dicho.
-  const [bungaId, setBungaId] = useState('')
-  const libres = bungasLibres(bungas, families)
-  return (
-    <Modal title="Nueva familia" onClose={onClose} onSave={async () => {
-      if (!name.trim()) return
-      const id = await addFamily(eventId, { name: name.trim(), color, avatar: avatar || '👨‍👩‍👧', estado: estado.trim() })
-      if (bungaId) await asignarBungaAFamilia(eventId, id, bungaId)
-      onClose()
-    }}>
-      <label>Nombre</label>
-      <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="García" autoFocus />
-      <div className="grid2">
-        <div><label>Emoji</label><input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} /></div>
-        <div><label>Estado</label><input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="modo playa" /></div>
-      </div>
-      <label>Bunga</label>
-      <select value={bungaId} onChange={(e) => setBungaId(e.target.value)}>
-        <option value="">— ninguno —</option>
-        {libres.map((b) => <option key={b.id} value={b.id}>{etiquetaBunga(b)}</option>)}
-      </select>
-      {bungas.length > 0 && libres.length === 0 && (
-        <div className="note">🐳 Todos los bungas tienen ya familia. Crea uno nuevo en <b>Bungalows</b>.</div>
-      )}
-      <label>Color</label>
-      <div className="chips">
-        {COLORS.map((c) => (
-          <button key={c} className="chip" onClick={() => setColor(c)} style={{ background: color === c ? c : 'var(--foam-2)', width: 38, height: 30 }}>
-            <span style={{ width: 16, height: 16, borderRadius: '50%', background: c, display: 'inline-block' }} />
-          </button>
-        ))}
-      </div>
-    </Modal>
-  )
-}
-
-function BungaModal({ eventId, families, bungas, onClose }) {
-  const [name, setName] = useState('')
-  const [alias, setAlias] = useState('')
-  // Igual que en el formulario de familia, y por lo mismo: sin asignar de
-  // fábrica, y en la lista solo las familias que aún no tienen bunga.
-  const [familyId, setFamilyId] = useState('')
-  const libres = familiasLibres(families, bungas)
-  return (
-    <Modal title="Nuevo bunga" onClose={onClose} onSave={async () => {
-      if (!name.trim()) return
-      await addBunga(eventId, { name: name.trim(), alias: alias.trim(), familyId: familyId || null })
-      onClose()
-    }}>
-      <label>Nombre</label>
-      <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Bunga 1" autoFocus />
-      <label>Alias (opcional)</label>
-      <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="El de la piscina" />
-      <label>Familia</label>
-      <select value={familyId} onChange={(e) => setFamilyId(e.target.value)}>
-        <option value="">— ninguna —</option>
-        {libres.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-      </select>
-      {families.length > 0 && libres.length === 0 && (
-        <div className="note">🐳 Todas las familias tienen ya bunga. Crea una nueva en <b>Familias</b>.</div>
-      )}
-    </Modal>
-  )
-}
-
-function PersonaModal({ eventId, families, onClose }) {
-  const [name, setName] = useState('')
-  const [apodo, setApodo] = useState('')
-  const [familyId, setFamilyId] = useState(families[0]?.id ?? '')
-  const [edad, setEdad] = useState('adulto')
-  const [peso, setPeso] = useState(1)
-  return (
-    <Modal title="Nueva persona" onClose={onClose} onSave={async () => {
-      if (!name.trim()) return
-      await addPerson(eventId, {
-        name: name.trim(), apodo: apodo.trim(), familyId: familyId || null,
-        edad, pesoReparto: Number(peso),
-      })
-      onClose()
-    }}>
-      <label>Nombre</label>
-      <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Curro" autoFocus />
-      <label>Apodo (opcional)</label>
-      <input type="text" value={apodo} onChange={(e) => setApodo(e.target.value)} />
-      <label>Familia</label>
-      <select value={familyId} onChange={(e) => setFamilyId(e.target.value)}>
-        <option value="">— sin familia —</option>
-        {families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-      </select>
-      <div className="grid2">
-        <div>
-          <label>Edad</label>
-          <select value={edad} onChange={(e) => { setEdad(e.target.value); setPeso(e.target.value === 'adulto' ? 1 : 0.5) }}>
-            <option value="adulto">Adulto</option>
-            <option value="niño">Niño</option>
-          </select>
-        </div>
-        <div><label>Peso de reparto</label><input type="number" step="0.5" min="0" value={peso} onChange={(e) => setPeso(e.target.value)} /></div>
-      </div>
-    </Modal>
   )
 }
