@@ -1,0 +1,589 @@
+<title>Ballena Ops — En Planes cada plan trae siete botones, ocho colores y un selector de fecha del sistema</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256; --ab-linea-suave: #17384a;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea; --abc-linea-suave: #e9eff2;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code, .coste code, .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .ballena { width: 30px; height: 30px; flex: none; }
+  .t-cab .crece { flex: 1; min-width: 0; }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-cab .su { font-size: var(--t-micro); opacity: .78; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .tarj.junta { padding: 0 12px; }
+
+  /* 9 px arriba y abajo dejan la fila en ~70,7, que es lo que mide una `.row`
+     real medida contra theme.css. Con 11 se iba a 74 y el dibujo mentía. */
+  .fila { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  /* El título de un plan es lo único que identifica su fila, así que dobla a dos
+     líneas en vez de recortarse: «Noche de juegos de mesa» son 257,8 pt y en la
+     fila cerrada solo hay 245. Se mide y se dice, no se esconde con puntos. */
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .oscuro .pil { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .pil { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .pil.ok { background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .pil.ok { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); background: none; color: var(--ab-soft); font-family: inherit;
+    min-height: 40px; display: inline-flex; align-items: center; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+  .chip.rojo { color: #fff; background: var(--ab-owe); border-color: var(--ab-owe); }
+  .claro .chip.rojo { background: var(--abc-owe); border-color: var(--abc-owe); }
+  .chip.lleno { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .chip.lleno { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .plan-n { font-weight: 600; font-size: var(--t-row); }
+  .cifra-l { font-size: var(--t-label); }
+  .oscuro .cifra-l { color: var(--ab-faint); } .claro .cifra-l { color: var(--abc-faint); }
+  .fecha-nativa { border-radius: 7px; padding: 12px; font-size: var(--t-body);
+    display: flex; justify-content: space-between; align-items: center; }
+  .oscuro .fecha-nativa { border: 1px solid var(--ab-linea); color: var(--ab-ink); }
+  .claro .fecha-nativa { border: 1px solid var(--abc-linea); color: var(--abc-ink); }
+
+  .verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--ab-linea); border-radius: 9px; color: var(--ab-soft); background: none; }
+  .claro .verbo-fila { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .verbo-fila svg { width: 19px; height: 19px; }
+
+  /* Deslizamiento a medias, para enseñar los verbos de K3 */
+  .deslizada { position: relative; overflow: hidden; }
+  .verbos { position: absolute; inset: 0 0 0 auto; display: flex; }
+  .verbo { width: 76px; display: grid; place-items: center; gap: 4px; font-size: var(--t-micro);
+    font-weight: 700; color: #eaf6fb; }
+  .verbo.ed { background: #1f6f8f; } .verbo.bo { background: #a8322a; }
+  .verbo svg { width: 19px; height: 19px; }
+  .cara { position: relative; transform: translateX(-152px); }
+  .oscuro .cara { background: var(--ab-tarjeta); } .claro .cara { background: var(--abc-tarjeta); }
+
+  /* Los cuatro mandos de áreas de la parte cuatro */
+  .t-sub { padding: 12px 14px 0; }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 10px; }
+  .oscuro .seg { background: var(--ab-linea-suave); } .claro .seg { background: var(--abc-linea-suave); }
+  .seg button { flex: 1; padding: 10px 6px; border: none; background: none; border-radius: 7px;
+    font-weight: 600; font-size: var(--t-row); font-family: inherit; white-space: nowrap; }
+  .oscuro .seg button { color: var(--ab-soft); } .claro .seg button { color: var(--abc-soft); }
+  .oscuro .seg button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
+  .claro .seg button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); box-shadow: 0 1px 2px rgba(16,42,55,.12); }
+
+  .subr { display: flex; gap: 22px; padding: 0 4px; }
+  .subr button { border: none; background: none; padding: 10px 0 9px; font-family: inherit;
+    font-size: var(--t-row); font-weight: 600; border-bottom: 2px solid transparent; }
+  .oscuro .subr { border-bottom: 1px solid var(--ab-linea); } .claro .subr { border-bottom: 1px solid var(--abc-linea); }
+  .oscuro .subr button { color: var(--ab-faint); } .claro .subr button { color: var(--abc-faint); }
+  .oscuro .subr button.on { color: var(--ab-ink); border-bottom-color: var(--ab-acento); }
+  .claro .subr button.on { color: var(--abc-ink); border-bottom-color: var(--abc-acento); }
+
+  .past { display: flex; gap: 8px; }
+  .past button { border-radius: 999px; padding: 8px 15px; font-family: inherit;
+    font-size: var(--t-sub); font-weight: 600; background: none; }
+  .oscuro .past button { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .past button { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .oscuro .past button.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .past button.on { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .titmando { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px 0; }
+  .titmando .h { font-size: var(--t-title); font-weight: 700; letter-spacing: -.015em; }
+  .titmando .m { display: flex; gap: 2px; padding: 3px; border-radius: 8px; }
+  .oscuro .titmando .m { background: var(--ab-linea-suave); } .claro .titmando .m { background: var(--abc-linea-suave); }
+  .titmando .m button { border: none; background: none; border-radius: 6px; padding: 6px 11px;
+    font-family: inherit; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .titmando .m button { color: var(--ab-faint); } .claro .titmando .m button { color: var(--abc-faint); }
+  .oscuro .titmando .m button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); }
+  .claro .titmando .m button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); }
+
+  .t-barra { display: flex; justify-content: space-around; padding: 7px 0 10px; }
+  .oscuro .t-barra { background: var(--ab-cromo); border-top: 1px solid var(--ab-linea); }
+  .claro .t-barra { background: var(--abc-cromo); border-top: 1px solid var(--abc-linea); }
+  .t-barra .p { width: 76.4px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ab-faint); }
+  .claro .t-barra .p { color: var(--abc-faint); }
+  .t-barra .p.on { color: var(--ab-acento-txt); } .claro .t-barra .p.on { color: var(--abc-acento-txt); }
+  .t-barra .p svg { width: 23px; height: 23px; }
+  .t-barra .p span { font-size: var(--t-micro); font-weight: 550; }
+
+  .regla { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue);
+    display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+  .regla .barra { height: 6px; border-radius: 3px; background: var(--linea-fuerte); }
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  /* El color se pone a mano en la celda. Estas hojas no llevan doctype, así que
+     el navegador las lee en modo quirks y ahí **las tablas no heredan el color**:
+     el `td` se quedaba en negro y en la cara oscura no se leía una palabra. */
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Planes e Ideas</div>
+    <h1>En Planes cada plan trae siete botones, ocho colores y un selector de fecha del sistema, y solo caben dos</h1>
+    <p class="entradilla">
+      La pantalla hace hoy <b>tres trabajos a la vez</b>: votar, poner fecha y administrar. Por eso
+      cada plan es una tarjeta de <b>299,9 pt</b> —en un cuerpo de 633,6 caben <b>2,1</b>— con siete
+      botones, un control de fecha nativo que trae su propio dibujo y su propia alineación, y
+      <b>ocho colores</b> contando el verde de la pastilla, el rojo de «borrar», el azul del enlace
+      y los tres emoji de voto.
+    </p>
+    <p class="entradilla">
+      El encargo reparte esos tres trabajos: <b>aquí solo se vota</b>, la fecha se pone en Agenda y
+      lo de administrar se esconde detrás de un toque. Lo que queda por decidir son dos cosas —qué
+      se ve al abrir un plan y cómo entra la IA—, y van en las partes uno y dos.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.10.1 (<code>main</code>, 949d246)</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Cuerpo de Planes:</b> 633,6 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Contenido:</b> los planes de la semilla de <code>db.js</code></span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Todo lo medido está tomado en el navegador contra la app construida, no estimado: la tarjeta
+      de 299,9 pt, los ocho colores y los siete botones salen de recorrer el DOM de una tarjeta
+      real.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO QUE NO SE ELIGE ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · once cosas que no se eligen</h2>
+    <p>
+      Las once vienen decididas en el encargo o son defectos medidos. No están sobre la mesa: se
+      hacen y se cuentan. Se listan porque cambian el dibujo de las dos partes siguientes.
+    </p>
+    <p class="linea-corte"><b>En Ideas</b></p>
+    <p>
+      <b>1 · Se edita tocando la fila</b>, sin el lápiz de la derecha. Recupera 44 pt de ancho y
+      quita un objetivo que competía con «Proponer».<br>
+      <b>2 · «traer» pasa a «Proponer»</b>, que es lo que de verdad hace: la idea entra a votación.<br>
+      <b>3 · Cada idea dice quién la apuntó.</b> Campo nuevo <code>creadaPor</code> —una persona del
+      grupo, no una cuenta— y columna en D1.<br>
+      <b>4 · Fuera el coste.</b> No se usa. Se retira del modelo, del formulario y de la fila.<br>
+      <b>5 · Fuera el «dónde».</b> Queda <b>título y descripción</b>, y la descripción crece: pasa de
+      2 a 4 renglones, que es donde cabe «llevar sombrilla, no hay chiringuito y aparcar arriba».<br>
+      <b>6 · Una idea no se propone dos veces.</b> Hoy se puede, y quedan repetidas. Con una idea ya
+      propuesta en este viaje el botón dice <b>«Ya propuesta»</b> y no hace nada.<br>
+      <b>7 · El editor es un modal fino</b>, no la hoja alta de ahora: son dos campos.
+    </p>
+    <p class="linea-corte"><b>En Planes</b></p>
+    <p>
+      <b>8 · Aquí solo se vota.</b> Se van el selector de fecha, «quitar día», «confirmar» y «a
+      votación». La fecha se pone en <b>Agenda</b>, que es donde se mira el calendario.<br>
+      <b>9 · Dos grupos y un orden.</b> Primero los <b>elegidos</b> —los que ya tienen día—, después
+      los <b>disponibles</b> ordenados por votos. El orden deja de ser el de creación, que no
+      significaba nada.<br>
+      <b>10 · Una fila, no una tarjeta.</b> De 299,9 pt a <b>70,7</b>: caben <b>ocho</b> planes en
+      vez de dos. Los ocho colores se quedan en dos —la tinta y el acento—, más el verde del
+      elegido.<br>
+      <b>11 · Devolver un plan a idea</b>, y solo quien administra. Vive dentro del plan abierto,
+      no en la fila.
+    </p>
+  </div>
+
+  <!-- ══════════════ EL ANTES Y EL DESPUÉS ══════════════ -->
+  <div class="parte">Cómo queda Planes con esas once</div>
+  <p class="parte-intro">
+    Esto no es una opción, es el resultado de la lista de arriba. Va aquí porque las dos decisiones
+    de después se toman <b>dentro</b> de esta pantalla y hay que verla.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button class="on">Planes</button><button>Ideas</button></div></div>
+      <div class="t-body">
+        <div class="tarj">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div><div class="plan-n">Playa de la Cala</div><div class="cifra-l">lun, 10 ago</div></div>
+            <span class="pil ok">confirmado</span>
+          </div>
+          <div class="chips" style="margin-top:10px">
+            <button class="chip">👍 3</button><button class="chip">🤷 0</button><button class="chip">👎 0</button>
+          </div>
+          <div class="fecha-nativa" style="margin-top:10px"><span>08/10/2026</span><span>📅</span></div>
+          <div class="chips" style="margin-top:10px">
+            <button class="chip">quitar día</button><button class="chip">a votación</button>
+          </div>
+          <div class="chips" style="margin-top:8px">
+            <button class="chip">guardar idea</button><button class="chip rojo">borrar</button>
+          </div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">Ahora · 299,9 pt por plan · 7 botones · 8 colores</p>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button class="on">Planes</button><button>Ideas</button></div></div>
+      <div class="t-body">
+        <div class="sec-h"><span>Elegidos · 1</span></div>
+        <div class="tarj junta">
+          <div class="fila">
+            <div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+            <div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div>
+            <span class="pil ok">3</span>
+          </div>
+        </div>
+        <div class="sec-h"><span>Disponibles · 3</span><span>por votos</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">falta por votar Luis</div></div><span class="pil">2</span></div>
+          <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">sin votos todavía</div></div><span class="pil">0</span></div>
+          <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div class="txt"><div class="n">Torneo de petanca</div><div class="s">sin votos todavía</div></div><span class="pil">0</span></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">Después · 70,7 pt por plan · caben 8</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Tarjeta ahora:</b> 299,9 pt en la app (289,8 en esta maqueta, que no lleva el aviso de «para votar hace falta saber quién eres»)</span>
+    <span><b>Fila después:</b> 70,7 pt</span>
+    <span><b>Caben:</b> 2,1 → 8</span>
+    <span><b>Botones por plan:</b> 7 → 0 (la fila entera se toca)</span>
+    <span><b>Colores:</b> 8 → 3</span>
+  </p>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · qué se ve al abrir un plan</div>
+  <p class="parte-intro">
+    Al tocar la fila se abre el plan. Ahí se vota, se ve quién ha votado y qué, y quien administra
+    puede devolverlo a idea. La pregunta de verdad no es cómo dibujar los votos, es
+    <b>cuál de las dos preguntas se contesta primero</b>: «¿qué opina cada uno?» o
+    <b>«¿a quién hay que darle un toque?»</b>. En un grupo de seis, la segunda es la que mueve el
+    plan.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V1</span><span class="op-nombre">Tres montones</span></div>
+      <p class="op-idea">
+        Un renglón por voto —👍, 🤷, 👎— con los nombres de quien lo eligió al lado. Quien no ha
+        votado no sale.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> tres renglones que casi siempre están medio vacíos, y con seis personas los
+        nombres doblan. Quien falta por votar <b>no aparece</b>, que es justo lo accionable.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V2</span><span class="op-nombre">Una fila por persona</span></div>
+      <p class="op-idea">
+        La lista del grupo entera, cada uno con su voto a la derecha —o un hueco si no ha votado—.
+        Es la tabla completa.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> seis filas de 44 pt son <b>264 pt</b> dentro de un plan abierto, más que la
+        tarjeta que estamos quitando. <b>Lo paga:</b> no hay nada que deducir, y quien falta se ve
+        por el hueco.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">V3</span><span class="op-nombre">Los avatares, agrupados por voto</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">
+        Una sola línea: los emoji de las personas colocados bajo su voto —🏖️🍷🎉 en 👍, nadie en 🤷,
+        y aparte los que aún no han dicho nada, apagados—. Tocando un avatar sale su nombre.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> hay que conocer los avatares, y quien no se sepa el suyo tiene que tocar.
+        <b>Lo paga:</b> cabe en <b>44 pt</b>, se lee de un vistazo y <b>enseña las dos cosas a la
+        vez</b>: quién votó qué y quién falta. El grupo ya usa esos emoji en Gente y en Gastos.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V4</span><span class="op-nombre">Barra de proporción</span></div>
+      <p class="op-idea">
+        Una barra partida en tres tramos con el peso de cada voto, y debajo el recuento. Sin
+        nombres.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> es una encuesta, no un grupo de seis amigos: con tres votos la barra no
+        aporta nada que no diga «3 · 0 · 0», y <b>pierde quién</b>, que es lo que se venía a ver.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V5</span><span class="op-nombre">Solo quien falta</span></div>
+      <p class="op-idea">
+        El recuento en números y una frase: «faltan Luis y Marta». Quién votó qué no se enseña.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el 👎 de alguien deja de tener cara, y en un plan que se cae eso es
+        justamente lo que hay que poder mirar. <b>Lo paga:</b> es la más corta —una línea— y va
+        directa a lo accionable. Combina bien con V3 en la fila cerrada (ver el dibujo de arriba,
+        donde la fila ya dice «falta por votar Luis»).
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · por dónde entra la IA</div>
+  <p class="parte-intro">
+    La cañería ya está: la clave vive en el servidor y no vuelve a ningún móvil (§14.16), así que
+    esto es una ruta nueva en el Worker —<code>POST /api/plan/sugerir</code>— y un sitio donde
+    pulsar. La figura de <code>garciadoral-ops</code> es la del regalo: <b>una tanda de cinco</b>,
+    porque lo caro de la llamada es contarle al modelo el contexto —pasar de una propuesta a otra
+    no vuelve a pedir nada—, cada una con <b>qué</b> y <b>por qué</b>, un verbo para usarla y
+    «otras cinco». Lo que se decide aquí es <b>desde dónde se pide y qué sabe el modelo</b>.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">S1</span><span class="op-nombre">El destello dentro del campo</span><span class="etq base">la figura literal de garciadoral</span></div>
+      <p class="op-idea">
+        En el modal de idea nueva, un ✨ al final del campo del título. Se pulsa y aparece el
+        carrusel; «Usarla» rellena título y descripción. Lo que hubieras escrito antes va como
+        <b>pista</b>.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> hay que haber decidido ya crear una idea, así que no ayuda a la pregunta
+        «¿qué hacemos este año?». <b>Lo paga:</b> cero sitio en la pantalla y ninguna figura nueva
+        que aprender — es exactamente lo que ya hace el regalo.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">S2</span><span class="op-nombre">«¿Qué podríamos hacer?», en Ideas</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">
+        Un botón al pie del área Ideas. Al pulsarlo, la tanda de cinco con el contexto del
+        <b>viaje</b>: el lugar, las fechas, cuánta gente y de qué edades, y lo que ya hay en el
+        catálogo para no repetirlo. Cada propuesta se guarda como idea con un toque.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> 44 pt al pie de una lista, y una decisión de privacidad que hay que escribir
+        en el spec — al modelo le llega <b>el lugar, las fechas y las edades</b>, no los nombres.
+        <b>Lo paga:</b> es la pregunta que de verdad se hace en enero, y el catálogo arranca vacío:
+        sin algo que lo llene, el área Ideas es una lista de nada.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">S3</span><span class="op-nombre">Propone sola, al final de la lista</span></div>
+      <p class="op-idea">
+        Sin botón: la última fila del catálogo es siempre una propuesta apagada, con su ✨. Se toca
+        para aceptarla y aparece la siguiente.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> llama al modelo <b>sin que nadie lo pida</b>, y eso es dinero de una
+        credencial de pago cada vez que alguien abre la pestaña. Se descarta por eso, no por el
+        dibujo.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">S4</span><span class="op-nombre">Desde Planes: «¿nos falta algo?»</span></div>
+      <p class="op-idea">
+        El botón vive en Planes, no en Ideas, y lo que propone entra <b>directo a votación</b> en
+        este viaje en vez de al catálogo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> se salta el catálogo, que es lo que acabamos de construir, y mete a votar
+        cosas que nadie ha propuesto. <b>Lo paga:</b> un paso menos cuando ya estáis decidiendo.
+        Es un buen <b>añadido</b> a S2, no un sustituto.
+      </p>
+    </div>
+  </div>
+
+  <p class="coste">
+    <b>Lo que no cambia en ninguna:</b> la llamada sale del Worker con el contexto compuesto
+    <b>allí</b> desde la base, nunca del teléfono; la clave no viaja; y si no hay clave puesta, el
+    botón no aparece en vez de fallar al pulsarlo.
+  </p>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte tres · las combinaciones</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>V3</span><span>+V5</span><span>S2</span></div>
+    <p>
+      <b>Los avatares agrupados por voto</b> dentro del plan abierto, y <b>en la fila cerrada la
+      frase de quien falta</b> —«falta por votar Luis»—, que es lo accionable y cabe en el
+      subtítulo que ya existe. Las dos juntas contestan las dos preguntas sin gastar dos sitios.
+    </p>
+    <p>
+      <b>Y el botón de sugerir al pie de Ideas</b> (S2), con el contexto del viaje. Es lo que llena
+      un catálogo que hoy nace vacío, y es la pregunta que se hace de verdad. Si más adelante
+      queréis además pedirlas desde Planes, <b>S4 se suma</b> sin quitar nada.
+    </p>
+    <p>
+      <b>Si prefieres no aprenderte avatares:</b>
+      <span class="receta" style="display:inline"><span>V2</span><span>S2</span></span> — la tabla
+      completa, una fila por persona. Cuesta 264 pt dentro del plan abierto, así que el plan pasa a
+      ocupar casi toda la pantalla; a cambio no hay nada que deducir.
+    </p>
+    <p style="font-size:13.5px">
+      Una duda que dejo escrita en vez de resolverla yo: dijiste «quitar el dónde, solo con la
+      descripción», y no dijiste nada del <b>enlace</b>. Lo he dejado, porque a una excursión con
+      web se le pone y no estorba. Si también sobra, dilo y cae con los otros dos.
+    </p>
+    <p style="font-size:13.5px">
+      Esta hoja vive en <code>docs/diseño/planes-votar.html</code>, al lado de
+      <code>planes.html</code> y <code>planes-catalogo.html</code>. <b>No se ha escrito código:</b>
+      lo que sale de esta vuelta es la hoja.
+    </p>
+  </div>
+
+</div>
+</div>
