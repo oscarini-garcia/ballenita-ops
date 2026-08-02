@@ -1296,6 +1296,33 @@ misma: es una credencial de pago y no debe viajar a ningún dispositivo, y la
 llamada al modelo sale del Worker —donde el texto se compone con lo que ya está
 en la base— y no del teléfono, así que el cliente no puede inyectarle nada.
 
+### 14.16-bis El modelo se elige de una lista, y la clave se prueba
+
+El modelo se escribía **a mano en una caja de texto**. Una errata —o un nombre
+que Anthropic ha retirado— no se veía al guardar: se veía meses después, cuando
+alguien pulsaba «¿Qué podríamos hacer?» y no pasaba nada. Y no había forma de
+saber si la clave valía sin provocar esa misma llamada.
+
+Dos servicios nuevos, los dos en el Worker y los dos solo para quien administra
+(`api/src/ia.js`):
+
+- **`GET /api/ia/modelos`** pregunta a Anthropic qué modelos admite la clave
+  guardada y devuelve `{ id, nombre }`. La pregunta la hace el servidor **por el
+  mismo motivo por el que sale de ahí la llamada al modelo**: preguntarlo desde
+  el teléfono exigiría mandarle la clave. En Ajustes el campo pasa a ser un
+  desplegable; si la lista no llega se queda la caja de texto y se dice por qué,
+  que es mejor que un desplegable vacío. **El modelo guardado no desaparece de la
+  lista aunque Anthropic ya no lo ofrezca**: precisamente ese es el caso que hay
+  que poder ver.
+- **`POST /api/ia/probar`** hace **la llamada de verdad** con `max_tokens: 1` y
+  contesta si funcionó y cuánto tardó. Se prueba **el par entero**, clave y
+  modelo: una clave buena con un modelo retirado falla igual, y eso es la mitad
+  de lo que se puede tener mal. Un token cuesta lo que cuesta un token.
+
+Cuando falla se dice con las palabras de Anthropic y su estado HTTP —«No funciona
+— la API respondió 401: invalid x-api-key»—, con el mismo criterio de §14.9-bis:
+«error» a secas no sirve para arreglar nada.
+
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 
 Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·

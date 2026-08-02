@@ -139,6 +139,16 @@ export const guardarIA = (cuerpo) =>
  * Cinco de una vez porque lo caro es contarle el contexto; pasar de una a otra
  * no vuelve a pedir nada.
  */
+/**
+ * Los modelos que la clave guardada puede usar, y si el par clave+modelo vale.
+ *
+ * Los dos preguntan al Worker y no a Anthropic: la clave vive allí y no vuelve
+ * entera a ningún móvil (§14.16). Ver `api/src/ia.js`.
+ */
+export const listarModelosIA = () => peticion('/api/ia/modelos').then((r) => r.modelos || [])
+
+export const probarIA = () => peticion('/api/ia/probar', { method: 'POST', body: '{}' })
+
 export const sugerirPlanes = (eventId, descartadas = []) =>
   peticion('/api/plan/sugerir', {
     method: 'POST',

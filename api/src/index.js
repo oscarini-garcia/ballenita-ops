@@ -41,6 +41,7 @@ import {
 } from './repositorio.js';
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
+import { listarModelos, probar } from './ia.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
 
@@ -375,6 +376,46 @@ async function avisarDeSolicitud(env, nombre) {
  * teléfono no se le puede meter texto al modelo. Y no viajan los nombres: al
  * modelo le llega cuánta gente y de qué edades, no quiénes.
  */
+/**
+ * Los modelos que la clave guardada puede usar (SPECS §14.16-bis).
+ *
+ * La pregunta la hace el Worker y no el móvil porque la clave no sale de aquí.
+ */
+async function modelosDeIA(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+  if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
+
+  const { clave } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  try {
+    return json({ modelos: await listarModelos({ clave }) });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, e.estado || 502);
+  }
+}
+
+/**
+ * Probar la clave y el modelo con una llamada de verdad y un token de respuesta.
+ *
+ * Se prueba el par entero: una clave buena con un modelo retirado falla igual, y
+ * eso antes no se veía hasta que alguien pulsaba «¿Qué podríamos hacer?» meses
+ * después.
+ */
+async function probarIA(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+  if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
+
+  const { clave, modelo } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  try {
+    return json(await probar({ clave, modelo }));
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, e.estado || 502);
+  }
+}
+
 async function sugerirPlanes(peticion, env) {
   await cuentaAutenticada(peticion, env);
 
@@ -494,6 +535,8 @@ const RUTAS = [
   ['POST', '/api/push/prueba', pruebaDePush],
   ['GET', '/api/ia', configuracionIA],
   ['POST', '/api/ia', configuracionIA],
+  ['GET', '/api/ia/modelos', modelosDeIA],
+  ['POST', '/api/ia/probar', probarIA],
   ['POST', '/api/plan/sugerir', sugerirPlanes],
   ['POST', '/api/importar', importar],
 ];
