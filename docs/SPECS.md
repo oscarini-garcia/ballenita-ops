@@ -1209,6 +1209,19 @@ firmado. Volver así habría sido volver al mismo sitio.
   persona** entrara con Apple. Devuelve **lo que dijo Apple, motivo incluido**:
   con `BadDeviceToken` o «el Worker no tiene las claves» delante se sabe cuál de
   los seis falta, que es la regla de §14.9-bis aplicada aquí.
+- **✅ El identificador se vuelve a apuntar en cada arranque**
+  (`lib/push.js` · `asegurarPush`, llamado desde `App.jsx` en cuanto hay sesión).
+  El permiso de iOS y el token de APNs **no son la misma cosa**, y en pantalla lo
+  parecían: «Avisos encendidos» arriba y «este móvil todavía no ha apuntado su
+  identificador» debajo. Era un callejón sin salida —`registerPush()` solo se
+  llamaba desde el botón «Encender», y ese botón **se esconde justo cuando el
+  permiso ya está dado**—, así que con el permiso puesto y el token sin guardar no
+  quedaba ningún gesto capaz de arreglarlo. Además el token **caduca y cambia**:
+  reinstalar, restaurar una copia o actualizar iOS lo renueva, que es lo mismo que
+  dice el punto del `410` visto desde el otro lado. Pedirlo en cada arranque es
+  barato —se reescribe la misma fila— y silencioso: con el permiso concedido no
+  aparece ninguna hoja. El botón de prueba lo hace también antes de mandar, para
+  que arregle en vez de mandar a pulsar un botón que no está.
 - **⚠ No viaja por OTA.** Un plugin nativo exige `npm run sync:ios`, archivar y
   **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
   repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.

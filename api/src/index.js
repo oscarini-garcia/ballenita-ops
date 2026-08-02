@@ -314,7 +314,11 @@ async function pruebaDePush(peticion, env) {
 
   const tokens = await tokensDeCuenta(env.DB, cuenta.id);
   if (tokens.length === 0) {
-    return json({ enviados: 0, motivo: 'Este móvil todavía no ha apuntado su identificador. Enciende los avisos y vuelve a probar.' });
+    // Sin «vuelve a encender los avisos»: la pantalla ya lo intenta sola antes
+    // de llamar aquí (`lib/push.js`), así que si se llega a esta línea es que el
+    // identificador no llegó a guardarse, y mandar a pulsar un botón que no está
+    // —«Encender» se esconde con el permiso ya dado— era un callejón sin salida.
+    return json({ enviados: 0, motivo: 'Este móvil no tiene ningún identificador guardado aquí, ni ha conseguido apuntarlo ahora.' });
   }
 
   const resultados = [];

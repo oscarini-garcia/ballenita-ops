@@ -9,6 +9,7 @@ import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
 import { SIN_PLUGIN, estadoDePush, isNative, registerPush, tap } from '../lib/native.js'
+import { asegurarPush } from '../lib/push.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
 import { porNombre } from '../lib/asignacion.js'
@@ -301,7 +302,17 @@ export function NotificacionesSection() {
   async function probar() {
     tap()
     setPrueba('yendo')
-    try { setPrueba(await probarPush()) } catch (e) { setPrueba({ enviados: 0, motivo: String(e.message ?? e) }) }
+    try {
+      // Antes de mandar, que este móvil esté apuntado. Sin esto la respuesta era
+      // «enciende los avisos y vuelve a probar» con los avisos ya encendidos y
+      // sin ningún botón que encender: un callejón sin salida. Ver `lib/push.js`.
+      const como = await asegurarPush()
+      if (como === 'sin-token') {
+        setPrueba({ enviados: 0, motivo: 'Permiso dado, pero Apple no devuelve identificador para este móvil. Suele ser que al binario le falta el permiso de avisos, o que no hay red.' })
+        return
+      }
+      setPrueba(await probarPush())
+    } catch (e) { setPrueba({ enviados: 0, motivo: String(e.message ?? e) }) }
   }
 
   return (

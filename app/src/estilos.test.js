@@ -65,3 +65,29 @@ describe('estilos inline', () => {
     expect(pecados.join('\n')).toBe('')
   })
 })
+
+/**
+ * El nombre y su renglón, en dos líneas aunque sean `span`.
+ *
+ * En Ajustes → Cuentas y en los avisos, la fila cuelga de un `<button>`, así que
+ * el título y el subtítulo tienen que ser `span` y no `div`. Sin `display:
+ * block` salían pegados —«Óscar García Chillónha entrado con Apple y todavía no
+ * es nadie del grupo»— y encima el `text-overflow: ellipsis` de al lado no hacía
+ * nada, porque en un elemento inline no recorta.
+ */
+describe('las dos líneas de una fila', () => {
+  const CSS = readFileSync(join(RAIZ, 'theme.css'), 'utf8')
+  const regla = (selector) => {
+    const i = CSS.indexOf(selector + ' {')
+    expect(i, `no encuentro la regla ${selector}`).toBeGreaterThan(-1)
+    return CSS.slice(i, CSS.indexOf('}', i))
+  }
+
+  it('el nombre es un bloque, sea `div` o `span`', () => {
+    expect(regla('.row .main .n')).toMatch(/display:\s*block/)
+  })
+
+  it('y el renglón de debajo, también', () => {
+    expect(regla('.row .main .sub')).toMatch(/display:\s*block/)
+  })
+})
