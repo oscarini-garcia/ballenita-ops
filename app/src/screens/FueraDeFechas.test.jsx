@@ -70,11 +70,11 @@ describe('lo que cae fuera de las fechas', () => {
     render(<PlanesScreen eventId={eventId} event={event} />)
 
     await screen.findByText('Playa de la Cala')
-    const titulos = textos('.plan-n')
+    // Los de dentro arriba; el de fuera, en su grupo del final.
+    const titulos = textos('.fila-plan .n')
     expect(titulos[0]).toBe('Playa de la Cala')
     expect(titulos[titulos.length - 1]).toBe('Cena de despedida en el pueblo')
 
     expect(screen.getByText('Fuera de las fechas del viaje')).toBeInTheDocument()
-    expect(screen.getByText('fuera del viaje')).toBeInTheDocument()
   })
 })

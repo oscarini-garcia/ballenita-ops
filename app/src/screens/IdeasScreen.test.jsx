@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import IdeasScreen from './IdeasScreen.jsx'
 import PlanesConAreasScreen from './PlanesConAreasScreen.jsx'
-import { db, createEvent, getEvent, addPlanIdea, listPlanIdeas, plansOf } from '../db.js'
+import { db, createEvent, getEvent, addPlanIdea, listPlanIdeas, plansOf, addPerson } from '../db.js'
 
 /**
  * El área «Ideas» y el mando que la hace alcanzable (B3).
@@ -25,20 +25,24 @@ describe('IdeasScreen', () => {
     expect(await screen.findByText(/Todavía no hay ideas guardadas/)).toBeInTheDocument()
   })
 
-  it('«traer» deja el plan en este viaje y lo dice', async () => {
+  it('«Proponer» deja el plan en este viaje, y no deja proponerlo dos veces', async () => {
     const { eventId, event } = await viaje()
-    await addPlanIdea({ titulo: 'Playa de la Cala', ubicacion: 'Cala del sur' })
+    await addPlanIdea({ titulo: 'Playa de la Cala', descripcion: 'La del sur' })
     render(<IdeasScreen eventId={eventId} event={event} />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'traer' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Proponer' }))
 
     // El plan existe y ha llegado limpio.
     const planes = await plansOf(eventId)
     expect(planes).toHaveLength(1)
     expect(planes[0]).toMatchObject({ titulo: 'Playa de la Cala', dia: null, estado: 'votando' })
-    // Y el botón lo confirma en vez de quedarse igual: un toque sin respuesta
-    // a la vista no dice nada.
-    expect(await screen.findByRole('button', { name: '✓ traída' })).toBeDisabled()
+
+    // Y no se puede otra vez: dos filas idénticas se repartían los votos y no
+    // ganaba ninguna.
+    const boton = await screen.findByRole('button', { name: 'Ya propuesta' })
+    expect(boton).toBeDisabled()
+    await userEvent.click(boton)
+    expect(await plansOf(eventId)).toHaveLength(1)
   })
 
   it('la fila cuenta en cuántos viajes se ha usado', async () => {
@@ -46,8 +50,22 @@ describe('IdeasScreen', () => {
     await addPlanIdea({ titulo: 'Playa de la Cala' })
     render(<IdeasScreen eventId={eventId} event={event} />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'traer' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Proponer' }))
     expect(await screen.findByText(/1 viaje/)).toBeInTheDocument()
+  })
+
+  it('la idea dice quién la apuntó', async () => {
+    const { eventId, event } = await viaje()
+    const yo = await addPerson(eventId, { name: 'Curro', edad: 'adulto' })
+    localStorage.setItem(`ballena.me:${eventId}`, yo)
+    render(<IdeasScreen eventId={eventId} event={event} />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir idea' }))
+    await userEvent.type(screen.getByLabelText('Qué es'), 'Torneo de petanca')
+    await userEvent.click(screen.getByRole('button', { name: 'Añadir al catálogo' }))
+
+    expect(await screen.findByText(/la apuntó Curro/)).toBeInTheDocument()
+    expect((await listPlanIdeas())[0].creadaPor).toBe(yo)
   })
 
   it('crear una idea la deja en el catálogo compartido', async () => {
@@ -69,7 +87,8 @@ describe('IdeasScreen', () => {
     await addPlanIdea({ titulo: 'Playa de la Cala' })
     render(<IdeasScreen eventId={eventId} event={event} />)
 
-    await userEvent.click(await screen.findByRole('button', { name: /Editar Playa de la Cala/ }))
+    // Se edita tocando la fila: el lápiz de la derecha se fue.
+    await userEvent.click(await screen.findByText('Playa de la Cala'))
     await userEvent.click(screen.getByRole('button', { name: 'Borrar idea' }))
     expect(screen.getByText(/de todos los viajes/)).toBeInTheDocument()
 

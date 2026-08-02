@@ -38,6 +38,8 @@ import {
   guardarTokenPush, olvidarTokenPush, silenciarDispositivo, tokensDeAdministradores,
 } from './repositorio.js';
 
+import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
+
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
 
 function json(cuerpo, estado = 200, cabeceras = {}) {
@@ -320,6 +322,53 @@ async function avisarDeSolicitud(env, nombre) {
  * —cuatro últimos caracteres y fecha—, así que ni siquiera quien la puso puede
  * volver a leerla desde la app. Cambiarla es escribir una nueva.
  */
+/**
+ * Cinco planes propuestos para un viaje (SPECS §14.19).
+ *
+ * Del cliente llega el evento y lo ya propuesto en esta misma tanda; **el
+ * material lo compone el Worker** con lo que hay en la base, así que desde un
+ * teléfono no se le puede meter texto al modelo. Y no viajan los nombres: al
+ * modelo le llega cuánta gente y de qué edades, no quiénes.
+ */
+async function sugerirPlanes(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { eventId, descartadas = [] } = await peticion.json();
+  if (!eventId) return json({ error: 'falta el evento' }, 400);
+
+  const { clave, modelo } = await leerConfiguracionIA(env.DB);
+  // Sin clave no se falla a mitad: se dice que no está puesta, y la app esconde
+  // el botón en vez de ofrecer algo que no puede hacer.
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const evento = await env.DB.prepare('SELECT * FROM events WHERE id = ? AND borrado = 0').bind(eventId).first();
+  if (!evento) return json({ error: 'ese evento no existe' }, 404);
+
+  const { results: personas } = await env.DB
+    .prepare('SELECT edad FROM persons WHERE eventId = ? AND borrado = 0').bind(eventId).all();
+  const { results: planes } = await env.DB
+    .prepare('SELECT titulo FROM plans WHERE eventId = ? AND borrado = 0').bind(eventId).all();
+  const { results: ideas } = await env.DB
+    .prepare('SELECT titulo FROM planIdeas WHERE borrado = 0 AND (eventId IS NULL OR eventId = ?)').bind(eventId).all();
+
+  const yaHay = [
+    ...(planes || []).map((p) => p.titulo),
+    ...(ideas || []).map((i) => i.titulo),
+    ...descartadas,
+  ].filter(Boolean);
+
+  try {
+    const propuestas = await pedirPropuestas({
+      clave,
+      modelo,
+      material: materialDelViaje({ evento, personas: personas || [], yaHay }),
+    });
+    return json({ propuestas });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
 async function configuracionIA(peticion, env) {
   const cuenta = await cuentaAutenticada(peticion, env);
   if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
@@ -399,6 +448,7 @@ const RUTAS = [
   ['POST', '/api/push', registroDePush],
   ['GET', '/api/ia', configuracionIA],
   ['POST', '/api/ia', configuracionIA],
+  ['POST', '/api/plan/sugerir', sugerirPlanes],
   ['POST', '/api/importar', importar],
 ];
 

@@ -128,6 +128,20 @@ export const guardarIA = (cuerpo) =>
  * autorización ante Apple. Sin él la cuenta se elimina igual y la respuesta lo
  * dice en `revocado_en_apple`, que es lo que la pantalla enseña.
  */
+/**
+ * Una tanda de cinco planes propuestos para este viaje (SPECS §14.19).
+ *
+ * Del móvil sale el evento y lo ya visto en esta misma sesión, y nada más: el
+ * material que lee el modelo lo compone el Worker con lo que hay en la base.
+ * Cinco de una vez porque lo caro es contarle el contexto; pasar de una a otra
+ * no vuelve a pedir nada.
+ */
+export const sugerirPlanes = (eventId, descartadas = []) =>
+  peticion('/api/plan/sugerir', {
+    method: 'POST',
+    body: JSON.stringify({ eventId, descartadas }),
+  }).then((r) => r.propuestas || [])
+
 export const eliminarMiCuenta = (codigoApple = null) =>
   peticion('/api/cuenta/baja', {
     method: 'POST',

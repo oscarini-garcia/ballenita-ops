@@ -1344,6 +1344,71 @@ En la API son una tabla y una columna (`migraciones/0006_ideas_de_plan.sql`,
 `npm run migrar:remoto6` si la base ya existía).
 
 
+### 14.19 Planes: aquí solo se vota
+
+Decidido en [`docs/diseño/planes-votar.html`](diseño/planes-votar.html) ·
+**V3 + V5 · S2**.
+
+**El defecto, medido.** La pantalla hacía tres trabajos a la vez —votar, poner
+fecha y administrar— y se le notaba: cada plan era una tarjeta de **299,9 pt** en
+un cuerpo de 633,6 (cabían **2,1**), con **siete botones**, un selector de fecha
+nativo que traía su propio dibujo y su propia alineación, y **ocho colores**
+contando el verde de la pastilla, el rojo de «borrar», el azul del enlace y los
+tres emoji de voto.
+
+**El reparto.** Aquí solo se vota. **El día se pone en Agenda**, tocando el día
+del viaje, que es donde está el calendario y donde ya se podía. Lo de administrar
+—devolver un plan al catálogo— vive dentro del plan abierto y solo lo ve quien
+administra. Cada plan queda en una fila de **70,7 pt**: caben ocho, y los colores
+bajan a tres.
+
+**Dos grupos y un orden que significa algo.** Primero los **elegidos**, los que
+ya tienen día; después los **disponibles**, ordenados por votos. El orden de
+creación no decía nada. Lo que se cayó fuera de las fechas sigue apartado al
+final (§14.10-quater): un plan en un día que el viaje ya no tiene no es un plan
+elegido.
+
+**La fila dice quién falta por votar** (V5), que es lo accionable —a esos hay que
+darles un toque— y cabe en el subtítulo que ya existe. Con uno o dos se dan los
+nombres, porque ahí un nombre sirve para algo; con más, el número: «faltan 5 por
+votar». Cinco nombres seguidos no caben y no dicen nada que el número no diga.
+
+**El plan abierto enseña los avatares agrupados bajo su voto** (V3). Una línea
+por voto, y los que no han votado aparte y **apagados**. Contesta las dos
+preguntas a la vez —quién opina qué y quién falta— en 44 pt, y usa los emoji que
+el grupo ya reconoce de Gente y de Gastos.
+
+**En Ideas**, siete cambios del mismo encargo: se **edita tocando la fila** (el
+lápiz competía por el pulgar con el verbo y gastaba 44 pt de 390); «traer» pasa a
+**«Proponer»**, que es lo que hace; cada idea dice **quién la apuntó**
+(`creadaPor`, una persona del grupo y no una cuenta); se van el **coste** —no se
+usó nunca— y el **dónde** —cabía en la descripción, que crece a cuatro
+renglones—; **una idea no se propone dos veces** —quedaban dos filas idénticas
+repartiéndose los votos, y no ganaba ninguna—; y el editor es un **modal fino**,
+que son dos campos.
+
+### 14.19-bis Las sugerencias de la IA: el material lo compone el Worker
+
+`POST /api/plan/sugerir` (`api/src/sugerencias.js`), con la figura del regalo de
+`garciadoral-ops`: **una tanda de cinco de una vez**, porque lo caro de la
+llamada no es el texto sino contarle al modelo el contexto —una vez contado,
+pasar de una propuesta a otra no vuelve a pedir nada—. Cada propuesta trae **qué**
+y **por qué**, y se guarda como idea con un toque.
+
+Dos decisiones que conviene que queden escritas:
+
+- **El material se compone en el Worker, no en el móvil.** Del cliente llega el
+  id del evento y lo ya visto en esta tanda, y nada más. Dónde es, cuándo, cuánta
+  gente y qué hay ya apuntado sale de la base en el propio Worker, así que desde
+  un teléfono no se le puede inyectar texto al modelo.
+- **No viajan los nombres.** Al modelo le llega «6 personas, 4 adultas, 2 niños»,
+  no quiénes son. Para proponer una excursión el nombre no aporta, y es lo único
+  de aquí que identifica a alguien. Hay un test que lo fija.
+
+**Sin clave, el botón no existe.** Si esta instalación no habla con la API el
+botón no se pinta, y si la clave no está puesta el Worker contesta 409. Ofrecer
+algo que va a fallar al pulsarlo es peor que no ofrecerlo.
+
 ### 14.12 Un solo tema, y sus dos caras
 
 **Los nueve skins se van.** Eran nueve paletas: nueve sitios donde un contraste
