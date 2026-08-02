@@ -698,3 +698,96 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 /* Un verbo destructivo que todavía no es el botón de borrar: dice lo que va a
    pasar sin gritarlo, porque delante lleva una confirmación. */
 .danger-texto { color: var(--owe); border-color: color-mix(in srgb, var(--owe) 35%, transparent); }
+/* ────────────────────────────────────────────────────────────────────────────
+   El grupo: una ficha por familia (docs/diseño/gente.html · G2) y la hoja que
+   sube desde abajo para editar y para elegir (gente-editar.html · F2 y A3).
+
+   Lo que manda aquí es que **la fila entera es la diana** (E1): 358 × 74 pt la
+   cabecera de una familia, 334 × 43 una persona. Por eso no hay lápices ni
+   botones de borrar en los renglones —eran nueve piezas de cromo repetidas y un
+   rojo justo donde cae el pulgar al rodar—: editar se hace tocando, y borrar
+   vive al fondo del editor (D1).
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* El asa: no es un botón, es la marca de que esto se cierra hacia abajo. */
+.hoja-asa { display: block; width: 38px; height: 5px; border-radius: 999px;
+  background: var(--line); margin: 2px auto 10px; }
+
+/* Filas de 48 —por encima del mínimo de 44— con el alias entero delante. */
+.eleccion { display: flex; flex-direction: column; margin-top: 6px;
+  border: 1px solid var(--line-soft); border-radius: var(--r); overflow: hidden;
+  background: var(--foam-2); }
+.eleccion-op { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px;
+  padding: 8px 14px; border: none; border-bottom: 1px solid var(--line-soft);
+  background: none; color: var(--ink); font: inherit; font-size: var(--t-row); text-align: left;
+  cursor: pointer; }
+.eleccion-op:last-child { border-bottom: none; }
+.eleccion-op:active { background: var(--line-soft); }
+.eleccion-op .et { flex: 1; min-width: 0; }
+/* Lo que ya tiene dueño se apaga, no se esconde: si el bunga que buscas no está,
+   quieres saber que lo tienen los García. */
+.eleccion-op .no { margin-left: auto; font-size: var(--t-label); color: var(--ink-faint); text-align: right; }
+.eleccion-op.tomada { color: var(--ink-faint); cursor: default; }
+.eleccion-op.nueva { color: var(--spout-deep); font-weight: 600; }
+.eleccion-op .tic { margin-left: auto; color: var(--spout-deep); display: grid; place-items: center; }
+.eleccion-op .tic svg { width: 20px; height: 20px; display: block; }
+.eleccion-op .no + .tic { margin-left: 8px; }
+
+/* La ficha de una familia. */
+.ficha-fam { background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r);
+  overflow: hidden; }
+.ficha-cab { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; }
+.ficha-quien { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
+  background: none; border: none; padding: 8px; font: inherit; color: inherit; text-align: left;
+  cursor: pointer; border-radius: 8px; }
+.ficha-quien:active { background: var(--line-soft); }
+.ficha-quien .main { flex: 1; min-width: 0; }
+.ficha-quien .n { display: block; font-size: var(--t-body); font-weight: 650;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ficha-quien .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
+.ficha-cuerpo { padding: 0 12px 6px; }
+
+/* La pastilla del bunga: una diana propia dentro de la fila, porque cambiar de
+   bunga es lo que más se toca y no merece pasar por el editor. */
+.pastilla { flex: none; max-width: 46%; border: none; border-radius: 999px; padding: 6px 12px;
+  min-height: 34px; background: color-mix(in srgb, var(--spout) 13%, transparent);
+  color: var(--spout-deep); font: inherit; font-size: var(--t-micro); font-weight: 650;
+  cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pastilla.vacia { background: none; border: 1px dashed var(--line); color: var(--ink-faint); font-weight: 550; }
+.pastilla.grande { display: block; width: 100%; max-width: none; text-align: left; min-height: var(--toque);
+  border-radius: 8px; font-size: var(--t-body); font-weight: 550; padding: 11px 13px; }
+
+/* Cada persona, dentro de su familia. */
+.mini { display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 0;
+  border-top: 1px solid var(--line-soft); background: none; border-left: none; border-right: none;
+  border-bottom: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.mini:active { background: var(--line-soft); }
+.mini .quien { flex: 1; min-width: 0; font-size: var(--t-row); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini .dato { font-size: var(--t-micro); color: var(--ink-faint); white-space: nowrap; }
+.mini.anadir { color: var(--spout-deep); font-size: var(--t-sub); font-weight: 600; padding: 10px 0; }
+
+/* Las filas de «Sueltos» comparten el .row de siempre, con la parte tocable
+   separada del verbo que lleva al lado. */
+.row-quien { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
+  background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.row-quien .main { flex: 1; min-width: 0; }
+.row-quien .n { display: block; font-size: var(--t-row); font-weight: 550;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-quien .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
+
+.av.chica { width: 28px; height: 28px; border-radius: 7px; font-size: var(--t-sub); }
+.av.sin { background: color-mix(in srgb, var(--ink-faint) 45%, transparent); }
+
+/* El pie del editor: guardar, y borrar en dos tiempos diciendo qué se lleva. */
+.editor-pie { margin-top: 16px; }
+.confirmar { margin-top: 10px; border: 1px solid color-mix(in srgb, var(--owe) 45%, transparent);
+  background: var(--owe-bg); border-radius: var(--r); padding: 12px; display: flex;
+  flex-direction: column; gap: 10px; }
+.que-se-lleva { font-size: var(--t-sub); line-height: 1.45; color: var(--ink); }
+.dato-fijo { font-size: var(--t-sub); color: var(--ink-soft); padding: 2px 2px 4px; }
+
+/* El color de una familia: un punto, no una pastilla de color entera. */
+.chip.color { width: 40px; padding: 0; justify-content: center; }
+.chip.color .punto { width: 16px; height: 16px; border-radius: 50%; display: block; }
+.chip.color.on { background: var(--foam-2); border-color: var(--spout); box-shadow: inset 0 0 0 1px var(--spout); }

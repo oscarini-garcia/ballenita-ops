@@ -49,6 +49,7 @@ const DIBUJOS = {
   </>,
   lapiz: <><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z" /><path d="M14.5 6 18 9.5" /></>,
   papelera: <><path d="M4 6.5h16M9.5 6.5V4h5v2.5" /><path d="M6.5 6.5 7.6 20a1.5 1.5 0 0 0 1.5 1.4h5.8a1.5 1.5 0 0 0 1.5-1.4l1.1-13.5" /><path d="M10.5 10.5v7M13.5 10.5v7" /></>,
+  visto: <><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></>,
 }
 
 export default function Icono({ nombre, className = '' }) {
