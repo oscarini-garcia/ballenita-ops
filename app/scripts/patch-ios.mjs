@@ -208,6 +208,36 @@ if (existsSync(plistPath)) {
   }
 }
 
+// 5-bis) El permiso de APNs: `aps-environment` en los entitlements.
+//
+// Sin esta clave, `PushNotifications.register()` falla con «no valid
+// aps-environment entitlement string found» y el teléfono nunca da token: el
+// aviso no es que no llegue, es que no hay a dónde mandarlo. Xcode la escribe
+// sola al activar la capacidad «Push Notifications», pero el proyecto de iOS se
+// regenera con `cap sync` y ahí se pierde, así que se repone en cada pasada.
+//
+// Va en `development`: es lo que corresponde a lo que se archiva y sube, porque
+// **Xcode la cambia sola a `production` al exportar** el archivo para la App
+// Store. Poner `production` a mano rompería las pruebas en el propio móvil.
+const entPath = join(IOS_APP, 'App.entitlements')
+if (existsSync(entPath)) {
+  const ent = readFileSync(entPath, 'utf8')
+  if (ent.includes('aps-environment')) {
+    console.log('[patch-ios] El permiso de avisos ya estaba declarado.')
+  } else {
+    const cierre = ent.lastIndexOf('</dict>')
+    if (cierre === -1) {
+      console.warn('[patch-ios] ⚠ App.entitlements no tiene la forma esperada; activa «Push Notifications» en Xcode.')
+    } else {
+      const declaracion = '\t<key>aps-environment</key>\n\t<string>development</string>\n'
+      writeFileSync(entPath, ent.slice(0, cierre) + declaracion + ent.slice(cierre))
+      console.log('[patch-ios] Permiso de avisos (aps-environment) declarado ✅')
+    }
+  }
+} else {
+  console.warn('[patch-ios] ⚠ No encuentro App.entitlements. Activa «Push Notifications» en Xcode → Signing & Capabilities.')
+}
+
 // 6) Apuntar el storyboard al MainViewController (en vez del CAPBridgeViewController).
 const sbPath = join(IOS_APP, 'Base.lproj', 'Main.storyboard')
 if (!existsSync(sbPath)) {

@@ -149,6 +149,11 @@ export async function entrarConApple(configuracion) {
   if (!canje.ok) {
     const error = new Error(datos.mensaje || datos.error || `La API respondió ${canje.status}.`)
     error.identificador = datos.identificador
+    // `en_espera` no es un fallo del que haya que recuperarse: la solicitud ha
+    // quedado apuntada y lo único que falta es que alguien diga quién eres. La
+    // pantalla de acceso lo cuenta como una sala de espera y no como un error.
+    error.enEspera = datos.error === 'en_espera'
+    error.nombre = datos.nombre
     throw error
   }
 

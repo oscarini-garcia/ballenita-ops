@@ -11,8 +11,10 @@ import ProgresoModal, { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
 import StatsScreen from './StatsScreen.jsx'
 import GrupoSection from './GrupoSection.jsx'
+import CuentasSection, { IASection, NotificacionesSection, useCuentas } from './CuentasSection.jsx'
 import Hoja from '../components/Hoja.jsx'
 import { loQueSeCaeFuera, enPalabras } from '../lib/evento.js'
+import { finPara } from '../lib/fechas.js'
 import { useTema, TEMAS } from '../lib/tema.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -22,6 +24,7 @@ import { eliminarMiCuenta, gestionarCuenta, hayApi, listarCuentas } from '../syn
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
+import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
 
 // El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
@@ -438,9 +441,17 @@ function EditorEvento({ event, onCerrar }) {
       {/* Una bajo la otra y no en dos columnas: el control de fecha nativo mide
           más que media pantalla y sacaba la hoja de lado en un móvil de verdad. */}
       <label htmlFor="ev-desde">Desde</label>
-      <input id="ev-desde" type="date" value={startDate} onChange={(e) => { setStart(e.target.value); setFuera(null) }} />
+      <input
+        id="ev-desde" type="date" value={startDate}
+        onChange={(e) => { setStart(e.target.value); setEnd(finPara(e.target.value, endDate)); setFuera(null) }}
+      />
       <label htmlFor="ev-hasta">Hasta</label>
-      <input id="ev-hasta" type="date" value={endDate} onChange={(e) => { setEnd(e.target.value); setFuera(null) }} />
+      {/* `min` es la mitad de la regla: el fin se propone solo al elegir el
+          inicio, y aquí el propio campo impide dejarlo antes. */}
+      <input
+        id="ev-hasta" type="date" value={endDate} min={startDate || undefined}
+        onChange={(e) => { setEnd(e.target.value); setFuera(null) }}
+      />
 
       {gastosFuera > 0 && (
         <div className="note">
@@ -450,6 +461,7 @@ function EditorEvento({ event, onCerrar }) {
       )}
 
       <div className="editor-pie">
+        <button className="btn ghost" onClick={onCerrar}>Cancelar</button>
         <button className="btn" onClick={guardar}>Guardar</button>
       </div>
 
@@ -475,252 +487,6 @@ function EditorEvento({ event, onCerrar }) {
  * código que le ha pasado el aspirante. Sin esto haría falta entrar en la base
  * de datos a mano para dejar entrar a nadie.
  */
-function CuentaSection() {
-  const sesion = leerSesion()
-  const [cuentas, setCuentas] = useState(null)
-  const [codigo, setCodigo] = useState('')
-  const [nombre, setNombre] = useState('')
-  const [aviso, setAviso] = useState(null)
-  // Cuenta que se está renombrando: { id, nombre } o null.
-  const [editando, setEditando] = useState(null)
-  // Baja de la cuenta: null en reposo · 'confirmando' · 'yendo' · el resultado.
-  const [baja, setBaja] = useState(null)
-
-  const esAdmin = sesion?.cuenta?.rol === 'administrador'
-
-  async function cargar() {
-    try {
-      setCuentas((await listarCuentas()).cuentas)
-    } catch (e) {
-      setAviso(String(e.message ?? e))
-    }
-  }
-
-  useEffect(() => { if (esAdmin) cargar() }, [esAdmin])
-
-  async function invitar() {
-    if (!codigo.trim()) return
-    tap()
-    setAviso(null)
-    try {
-      await gestionarCuenta({ accion: 'invitar', identificador: codigo.trim(), nombre: nombre.trim() })
-      setCodigo('')
-      setNombre('')
-      setAviso('Listo. Que entre con Apple y ya tendrá acceso.')
-      cargar()
-    } catch (e) {
-      setAviso(String(e.message ?? e))
-    }
-  }
-
-  async function alternar(cuenta) {
-    tap()
-    try {
-      await gestionarCuenta({ accion: cuenta.activa ? 'desactivar' : 'activar', id: cuenta.id })
-      cargar()
-    } catch (e) {
-      setAviso(String(e.message ?? e))
-    }
-  }
-
-  async function renombrar() {
-    tap()
-    try {
-      await gestionarCuenta({ accion: 'renombrar', id: editando.id, nombre: editando.nombre })
-      setEditando(null)
-      cargar()
-    } catch (e) {
-      setAviso(String(e.message ?? e))
-    }
-  }
-
-  async function salir() {
-    tap()
-    // Los datos del grupo se van con la sesión: no tiene sentido dejarlos en un
-    // móvil que ya no va a poder actualizarlos.
-    borrarSesion()
-    await olvidarTodo()
-    window.location.reload()
-  }
-
-  /**
-   * Eliminar la cuenta. Lo exige la directriz 5.1.1(v) de la App Store: quien
-   * puede crear una cuenta tiene que poder eliminarla desde dentro de la app,
-   * sin escribirle a nadie.
-   *
-   * Se vuelve a pasar por la hoja de Apple antes, y no por ceremonia: de ahí
-   * sale el código con el que el Worker le dice a Apple que este vínculo se
-   * acabó. Si esa hoja se cancela o falla, la baja **sigue adelante** sin ella
-   * (`codigoDeAutorizacionDeApple` devuelve null): lo que no puede pasar es que
-   * alguien no pueda irse porque Apple no contestó.
-   */
-  async function eliminarCuenta() {
-    tap()
-    setBaja('yendo')
-    try {
-      const resultado = await eliminarMiCuenta(await codigoDeAutorizacionDeApple())
-      borrarSesion()
-      await olvidarTodo()
-      setBaja(resultado)
-    } catch (e) {
-      setBaja(null)
-      setAviso(`No se pudo eliminar la cuenta: ${String(e.message ?? e)}`)
-    }
-  }
-
-  return (
-    <>
-      <div className="card tight">
-        <div className="row">
-          <div className="ico"><Icono nombre="llave" /></div>
-          <div className="main">
-            <div className="n">{sesion.cuenta?.nombre || 'Cuenta de Apple'}</div>
-            <div className="sub">{esAdmin ? 'Administras el grupo' : 'Miembro del grupo'}</div>
-          </div>
-          <button className="btn sm ghost" onClick={salir}>Salir</button>
-        </div>
-      </div>
-
-      {esAdmin && (
-        <>
-          <div className="sec-h">Quién tiene acceso</div>
-          <div className="card tight">
-            {cuentas === null && <div className="empty" style={{ padding: 14 }}>Cargando…</div>}
-            {cuentas?.map((c) => (
-              <div className="cuenta-fila" key={c.id} data-activa={c.activa ? 'si' : 'no'}>
-                {editando?.id === c.id ? (
-                  <>
-                    <input
-                      className="main"
-                      type="text"
-                      value={editando.nombre}
-                      onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
-                      onKeyDown={(e) => { if (e.key === 'Enter') renombrar() }}
-                      aria-label="Nombre de la cuenta"
-                      autoFocus
-                    />
-                    <button className="btn sm" onClick={renombrar}>Guardar</button>
-                    <button className="btn sm ghost" onClick={() => setEditando(null)}>Cancelar</button>
-                  </>
-                ) : (
-                  <>
-                    <div className="main">
-                      <div className="n">{c.nombre || c.email || 'Sin nombre'}</div>
-                      <div className="sub">
-                        {c.rol}
-                        {c.ultimoAcceso ? ` · última vez ${new Date(c.ultimoAcceso).toLocaleDateString('es-ES')}` : ' · aún no ha entrado'}
-                      </div>
-                    </div>
-                    <button
-                      className="btn sm ghost"
-                      onClick={() => { tap(); setEditando({ id: c.id, nombre: c.nombre || '' }) }}
-                      aria-label={`Renombrar a ${c.nombre || 'esta cuenta'}`}
-                    >
-                      ✏️
-                    </button>
-                    <button className="btn sm ghost" onClick={() => alternar(c)}>
-                      {c.activa ? 'Quitar' : 'Devolver'}
-                    </button>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="note">Para dar de alta a alguien: que intente entrar con Apple, te pase el código que le sale y lo pegues aquí.</div>
-          <label htmlFor="cuenta-codigo">Código de Apple</label>
-          <input id="cuenta-codigo" type="text" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="000123.abc…" />
-          <label htmlFor="cuenta-nombre">Nombre (para reconocerlo en la lista)</label>
-          <input id="cuenta-nombre" type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Curro" />
-          <button className="btn sm" style={{ marginTop: 8 }} onClick={invitar}>Dar acceso</button>
-        </>
-      )}
-
-      {aviso && <div className="note" role="status">{aviso}</div>}
-
-      {/* Eliminar la cuenta va al final y en rojo, lejos de «Salir», con la que
-          se confunde a la primera mirada: una deja de sincronizar en este móvil
-          y la otra deshace el acceso al grupo para siempre. */}
-      <div className="sec-h">Eliminar mi cuenta</div>
-      <div className="note">
-        Deshace el vínculo entre tu Apple ID y el grupo, y se lo dice a Apple para
-        que Ballena Ops desaparezca de «Apps que usan tu Apple ID». Los gastos,
-        cenas y planes que apuntaste se quedan: son del grupo, y borrarlos
-        descuadraría los saldos de todos los demás. Para volver a entrar haría
-        falta que alguien te diera de alta otra vez.
-      </div>
-      <button className="btn sm danger" style={{ marginTop: 8 }} onClick={() => { tap(); setBaja('confirmando') }}>
-        Eliminar mi cuenta
-      </button>
-
-      {baja && <BajaModal estado={baja} onCancelar={() => setBaja(null)} onConfirmar={eliminarCuenta} />}
-    </>
-  )
-}
-
-/**
- * Confirmación de la baja, y después su resultado.
- *
- * El resultado no se despacha con un «listo»: dice si se pudo avisar a Apple.
- * Si no se pudo —sin clave en el Worker, o la hoja de Apple cancelada—, la
- * cuenta está eliminada igual pero la aplicación sigue figurando en la lista del
- * Apple ID, y eso solo lo puede quitar su titular desde los ajustes de iOS.
- * Callárselo sería dejar a alguien creyendo que se fue del todo.
- */
-function BajaModal({ estado, onCancelar, onConfirmar }) {
-  useBloqueoDeScroll()
-  const hecha = typeof estado === 'object' && estado !== null
-  const yendo = estado === 'yendo'
-
-  return (
-    <div className="modal-bg" onClick={hecha ? undefined : onCancelar}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>{hecha ? 'Cuenta eliminada' : '¿Eliminar tu cuenta?'}</h2>
-
-        {hecha ? (
-          <>
-            <p className="note">
-              Tu acceso al grupo ya no existe y este móvil se ha quedado vacío.
-            </p>
-            <p className="note">
-              {estado.revocado_en_apple
-                ? 'También se lo hemos dicho a Apple: Ballena Ops ya no figura entre las apps que usan tu Apple ID.'
-                : 'No hemos podido avisar a Apple, así que Ballena Ops puede seguir apareciendo en Ajustes de iOS → tu nombre → Inicio de sesión y seguridad → Iniciar sesión con Apple. Ahí puedes quitarla.'}
-            </p>
-            {estado.administradores_restantes === 0 && (
-              <p className="note">
-                Eras la última cuenta que administraba el grupo: ya no queda nadie
-                que pueda dar de alta a otros desde la app.
-              </p>
-            )}
-            <div style={{ marginTop: 16 }}>
-              <button className="btn block" onClick={() => window.location.reload()}>Cerrar</button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="note">
-              Se elimina tu cuenta y los dispositivos desde los que sincronizabas.
-              No se puede deshacer: para volver, alguien del grupo tendría que
-              darte de alta otra vez.
-            </p>
-            <p className="note">
-              Apple te va a pedir que te identifiques una vez más. Es de donde
-              sale el permiso para avisarle de que te vas.
-            </p>
-            <div style={{ marginTop: 16, display: 'grid', gap: 8 }}>
-              <button className="btn block danger" disabled={yendo} onClick={onConfirmar}>
-                {yendo ? 'Eliminando…' : 'Sí, eliminar mi cuenta'}
-              </button>
-              <button className="btn block ghost" disabled={yendo} onClick={onCancelar}>Cancelar</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
 function AppSection() {
   // null = en reposo · si no, la clave del paso actual (UPDATE_STEPS).
   const [paso, setPaso] = useState(null)
@@ -820,6 +586,9 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const { me } = useIdentidad(eventId, persons)
+  // Las cuentas y sus avisos: los pinta «Notificaciones» y los cuenta el rótulo.
+  const { esAdmin, cuentas } = useCuentas()
+  const pendientes = avisosPara({ cuentas: cuentas ?? [], esAdmin }).length
   const { tema: temaPuesto } = useTema()
   const sesion = leerSesion()
 
@@ -852,9 +621,19 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
       </Acordeon>
 
+      <Acordeon titulo="Notificaciones" icono="aviso" nota={pendientes || null}>
+        <NotificacionesSection />
+      </Acordeon>
+
       {sesion && (
-        <Acordeon titulo="Tu cuenta" icono="llave" nota={sesion.cuenta?.nombre}>
-          <CuentaSection />
+        <Acordeon titulo="Cuentas" icono="llave" nota={cuentas ? cuentas.length : null}>
+          <CuentasSection eventId={eventId} />
+        </Acordeon>
+      )}
+
+      {esAdmin && (
+        <Acordeon titulo="IA" icono="ballena">
+          <IASection />
         </Acordeon>
       )}
 

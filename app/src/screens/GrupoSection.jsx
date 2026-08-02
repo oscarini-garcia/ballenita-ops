@@ -145,8 +145,7 @@ export default function GrupoSection({ eventId }) {
 
       <button className="btn block" onClick={() => abrir({ tipo: 'familia' })}>+ Familia</button>
       <div className="note">
-        🐳 Al dividir un gasto por cabezas, un <b>adulto</b> cuenta 1 y un <b>niño</b> 0,6.
-        Quien se queda <b>sin familia</b> no entra en el reparto de ninguna, y la gente de aquí es
+        🐳 Quien se queda <b>sin familia</b> no entra en el reparto de ninguna. La gente de aquí es
         la que puede tener cuenta: las peticiones de acceso se enlazan con una persona.
       </div>
 
@@ -261,19 +260,22 @@ function ElegirFamilia({ bungaId, families, bungas, onCerrar }) {
  * familia se comía en silencio el vínculo con su bunga y dejaba a su gente sin
  * ella.
  */
-function PieDeEditor({ onGuardar, borrado }) {
+function PieDeEditor({ onGuardar, onCancelar, borrado }) {
   const [confirmando, setConfirmando] = useState(false)
   return (
     <>
-      {/* Los dos verbos van en la misma línea y separados: apilados y pegados,
-          el rojo caía justo debajo del pulgar que acababa de dar a Guardar. */}
-      <div className={`editor-pie${borrado ? ' con-borrado' : ''}`}>
-        <button className="btn" onClick={onGuardar}>Guardar</button>
+      {/* Los verbos van en una línea y separados: apilados y pegados, el rojo
+          caía justo debajo del pulgar que acababa de dar a Guardar. Y salir sin
+          guardar tiene que ser un botón —cerrar tocando el fondo lo sabe quien
+          lo ha programado—, así que Cancelar está siempre al lado. */}
+      <div className="editor-pie">
         {borrado && !confirmando && (
           <button className="btn ghost danger-txt" onClick={() => { tap(); setConfirmando(true) }}>
             {borrado.corta ?? 'Borrar'}
           </button>
         )}
+        <button className="btn ghost" onClick={onCancelar}>Cancelar</button>
+        <button className="btn" onClick={onGuardar}>Guardar</button>
       </div>
       {borrado && confirmando && (
         <div className="confirmar">
@@ -362,6 +364,7 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
 
       <PieDeEditor
         onGuardar={guardar}
+        onCancelar={onCerrar}
         borrado={nueva ? null : {
           corta: 'Borrar',
           queSeLleva: `Se borran los ${familia.name}. ${suGente.length === 0
@@ -433,6 +436,7 @@ function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, on
 
       <PieDeEditor
         onGuardar={guardar}
+        onCancelar={onCerrar}
         borrado={nuevo ? null : {
           corta: 'Borrar',
           queSeLleva: `Se borra ${bunga.name}.${familia ? ` Los ${familia.name} se quedan sin bunga.` : ''}${
@@ -544,13 +548,14 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
             aria-pressed={edad === e.id}
             onClick={() => { tap(); setEdad(e.id) }}
           >
-            {e.etiqueta} <span className="peso tnum">{String(e.peso).replace('.', ',')}</span>
+            {e.etiqueta}
           </button>
         ))}
       </div>
 
       <PieDeEditor
         onGuardar={guardar}
+        onCancelar={onCerrar}
         borrado={nueva ? null : {
           corta: 'Borrar',
           queSeLleva: `Se borra a ${persona.name}.${enGastos > 0
