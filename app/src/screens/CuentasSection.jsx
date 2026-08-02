@@ -306,9 +306,13 @@ export function NotificacionesSection() {
       // Antes de mandar, que este móvil esté apuntado. Sin esto la respuesta era
       // «enciende los avisos y vuelve a probar» con los avisos ya encendidos y
       // sin ningún botón que encender: un callejón sin salida. Ver `lib/push.js`.
-      const como = await asegurarPush()
-      if (como === 'sin-token') {
-        setPrueba({ enviados: 0, motivo: 'Permiso dado, pero Apple no devuelve identificador para este móvil. Suele ser que al binario le falta el permiso de avisos, o que no hay red.' })
+      const { estado, motivo } = await asegurarPush()
+      // Lo que contestó Apple sale **tal cual**: «no valid 'aps-environment'
+      // entitlement string found» dice qué le falta al binario, y traducirlo a
+      // «no se pudo» deja el fallo sin arreglar y sin explicar.
+      if (estado === 'error') { setPrueba({ enviados: 0, motivo }); return }
+      if (estado === 'sin-token') {
+        setPrueba({ enviados: 0, motivo: 'Permiso dado, y Apple no contesta ni con identificador ni con error. Suele ser que no hay red.' })
         return
       }
       setPrueba(await probarPush())
