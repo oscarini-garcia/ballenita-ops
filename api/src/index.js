@@ -21,6 +21,7 @@
  *   POST /api/cuentas   · enlazar con persona, eliminar, activar y renombrar (administradores)
  *   POST /api/cuenta/baja · eliminar la cuenta propia (directriz 5.1.1(v) de Apple)
  *   POST /api/push      · apunta el token de APNs de este aparato, o lo silencia
+ *   POST /api/push/prueba · se manda un aviso a sí mismo, y cuenta qué pasó
  *   GET  /api/ia        · qué clave y qué modelo hay puestos (administradores)
  *   POST /api/ia        · los cambia (administradores)
  *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
@@ -36,6 +37,7 @@ import {
   hayAlgunaCuenta, importarInstantanea, leerInstantanea, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
   guardarTokenPush, olvidarTokenPush, silenciarDispositivo, tokensDeAdministradores,
+  tokensDeCuenta,
 } from './repositorio.js';
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
@@ -292,6 +294,49 @@ async function registroDePush(peticion, env) {
 }
 
 /**
+ * Un aviso de prueba, a los aparatos de quien lo pide y a nadie más.
+ *
+ * Existe porque la cadena tiene seis eslabones —permiso en el móvil, token de
+ * APNs, token guardado aquí, claves del Worker, entorno correcto, y Apple— y
+ * hasta ahora la única manera de probarla era que **otra persona** entrara con
+ * Apple. Con esto se prueba solo.
+ *
+ * **Devuelve lo que dijo Apple, motivo incluido.** Un «no se pudo» a secas
+ * obligaría a venir a preguntarme; con `BadDeviceToken` o `sin-configurar`
+ * delante, se sabe cuál de los seis eslabones falta (SPECS §14.9-bis).
+ */
+async function pruebaDePush(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+  if (!hayApnsConfigurado(env)) {
+    return json({ enviados: 0, motivo: 'El Worker no tiene las claves de APNs puestas.' });
+  }
+
+  const tokens = await tokensDeCuenta(env.DB, cuenta.id);
+  if (tokens.length === 0) {
+    return json({ enviados: 0, motivo: 'Este móvil todavía no ha apuntado su identificador. Enciende los avisos y vuelve a probar.' });
+  }
+
+  const resultados = [];
+  for (const token of tokens) {
+    const r = await enviarAviso(env, token, {
+      titulo: 'Funciona 🐳',
+      cuerpo: 'Si ves esto, los avisos llegan a este móvil.',
+      agrupa: 'prueba',
+      datos: { ir: 'ajustes/notificaciones' },
+    });
+    if (r.caducado) await olvidarTokenPush(env.DB, token);
+    resultados.push(r);
+  }
+
+  const enviados = resultados.filter((r) => r.ok).length;
+  return json({
+    enviados,
+    de: tokens.length,
+    motivo: enviados > 0 ? null : (resultados.find((r) => !r.ok)?.motivo ?? 'Apple no lo aceptó.'),
+  });
+}
+
+/**
  * Avisa a quien administra de que alguien acaba de pedir entrar.
  *
  * Es el primer aviso remoto de la app y el que justifica todo el cable: quien
@@ -446,6 +491,7 @@ const RUTAS = [
   ['POST', '/api/cuentas', cuentas],
   ['POST', '/api/cuenta/baja', darDeBaja],
   ['POST', '/api/push', registroDePush],
+  ['POST', '/api/push/prueba', pruebaDePush],
   ['GET', '/api/ia', configuracionIA],
   ['POST', '/api/ia', configuracionIA],
   ['POST', '/api/plan/sugerir', sugerirPlanes],

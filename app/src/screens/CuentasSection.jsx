@@ -4,7 +4,7 @@ import { personsOf, familiesOf, olvidarTodo } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
-import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, registrarPush } from '../sync/api.js'
+import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, registrarPush, probarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
@@ -262,6 +262,8 @@ export function NotificacionesSection() {
   // Lo que falló, con sus palabras. Sin esto, «no pasa nada» y «pasó esto» se
   // ven igual, y no hay manera de contárselo a nadie.
   const [fallo, setFallo] = useState(null)
+  // Resultado de la prueba: null · 'yendo' · lo que contestó el servidor.
+  const [prueba, setPrueba] = useState(null)
 
   useEffect(() => { estadoDePush().then(setPermiso) }, [])
 
@@ -289,6 +291,17 @@ export function NotificacionesSection() {
       setPermiso(motivo === SIN_PLUGIN ? SIN_PLUGIN : await estadoDePush())
       if (motivo !== SIN_PLUGIN) setFallo(motivo)
     } finally { setYendo(false) }
+  }
+
+  /**
+   * Un aviso a este mismo móvil. La cadena tiene seis eslabones —permiso, token
+   * de APNs, token guardado, claves del Worker, entorno y Apple— y sin esto la
+   * única manera de probarla era que **otra persona** entrara con Apple.
+   */
+  async function probar() {
+    tap()
+    setPrueba('yendo')
+    try { setPrueba(await probarPush()) } catch (e) { setPrueba({ enviados: 0, motivo: String(e.message ?? e) }) }
   }
 
   return (
@@ -319,6 +332,20 @@ export function NotificacionesSection() {
               )}
             </div>
           </div>
+          {permiso === 'granted' && (
+            <>
+              <button className="btn ghost block" disabled={prueba === 'yendo'} onClick={probar}>
+                {prueba === 'yendo' ? 'Mandando…' : '🔔 Mandarme un aviso de prueba'}
+              </button>
+              {prueba && prueba !== 'yendo' && (
+                <div className="note" role="status">
+                  {prueba.enviados > 0
+                    ? `🐳 Mandado a ${prueba.enviados === 1 ? 'este móvil' : `${prueba.enviados} aparatos`}. Si no aparece en unos segundos, el aviso salió pero Apple no lo entregó.`
+                    : `🐳 No salió: ${prueba.motivo}`}
+                </div>
+              )}
+            </>
+          )}
           {fallo && <div className="note" role="alert">🐳 {fallo}</div>}
           <div className="note">
             🐳 De momento se avisa de <b>una sola cosa</b>: alguien ha entrado con Apple y todavía no

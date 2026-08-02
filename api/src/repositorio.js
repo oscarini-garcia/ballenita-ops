@@ -368,6 +368,16 @@ export async function olvidarTokenPush(db, tokenPush) {
   await db.prepare('UPDATE dispositivo SET tokenPush = NULL WHERE tokenPush = ?').bind(tokenPush).run();
 }
 
+/** Los aparatos de una cuenta, para mandarle un aviso a quien lo pide. */
+export async function tokensDeCuenta(db, cuentaId) {
+  return filas(
+    db,
+    `SELECT tokenPush AS token FROM dispositivo
+      WHERE cuentaId = ? AND avisos = 1 AND tokenPush IS NOT NULL AND tokenPush != ''`,
+    cuentaId,
+  ).then((f) => f.map((x) => x.token));
+}
+
 /** Los aparatos de quien administra, que son los que reciben las peticiones de
  *  acceso. Sin token o silenciados no cuentan. */
 export async function tokensDeAdministradores(db) {
