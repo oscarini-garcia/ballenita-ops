@@ -72,7 +72,13 @@ export function leerPropuestas(texto) {
     .slice(0, 5);
 }
 
-export async function pedirPropuestas({ clave, modelo, material, buscar = fetch }) {
+/**
+ * El encargo se puede reescribir desde Ajustes (`encargos.js`), así que llega
+ * de fuera; sin nada guardado llega el de origen. La forma de la respuesta es
+ * parte del encargo: si se reescribe perdiendo el JSON, `leerPropuestas` no
+ * encuentra nada y no sale ninguna idea. Por eso la pantalla lo avisa.
+ */
+export async function pedirPropuestas({ clave, modelo, material, instruccion = INSTRUCCION, buscar = fetch }) {
   const respuesta = await buscar(`${ANTHROPIC}/messages`, {
     method: 'POST',
     headers: {
@@ -83,7 +89,7 @@ export async function pedirPropuestas({ clave, modelo, material, buscar = fetch 
     body: JSON.stringify({
       model: modelo,
       max_tokens: TOPE_DE_SALIDA,
-      system: INSTRUCCION,
+      system: instruccion,
       messages: [{ role: 'user', content: material }],
     }),
   });

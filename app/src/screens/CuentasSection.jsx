@@ -424,6 +424,13 @@ export function NotificacionesSection() {
  * - **Lo que contesta el servidor va en una traza y no en un aviso.** Un fallo
  *   de Anthropic trae modelo, estado HTTP y su mensaje: en un renglón de prosa
  *   eso se lee mal y se copia peor.
+ *
+ * Y debajo de la clave y el modelo, **el encargo de cada cosa** —hoy uno, las
+ * ideas de plan (`api/src/encargos.js`)—. Un encargo es donde se sube o se baja
+ * el tono y donde se le prohíbe lo que se suelta a decir, y eso se descubre
+ * usándolo: si vive en el código, cada retoque es una versión nueva y un OTA.
+ * Vaciar la caja no deja un encargo vacío, **devuelve el de origen**: es la
+ * manera de deshacer, y tiene que estar a mano sin pedirle el texto a nadie.
  */
 export function IASection() {
   const { esAdmin } = useCuentas()
@@ -438,6 +445,9 @@ export function IASection() {
   // se sabe, `[]` cuando se preguntó y no hay.
   const [modelos, setModelos] = useState(null)
   const [probando, setProbando] = useState(false)
+  // Lo que se le pide al modelo, por encargo: `{ ideas: '…' }`. Los rótulos y
+  // las pistas los pone el servidor, que es donde vive el catálogo.
+  const [encargos, setEncargos] = useState({})
 
   /**
    * La lista, y con ella la comprobación de que el modelo apuntado sigue
@@ -464,6 +474,7 @@ export function IASection() {
       .then((r) => {
         setIa(r.ia)
         setModelo(r.ia.modelo)
+        setEncargos(Object.fromEntries((r.ia.encargos ?? []).map((e) => [e.id, e.texto])))
         // Sin clave no hay a quién preguntar; el desplegable aparece al ponerla.
         if (r.ia.hayClave) traerModelos()
       })
@@ -499,9 +510,16 @@ export function IASection() {
     tap()
     setTraza(null)
     try {
-      const r = await guardarIA({ clave: clave.trim() || undefined, modelo: modelo.trim() || undefined })
+      const r = await guardarIA({
+        clave: clave.trim() || undefined,
+        modelo: modelo.trim() || undefined,
+        encargos,
+      })
       setIa(r.ia)
       setClave('')
+      // Lo que vuelve es lo que ha quedado: si uno se dejó en blanco, aquí
+      // reaparece el de origen en vez de una caja vacía que no es lo que hay.
+      setEncargos(Object.fromEntries((r.ia.encargos ?? []).map((e) => [e.id, e.texto])))
       contar('Guardado.')
       // Con clave nueva la lista puede ser otra: se vuelve a preguntar.
       if (r.ia.hayClave) traerModelos()
@@ -552,6 +570,25 @@ export function IASection() {
           <input id="ia-modelo" type="text" value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="claude-sonnet-4-5" />
         )}
       </Campo>
+
+      {/* Y debajo, lo que se le pide. La clave y el modelo valen para todo lo
+          que la app haga con un modelo; el encargo es de cada cosa, y por eso
+          va aparte y con su rótulo. Hoy hay uno. */}
+      {/* El rótulo del campo es el del encargo, y no un «Encargo» debajo de un
+          encabezado que dice lo mismo: hoy hay uno, y dos rótulos para una caja
+          se leen dos veces para enterarse de lo mismo. Con varios, cada uno se
+          seguirá nombrando solo. */}
+      {(ia?.encargos ?? []).map((e) => (
+        <Campo key={e.id} etiqueta={e.titulo} id={`ia-encargo-${e.id}`} pista={e.pista}>
+          <textarea
+            id={`ia-encargo-${e.id}`}
+            rows="7"
+            spellCheck="false"
+            value={encargos[e.id] ?? ''}
+            onChange={(ev) => setEncargos({ ...encargos, [e.id]: ev.target.value })}
+          />
+        </Campo>
+      ))}
 
       <div className="editor-pie">
         <button className="btn" onClick={guardar}>Guardar</button>
