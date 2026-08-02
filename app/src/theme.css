@@ -251,8 +251,14 @@ body.modal-abierto .body { overflow: hidden; }
 .row { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-top: 1px solid var(--line-soft); }
 .row:first-child { border-top: none; }
 .row .main { flex: 1; min-width: 0; }
-.row .main .n { font-size: var(--t-row); font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row .main .sub { font-size: var(--t-sub); color: var(--ink-soft); }
+/* `display: block` porque el título y su renglón **no siempre son `div`**: en las
+   filas que cuelgan de un `<button>` —cuentas, avisos— tienen que ser `span`, y
+   un `span` inline pega el nombre con el texto («Óscar García Chillónha entrado
+   con Apple…») y además deja el recorte con puntos suspensivos sin efecto. Con
+   los `div` no cambia nada, que ya lo eran. */
+.row .main .n { display: block; font-size: var(--t-row); font-weight: 550;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .main .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
 .row .amt { font-weight: 620; font-size: var(--t-row); white-space: nowrap; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
