@@ -1234,6 +1234,16 @@ firmado. Volver así habría sido volver al mismo sitio.
   arranque: acumularlas es una fuga) y lo que falla **sube con su mensaje** hasta
   la pantalla. Sin identificador **ni** error en ocho segundos queda `sin-token`,
   que es el móvil sin red y no otra cosa.
+- **✅ El puente entre APNs y el plugin vive en `AppDelegate.swift`**, y se repone
+  solo (`scripts/appdelegate.mjs`, desde `patch-ios.mjs`). `register()` no habla
+  con Apple: llama a `registerForRemoteNotifications()`, y **la respuesta la
+  recibe el AppDelegate**. El plugin se entera solo si la reenvía por
+  `NotificationCenter` con `capacitorDidRegisterForRemoteNotifications` y su
+  gemela de error. Sin esos dos métodos no falla nada visible: el permiso se
+  concede, la llamada devuelve bien y **no llega ni token ni error, nunca** —en
+  pantalla, «Apple no contesta ni con identificador ni con error», que se confunde
+  con un problema de red y no lo es—. `ios/` no se versiona, así que esto se
+  comprueba en cada `sync:ios` igual que `aps-environment`.
 - **⚠ No viaja por OTA.** Un plugin nativo exige `npm run sync:ios`, archivar y
   **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
   repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.
