@@ -728,15 +728,38 @@ se cuenta, no se calla. Probado en `lib/salida.test.js` (la decisión) y en
 `screens/CuentaSalir.test.jsx` (que con cola pendiente **no se llama a
 `olvidarTodo`** hasta confirmar).
 
-### 14.9-quater El evento de ejemplo se llama «Demo»
+### 14.9-quater El evento de ejemplo se llama «Demo», y es un cajón de arena
 
-Se llamaba **«Ballenita 2026»**, que es exactamente como se llamaría un viaje de
-verdad. En la lista de eventos, al lado de los reales, no había forma de
-distinguirlo, y lo que se apuntara dentro parecía apuntado en el sitio bueno. El
-lugar y las fechas se quedan —sin ellos la app abre vacía y no enseña lo que
-hace—, pero el rótulo dice lo que es: `NOMBRE_DEMO` en `db.js`, usado por los dos
-caminos que siembran, la demostración de la pantalla de acceso (`lib/demo.js`,
-directriz 2.1) y el «Cargar el evento «Demo»» de la lista cuando no hay ninguno.
+**El nombre.** Se llamaba **«Ballenita 2026»**, que es exactamente como se
+llamaría un viaje de verdad. En la lista de eventos, al lado de los reales, no
+había forma de distinguirlo, y lo que se apuntara dentro parecía apuntado en el
+sitio bueno. El lugar y las fechas se quedan —sin ellos la app abre vacía y no
+enseña lo que hace—, pero el rótulo dice lo que es: `NOMBRE_DEMO` en `db.js`,
+usado por los dos caminos que siembran, la demostración de la pantalla de acceso
+(`lib/demo.js`, directriz 2.1) y el «Cargar el evento «Demo»» de la lista cuando
+no hay ninguno.
+
+**Y lo de dentro se queda dentro.** Cenas, planes, gastos y compra ya colgaban de
+su evento y nunca se mezclaron. **`dishes` era la única tabla suelta**: un
+catálogo global y a propósito —la paella no se reescribe cada verano—, pero el
+Demo escribía en ese mismo catálogo. Resultado: sus seis platos de mentira
+aparecían al preparar el viaje de verdad, y cualquier plato apuntado mientras se
+trasteaba se quedaba allí para siempre. Peor aún, se sembraban **solo si el
+catálogo estaba vacío**, así que en una instalación con platos de verdad la cena
+de ejemplo salía sin nada.
+
+Ahora un plato puede llevar `eventId`:
+
+- **Sin `eventId`** → catálogo compartido entre eventos. Es el caso normal y el
+  comportamiento de siempre.
+- **Con `eventId`** → el plato es solo de ese evento. Hoy eso solo le pasa al
+  Demo, que se reconoce por `events.esDemo`.
+
+`listDishes(evento)` y `addDish(campos, evento)` reciben el evento y deciden con
+eso; los cinco sitios que leen el catálogo se lo pasan. No hace falta índice: el
+catálogo se lee entero y son decenas de filas. En la API son dos columnas nuevas
+(`0002_demo_y_platos_por_evento.sql`); una base recién creada ya las trae en el
+esquema y una que ya existiera necesita `npm run migrar:remoto2` una sola vez.
 
 ### 14.10 Cromo de la app: cabecera, barra inferior y modales
 
@@ -800,6 +823,20 @@ hay**, mientras que `forzarActualizacion()` —la de Ajustes → «La app»— t
 siempre en recarga, porque su último recurso es borrar cachés y recargar. Eso
 está bien detrás de un botón que se llama «Comprobar» y está fatal detrás de uno
 que se llama «Sincronizar».
+
+**Y «La app» es solo un botón.** El apartado tenía cuatro bloques: una tarjeta
+con «Ballena Ops · Versión en curso · v0.7.0» en grande, el botón, una nota de
+cuatro renglones y la pastilla de «Recién actualizada a la v0.7.0». Entre los
+tres, **la versión salía tres veces** —la cuarta es el propio rótulo del
+acordeón, «La app · v0.7.0», que es donde ya se mira—, y la nota explicaba
+fontanería: en qué se diferencia este botón del punto de la cabecera. Quien abre
+esto no viene a comparar mecanismos, viene a actualizar.
+
+Queda el botón («Actualizar la app») y un renglón que dice qué hace de más
+(«borra las cachés y recarga, aunque el sistema diga que ya estás al día»). La
+pastilla se queda porque aparece **después** de recargar y es la única confirmación
+de que aquello pasó, pero sin repetir el número: «✓ Recién actualizada». Se retira
+`.version-grande`, que no la usaba nadie más.
 
 **Ajustes, en apartados plegables.** `<details>`/`<summary>` del navegador, sin
 JavaScript por debajo (`components/Acordeon.jsx`): el elemento ya se abre al

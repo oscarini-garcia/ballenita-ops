@@ -18,7 +18,7 @@ export default function StatsScreen({ eventId, event, suelto = false }) {
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const dinners = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const plans = useLiveQuery(() => plansOf(eventId), [eventId], [])
-  const dishes = useLiveQuery(listDishes, [], [])
+  const dishes = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
 
   const key = `ballena.picante.${eventId}`
   const [picante, setPicante] = useState(() => localStorage.getItem(key) === '1')

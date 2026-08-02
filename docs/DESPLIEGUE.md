@@ -58,6 +58,18 @@ Aplica el esquema:
 npm run migrar:remoto
 ```
 
+Ese fichero ya trae todo, así que una base nueva no necesita nada más. **Si la
+base ya existía** —creada antes de v0.7.1— le faltan dos columnas (`events.esDemo`
+y `dishes.eventId`, las que mantienen el evento «Demo» fuera del catálogo de
+platos compartido) y hay que añadirlas una sola vez:
+
+```bash
+npm run migrar:remoto2
+```
+
+Correrlo sobre una base que ya las tiene falla con «duplicate column name», que
+es la señal de que no hacía falta.
+
 ---
 
 ## 2. Cloudflare: los secretos y el Worker

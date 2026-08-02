@@ -53,6 +53,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
+- **El evento «Demo» es un cajón de arena** (SPECS §14.9-quater): cenas, planes, gastos y
+  compra ya colgaban de su evento, pero `dishes` era un catálogo global y el Demo escribía
+  ahí. Ahora un plato puede llevar `eventId` —sin él es de todos, con él es solo de ese
+  evento—, y el Demo se reconoce por `events.esDemo`. `listDishes(evento)` y
+  `addDish(campos, evento)` reciben el evento. En la API, dos columnas nuevas
+  (`migraciones/0002_*.sql`, `npm run migrar:remoto2` si la base ya existía).
 - **Salir de la cuenta sube la cola antes de borrar** (SPECS §14.9-ter, `lib/salida.js`):
   `olvidarTodo()` se lleva también el `outbox`, así que salir con cambios sin subir los
   perdía para siempre —se leía como «he vuelto a entrar y el evento ha desaparecido»—. Ahora

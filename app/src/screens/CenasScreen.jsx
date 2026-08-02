@@ -10,10 +10,10 @@ import Fab from '../components/Fab.jsx'
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 const fmtDay = (d) => (d ? new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Sin día')
 
-export default function CenasScreen({ eventId }) {
+export default function CenasScreen({ eventId, event }) {
   const dinners = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
-  const dishes = useLiveQuery(listDishes, [], [])
+  const dishes = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   const [open, setOpen] = useState(false)
 
   const bungaName = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : '—' }
@@ -86,7 +86,7 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
   }
   async function createDish() {
     if (!newName.trim() || newCats.size === 0) return
-    const id = await addDish({ name: newName.trim(), categorias: [...newCats] })
+    const id = await addDish({ name: newName.trim(), categorias: [...newCats] }, event)
     setPlatoIds(new Set([...platoIds, id]))
     setNewName(''); setNewCats(new Set())
   }

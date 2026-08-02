@@ -165,8 +165,8 @@ export async function olvidarTodo() {
 }
 
 // ── Eventos ──
-export async function createEvent({ name, lugar = '', currency = 'EUR', startDate, endDate }) {
-  return escribir('events', uid('ev'), { name, lugar, currency, startDate, endDate, status: 'activo' })
+export async function createEvent({ name, lugar = '', currency = 'EUR', startDate, endDate, esDemo = false }) {
+  return escribir('events', uid('ev'), { name, lugar, currency, startDate, endDate, status: 'activo', esDemo })
 }
 export const listEvents = () => db.events.orderBy('updatedAt').reverse().toArray()
 export const getEvent = (id) => db.events.get(id)
@@ -262,10 +262,31 @@ export const DISH_CATEGORIES = [
   { id: 'acompanamiento', label: 'Acompañamiento' },
   { id: 'postre', label: 'Postre' },
 ]
-export async function addDish({ name, categorias = [], esFavorito = false, ingredientes = [] }) {
-  return escribir('dishes', uid('dish'), { name, categorias, esFavorito, ingredientes })
+/**
+ * El catálogo de platos es **compartido entre eventos**, y así tiene que seguir:
+ * la paella no se reescribe cada verano. La excepción es el evento de
+ * demostración, que es un cajón de arena: lo que se apunte ahí no tiene por qué
+ * aparecer el día que se prepare el viaje de verdad.
+ *
+ * Por eso un plato puede llevar `eventId`. Sin él es del catálogo de todos —el
+ * comportamiento de siempre—; con él pertenece solo a ese evento, que hoy es
+ * únicamente «Demo». No hace falta índice: el catálogo se lee entero y son
+ * decenas de filas, no miles.
+ *
+ * Las cenas, los planes, los gastos y la compra ya colgaban de su evento y
+ * nunca se mezclaron. Los platos eran la única tabla suelta.
+ */
+export async function addDish({ name, categorias = [], esFavorito = false, ingredientes = [] }, evento = null) {
+  const eventId = evento?.esDemo ? evento.id : null
+  return escribir('dishes', uid('dish'), { name, categorias, esFavorito, ingredientes, eventId })
 }
-export const listDishes = () => db.dishes.toArray()
+
+export async function listDishes(evento = null) {
+  const todos = await db.dishes.toArray()
+  return evento?.esDemo
+    ? todos.filter((d) => d.eventId === evento.id)
+    : todos.filter((d) => !d.eventId)
+}
 export const updateDish = (id, patch) => escribir('dishes', id, patch)
 export const removeDish = (id) => removeRow('dishes', id)
 
@@ -350,6 +371,9 @@ export const NOMBRE_DEMO = 'Demo'
 export async function seedExample() {
   const eventId = await createEvent({
     name: NOMBRE_DEMO,
+    // La marca que hace del Demo un cajón de arena: sus platos son suyos y no
+    // entran en el catálogo compartido (ver `addDish`/`listDishes`).
+    esDemo: true,
     lugar: 'Camping La Ballena Alegre',
     currency: 'EUR',
     startDate: '2026-08-08',
@@ -376,16 +400,21 @@ export async function seedExample() {
   await addExpense(eventId, { description: 'Gasolina ida', amountCents: 6000, currency: 'EUR', category: 'varios', dateISO: now(), payers: [{ familyId: solteros, amountCents: 6000 }], participantIds: soloMayores })
   await addExpense(eventId, { description: 'Hielo y birras 🍷', amountCents: 2430, currency: 'EUR', category: 'bebida', dateISO: now(), payers: [{ familyId: garcia, amountCents: 2430 }], participantIds: soloMayores })
 
-  // Platos (catálogo global) — solo si está vacío, para no duplicar entre eventos.
-  if ((await db.dishes.count()) === 0) {
-    await addDish({ name: 'Aceitunas y altramuces', categorias: ['aperitivo'] })
-    await addDish({ name: 'Ensaladilla rusa', categorias: ['entrante'] })
-    await addDish({ name: 'Paella mixta', categorias: ['principal'], esFavorito: true, ingredientes: ['arroz', 'mejillones', 'pollo'] })
-    await addDish({ name: 'Pan con tomate', categorias: ['acompanamiento'] })
-    await addDish({ name: 'Ensalada verde', categorias: ['acompanamiento'] })
-    await addDish({ name: 'Sandía', categorias: ['postre'] })
-  }
-  const dishes = await listDishes()
+  // Los platos del Demo son **suyos**: llevan su eventId, así que no entran en el
+  // catálogo compartido ni lo miran. Antes se sembraban en el catálogo global y
+  // solo si estaba vacío, con lo que en una instalación con platos de verdad la
+  // cena de ejemplo salía sin nada, y en una vacía dejaba seis platos inventados
+  // metidos entre los buenos para siempre.
+  const evento = await getEvent(eventId)
+  for (const plato of [
+    { name: 'Aceitunas y altramuces', categorias: ['aperitivo'] },
+    { name: 'Ensaladilla rusa', categorias: ['entrante'] },
+    { name: 'Paella mixta', categorias: ['principal'], esFavorito: true, ingredientes: ['arroz', 'mejillones', 'pollo'] },
+    { name: 'Pan con tomate', categorias: ['acompanamiento'] },
+    { name: 'Ensalada verde', categorias: ['acompanamiento'] },
+    { name: 'Sandía', categorias: ['postre'] },
+  ]) await addDish(plato, evento)
+  const dishes = await listDishes(evento)
   const dishId = (n) => dishes.find((d) => d.name === n)?.id
   await addDinner(eventId, {
     dia: '2026-08-09',

@@ -31,7 +31,7 @@ export default function ComidasScreen({ eventId, event }) {
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />
       {area === 'cenas' && <CenasScreen eventId={eventId} event={event} />}
-      {area === 'platos' && <PlatosScreen />}
+      {area === 'platos' && <PlatosScreen event={event} />}
       {area === 'compra' && <CompraScreen eventId={eventId} event={event} />}
     </>
   )

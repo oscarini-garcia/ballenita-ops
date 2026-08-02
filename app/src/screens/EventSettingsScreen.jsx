@@ -797,21 +797,18 @@ function AppSection() {
 
   return (
     <div ref={caja}>
-      <div className="card tight">
-        {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
-        <div className="row">
-          <div className="ico"><Icono nombre="ballena" /></div>
-          <div className="main">
-            <div className="n">Ballena Ops</div>
-            <div className="sub">Versión en curso</div>
-          </div>
-          <div className="version-grande tnum">v{APP_VERSION}</div>
-        </div>
-      </div>
-      <button className="btn block" disabled={busy} onClick={actualizar}>🔄 Forzar la última versión</button>
-      <div className="note">El punto de la cabecera ya comprueba la versión cada vez que sincronizas. Esto es el martillo: borra las cachés y recarga aunque el sistema diga que ya estás al día.</div>
+      {/* Aquí solo se actualiza. La versión la lleva puesta el rótulo del
+          acordeón —«La app · v0.7.0»—, así que la tarjeta que la repetía en
+          grande decía por tercera vez lo que ya ponía dos líneas más arriba, y
+          la nota de cuatro renglones explicaba fontanería: en qué se diferencia
+          este botón del punto de la cabecera. Quien abre esto no viene a
+          comparar mecanismos, viene a actualizar. */}
+      <button className="btn block" disabled={busy} onClick={actualizar}>
+        {busy ? 'Buscando…' : 'Actualizar la app'}
+      </button>
+      <div className="pista">Borra las cachés y recarga, aunque el sistema diga que ya estás al día.</div>
       {recienActualizada && (
-        <div className="pill owed" style={{ display: 'inline-block' }}>✓ Recién actualizada a la v{APP_VERSION}</div>
+        <div className="pill owed" style={{ display: 'inline-block' }}>✓ Recién actualizada</div>
       )}
 
       {busy && (
