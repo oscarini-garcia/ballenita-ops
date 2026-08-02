@@ -157,7 +157,13 @@ input, textarea, [contenteditable="true"], .selectable {
   -webkit-user-select: text; user-select: text;
   -webkit-touch-callout: default;
 }
-button, input, select { font: inherit; color: inherit; }
+/* `textarea` estaba fuera de esta lista, y sin `color: inherit` un `textarea`
+   se pinta con el negro de fábrica del navegador: en la cara oscura era **texto
+   negro sobre fondo oscuro**, ilegible, en las siete cajas que tiene la app —el
+   encargo de la IA, la descripción de un plan o de una idea, y las dos de cada
+   cena—. Y sin `font: inherit` salían además monoespaciadas. Se veía en el
+   móvil, no en los tests. */
+button, input, select, textarea { font: inherit; color: inherit; }
 .tnum { font-variant-numeric: tabular-nums; }
 
 /* La columna es cabecera · contenido · barra, y el de en medio es lo único que

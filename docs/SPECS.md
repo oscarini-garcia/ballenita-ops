@@ -1412,6 +1412,41 @@ la única caja de contraseña de la app salía con el borde cuadrado del navegad
 más estrecha que la de al lado; y los tres rótulos con emoji eran los últimos que
 quedaban del cromo.
 
+### 14.16-quater Lo que se le pide al modelo se escribe en Ajustes
+
+La clave y el modelo valen para **todo** lo que la app haga con un modelo; el
+**encargo** es de cada cosa. Por eso van debajo y con su rótulo, uno por
+función, como en `garciadoral-ops` —allí son seis; aquí, de momento, uno: las
+ideas de plan (`api/src/encargos.js`)—.
+
+El motivo de que sean editables no es la curiosidad. Un encargo es donde se sube
+o se baja el tono, donde se le prohíbe lo que se suelta a decir y donde se ajusta
+lo que no encaja con este grupo, y **todo eso se descubre usándolo**, no
+escribiéndolo. Si vive en el código, cada retoque es una versión nueva de la app
+y un OTA; en Ajustes es escribir en una caja y guardar.
+
+Tres reglas:
+
+- **La forma de la respuesta es parte del encargo.** El de ideas pide un JSON con
+  cinco propuestas y la app lo lee así (`leerPropuestas`): reescribirlo perdiendo
+  esa parte hace que no salga nada. La pista lo dice en la pantalla, no solo en
+  el código.
+- **Vacío no es un encargo vacío: devuelve el de origen.** Es la manera de
+  deshacer, y tiene que estar a mano — quien la ha liado reescribiéndolo no
+  debería tener que pedirle a nadie el texto de antes. Se guarda `''` y al leer
+  vuelve el del catálogo.
+- **Solo se guardan los encargos del catálogo** (`esEncargoConocido`). Esto no es
+  ceremonia: `guardarConfiguracionIA` escribe la clave que le den, así que sin el
+  filtro un móvil podría machacar `ia.clave` —la credencial de pago— mandando un
+  encargo que se llame así.
+
+Y un defecto que salió **al mirarlo en el navegador**: `textarea` estaba fuera de
+`button, input, select { font: inherit; color: inherit; }`, y un `textarea` no lo
+hereda solo. En la cara oscura eso era **texto negro sobre fondo oscuro** en las
+siete cajas de varias líneas que tiene la app —el encargo, la descripción de un
+plan y de una idea, y las dos de cada cena—, y monoespaciadas además. Llevaba así
+desde que existen. `estilos.test.js` monta guardia.
+
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 
 Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·
