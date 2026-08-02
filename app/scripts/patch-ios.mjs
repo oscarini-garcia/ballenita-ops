@@ -9,6 +9,7 @@
 // siguiente regeneración sin que nadie recuerde por qué volvió el problema.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { conAvisosDeRegistro } from './appdelegate.mjs'
 
 const IOS_APP = 'ios/App/App'
 
@@ -236,6 +237,30 @@ if (existsSync(entPath)) {
   }
 } else {
   console.warn('[patch-ios] ⚠ No encuentro App.entitlements. Activa «Push Notifications» en Xcode → Signing & Capabilities.')
+}
+
+// 5-ter) El puente entre APNs y el plugin, que vive en AppDelegate.swift.
+//
+// `register()` no habla con Apple: llama a `registerForRemoteNotifications()`, y
+// la respuesta la recibe el **AppDelegate**. El plugin se entera solo si el
+// AppDelegate la reenvía por `NotificationCenter`. Sin esos dos métodos el
+// permiso se concede, la llamada devuelve bien y **no llega ni token ni error,
+// nunca**: en pantalla es «Apple no contesta ni con identificador ni con error»,
+// que se confunde con un problema de red y no lo es. Ver `appdelegate.mjs`.
+const adPath = join(IOS_APP, 'AppDelegate.swift')
+if (existsSync(adPath)) {
+  const { fuente, cambiado, yaEstaba } = conAvisosDeRegistro(readFileSync(adPath, 'utf8'))
+  if (yaEstaba) {
+    console.log('[patch-ios] AppDelegate ya reenvía las respuestas de APNs.')
+  } else if (cambiado) {
+    writeFileSync(adPath, fuente)
+    console.log('[patch-ios] AppDelegate reenviando las respuestas de APNs ✅')
+  } else {
+    console.warn('[patch-ios] ⚠ AppDelegate.swift no tiene la forma esperada; sin esos dos métodos no habrá token de avisos.')
+    console.warn('[patch-ios]   Ver app/scripts/appdelegate.mjs para lo que hay que añadir.')
+  }
+} else {
+  console.warn('[patch-ios] ⚠ No encuentro AppDelegate.swift; sin él no hay avisos que valgan.')
 }
 
 // 6) Apuntar el storyboard al MainViewController (en vez del CAPBridgeViewController).
