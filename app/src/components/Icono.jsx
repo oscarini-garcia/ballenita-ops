@@ -20,6 +20,16 @@ const DIBUJOS = {
   restaurante: <><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8" /><path d="M7 3.5v5.5M11 3.5v5.5" /><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3" /></>,
   varios: <><rect x="4" y="7" width="16" height="13" rx="2" /><path d="M4 11.6h16M12 7v13" /></>,
 
+  // ── La barra de abajo ──
+  // Estaban sueltos en `App.jsx`, como cadenas de `d` con trazo de 2 dentro de
+  // la tabla de pestañas: los únicos dibujos de la app fuera de esta tabla, y con
+  // otro grosor. Aquí comparten rejilla, trazo y color con todo lo demás.
+  plan: <><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></>,
+  ajustes: <>
+    <circle cx="12" cy="12" r="3.2" />
+    <path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z" />
+  </>,
+
   // ── Cromo: los apartados de Ajustes y los verbos de una fila ──
   sincronizar: <><path d="M20 11a8 8 0 0 0-13.7-5.3L3 9" /><path d="M4 13a8 8 0 0 0 13.7 5.3L21 15" /><path d="M3 4v5h5M21 20v-5h-5" /></>,
   aspecto: <><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18" fill="currentColor" stroke="none" opacity=".22" /></>,

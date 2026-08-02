@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, addPlan, updatePlan, removePlan, personsOf } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
+import { useIdentidad } from '../lib/identidad.js'
 import Fab from '../components/Fab.jsx'
 
 const VOTES = ['👍', '🤷', '👎']
@@ -12,10 +13,12 @@ export default function PlanesScreen({ eventId }) {
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const [open, setOpen] = useState(false)
 
-  // Identidad ligera para votar (§14: en Fase 0 aún no hay login por email).
-  const key = `ballena.person.${eventId}`
-  const [me, setMe] = useState(() => localStorage.getItem(key) || '')
-  function pickMe(id) { localStorage.setItem(key, id); setMe(id) }
+  // Quién eres para votar sale de `lib/identidad.js`, que es la misma que usan
+  // la cabecera y Ajustes → Quién eres. Antes esta pantalla guardaba lo suyo en
+  // `ballena.person.<evento>` y la de Ajustes en `ballena.me:<evento>`: dos
+  // llaves distintas, así que identificarse en Ajustes no servía para votar y
+  // aquí te lo volvía a preguntar con un desplegable propio.
+  const { meId: me } = useIdentidad(eventId, persons)
 
   const tally = (votos = {}) => VOTES.map((v) => Object.values(votos).filter((x) => x === v).length)
 
@@ -30,13 +33,11 @@ export default function PlanesScreen({ eventId }) {
 
   return (
     <div className="body">
-      <div className="card tight" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <span className="rotulo-mando">Eres:</span>
-        <select value={me} onChange={(e) => pickMe(e.target.value)} style={{ padding: '7px 10px' }}>
-          <option value="">— elígete para votar —</option>
-          {persons.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-      </div>
+      {!me && persons.length > 0 && (
+        <div className="note">
+          Para votar hace falta saber quién eres: dilo en <b>Ajustes → Quién eres</b>.
+        </div>
+      )}
 
       {plans.length === 0 && (
         <div className="empty"><span className="e">🗺️</span>Ningún plan todavía.<br />Propón una idea con «+ Plan».</div>

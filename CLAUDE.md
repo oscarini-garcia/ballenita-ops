@@ -109,8 +109,10 @@ app/src/
   lib/  demo.js         demostración sin cuenta (directriz 2.1 de Apple)
   sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
         tables.js
-  screens/  Agenda, Expenses(Gastos), Cenas, Planes, Balances(Saldos), Stats,
-            EventSettings (= Ajustes, en acordeón), Events, Acceso
+  lib/  dias.js               los días de un evento y qué se hace en cada uno (puro)
+        areas.js              el área elegida en cada sección, que no se olvida al salir
+  screens/  Agenda(Hoy·Días), Dinero(Gastos·Saldos), Comidas(Cenas·Platos·Compra),
+            Planes, Stats, EventSettings (= Ajustes, en acordeón), Events, Acceso
   components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Icono.jsx · ProgresoModal.jsx
               SyncDot.jsx · WhaleLogo.jsx
   App.jsx  ·  theme.css
@@ -225,13 +227,16 @@ cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadí
 **La puerta de acceso ya no es un muro**: si Apple falla se puede seguir en local y lo
 apuntado sube al entrar (SPECS §14.9).
 **Repaso de UX/UI** (SPECS §14.10–14.12), inspirado en `meeting-ops-air` y
-`garciadoral-ops`: barra de **Hoy · Dinero · Cenas · Planes · Ajustes** con los ajustes
+`garciadoral-ops`: barra de **Agenda · Dinero · Comidas · Planes · Ajustes** con los ajustes
 abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo, todo plegado) que se ha
 comido «Más» —Estadísticas, Quién eres (con tu perfil) y Evento son apartados—, cabecera de
 tres cosas con el punto verde que **sincroniza todo** (datos + versión de la app) con su
 lista de progreso, tipografía a 17 px ×1,12 de fábrica, y dos temas de máximo contraste.
 **Deslizar una fila de gastos** descubre Editar y Borrar (§14.10-bis), y el botón de crear
-lleva la palabra puesta («+ Gasto»). **Un solo tema** (Abisal Sobrio, claro y oscuro),
+lleva la palabra puesta («+ Gasto»). **Cada sección se parte en áreas** con el mando de
+`SubNav` (§14.10-ter, opciones en `docs/diseño/navegacion.html`): Agenda es Hoy · Días —con
+la lista entera de días, vacíos incluidos, y su modal para editar cada uno— y Comidas es
+Cenas · Platos · Compra, con el catálogo de platos por fin editable. **Un solo tema** (Abisal Sobrio, claro y oscuro),
 **iconos de línea** con tono por categoría, pesos de letra más bajos y un solo botón lleno
 por pantalla (§14.12–14.13).
 

@@ -625,3 +625,76 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .cuenta-fila .n { font-weight: 700; font-size: var(--t-row); }
 .cuenta-fila .sub { font-size: var(--t-label); color: var(--ink-faint); }
 .cuenta-fila[data-activa="no"] { opacity: .55; }
+
+/* ── Agenda ─────────────────────────────────────────────────────────────────
+   Las dos áreas de la sección: el titular de «Hoy» y la lista de «Días».
+   Ver docs/diseño/navegacion.html · E1, F3, G1 y H1. */
+
+/* El titular de «Hoy». Es lo único grande de esa pantalla a propósito: si
+   compite con otra tarjeta deja de ser un titular y hay que leer para saber qué
+   pasa hoy, que es justo lo que venía a evitar. */
+.titular { background: var(--foam-2); border: 1px solid var(--line-soft);
+  border-radius: var(--r); padding: 14px; }
+.titular .l { font-size: var(--t-micro); font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--spout-deep); }
+.titular .g { font-size: var(--t-body); font-weight: 650; letter-spacing: -.01em; margin-top: 4px; }
+.titular .p { font-size: var(--t-sub); color: var(--ink-soft); margin-top: 3px; }
+
+/* Una fila de día. La `.row` de siempre partida en dos objetivos: la fila
+   entera abre el día y el lápiz también. El botón no está para tener que
+   acertarle —está para decir que el día se edita—, así que el objetivo grande
+   sigue siendo la fila. */
+.fila-dia { padding: 0; gap: 0; }
+.dia-abre { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
+  background: none; border: none; text-align: left; cursor: pointer; padding: 11px 0;
+  color: inherit; font: inherit; }
+.dia-abre .main { flex: 1; min-width: 0; display: block; }
+.dia-abre .n { display: block; font-size: var(--t-row); font-weight: 550;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dia-abre .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
+
+/* La casilla del número, que ocupa el sitio del avatar de las otras listas. */
+.dia-num { width: 36px; flex: none; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; line-height: 1.05; border-radius: 8px; padding: 4px 0;
+  background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink-soft); }
+.dia-num b { font-size: var(--t-row); font-weight: 650; }
+.dia-num span { font-size: var(--t-micro); opacity: .8; }
+.fila-dia.es-hoy .dia-num { background: color-mix(in srgb, var(--owed) 18%, transparent); color: var(--owed); }
+.fila-dia.es-hoy .dia-abre .n { font-weight: 650; }
+
+/* El verbo de una fila cuando no hay deslizamiento detrás: 44 × 44, que es el
+   mínimo de Apple, y el dibujo dentro a 19. */
+.verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  background: none; border: 1px solid var(--line); border-radius: 9px; color: var(--ink-soft);
+  cursor: pointer; margin-left: 8px; }
+.verbo-fila svg { width: 19px; height: 19px; display: block; }
+.verbo-fila:active { transform: translateY(1px); }
+
+/* Una fila que es un botón entero (un plan de hoy que lleva a Planes). */
+.fila-boton { width: 100%; background: none; border: none; text-align: left; cursor: pointer;
+  color: inherit; font: inherit; }
+
+/* Para quien no ve: la fila dice la fecha entera, que en la pantalla es un
+   número y tres letras. */
+.sr-solo { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; }
+
+ /* Solo la primera letra: `capitalize` a secas escribe «Domingo, 9 De Agosto». */
+.modal-dia-t::first-letter { text-transform: uppercase; }
+
+/* En el catálogo, el nombre del plato es lo único que identifica la fila, así
+   que se le deja doblar a dos líneas en vez de recortarse en «Aceitunas y
+   altramu…». En las demás listas el nombre va acompañado de un importe o de una
+   fecha y recortar no pierde nada. */
+.fila-plato .main .n { white-space: normal; }
+
+/* ── Platos ────────────────────────────────────────────────────────────────
+   El favorito es una estrella que se toca, y ocupa el sitio del avatar. */
+.estrella { width: 36px; height: 36px; flex: none; display: grid; place-items: center;
+  background: none; border: none; cursor: pointer; font-size: var(--t-body); line-height: 1;
+  color: var(--ink-faint); }
+.estrella[aria-pressed="true"] { color: var(--gold); }
+
+/* Un verbo destructivo que todavía no es el botón de borrar: dice lo que va a
+   pasar sin gritarlo, porque delante lleva una confirmación. */
+.danger-texto { color: var(--owe); border-color: color-mix(in srgb, var(--owe) 35%, transparent); }
