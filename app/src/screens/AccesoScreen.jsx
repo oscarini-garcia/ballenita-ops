@@ -4,6 +4,7 @@ import { entrarConApple } from '../auth/apple.js'
 import { activarModoLocal, guardarSesion } from '../auth/sesion.js'
 import { activarDemo } from '../lib/demo.js'
 import { tap } from '../lib/native.js'
+import { forzarActualizacion } from '../lib/pwa.js'
 
 /**
  * Puerta de entrada al grupo.
@@ -33,19 +34,26 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
   const [error, setError] = useState(null)
   const [identificador, setIdentificador] = useState(null)
   const [copiado, setCopiado] = useState(false)
+  // Sala de espera: la solicitud está apuntada y falta que le pongan nombre.
+  const [espera, setEspera] = useState(null)
+  const [buscando, setBuscando] = useState(false)
 
   async function entrar() {
     tap()
     setEntrando(true)
     setError(null)
     setIdentificador(null)
+    setEspera(null)
     try {
       const sesion = await entrarConApple(configuracion)
       guardarSesion(sesion)
       onEntrar(sesion)
     } catch (e) {
-      setError(e.message || 'No se pudo entrar.')
-      if (e.identificador) setIdentificador(e.identificador)
+      if (e.enEspera) setEspera({ mensaje: e.message, nombre: e.nombre })
+      else {
+        setError(e.message || 'No se pudo entrar.')
+        if (e.identificador) setIdentificador(e.identificador)
+      }
     } finally {
       setEntrando(false)
     }
@@ -55,6 +63,14 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
     tap()
     activarModoLocal()
     onLocal?.()
+  }
+
+  async function actualizar() {
+    if (buscando) return
+    tap()
+    setBuscando(true)
+    await forzarActualizacion(() => {}, {}).catch(() => {})
+    setBuscando(false)
   }
 
   async function demostracion() {
@@ -87,6 +103,23 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
         </svg>
         <span>{entrando ? 'Entrando…' : 'Entrar con Apple'}</span>
       </button>
+
+      {espera && (
+        <div className="acceso-aviso" role="status">
+          <p><b>Ya estás en la lista.</b></p>
+          <p className="note">
+            {espera.mensaje} {espera.nombre ? `Le hemos dicho que eres ${espera.nombre}.` : ''}
+          </p>
+          <p className="note">
+            No hay nada más que hacer desde aquí: cuando te enlacen con tu persona, entras con este
+            mismo botón. Mientras tanto puedes usar la app <b>solo en este móvil</b> y lo que apuntes
+            se subirá entero en cuanto te dejen pasar.
+          </p>
+          <button className="btn sm ghost" onClick={entrar} disabled={entrando}>
+            {entrando ? 'Mirando…' : '¿Ya me han dejado entrar?'}
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="acceso-aviso" role="alert">
@@ -129,6 +162,17 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
         ¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo
         funciona. No hace falta cuenta, no se conecta a nada y al salir no queda
         rastro.
+      </p>
+
+      {/* Buscar la última versión **antes** de entrar. Hasta ahora eso vivía
+          dentro de Ajustes, o sea detrás de la puerta: si lo que falla es
+          justo la pantalla de acceso —y es la que más cambia—, había que entrar
+          para poder arreglarlo entrando. */}
+      <button className="btn block ghost" onClick={actualizar} disabled={buscando}>
+        {buscando ? 'Buscando…' : '🔄 Buscar la última versión'}
+      </button>
+      <p className="note">
+        Trae la última versión publicada y recarga. Sirve aquí mismo, sin entrar.
       </p>
     </div>
   )

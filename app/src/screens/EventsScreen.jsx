@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { finPara } from '../lib/fechas.js'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { listEvents, createEvent, seedExample, NOMBRE_DEMO } from '../db.js'
 import WhaleLogo from '../components/WhaleLogo.jsx'
@@ -60,13 +61,14 @@ function NewEventModal({ onClose, onCreate }) {
   useBloqueoDeScroll()
   const [name, setName] = useState('')
   const [lugar, setLugar] = useState('')
-  const [currency, setCurrency] = useState('EUR')
   const [startDate, setStart] = useState('')
   const [endDate, setEnd] = useState('')
 
   async function submit() {
     if (!name.trim()) return
-    const id = await createEvent({ name: name.trim(), lugar: lugar.trim(), currency, startDate, endDate })
+    // La moneda es siempre el euro y ya no se pregunta: el grupo es de aquí y
+    // el desplegable solo servía para poder equivocarse.
+    const id = await createEvent({ name: name.trim(), lugar: lugar.trim(), startDate, endDate })
     onCreate(id)
   }
 
@@ -79,16 +81,16 @@ function NewEventModal({ onClose, onCreate }) {
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ballenita 2026" autoFocus />
         <label>Lugar (opcional)</label>
         <input type="text" value={lugar} onChange={(e) => setLugar(e.target.value)} placeholder="Camping La Ballena Alegre" />
-        <div className="grid2">
-          <div><label>Inicio</label><input type="date" value={startDate} onChange={(e) => setStart(e.target.value)} /></div>
-          <div><label>Fin</label><input type="date" value={endDate} onChange={(e) => setEnd(e.target.value)} /></div>
-        </div>
-        <label>Moneda base</label>
-        <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
-          <option value="EUR">€ Euro</option>
-          <option value="GBP">£ Libra</option>
-          <option value="USD">$ Dólar</option>
-        </select>
+        <label htmlFor="nuevo-desde">Inicio</label>
+        <input
+          id="nuevo-desde" type="date" value={startDate}
+          onChange={(e) => { setStart(e.target.value); setEnd(finPara(e.target.value, endDate)) }}
+        />
+        <label htmlFor="nuevo-hasta">Fin</label>
+        <input
+          id="nuevo-hasta" type="date" value={endDate} min={startDate || undefined}
+          onChange={(e) => setEnd(e.target.value)}
+        />
         <div style={{ marginTop: 16 }}>
           <button className="btn block" onClick={submit}>Crear evento</button>
         </div>

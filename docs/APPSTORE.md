@@ -45,16 +45,22 @@ No hay que hacer nada de esto: está hecho y con sus pruebas.
 | Cumplimiento de exportación | `patch-ios.mjs` lo declara en el `Info.plist` (`ITSAppUsesNonExemptEncryption`) |
 | No pedir capturas de iPad | `patch-ios.mjs` fija `TARGETED_DEVICE_FAMILY = 1` |
 | **2.3.8** · que el nombre del icono y el de la ficha se parezcan | `patch-ios.mjs` sincroniza `CFBundleDisplayName` con `appName` |
-| Sin SDK de terceros en el binario | Se retiraron OneSignal y `@capacitor/push-notifications`, que estaban inertes (ver `lib/native.js`) |
+| Sin SDK de terceros en el binario | OneSignal se retiró y no ha vuelto: los avisos son el plugin oficial de Capacitor más APNs desde nuestro Worker (`lib/native.js`, `api/src/apns.js`) |
+| **Avisos al móvil** | Capacidad *Push Notifications* en el identificador de la app, y `patch-ios.mjs` repone `aps-environment` en los entitlements |
 
-> **Por qué se fue OneSignal.** Estaba en el `package.json` y no hacía nada: sin
-> `VITE_ONESIGNAL_APP_ID` no se inicializaba, y no había servidor que enviara
-> ningún aviso. Pero entraba en el binario, y es de los SDK que Apple obliga a
-> declarar con su manifiesto de privacidad firmado; además habría que recoger en
-> las etiquetas de la ficha lo que recopila. Todo eso por una función que nadie
-> usaba. Volver a ponerlo es un binario nuevo con su revisión —los plugins
-> nativos no viajan por OTA—, y el camino corto ese día es APNs directo desde el
-> Worker, como en `garciadoral-ops`, sin intermediario.
+> **Por qué se fue OneSignal y por qué los avisos volvieron sin él.** Estaba en
+> el `package.json` y no hacía nada: sin `VITE_ONESIGNAL_APP_ID` no se
+> inicializaba, y no había servidor que enviara ningún aviso. Pero entraba en el
+> binario, y es de los SDK que Apple obliga a declarar con su manifiesto de
+> privacidad firmado; además habría que recoger en las etiquetas de la ficha lo
+> que recopila. Todo eso por una función que nadie usaba.
+>
+> Los avisos volvieron por el camino corto: **APNs directo desde el Worker**
+> (`api/src/apns.js`), con el plugin oficial `@capacitor/push-notifications`, que
+> no habla con ningún tercero. Las etiquetas de la ficha siguen pudiendo decir
+> «sin analítica, sin rastreo y sin SDK de nadie». Lo que sí cuesta: **un binario
+> nuevo con su revisión**, porque los plugins nativos no viajan por OTA, y
+> activar la capacidad *Push Notifications* en el identificador de la app.
 
 ---
 

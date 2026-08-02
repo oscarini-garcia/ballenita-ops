@@ -15,9 +15,10 @@
 -- «del catálogo de todos», con valor significa «solo de ese evento», que hoy es
 -- únicamente el Demo. Decidido en `docs/diseño/planes-catalogo.html` · A3 · B3 · C1.
 --
--- Está ya en `0001_esquema.sql` para una base nueva. Esto es para la que existe:
+-- Como las demás, no se toca `0001_esquema.sql`: aplicar todas las migraciones
+-- en orden tiene que reproducir producción (`test/d1.js`).
 --
---   npm run migrar:remoto3
+--   npm run migrar:remoto6
 
 CREATE TABLE IF NOT EXISTS planIdeas (
   id            TEXT PRIMARY KEY,

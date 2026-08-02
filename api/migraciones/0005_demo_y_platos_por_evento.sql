@@ -11,10 +11,11 @@
 -- pertenece solo a ese evento, que hoy es únicamente el Demo. `events.esDemo`
 -- es lo que distingue a ese evento de un viaje.
 --
--- Estas dos columnas están ya en `0001_esquema.sql` para una base nueva. Este
--- fichero es para la que ya existe:
+-- `0001_esquema.sql` es el esquema **original** y no se toca: cada columna
+-- posterior la añade su migración, y así aplicarlas todas en orden reproduce lo
+-- que hay en producción — que es justo lo que comprueba `test/d1.js`.
 --
---   npm run migrar:remoto2
+--   npm run migrar:remoto5
 
 ALTER TABLE events ADD COLUMN esDemo INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE dishes ADD COLUMN eventId TEXT;

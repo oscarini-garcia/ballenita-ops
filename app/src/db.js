@@ -50,7 +50,7 @@ db.version(5).stores({
   tombstones: null,
 })
 
-// v6: el catálogo de ideas de plan (SPECS §14.15, `docs/diseño/planes-catalogo.html` · A3).
+// v6: el catálogo de ideas de plan (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3).
 //
 // Un plan es dos cosas a la vez: la **idea**, que se repite cada verano —«Playa
 // de la Cala», su ubicación, su enlace— y la **propuesta de este año**, con su
@@ -320,7 +320,7 @@ export const dinnersOf = (eventId) => db.dinners.where({ eventId }).sortBy('dia'
 export const updateDinner = (id, patch) => escribir('dinners', id, patch)
 export const removeDinner = (id) => removeRow('dinners', id)
 
-// ── Ideas de plan (catálogo compartido, §14.15) ──
+// ── Ideas de plan (catálogo compartido, §14.18) ──
 /**
  * La idea: lo que se repite de un viaje a otro. Ni día, ni estado, ni votos —
  * esos tres son de *ese* agosto y no viajan nunca (`traerIdeaAlViaje`).

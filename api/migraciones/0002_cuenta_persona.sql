@@ -1,0 +1,13 @@
+-- Una cuenta de Apple queda enlazada con una persona del grupo.
+--
+-- Hasta aquí, «tener acceso» y «ser alguien del viaje» eran dos cosas sin
+-- relación: la cuenta sabía el nombre que Apple entregó una única vez, y la
+-- persona —la que paga, la que cena, la que cuenta en el reparto— vivía en la
+-- instantánea sin saber nada de cuentas. Eso obligaba a que cada uno se
+-- eligiera a sí mismo en «Quién eres» y a creerse la elección.
+--
+-- Con el enlace, quien administra decide **quién es quién** una sola vez, y de
+-- paso el enlace es la llave: una cuenta sin persona no entra, y por eso el
+-- alta deja de ser un código que alguien copia y pega para pasar a ser una
+-- solicitud que aparece sola en Ajustes → Cuentas.
+ALTER TABLE cuenta ADD COLUMN personId TEXT;

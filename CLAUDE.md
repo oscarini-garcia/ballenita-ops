@@ -53,7 +53,7 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
-- **Un plan es dos cosas** (SPECS §14.15, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
+- **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
@@ -66,7 +66,7 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   ahí. Ahora un plato puede llevar `eventId` —sin él es de todos, con él es solo de ese
   evento—, y el Demo se reconoce por `events.esDemo`. `listDishes(evento)` y
   `addDish(campos, evento)` reciben el evento. En la API, dos columnas nuevas
-  (`migraciones/0002_*.sql`, `npm run migrar:remoto2` si la base ya existía).
+  (`migraciones/0005_*.sql`, `npm run migrar:remoto5` si la base ya existía).
 - **Salir de la cuenta sube la cola antes de borrar** (SPECS §14.9-ter, `lib/salida.js`):
   `olvidarTodo()` se lleva también el `outbox`, así que salir con cambios sin subir los
   perdía para siempre —se leía como «he vuelto a entrar y el evento ha desaparecido»—. Ahora
@@ -76,8 +76,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   entrada en la cola **en la misma transacción**. No escribas en `db.<tabla>` directamente:
   el cambio no subiría nunca.
 - **Auth:** Sign in with Apple **solo en la app de iOS**; el Worker firma una sesión propia
-  (JWT HS256, 90 días). El alta es **por invitación** desde Ajustes; la primera cuenta de una
-  instalación vacía nace administradora.
+  (JWT HS256, 90 días). Quien entra queda apuntado en una **sala de espera** y no entra hasta que
+  el administrador **lo enlaza con una persona** (SPECS §14.18). Administrador hay **uno y escrito
+  a mano** (`lib/admin.js`); la primera cuenta de una instalación vacía nace administradora.
+- **La clave de la IA vive en el servidor** (tabla `configuracion`, SPECS §14.16) y no vuelve
+  entera a ningún móvil: es una credencial de pago.
 - **La web NO sincroniza**, a propósito: en navegador y PWA la app es una libreta local
   (`hayApi()` devuelve `false` si no es nativa). Ahorra todo el montaje web de Apple
   —Services ID, verificación de dominio— a cambio de exigir la app para participar.
@@ -124,6 +127,8 @@ app/src/
         asignacion.js         qué bungas y qué familias están libres (el 1 a 1)
         personas.js           pesos por edad (1 · 0,6) y los emoji para elegir
         evento.js             qué cenas y planes se caen al acortar las fechas
+        fechas.js             el fin se propone solo y nunca va antes del inicio
+        admin.js              quién administra (uno, escrito a mano) · avisos.js  lo pendiente
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
         salida.js             salir sin perder lo que no ha subido
         hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
@@ -136,7 +141,7 @@ app/src/
         areas.js              el área elegida en cada sección, que no se olvida al salir
   screens/  Agenda(Hoy·Días), Dinero(Gastos·Saldos), Comidas(Cenas·Platos·Compra),
             Planes(Planes·Ideas), Stats, EventSettings (= Ajustes, en acordeón),
-            Grupo(familias+bungas+gente), Events, Acceso
+            Grupo(familias+bungas+gente), Cuentas(+Notificaciones+IA), Events, Acceso
   components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Hoja.jsx · Icono.jsx
               ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx
   App.jsx  ·  theme.css
@@ -287,9 +292,11 @@ revocación ante Apple (directriz 5.1.1(v), `api/src/revocacion.js` + `POST /api
 **modo de demostración** desde la pantalla de acceso —lo único que deja ver la app a quien no
 está invitado, que es el caso de quien la revisa (directriz 2.1, `app/src/lib/demo.js`)—,
 páginas de **privacidad** y **soporte** en `app/public/`, y `patch-ios.mjs` declarando el
-cumplimiento de exportación, «solo iPhone» y el nombre bajo el icono. Se **retiraron OneSignal
-y `@capacitor/push-notifications`**, que estaban inertes y metían un SDK de terceros en el
-binario: hoy no hay push, y el porqué está en `lib/native.js`. La demostración convive con
+cumplimiento de exportación, «solo iPhone», el nombre bajo el icono y el permiso de avisos.
+**Hay avisos al móvil** (SPECS §14.17): APNs directo desde el Worker (`api/src/apns.js`,
+portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de terceros que se
+retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
+binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
 entrar, la demostración arranca llena y no sube nunca. 150 tests en la PWA + 37 en la API,
 todos en verde.

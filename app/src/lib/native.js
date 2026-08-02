@@ -87,27 +87,85 @@ export async function checkForOtaUpdate() {
 
 // --- Registro de push ------------------------------------------------------
 //
-// **Hoy no hay push, y es una decisión, no un olvido.** Aquí estaban OneSignal y
-// `@capacitor/push-notifications`, los dos con código nativo y los dos inertes:
-// sin `VITE_ONESIGNAL_APP_ID` no se inicializaba nada y no había servidor que
-// enviara ningún aviso. Se retiraron antes del primer envío a la App Store por
-// tres motivos, en orden de peso:
+// **Hay push, y llega por APNs directo desde nuestro Worker.** Aquí estuvieron
+// OneSignal y su SDK, y se fueron antes del primer envío a la App Store por tres
+// motivos: era un SDK de terceros de los que Apple obliga a declarar con
+// manifiesto de privacidad firmado, ensuciaba unas etiquetas de privacidad que
+// podían decir «sin analítica, sin rastreo y sin SDK de nadie», y pedía el
+// permiso de notificaciones sin nada detrás, que es la peor manera de gastarlo.
 //
-//   1. OneSignal es un SDK de terceros de los que Apple obliga a declarar —con
-//      su manifiesto de privacidad firmado— desde 2024, y las etiquetas de
-//      privacidad de la ficha tendrían que recoger lo que recopila. Todo eso por
-//      una función que nadie estaba usando.
-//   2. Sin él, la ficha puede decir la verdad más limpia posible: sin analítica,
-//      sin rastreo y sin SDK de nadie dentro del binario.
-//   3. Un plugin de avisos en el binario invita a iOS a pedir el permiso de
-//      notificaciones sin nada detrás, que es la peor manera de gastarlo.
+// Vuelve sin ninguna de las tres cosas: `@capacitor/push-notifications` es el
+// plugin oficial —no manda nada a ningún tercero, solo habla con iOS— y quien
+// empuja es `api/src/apns.js`, que firma un JWT y llama a Apple. Es el camino de
+// `garciadoral-ops`.
 //
-// Volver a ponerlo es `npm install`, reponer esta función, `npm run sync:ios` y
-// **un binario nuevo con su revisión**: los plugins nativos no viajan por OTA.
-// El día que se haga, el camino corto es el de garciadoral-ops —APNs directo
-// desde el Worker, sin intermediario—, que evita el SDK de terceros entero.
+// **El permiso se pide cuando hay algo que avisar, no al arrancar.** `initNative`
+// ya no lo hace: se pide desde Ajustes → Notificaciones, donde al lado está
+// escrito qué se avisa. Un permiso que se pide en el primer segundo se contesta
+// que no.
+//
+// Devuelve el token de APNs, o null si no hay permiso o esto no es la app
+// nativa. Si **falta el plugin** —binario viejo, construido antes de que la
+// dependencia existiera— lanza `SIN_PLUGIN`, y no devuelve null como todo lo
+// demás: es la única causa que no se arregla desde el teléfono, y confundirla
+// con «te lo han denegado» deja a alguien tocando un botón que no hace nada.
+export const SIN_PLUGIN = 'sin-plugin'
+
+async function plugin() {
+  try {
+    const { PushNotifications } = await import('@capacitor/push-notifications')
+    return PushNotifications
+  } catch {
+    throw new Error(SIN_PLUGIN)
+  }
+}
+
 export async function registerPush() {
-  return null
+  if (!isNative()) return null
+  const PushNotifications = await plugin()
+  try {
+    const estado = await PushNotifications.checkPermissions()
+    const permiso = estado.receive === 'granted'
+      ? estado
+      : await PushNotifications.requestPermissions()
+    if (permiso.receive !== 'granted') return null
+
+    // El token no vuelve de `register()`: llega por un evento, y puede tardar.
+    const token = await new Promise((resolve) => {
+      const fin = setTimeout(() => resolve(null), 8000)
+      PushNotifications.addListener('registration', ({ value }) => {
+        clearTimeout(fin)
+        resolve(value)
+      })
+      PushNotifications.addListener('registrationError', () => {
+        clearTimeout(fin)
+        resolve(null)
+      })
+      PushNotifications.register()
+    })
+    return token
+  } catch {
+    return null
+  }
+}
+
+/**
+ * ¿Puede este aparato recibir avisos, y los quiere? Sin pedir nada.
+ *
+ * `sin-plugin` es el caso que importa distinguir: la app es la nativa, pero el
+ * binario se construyó antes de que existiera la dependencia, así que no hay
+ * plugin que preguntar. Eso **no se arregla desde el teléfono** —hace falta
+ * reinstalar—, y es justo lo que hay que decir en vez de callarlo.
+ */
+export async function estadoDePush() {
+  if (!isNative()) return 'no-aplica'
+  try {
+    const PushNotifications = await plugin()
+    const { receive } = await PushNotifications.checkPermissions()
+    return receive // 'granted' · 'denied' · 'prompt' · 'prompt-with-rationale'
+  } catch (e) {
+    return e?.message === SIN_PLUGIN ? SIN_PLUGIN : 'no-aplica'
+  }
 }
 
 // --- Aviso al grupo (envío automático, opcional) ---------------------------
@@ -140,5 +198,6 @@ export async function initNative() {
     /* plugin no disponible */
   }
   checkForOtaUpdate() // en segundo plano
-  registerPush() // permiso + token (envío = fase posterior)
+  // El permiso de avisos **no** se pide aquí: se pide en Ajustes → Notificaciones,
+  // donde al lado está dicho qué se avisa (ver `registerPush`).
 }

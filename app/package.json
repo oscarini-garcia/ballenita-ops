@@ -1,6 +1,6 @@
 {
   "name": "ballena-ops",
-  "version": "0.8.0",
+  "version": "0.9.2",
   "private": true,
   "type": "module",
   "description": "PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳",
@@ -21,6 +21,7 @@
     "@capacitor-community/apple-sign-in": "^7.1.0",
     "@capacitor/core": "^8.4.2",
     "@capacitor/haptics": "^8.0.2",
+    "@capacitor/push-notifications": "^8.0.2",
     "@capacitor/share": "^8.0.1",
     "@capgo/capacitor-updater": "^8.51.2",
     "dexie": "^4.0.8",

@@ -58,19 +58,20 @@ Aplica el esquema:
 npm run migrar:remoto
 ```
 
-Ese fichero ya trae todo, así que una base nueva no necesita nada más. **Si la
-base ya existía** —creada antes de v0.7.1— le faltan dos columnas (`events.esDemo`
-y `dishes.eventId`, las que mantienen el evento «Demo» fuera del catálogo de
-platos compartido) y hay que añadirlas una sola vez:
+`0001` es el esquema **original**: lo que vino después lo añade cada migración
+por su cuenta, así que hay que pasarlas todas en orden. Aplicarlas de una en una
+sobre una base recién creada la deja igual que producción, que es lo que
+comprueba `api/test/d1.js`.
 
 ```bash
-npm run migrar:remoto2
-npm run migrar:remoto3
+npm run migrar:remoto5
+npm run migrar:remoto6
 ```
 
-La segunda añade el catálogo de ideas de plan (§14.15). Correr cualquiera de las
-dos sobre una base que ya las tiene falla con «duplicate column name», que es la
-señal de que no hacía falta.
+La `0005` mantiene el evento «Demo» fuera del catálogo de platos (§14.9-quater);
+la `0006` añade el catálogo de ideas de plan (§14.18). Las de `main` —`0002` a
+`0004`— van antes. Correr una sobre una base que ya la tiene falla con
+«duplicate column name», que es la señal de que no hacía falta.
 
 > **Y después, despliega el Worker** (`npm run desplegar`). Las columnas nuevas
 > no sirven de nada mientras el Worker siga con el `tablas.js` viejo: no las
@@ -89,6 +90,35 @@ npx wrangler secret put SESION_SECRETO
 
 # Credencial de la siembra desde JSONBin (§7). Puedes borrarla al terminar.
 npx wrangler secret put TOKEN_SERVICIO
+```
+
+Y tres más para los **avisos al móvil** (APNs). Sin ellas la app funciona igual y
+los avisos se ven al abrir Ajustes: `hayApnsConfigurado()` devuelve `false` y no
+se empuja nada. Un despliegue sin claves de APNs no es un despliegue roto.
+
+```bash
+npx wrangler secret put APNS_CLAVE_P8
+npx wrangler secret put APNS_CLAVE_ID
+npx wrangler secret put APPLE_EQUIPO
+```
+
+La clave `.p8` se saca una sola vez en **developer.apple.com → Certificates,
+Identifiers & Profiles → Keys → +**, marcando *Apple Push Notifications service
+(APNs)*. Se descarga una vez y no se puede volver a descargar: guárdala. El
+contenido entero del fichero —con sus dos guardas `-----BEGIN/END PRIVATE
+KEY-----`— es el valor de `APNS_CLAVE_P8`; el *Key ID* de diez caracteres es
+`APNS_CLAVE_ID`, y `APPLE_EQUIPO` es el Team ID.
+
+Mientras pruebes en un móvil conectado a Xcode, el aviso sale por el servidor de
+pruebas de Apple: `APNS_ENTORNO = "pruebas"` en `wrangler.toml`. Con el binario
+de la App Store, quítalo (o ponlo a `produccion`).
+
+Y las migraciones, en orden:
+
+```bash
+npx wrangler d1 execute ballena-ops --remote --file=migraciones/0002_cuenta_persona.sql
+npx wrangler d1 execute ballena-ops --remote --file=migraciones/0003_configuracion.sql
+npx wrangler d1 execute ballena-ops --remote --file=migraciones/0004_dispositivo_push.sql
 ```
 
 Despliega y comprueba:

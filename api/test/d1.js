@@ -9,7 +9,7 @@
  */
 
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 class Sentencia {
@@ -47,13 +47,18 @@ class BaseDeDatos {
   }
 }
 
-/** Base en memoria con el esquema de `migraciones/0001_esquema.sql` aplicado. */
+/**
+ * Base en memoria con **todas** las migraciones aplicadas, en orden.
+ *
+ * Antes cargaba solo `0001_esquema.sql`, y con eso una migración nueva no la
+ * probaba nadie: la suite pasaba en verde con un esquema que ya no era el que
+ * hay en producción.
+ */
 export function baseDePrueba() {
   const sqlite = new DatabaseSync(':memory:');
-  const esquema = readFileSync(
-    fileURLToPath(new URL('../migraciones/0001_esquema.sql', import.meta.url)),
-    'utf8',
-  );
-  sqlite.exec(esquema);
+  const dir = fileURLToPath(new URL('../migraciones/', import.meta.url));
+  for (const fichero of readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) {
+    sqlite.exec(readFileSync(dir + fichero, 'utf8'));
+  }
   return new BaseDeDatos(sqlite);
 }
