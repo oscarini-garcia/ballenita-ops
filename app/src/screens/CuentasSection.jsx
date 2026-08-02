@@ -7,7 +7,7 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, registrarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
-import { estadoDePush, isNative, registerPush, tap } from '../lib/native.js'
+import { SIN_PLUGIN, estadoDePush, isNative, registerPush, tap } from '../lib/native.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
 import { porNombre } from '../lib/asignacion.js'
@@ -240,6 +240,8 @@ export function NotificacionesSection() {
       const token = await registerPush()
       if (token) await registrarPush(token, true)
       setPermiso(await estadoDePush())
+    } catch (e) {
+      setPermiso(e?.message === SIN_PLUGIN ? SIN_PLUGIN : 'denied')
     } finally { setYendo(false) }
   }
 
@@ -252,15 +254,19 @@ export function NotificacionesSection() {
               <div className="ico"><Icono nombre="aviso" /></div>
               <div className="main">
                 <div className="n">
-                  {permiso === 'granted' ? 'Avisos encendidos' : 'Avisos apagados'}
+                  {permiso === 'granted' && 'Avisos encendidos'}
+                  {permiso === SIN_PLUGIN && 'Esta instalación no puede avisar'}
+                  {permiso !== 'granted' && permiso !== SIN_PLUGIN && 'Avisos apagados'}
                 </div>
                 <div className="sub">
                   {permiso === 'granted' && 'Este móvil recibe los avisos aunque la app esté cerrada.'}
                   {permiso === 'denied' && 'Los desactivaste en iOS: se vuelven a encender en Ajustes de iOS → Ballena Ops.'}
                   {(permiso === 'prompt' || permiso === 'prompt-with-rationale') && 'Todavía no los has encendido en este móvil.'}
+                  {permiso === SIN_PLUGIN
+                    && 'La app instalada se construyó antes de que existieran los avisos. Esto no se arregla desde aquí ni con «Forzar la última versión»: hace falta instalar un binario nuevo desde Xcode.'}
                 </div>
               </div>
-              {permiso !== 'granted' && permiso !== 'denied' && (
+              {permiso !== 'granted' && permiso !== 'denied' && permiso !== SIN_PLUGIN && (
                 <button className="btn sm" disabled={yendo} onClick={activar}>
                   {yendo ? 'Pidiendo…' : 'Encender'}
                 </button>

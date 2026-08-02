@@ -104,13 +104,26 @@ export async function checkForOtaUpdate() {
 // escrito qué se avisa. Un permiso que se pide en el primer segundo se contesta
 // que no.
 //
-// Devuelve el token de APNs, o null si no hay plugin, no hay permiso o esto no
-// es la app nativa.
-export async function registerPush() {
-  if (!isNative()) return null
+// Devuelve el token de APNs, o null si no hay permiso o esto no es la app
+// nativa. Si **falta el plugin** —binario viejo, construido antes de que la
+// dependencia existiera— lanza `SIN_PLUGIN`, y no devuelve null como todo lo
+// demás: es la única causa que no se arregla desde el teléfono, y confundirla
+// con «te lo han denegado» deja a alguien tocando un botón que no hace nada.
+export const SIN_PLUGIN = 'sin-plugin'
+
+async function plugin() {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications')
+    return PushNotifications
+  } catch {
+    throw new Error(SIN_PLUGIN)
+  }
+}
 
+export async function registerPush() {
+  if (!isNative()) return null
+  const PushNotifications = await plugin()
+  try {
     const estado = await PushNotifications.checkPermissions()
     const permiso = estado.receive === 'granted'
       ? estado
@@ -136,15 +149,22 @@ export async function registerPush() {
   }
 }
 
-/** ¿Puede este aparato recibir avisos, y los quiere? Sin pedir nada. */
+/**
+ * ¿Puede este aparato recibir avisos, y los quiere? Sin pedir nada.
+ *
+ * `sin-plugin` es el caso que importa distinguir: la app es la nativa, pero el
+ * binario se construyó antes de que existiera la dependencia, así que no hay
+ * plugin que preguntar. Eso **no se arregla desde el teléfono** —hace falta
+ * reinstalar—, y es justo lo que hay que decir en vez de callarlo.
+ */
 export async function estadoDePush() {
   if (!isNative()) return 'no-aplica'
   try {
-    const { PushNotifications } = await import('@capacitor/push-notifications')
+    const PushNotifications = await plugin()
     const { receive } = await PushNotifications.checkPermissions()
     return receive // 'granted' · 'denied' · 'prompt' · 'prompt-with-rationale'
-  } catch {
-    return 'no-aplica'
+  } catch (e) {
+    return e?.message === SIN_PLUGIN ? SIN_PLUGIN : 'no-aplica'
   }
 }
 
