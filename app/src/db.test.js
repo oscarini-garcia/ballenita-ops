@@ -5,6 +5,7 @@ import {
   addSettlement, settlementsOf,
   seedExample, listEvents, dinnersOf, plansOf, listDishes, bungasOf,
   addShopItem, shopItemsOf, updateShopItem, removeShopItem, clearBoughtShopItems,
+  addBunga, asignarBungaAFamilia,
   markBought, unmarkBought,
 } from './db.js'
 import { computeFamilyBalances, simplifyDebts } from './lib/reparto.js'
@@ -192,5 +193,32 @@ describe('seedExample — datos de ejemplo coherentes', () => {
     expect(cena.platoIds.length).toBeGreaterThan(0)
     expect(bungaIds.has(cena.bungaMayoresId)).toBe(true)
     expect(bungaIds.has(cena.bungaNinosId)).toBe(true)
+  })
+})
+
+describe('asignarBungaAFamilia — el emparejamiento es uno a uno', () => {
+  it('asigna, y libera el que la familia tuviera antes', async () => {
+    const ev = await createEvent({ name: 'Camping', currency: 'EUR' })
+    const fam = await addFamily(ev, { name: 'García' })
+    const b1 = await addBunga(ev, { name: 'Bunga 1' })
+    const b2 = await addBunga(ev, { name: 'Bunga 2' })
+
+    await asignarBungaAFamilia(ev, fam, b1)
+    let bungas = Object.fromEntries((await bungasOf(ev)).map((b) => [b.id, b]))
+    expect(bungas[b1].familyId).toBe(fam)
+
+    await asignarBungaAFamilia(ev, fam, b2)
+    bungas = Object.fromEntries((await bungasOf(ev)).map((b) => [b.id, b]))
+    expect(bungas[b2].familyId).toBe(fam)
+    expect(bungas[b1].familyId).toBe(null)
+  })
+
+  it('con bungaId nulo suelta el que hubiera', async () => {
+    const ev = await createEvent({ name: 'Finde', currency: 'EUR' })
+    const fam = await addFamily(ev, { name: 'Pérez' })
+    const b = await addBunga(ev, { name: 'Bunga 1', familyId: fam })
+    await asignarBungaAFamilia(ev, fam, null)
+    expect((await bungasOf(ev))[0].familyId).toBe(null)
+    expect(b).toBeTruthy()
   })
 })

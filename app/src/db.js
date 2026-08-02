@@ -184,6 +184,21 @@ export const bungasOf = (eventId) => db.bungas.where({ eventId }).toArray()
 export const updateBunga = (id, patch) => escribir('bungas', id, patch)
 export const removeBunga = (id) => removeRow('bungas', id)
 
+/**
+ * Emparejar una familia con un bunga desde el lado de la familia. El vínculo
+ * vive en `bunga.familyId` y es uno a uno, así que asignar uno **libera** el
+ * que esa familia tuviera antes: si no, la familia acabaría con dos y los
+ * desplegables de disponibles dejarían de cuadrar.
+ * Con `bungaId = null` se limita a soltar el que hubiera.
+ */
+export async function asignarBungaAFamilia(eventId, familyId, bungaId = null) {
+  const todos = await bungasOf(eventId)
+  for (const b of todos) {
+    if (b.id === bungaId && b.familyId !== familyId) await updateBunga(b.id, { familyId })
+    else if (b.id !== bungaId && b.familyId === familyId) await updateBunga(b.id, { familyId: null })
+  }
+}
+
 // ── Personas ──
 export async function addPerson(eventId, p) {
   const edad = p.edad ?? 'adulto'

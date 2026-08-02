@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, removeFamily,
-  bungasOf, addBunga, removeBunga,
+  bungasOf, addBunga, removeBunga, asignarBungaAFamilia,
   personsOf, addPerson, removePerson, updatePerson, olvidarTodo,
   listEvents,
 } from '../db.js'
+import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga } from '../lib/asignacion.js'
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
@@ -696,7 +697,10 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
-  const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
+  // Una familia borrada deja huérfanos a su bunga y a su gente. Decirlo con
+  // palabras («sin familia») es más útil que un guion, porque es justo lo que
+  // hay que arreglar.
+  const famName = (id) => families.find((f) => f.id === id)?.name ?? 'sin familia'
 
   const [modal, setModal] = useState(null) // 'familia' | 'bunga' | 'persona'
   const { me } = useIdentidad(eventId, persons)
@@ -728,13 +732,19 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
       <Acordeon titulo="Familias" icono="familia" nota={families.length || null}>
         <div className="card tight">
           {families.length === 0 && <div className="empty" style={{ padding: 14 }}>Sin familias todavía.</div>}
-          {families.map((f) => (
-            <div className="row" key={f.id}>
-              <div className="av" style={{ background: f.color }}>{f.avatar}</div>
-              <div className="main"><div className="n">{f.name}</div><div className="sub">{f.estado || '—'}</div></div>
-              <button className="btn sm danger" onClick={() => removeFamily(f.id)}>Borrar</button>
-            </div>
-          ))}
+          {families.map((f) => {
+            const b = bungaDeFamilia(bungas, f.id)
+            return (
+              <div className="row" key={f.id}>
+                <div className="av" style={{ background: f.color }}>{f.avatar}</div>
+                <div className="main">
+                  <div className="n">{f.name}</div>
+                  <div className="sub">{[b ? etiquetaBunga(b) : 'sin bunga', f.estado].filter(Boolean).join(' · ')}</div>
+                </div>
+                <button className="btn sm danger" onClick={() => removeFamily(f.id)}>Borrar</button>
+              </div>
+            )
+          })}
         </div>
         <button className="btn block" onClick={() => setModal('familia')}>+ Añadir familia</button>
       </Acordeon>
@@ -781,8 +791,8 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <AppSection />
       </Acordeon>
 
-      {modal === 'familia' && <FamiliaModal eventId={eventId} onClose={() => setModal(null)} />}
-      {modal === 'bunga' && <BungaModal eventId={eventId} families={families} onClose={() => setModal(null)} />}
+      {modal === 'familia' && <FamiliaModal eventId={eventId} families={families} bungas={bungas} onClose={() => setModal(null)} />}
+      {modal === 'bunga' && <BungaModal eventId={eventId} families={families} bungas={bungas} onClose={() => setModal(null)} />}
       {modal === 'persona' && <PersonaModal eventId={eventId} families={families} onClose={() => setModal(null)} />}
     </div>
   )
@@ -802,15 +812,20 @@ function Modal({ title, onClose, children, onSave }) {
   )
 }
 
-function FamiliaModal({ eventId, onClose }) {
+function FamiliaModal({ eventId, families, bungas, onClose }) {
   const [name, setName] = useState('')
   const [color, setColor] = useState(COLORS[0])
   const [avatar, setAvatar] = useState('👨‍👩‍👧')
   const [estado, setEstado] = useState('')
+  // Sin asignar de fábrica: una familia recién creada no tiene bunga, y elegirlo
+  // por ella dejaría a otra sin el suyo sin que nadie lo haya dicho.
+  const [bungaId, setBungaId] = useState('')
+  const libres = bungasLibres(bungas, families)
   return (
     <Modal title="Nueva familia" onClose={onClose} onSave={async () => {
       if (!name.trim()) return
-      await addFamily(eventId, { name: name.trim(), color, avatar: avatar || '👨‍👩‍👧', estado: estado.trim() })
+      const id = await addFamily(eventId, { name: name.trim(), color, avatar: avatar || '👨‍👩‍👧', estado: estado.trim() })
+      if (bungaId) await asignarBungaAFamilia(eventId, id, bungaId)
       onClose()
     }}>
       <label>Nombre</label>
@@ -819,6 +834,14 @@ function FamiliaModal({ eventId, onClose }) {
         <div><label>Emoji</label><input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} /></div>
         <div><label>Estado</label><input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="modo playa" /></div>
       </div>
+      <label>Bunga</label>
+      <select value={bungaId} onChange={(e) => setBungaId(e.target.value)}>
+        <option value="">— ninguno —</option>
+        {libres.map((b) => <option key={b.id} value={b.id}>{etiquetaBunga(b)}</option>)}
+      </select>
+      {bungas.length > 0 && libres.length === 0 && (
+        <div className="note">🐳 Todos los bungas tienen ya familia. Crea uno nuevo en <b>Bungalows</b>.</div>
+      )}
       <label>Color</label>
       <div className="chips">
         {COLORS.map((c) => (
@@ -831,10 +854,13 @@ function FamiliaModal({ eventId, onClose }) {
   )
 }
 
-function BungaModal({ eventId, families, onClose }) {
+function BungaModal({ eventId, families, bungas, onClose }) {
   const [name, setName] = useState('')
   const [alias, setAlias] = useState('')
-  const [familyId, setFamilyId] = useState(families[0]?.id ?? '')
+  // Igual que en el formulario de familia, y por lo mismo: sin asignar de
+  // fábrica, y en la lista solo las familias que aún no tienen bunga.
+  const [familyId, setFamilyId] = useState('')
+  const libres = familiasLibres(families, bungas)
   return (
     <Modal title="Nuevo bunga" onClose={onClose} onSave={async () => {
       if (!name.trim()) return
@@ -847,9 +873,12 @@ function BungaModal({ eventId, families, onClose }) {
       <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="El de la piscina" />
       <label>Familia</label>
       <select value={familyId} onChange={(e) => setFamilyId(e.target.value)}>
-        <option value="">— sin asignar —</option>
-        {families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+        <option value="">— ninguna —</option>
+        {libres.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
       </select>
+      {families.length > 0 && libres.length === 0 && (
+        <div className="note">🐳 Todas las familias tienen ya bunga. Crea una nueva en <b>Familias</b>.</div>
+      )}
     </Modal>
   )
 }
