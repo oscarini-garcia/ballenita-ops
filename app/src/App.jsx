@@ -6,9 +6,10 @@ import AccesoScreen from './screens/AccesoScreen.jsx'
 import EventsScreen from './screens/EventsScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
 import DineroScreen from './screens/DineroScreen.jsx'
-import CenasCompraScreen from './screens/CenasCompraScreen.jsx'
+import ComidasScreen from './screens/ComidasScreen.jsx'
 import PlanesScreen from './screens/PlanesScreen.jsx'
 import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
+import Icono from './components/Icono.jsx'
 import SyncDot from './components/SyncDot.jsx'
 import ProgresoModal from './components/ProgresoModal.jsx'
 import { sincronizarTodo } from './lib/sincronizarTodo.js'
@@ -21,8 +22,19 @@ import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
-// 5 destinos en la barra (≤5, iOS HIG / Material). Gastos+Saldos se funden en
-// «Dinero» y la Compra entra en «Cenas».
+// 5 destinos en la barra (≤5, iOS HIG / Material), y cada uno partido en áreas
+// con un mando bajo la cabecera. Ver `docs/diseño/navegacion.html`, opción A1.
+//
+// **El rótulo nombra la sección, no su primera área.** La primera pestaña se
+// llamaba «Hoy» y ahora se llama «Agenda»: una pestaña «Hoy» que contiene un
+// área «Hoy» deja de decir dónde estás para decir dónde estabas al entrar. Se
+// paga que el destino más visitado pierda la palabra más corta y más urgente
+// —«Hoy» son 28 pt y «Agenda» 55—, y se paga una vez, el primer día.
+//
+// Y «Cenas» pasa a ser «Comidas»: el modelo solo tiene cenas y dentro se siguen
+// llamando cenas, pero el rótulo deja sitio a las comidas de mediodía sin volver
+// a tocar la navegación. Es el rótulo más largo de la barra (61,7 pt de 76,4) y
+// aguanta incluso en tamaño Enorme.
 //
 // Ajustes es el quinto y va **aquí abajo a la derecha**, no en la esquina de la
 // cabecera, donde estuvo. Arriba a la derecha es lo que peor alcanza el pulgar de
@@ -33,18 +45,18 @@ const ACTIVE_KEY = 'ballena.activeEventId'
 // Se ha comido lo que era «Más»: las estadísticas eran media pestaña para algo
 // que se mira al volver del viaje, y ahora son un apartado de Ajustes.
 const TABS = [
-  { id: 'hoy', label: 'Hoy', icon: 'M4 5h16v16H4zM4 9h16M9 3v4M15 3v4' },
-  { id: 'dinero', label: 'Dinero', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
-  { id: 'cenas', label: 'Cenas', icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 8a4 4 0 100 8 4 4 0 000-8z' },
-  { id: 'planes', label: 'Planes', icon: 'M12 22s-7-6-7-12a7 7 0 1114 0c0 6-7 12-7 12z' },
-  { id: 'ajustes', label: 'Ajustes', icon: 'M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4zM19.4 15a1.6 1.6 0 00.32 1.77l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.6 1.6 0 00-2.77 1.15V21a2 2 0 11-4 0v-.11a1.6 1.6 0 00-2.77-1.09l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.6 1.6 0 003.11 14H3a2 2 0 110-4h.11a1.6 1.6 0 001.15-2.77l-.06-.06a2 2 0 112.83-2.83l.06.06A1.6 1.6 0 0010 3.11V3a2 2 0 114 0v.11a1.6 1.6 0 002.77 1.15l.06-.06a2 2 0 112.83 2.83l-.06.06A1.6 1.6 0 0020.89 10H21a2 2 0 110 4h-.11a1.6 1.6 0 00-1.49 1z' },
+  { id: 'agenda', label: 'Agenda', icono: 'evento' },
+  { id: 'dinero', label: 'Dinero', icono: 'grafico' },
+  { id: 'comidas', label: 'Comidas', icono: 'restaurante' },
+  { id: 'planes', label: 'Planes', icono: 'plan' },
+  { id: 'ajustes', label: 'Ajustes', icono: 'ajustes' },
 ]
 
 export default function App() {
   const [activeId, setActiveId] = useState(() => localStorage.getItem(ACTIVE_KEY) || null)
   // Tras recargar por una actualización volvemos a Ajustes en vez de a «Hoy»,
   // para no perder el sitio desde el que se pulsó el botón.
-  const [tab, setTab] = useState(() => (veniaDeActualizar() ? 'ajustes' : 'hoy'))
+  const [tab, setTab] = useState(() => (veniaDeActualizar() ? 'ajustes' : 'agenda'))
 
   // `undefined` mientras se lee config.json; después, el objeto (vacío si no
   // hay API configurada, que es el modo solo-local de siempre).
@@ -100,7 +112,7 @@ export default function App() {
     if (id) localStorage.setItem(ACTIVE_KEY, id)
     else localStorage.removeItem(ACTIVE_KEY)
     setActiveId(id)
-    setTab('hoy')
+    setTab('agenda')
   }
 
   // Solo si el evento activo se ha resuelto a "no existe" (borrado), volver a la lista.
@@ -187,9 +199,9 @@ export default function App() {
         )}
       </header>
 
-      {tab === 'hoy' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}
+      {tab === 'agenda' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}
       {tab === 'dinero' && <DineroScreen eventId={activeId} event={event} />}
-      {tab === 'cenas' && <CenasCompraScreen eventId={activeId} event={event} />}
+      {tab === 'comidas' && <ComidasScreen eventId={activeId} event={event} />}
       {tab === 'planes' && <PlanesScreen eventId={activeId} event={event} />}
       {tab === 'ajustes' && (
         <EventSettingsScreen
@@ -204,9 +216,7 @@ export default function App() {
       <nav className="tabbar">
         {TABS.map((t) => (
           <button key={t.id} className={`tab${tab === t.id ? ' on' : ''}`} onClick={() => { tap(); setTab(t.id) }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d={t.icon} />
-            </svg>
+            <Icono nombre={t.icono} />
             <span>{t.label}</span>
           </button>
         ))}

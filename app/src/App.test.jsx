@@ -1,7 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App.jsx'
+import { olvidarAreas } from './lib/areas.js'
+
+// El área elegida dentro de una sección se recuerda a propósito (`lib/areas.js`)
+// y vive en el módulo, así que sobrevive al desmontaje **y a la prueba
+// anterior**: sin esto, la que deja Dinero en «Saldos» hace fallar a la
+// siguiente, que espera encontrarlo en «Gastos».
+beforeEach(olvidarAreas)
 
 describe('App — smoke test', () => {
   it('sin evento activo muestra la lista de eventos', async () => {
@@ -13,8 +20,10 @@ describe('App — smoke test', () => {
   it('cargar el ejemplo abre el evento y muestra las 5 pestañas', async () => {
     render(<App />)
     await userEvent.click(await screen.findByText(/Cargar ejemplo/))
-    // La barra baja a 5 destinos: Hoy · Dinero · Cenas · Planes · Ajustes.
-    for (const label of ['Hoy', 'Dinero', 'Cenas', 'Planes', 'Ajustes']) {
+    // La barra son 5 destinos: Agenda · Dinero · Comidas · Planes · Ajustes.
+    // El rótulo nombra la sección, no su primera área: «Hoy» es un área dentro
+    // de Agenda, y «Cenas» un área dentro de Comidas.
+    for (const label of ['Agenda', 'Dinero', 'Comidas', 'Planes', 'Ajustes']) {
       expect(await screen.findByText(label)).toBeInTheDocument()
     }
     // «Saldos», «Stats» y «Más» ya no son pestañas de primer nivel.
@@ -45,16 +54,50 @@ describe('App — navegación', () => {
     expect(screen.queryByText('Gasto total del evento')).not.toBeInTheDocument()
   })
 
-  it('«Cenas» lleva la Compra dentro como segunda sub-pestaña', async () => {
+  it('«Comidas» tiene tres áreas: Cenas, Platos y la Compra', async () => {
     await abrirEjemplo()
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[2])
 
-    // «Cenas» está ahora en la barra y en el segmentado, así que se apunta al
-    // segmentado por su rol y no por su texto.
-    expect(await screen.findByRole('tab', { name: 'Cenas' })).toBeInTheDocument()
+    for (const area of ['Cenas', 'Platos', 'Compra']) {
+      expect(await screen.findByRole('tab', { name: area })).toBeInTheDocument()
+    }
+
+    // Platos es el catálogo, que hasta ahora solo existía dentro del modal de
+    // una cena y no se podía ni corregir.
+    await userEvent.click(screen.getByRole('tab', { name: 'Platos' }))
+    expect(await screen.findByText(/el mismo en todos los eventos/)).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Editar Paella mixta' })).toBeInTheDocument()
+
+    // Y la compra sigue a un toque, con su barra de alta rápida.
     await userEvent.click(screen.getByRole('tab', { name: 'Compra' }))
-    // La lista de la compra trae su barra de alta rápida.
     expect(await screen.findByPlaceholderText(/Apunta algo/)).toBeInTheDocument()
+  })
+
+  it('«Agenda» se abre en Hoy y guarda al lado la lista de días', async () => {
+    await abrirEjemplo()
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[0])
+
+    expect(await screen.findByRole('tab', { name: 'Hoy' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Días' }))
+
+    // Los ocho días del ejemplo, vacíos incluidos, cada uno con su lápiz.
+    const lapices = await screen.findAllByRole('button', { name: /^Editar / })
+    expect(lapices).toHaveLength(8)
+  })
+
+  it('el área elegida no se olvida al ir y volver de otra sección', async () => {
+    await abrirEjemplo()
+    const barra = document.querySelectorAll('.tabbar .tab')
+
+    await userEvent.click(barra[0])
+    await userEvent.click(await screen.findByRole('tab', { name: 'Días' }))
+    await screen.findAllByRole('button', { name: /^Editar / })
+
+    await userEvent.click(barra[1])           // a Dinero…
+    await screen.findByText('Gasto total del evento')
+    await userEvent.click(barra[0])           // …y de vuelta
+
+    expect(await screen.findByRole('tab', { name: 'Días' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('Ajustes es la quinta pestaña de la barra, y ya no un ⚙️ en la cabecera', async () => {

@@ -717,7 +717,8 @@ estirarse cuando algo no va. Es la resolución de `garciadoral-ops`. De paso se
 comió lo que era «Más»: las estadísticas eran media pestaña de primer nivel para
 algo que se mira al volver del viaje, y ahora son un apartado de Ajustes.
 
-Barra: **Hoy · Dinero · Cenas · Planes · Ajustes**.
+Barra: **Agenda · Dinero · Comidas · Planes · Ajustes** (ver §14.10-ter, que es
+donde se cuenta por qué esos cinco nombres y qué hay dentro de cada uno).
 
 **Cabecera: la ballena, dónde estás y el punto.** Tres cosas, y el badge de
 «quién eres» **se retiró**. Decía tu nombre en todas las pantallas y todo el
@@ -856,6 +857,79 @@ y una superficie que se arrastra por encima de todo eso pelearía con ellos.
 «+ Cena», «+ Plan». Un «+» a secas no dice qué va a crear y obligaba a acordarse
 de en qué pestaña estabas. Mismo sitio y mismo gesto; cambia la forma —pastilla
 en vez de cuadrado, porque ahora crece con el rótulo—, no el sistema.
+
+### 14.10-ter Cinco secciones y sus áreas
+
+Las opciones, dibujadas a 390 pt y con los números medidos contra `theme.css`,
+están en [`docs/diseño/navegacion.html`](diseño/navegacion.html). Lo elegido:
+**A1 · B2 · C1 · D1 · E1 · F3 · G1**, más **H1** para el botón de editar un día.
+
+| Sección | Áreas | Por qué |
+|---|---|---|
+| **Agenda** | Hoy · Días | El rótulo nombra la sección, no su primera área |
+| **Dinero** | Gastos · Saldos | Sin tocar: ya estaba bien |
+| **Comidas** | Cenas · Platos · Compra | Cabe la comida de mediodía sin retocar la barra |
+| **Planes** | — | |
+| **Ajustes** | acordeón | |
+
+**El rótulo nombra la sección, no su primera área.** La primera pestaña se
+llamaba «Hoy» y ahora es «Agenda»: una pestaña «Hoy» que contiene un área «Hoy»
+deja de decir dónde estás para decir dónde estabas al entrar. Cuesta que el
+destino más visitado pierda la palabra más corta —«Hoy» son 28 pt y «Agenda»
+55—, y se paga una sola vez. Por lo mismo la segunda área es «Días» y no
+«Evento»: el nombre del evento ya está en la cabecera y en Ajustes hay **otro**
+apartado llamado «Evento», que es donde se cambian sus fechas.
+
+**«Hoy» contesta la pregunta con la que se abre la app y se calla lo demás**
+(opción E1). El titular de la cena y los planes del día; ni el dinero, ni la
+compra, ni una lista de deberes. Y para los otros trescientos cincuenta y siete
+días del año, **enseña el día más próximo diciendo lo que es** (F3): «el primer
+día, dentro de 6 días», «el último día, hace 5». Antes decía «la agenda está
+vacía, añade cenas y planes», que era mentira —había ocho días apuntados— y hacía
+que alguien volviera a apuntar lo que ya estaba.
+
+**«Días» es una fila por día, todos, también los vacíos** (G1). La agenda hacía
+`if (!cena && !planes) return null` y un viaje de ocho días con cosas en tres
+enseñaba tres filas; el día vacío es justo el que hay que tocar para llenarlo.
+Una fila mide 70,7 pt, así que los ocho caben en los 633,6 del cuerpo y se ve de
+un vistazo cuál está libre — una tarjeta por día no cabía ni con los ocho vacíos
+(874 pt). El lápiz es de 44 × 44 y la fila entera abre el mismo modal (H1): el
+botón está para decir que el día se edita, no para tener que acertarle.
+
+En el modal de un día se monta o se corrige **su cena** y se dice **qué planes
+caen en él**, que es todo lo que un día tiene. Un día no se crea ni se borra:
+existe porque el evento tiene esas fechas.
+
+**La compra se queda en Comidas, como tercera área** (D1). Al pasar la segunda a
+ser Platos se habría quedado sin sitio en la navegación entera. Es lo que se abre
+en el súper, de pie y con el carro, y ahí un toque de más se nota; con tres áreas
+el mando da 115,3 pt por hueco, dos veces y media el mínimo de Apple.
+
+**Platos es el catálogo, que no tenía pantalla.** `updateDish` y `removeDish`
+llevaban desde el primer día en `db.js` sin que los llamara nadie: la única alta
+era el «plato nuevo al vuelo» de dentro del modal de una cena, y un plato mal
+escrito se quedaba mal escrito para siempre. Como la tabla `dishes` es **global,
+sin `eventId`**, la errata viajaba a todos los viajes; eso lo dice ahora la
+propia pantalla, y borrar avisa de en cuántas cenas está metido el plato.
+
+**El área elegida se recuerda por sección** (`lib/areas.js`), en memoria y no en
+`localStorage`: es dónde estabas hace un minuto, no una preferencia. Cada mando
+era un `useState` de su pantalla y la pantalla se desmonta al cambiar de
+pestaña, así que volver a Agenda te devolvía a «Hoy» aunque estuvieras en «Días».
+
+**Quién eres es una sola cosa en toda la app.** Planes guardaba lo suyo en
+`ballena.person.<evento>` con su propio desplegable «Eres:» y `lib/identidad.js`
+—la de la cabecera y la de Ajustes → Quién eres— en `ballena.me:<evento>`. Dos
+llaves distintas: identificarse en Ajustes no servía para votar, y la Compra
+firmaba en blanco quién había comprado porque leía la llave que ya no escribe
+nadie. El desplegable de Planes se retiró y las dos pantallas pasan por
+`useIdentidad`.
+
+Un detalle que solo se ve midiendo: la hoja dibujaba la fila de un día como
+«Paella mixta en El del ruido», y puesto en la app son 268 pt en una fila que
+tiene 237 con el lápiz — se recortaba en «El del…». La bunga bajó al titular de
+«Hoy» y al modal, que es donde hay sitio; en la fila sale solo cuando no hay
+plato que enseñar y el titular se quedaría en un «Cena» pelado.
 
 ### 14.11 Tipografía: un número y toda la escala
 
