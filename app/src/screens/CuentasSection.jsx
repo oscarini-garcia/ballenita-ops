@@ -259,6 +259,9 @@ export function NotificacionesSection() {
   // 'granted' · 'denied' · 'prompt' · 'no-aplica' (web, o sin plugin).
   const [permiso, setPermiso] = useState('no-aplica')
   const [yendo, setYendo] = useState(false)
+  // Lo que falló, con sus palabras. Sin esto, «no pasa nada» y «pasó esto» se
+  // ven igual, y no hay manera de contárselo a nadie.
+  const [fallo, setFallo] = useState(null)
 
   useEffect(() => { estadoDePush().then(setPermiso) }, [])
 
@@ -270,12 +273,21 @@ export function NotificacionesSection() {
   async function activar() {
     tap()
     setYendo(true)
+    setFallo(null)
     try {
       const token = await registerPush()
       if (token) await registrarPush(token, true)
+      else if ((await estadoDePush()) !== 'denied') {
+        // Permiso concedido y aun así ningún token: eso es cosa de APNs —falta
+        // el permiso `aps-environment` en el binario, o no hay red—, y callarlo
+        // deja el botón como si no hiciera nada.
+        setFallo('Permiso dado, pero Apple no ha devuelto ningún identificador para este móvil. Suele ser que al binario le falta el permiso de avisos.')
+      }
       setPermiso(await estadoDePush())
     } catch (e) {
-      setPermiso(e?.message === SIN_PLUGIN ? SIN_PLUGIN : 'denied')
+      const motivo = String(e?.message ?? e)
+      setPermiso(motivo === SIN_PLUGIN ? SIN_PLUGIN : await estadoDePush())
+      if (motivo !== SIN_PLUGIN) setFallo(motivo)
     } finally { setYendo(false) }
   }
 
@@ -307,6 +319,7 @@ export function NotificacionesSection() {
               )}
             </div>
           </div>
+          {fallo && <div className="note" role="alert">🐳 {fallo}</div>}
           <div className="note">
             🐳 De momento se avisa de <b>una sola cosa</b>: alguien ha entrado con Apple y todavía no
             es nadie del grupo. Llega solo a quien administra, porque es quien puede arreglarlo.

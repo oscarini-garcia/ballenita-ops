@@ -58,3 +58,33 @@ describe('registerPush', () => {
     expect(await registerPush()).toBe('tok_apns')
   })
 })
+
+/**
+ * Con tiempo de verdad y plazos de milisegundos, no con temporizadores falsos:
+ * los falsos dejaban viva la promesa del plazo perdedor y Vitest la contaba
+ * como rechazo sin dueño, con la suite entera en verde y la ejecución en rojo.
+ */
+describe('ninguna llamada al puente se queda colgada', () => {
+  it('si `checkPermissions` no vuelve, se acaba diciendo que falta el binario', async () => {
+    vi.doMock('@capacitor/push-notifications', () => ({
+      PushNotifications: { checkPermissions: () => new Promise(() => {}) },
+    }))
+    const { estadoDePush, SIN_PLUGIN, PLAZOS } = await import('./native.js')
+    PLAZOS.puente = 20
+    expect(await estadoDePush()).toBe(SIN_PLUGIN)
+  })
+
+  it('si la hoja de permiso no llega a aparecer, tampoco', async () => {
+    vi.doMock('@capacitor/push-notifications', () => ({
+      PushNotifications: {
+        checkPermissions: async () => ({ receive: 'prompt' }),
+        requestPermissions: () => new Promise(() => {}),
+        addListener: () => {},
+        register: () => {},
+      },
+    }))
+    const { registerPush, SIN_PLUGIN, PLAZOS } = await import('./native.js')
+    PLAZOS.permiso = 20
+    await expect(registerPush()).rejects.toThrow(SIN_PLUGIN)
+  })
+})

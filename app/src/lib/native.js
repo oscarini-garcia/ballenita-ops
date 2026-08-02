@@ -134,16 +134,16 @@ export const SIN_PLUGIN = 'sin-plugin'
 /**
  * El plugin, o `SIN_PLUGIN` si este binario no lo trae.
  *
- * **El `import()` no vale para averiguarlo**, y esto costó un «Pidiendo…»
- * eterno en un móvil de verdad: el JavaScript del plugin viaja **dentro del
- * paquete OTA**, así que importarlo siempre funciona aunque el binario no lleve
- * su parte nativa. Y llamando a un plugin cuya implementación nativa no está
- * registrada, la promesa no se resuelve **ni se rechaza**: se queda ahí.
+ * **Nada de esto se puede saber preguntando, y costó dos intentos.** El
+ * `import()` no vale: el JavaScript del plugin viaja **dentro del paquete OTA**,
+ * así que importarlo funciona aunque el binario no lleve su parte nativa. Y
+ * `Capacitor.isPluginAvailable` tampoco: devuelve `true` con que el JavaScript
+ * se haya registrado, que es justo lo que acaba de pasar al importarlo.
  *
- * `Capacitor.isPluginAvailable` existe exactamente para esta pregunta, y el
- * plazo de después es el cinturón: si algún día una versión de Capacitor
- * contesta que sí y luego se cuelga igual, se acaba diciendo lo mismo en vez de
- * dejar la pantalla girando.
+ * Lo único que distingue de verdad es que **la llamada no vuelve**: sin
+ * implementación nativa registrada, la promesa no se resuelve ni se rechaza. De
+ * ahí que la comprobación de verdad sea `conPlazo`, y que las dos preguntas se
+ * queden igualmente: cuestan nada y en algún caso contestarán antes.
  */
 async function plugin() {
   if (Capacitor?.isPluginAvailable?.('PushNotifications') === false) throw new Error(SIN_PLUGIN)
@@ -155,8 +155,25 @@ async function plugin() {
   }
 }
 
-/** Una llamada nativa con plazo. Pasado el plazo, se da por no implementada. */
-async function conPlazo(promesa, ms = 6000) {
+/**
+ * Una llamada nativa con plazo. Pasado el plazo, se da por no implementada.
+ *
+ * **Todas las llamadas al puente llevan uno**, incluida la que abre la hoja de
+ * permiso de iOS. Esa la contesta una persona y por eso su plazo es largo, pero
+ * no puede no tenerlo: si la hoja no llega a aparecer —que es lo que pasa cuando
+ * falta la parte nativa— la promesa no vuelve nunca y la pantalla se queda en
+ * «Pidiendo…» hasta que alguien mata la app. Un botón que puede colgarse para
+ * siempre es peor que uno que se rinde y lo cuenta.
+ */
+export const PLAZOS = {
+  // Lo que se le da al puente para contestar. Son objeto y no constantes para
+  // que las pruebas puedan bajarlos a milisegundos: un plazo que solo se puede
+  // probar esperando seis segundos de verdad no se prueba.
+  puente: 6000,
+  permiso: 15000,
+}
+
+async function conPlazo(promesa, ms = PLAZOS.puente) {
   let reloj
   try {
     return await Promise.race([
@@ -171,10 +188,14 @@ export async function registerPush() {
   const PushNotifications = await plugin()
   const estado = await conPlazo(PushNotifications.checkPermissions())
   try {
-    // La hoja de iOS la contesta una persona, así que esta no lleva plazo.
+    // Quince segundos: la hoja de iOS aparece en el acto o no aparece nunca, y
+    // contestarla son dos toques. Si se agota, el diagnóstico es el mismo que el
+    // de `plugin()` —falta la parte nativa— y por eso `conPlazo` lanza
+    // `SIN_PLUGIN`. Y si alguien tardó de verdad más de quince segundos, el
+    // permiso queda concedido igual y la pantalla se corrige sola al volver.
     const permiso = estado.receive === 'granted'
       ? estado
-      : await PushNotifications.requestPermissions()
+      : await conPlazo(PushNotifications.requestPermissions(), PLAZOS.permiso)
     if (permiso.receive !== 'granted') return null
 
     // El token no vuelve de `register()`: llega por un evento, y puede tardar.
@@ -191,7 +212,11 @@ export async function registerPush() {
       PushNotifications.register()
     })
     return token
-  } catch {
+  } catch (e) {
+    // `SIN_PLUGIN` **sube**: es el único fallo que no se arregla desde el
+    // teléfono y el que la pantalla tiene que contar. Tragárselo aquí lo
+    // convertía en un «avisos apagados» cualquiera, que es mentira.
+    if (e?.message === SIN_PLUGIN) throw e
     return null
   }
 }
