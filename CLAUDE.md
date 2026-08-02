@@ -252,8 +252,13 @@ todos en verde.
 proyecto de Pages, rellenar `config.json` y **sembrar desde JSONBin**. Hasta que eso esté,
 la app funciona en modo solo-local.
 
-**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · **icono de la app**
-nuevo (`public/favicon.svg` sigue siendo el emoji sobre un cuadrado) · **compartir** los avatares con
+**Iconos de la app, de un solo dibujo** (SPECS §14.13): `app/assets/icon.png` alimenta el binario
+de iOS (`assets:ios`) **y** la web/PWA (`npm run iconos:web`, sharp sin guardar). Se retiró
+`public/favicon.svg`, que hacía que la app instalada y el navegador enseñaran dibujos distintos.
+
+**Pendiente (ideas):** editar personas desde la UI (los gastos ya se corrigen) · el **camino del
+fallo de sincronización** sin ver contra una API real (§14.9-bis; está probado con tests, no en
+pantalla) · **compartir** los avatares con
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
 `Dish.ingredientes`).
