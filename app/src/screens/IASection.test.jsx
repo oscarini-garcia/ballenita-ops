@@ -59,7 +59,7 @@ describe('los modelos', () => {
     leerIA.mockResolvedValue({ ia: { hayClave: false, modelo: 'claude-haiku-4-5' } })
     render(<IASection />)
 
-    await screen.findByText(/Sin clave/)
+    await screen.findByText(/Todavía no hay ninguna puesta/)
     expect(listarModelosIA).not.toHaveBeenCalled()
     // Y el modelo se sigue pudiendo escribir a mano.
     expect((await screen.findByLabelText('Modelo')).tagName).toBe('INPUT')
@@ -110,7 +110,7 @@ describe('probar', () => {
     render(<IASection />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Probar' }))
-    expect(await screen.findByText(/Funciona: claude-haiku-4-5 ha contestado en 412 ms/)).toBeInTheDocument()
+    expect(await screen.findByText(/Ha contestado claude-haiku-4-5, en 412 ms/)).toBeInTheDocument()
   })
 
   it('si el modelo ya no existe no dice «no funciona»: dice por cuál se ha cambiado', async () => {
@@ -121,7 +121,7 @@ describe('probar', () => {
     render(<IASection />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Probar' }))
-    expect(await screen.findByText(/claude-3-5-sonnet ya no existe\. Se ha puesto claude-sonnet-4-5, el más cercano, y ha contestado en 380 ms/))
+    expect(await screen.findByText(/claude-3-5-sonnet ya no existe\. Se ha puesto claude-sonnet-4-5, el más cercano\. Ha contestado en 380 ms/))
       .toBeInTheDocument()
   })
 
@@ -130,14 +130,14 @@ describe('probar', () => {
     render(<IASection />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Probar' }))
-    expect(await screen.findByText(/No funciona — la API respondió 401: invalid x-api-key/)).toBeInTheDocument()
+    expect(await screen.findByText(/No funciona: la API respondió 401: invalid x-api-key/)).toBeInTheDocument()
   })
 
   it('sin clave no hay nada que probar y el botón no está', async () => {
     leerIA.mockResolvedValue({ ia: { hayClave: false, modelo: '' } })
     render(<IASection />)
 
-    await screen.findByText(/Sin clave/)
+    await screen.findByText(/Todavía no hay ninguna puesta/)
     expect(screen.queryByRole('button', { name: 'Probar' })).not.toBeInTheDocument()
   })
 })

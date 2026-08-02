@@ -1379,6 +1379,39 @@ El cambio **se dice siempre**, en Ajustes y al probar («claude-3-5-sonnet ya no
 existe. Se ha puesto claude-sonnet-4-5, el más cercano»): sustituir en silencio
 dejaría a alguien usando un modelo que no eligió.
 
+### 14.16-ter La forma de los dos apartados: campo, pista y traza
+
+La figura es la de `garciadoral-ops` (`campo()` en su `app.js`), y lo que la hace
+más fina que lo que había aquí no es que tenga menos cosas: es **dónde vive cada
+cosa**.
+
+- **El estado vive en el campo, no en una ficha aparte.** «Qué clave hay puesta»
+  era una tarjeta con icono, título y renglón encima del formulario: tres
+  renglones y un dibujo para decir «····ab12». Ahora es el hueco del propio
+  campo —«Guardada, termina en ab12»— y la línea de debajo dice qué pasa si lo
+  dejas en blanco. Se lee donde se va a escribir, que es donde se mira.
+- **La pista va debajo del control y no encima.** Arriba se lee antes de saber
+  qué se está mirando; debajo se lee justo cuando se duda.
+- **Lo que contesta el servidor va en una traza** (`<pre class="traza">`,
+  `bien`/`mal`) y no en un aviso de prosa. Un fallo de Anthropic trae modelo,
+  estado HTTP y mensaje: los saltos de línea son la mitad de la información, y
+  monoespaciada porque lo que va dentro son identificadores, no frases.
+
+**Y en «Actualizar», el progreso se pinta en su sitio** —dos renglones, un botón
+discreto y la lista debajo—, con el mismo criterio con el que ya se hizo en
+Sincronización (§14.9-bis). Era lo único que quedaba con **modal**: tapaba justo
+lo que se venía a mirar, pedía un «Ok» para seguir y se llevaba por delante lo
+que había contado en cuanto se cerraba. Contado en su sitio se queda y se puede
+releer. Los rótulos de los pasos pasan a **infinitivo y sin emoji**: la lista ya
+no desaparece, y un «Descargando…» con su ✓ al lado se lee mal —quien dice en qué
+estado va es la marca, no el texto— y los emoji del cromo se retiraron en §14.13.
+
+Dos defectos que salieron **al mirarlo en el navegador**, no en los tests:
+`input[type=password]` estaba fuera de la lista de controles con estilo, así que
+la única caja de contraseña de la app salía con el borde cuadrado del navegador y
+más estrecha que la de al lado; y los tres rótulos con emoji eran los últimos que
+quedaban del cromo.
+
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 
 Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·

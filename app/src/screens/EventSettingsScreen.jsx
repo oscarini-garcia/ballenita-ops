@@ -7,7 +7,7 @@ import {
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
-import ProgresoModal, { ListaDePasos } from '../components/ProgresoModal.jsx'
+import { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
 import StatsScreen from './StatsScreen.jsx'
@@ -29,13 +29,13 @@ import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
 import { checkForOtaUpdate, isNative } from '../lib/native.js'
 
-// El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
-// por dónde va en vez de un solo rótulo que parpadea.
-// Lo que el modal se queda en pantalla al acabar, para poder leerlo. Cinco
-// segundos es el rato en que se lee «Ya está» sin que dé tiempo a impacientarse;
-// el botón «Ok» lo salta.
+// Lo que la lista terminada se queda en pantalla antes de recargar, para poder
+// leerla. Cinco segundos es el rato en que se lee «instalada» sin que dé tiempo
+// a impacientarse.
 const ESPERA_FINAL = 5000
 
+// El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
+// por dónde va en vez de un solo rótulo que parpadea.
 const PASOS_APP = ['checking', 'downloading', 'applying']
 
 // Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en tests).
@@ -499,7 +499,6 @@ function AppSection() {
   // recarga se lo llevaba por delante en cuanto terminaba, y lo único que se
   // veía era la pantalla parpadeando sin decir en qué había quedado.
   const [terminado, setTerminado] = useState(false)
-  const seguir = useRef(null)
   const caja = useRef(null)
   useEffect(() => {
     if (!recienActualizada) return
@@ -512,9 +511,10 @@ function AppSection() {
 
   async function actualizar() {
     if (busy) return
+    tap()
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
     setTerminado(false)
-    setPaso('checking') // abre el modal ya, sin esperar al primer aviso
+    setPaso('checking') // empieza a contar ya, sin esperar al primer aviso
     const inicio = Date.now()
 
     // En la app de iOS la versión nueva **no** llega por el service worker: llega
@@ -535,7 +535,7 @@ function AppSection() {
         const resto = 1200 - (Date.now() - inicio)
         if (resto > 0) await new Promise((r) => setTimeout(r, resto))
         setTerminado(true)
-        await new Promise((r) => { seguir.current = r; setTimeout(r, ESPERA_FINAL) })
+        await new Promise((r) => setTimeout(r, ESPERA_FINAL))
         window.location.reload()
       },
     })
@@ -543,37 +543,41 @@ function AppSection() {
 
   return (
     <div ref={caja}>
-      {/* Dos cosas y ninguna más: qué versión hay puesta y el botón de traer la
-          que falte. Todo lo que había alrededor —el rótulo «Ballena Ops», la
-          explicación del martillo— se leía una vez y estorbaba las demás. */}
-      <div className="card tight">
-        <div className="row">
-          <div className="ico"><Icono nombre="ballena" /></div>
-          <div className="main">
-            <div className="n">Versión en curso</div>
-            {recienActualizada && <div className="sub">Recién actualizada ✓</div>}
-          </div>
-          <div className="version-grande tnum">v{APP_VERSION}</div>
-        </div>
+      {/* Dos renglones, un botón y lo que va pasando debajo, como en
+          `garciadoral-ops`. Antes esto era una ficha con dibujo de ballena, un
+          rótulo, la versión en grande y **un modal encima de la pantalla**: el
+          modal tapaba justo lo que se venía a mirar, obligaba a un «Ok» para
+          seguir y se llevaba por delante lo que había contado en cuanto se
+          cerraba. Contado en su sitio se queda ahí y se puede releer. */}
+      <div className="pista">
+        Versión en curso: <b className="tnum">v{APP_VERSION}</b>.
+        {recienActualizada ? ' Recién actualizada ✓' : ''}
       </div>
-      <button className="btn block" disabled={busy} onClick={actualizar}>🔄 Actualizar</button>
+      <div className="pista">
+        {isNative()
+          ? 'El paquete nuevo se descarga aquí y se aplica al volver a abrir la app.'
+          : 'Estás en la versión web, que se actualiza sola al recargar.'}
+      </div>
+
+      <button className="btn ghost block" disabled={busy} onClick={actualizar}>
+        {busy ? 'Comprobando…' : 'Comprobar ahora'}
+      </button>
 
       {busy && (
-        <ProgresoModal
-          titulo={terminado ? 'Ya está' : 'Buscando la última versión'}
-          version={APP_VERSION}
-          pasos={PASOS_APP.map((p, i) => ({
-            texto: UPDATE_STEPS[p],
-            estado: terminado || i < PASOS_APP.indexOf(paso) ? 'hecho'
-              : i === PASOS_APP.indexOf(paso) ? 'curso' : 'pendiente',
-          }))}
-          terminado={terminado}
-          onCerrar={() => { tap(); seguir.current?.() }}
-          etiquetaCerrar="Ok"
-          pista={terminado
-            ? `Se recarga sola en ${ESPERA_FINAL / 1000} segundos y volverás aquí, a Ajustes.`
-            : 'No cierres la app: se recarga sola al terminar y volverás aquí, a Ajustes.'}
-        />
+        <>
+          <ListaDePasos
+            pasos={PASOS_APP.map((p, i) => ({
+              texto: UPDATE_STEPS[p],
+              estado: terminado || i < PASOS_APP.indexOf(paso) ? 'hecho'
+                : i === PASOS_APP.indexOf(paso) ? 'curso' : 'pendiente',
+            }))}
+          />
+          <div className="pista">
+            {terminado
+              ? `Se recarga sola en ${ESPERA_FINAL / 1000} segundos y volverás aquí, a Ajustes.`
+              : 'No cierres la app: se recarga sola al terminar y volverás aquí, a Ajustes.'}
+          </div>
+        </>
       )}
     </div>
   )

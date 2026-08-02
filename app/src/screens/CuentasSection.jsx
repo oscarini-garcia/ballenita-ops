@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { personsOf, familiesOf, olvidarTodo } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
+import Campo from '../components/Campo.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, listarModelosIA, probarIA, registrarPush, probarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
@@ -412,13 +413,26 @@ export function NotificacionesSection() {
  * para reconocer cuál está sin poder copiarla de la pantalla de nadie. Es el
  * modelo de `garciadoral-ops`: la llamada al modelo sale del Worker, donde el
  * texto se compone con lo que ya está en la base, y no del teléfono.
+ *
+ * La forma también es la suya, y es más fina por dos motivos concretos:
+ *
+ * - **El estado vive en el campo, no en una ficha aparte.** Antes, «qué clave
+ *   hay puesta» era una tarjeta con icono, título y renglón encima del
+ *   formulario: tres renglones y un dibujo para decir «····ab12». Ahora eso es
+ *   el hueco del propio campo —«Guardada, termina en ab12»— y la línea de
+ *   debajo dice qué pasa si lo dejas en blanco. Se lee donde se va a escribir.
+ * - **Lo que contesta el servidor va en una traza y no en un aviso.** Un fallo
+ *   de Anthropic trae modelo, estado HTTP y su mensaje: en un renglón de prosa
+ *   eso se lee mal y se copia peor.
  */
 export function IASection() {
   const { esAdmin } = useCuentas()
   const [ia, setIa] = useState(null)
   const [clave, setClave] = useState('')
   const [modelo, setModelo] = useState('')
-  const [aviso, setAviso] = useState(null)
+  // Lo que contestó lo último que se hizo: `{ texto, mal }`, o null en reposo.
+  const [traza, setTraza] = useState(null)
+  const contar = (texto, mal = false) => setTraza({ texto, mal })
   // Los modelos los trae el Worker con la clave guardada: preguntárselo a
   // Anthropic desde aquí exigiría mandarle la clave al móvil. `null` mientras no
   // se sabe, `[]` cuando se preguntó y no hay.
@@ -438,7 +452,7 @@ export function IASection() {
         setModelos(r.modelos)
         if (r.modelo) setModelo(r.modelo)
         if (r.sustituto) {
-          setAviso(`${r.sustituto.antes} ya no existe. Se ha puesto ${r.sustituto.ahora}, el más cercano.`)
+          contar(`${r.sustituto.antes} ya no existe.\nSe ha puesto ${r.sustituto.ahora}, el más cercano.`)
         }
       })
       .catch(() => setModelos([]))
@@ -453,7 +467,7 @@ export function IASection() {
         // Sin clave no hay a quién preguntar; el desplegable aparece al ponerla.
         if (r.ia.hayClave) traerModelos()
       })
-      .catch((e) => setAviso(String(e.message ?? e)))
+      .catch((e) => contar(String(e.message ?? e), true))
   }, [esAdmin])
 
   /**
@@ -464,15 +478,15 @@ export function IASection() {
   async function probar() {
     tap()
     setProbando(true)
-    setAviso(null)
+    setTraza(null)
     try {
       const r = await probarIA()
       if (r.modelo) setModelo(r.modelo)
-      setAviso(r.cambiado
-        ? `${r.cambiado.antes} ya no existe. Se ha puesto ${r.cambiado.ahora}, el más cercano, y ha contestado en ${r.ms} ms.`
-        : `Funciona: ${r.modelo} ha contestado en ${r.ms} ms.`)
+      contar(r.cambiado
+        ? `${r.cambiado.antes} ya no existe.\nSe ha puesto ${r.cambiado.ahora}, el más cercano.\nHa contestado en ${r.ms} ms.`
+        : `Ha contestado ${r.modelo}, en ${r.ms} ms.`)
     } catch (e) {
-      setAviso(`No funciona — ${String(e.message ?? e)}`)
+      contar(`No funciona:\n${String(e.message ?? e)}`, true)
     }
     setProbando(false)
   }
@@ -483,70 +497,77 @@ export function IASection() {
 
   async function guardar() {
     tap()
-    setAviso(null)
+    setTraza(null)
     try {
       const r = await guardarIA({ clave: clave.trim() || undefined, modelo: modelo.trim() || undefined })
       setIa(r.ia)
       setClave('')
-      setAviso('Guardado.')
+      contar('Guardado.')
       // Con clave nueva la lista puede ser otra: se vuelve a preguntar.
       if (r.ia.hayClave) traerModelos()
-    } catch (e) { setAviso(String(e.message ?? e)) }
+    } catch (e) { contar(String(e.message ?? e), true) }
   }
 
   return (
     <>
-      <div className="card tight">
-        <div className="row">
-          <div className="ico"><Icono nombre="ballena" /></div>
-          <div className="main">
-            <div className="n">{ia?.hayClave ? `Clave puesta · ····${ia.cola}` : 'Sin clave'}</div>
-            <div className="sub">
-              {ia?.guardadaEn ? `Desde ${formatearHace(ia.guardadaEn)}` : 'Nadie ha puesto ninguna todavía'}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* El hueco dice qué hay guardado y la línea de abajo qué pasa si lo
+          dejas en blanco: el campo en blanco **no borra** la clave que hay, que
+          es lo que esperaría cualquiera al venir solo a cambiar el modelo. */}
+      <Campo
+        etiqueta="Clave de Anthropic"
+        id="ia-clave"
+        pista={ia?.hayClave
+          ? `Guardada ${ia.guardadaEn ? formatearHace(ia.guardadaEn) : ''}. Déjalo en blanco para no cambiarla.`
+          : 'Todavía no hay ninguna puesta.'}
+      >
+        <input
+          id="ia-clave" type="password" value={clave} autoComplete="off" spellCheck="false"
+          onChange={(e) => setClave(e.target.value)}
+          placeholder={ia?.hayClave ? `Guardada, termina en ${ia.cola}` : 'sk-ant-…'}
+        />
+      </Campo>
 
-      <label htmlFor="ia-clave">Clave de Anthropic</label>
-      <input
-        id="ia-clave" type="password" value={clave} autoComplete="off"
-        onChange={(e) => setClave(e.target.value)}
-        placeholder={ia?.hayClave ? 'Escribe una nueva para cambiarla' : 'sk-ant-…'}
-      />
-      <label htmlFor="ia-modelo">Modelo</label>
       {/* Un desplegable con lo que hay de verdad, y no una caja de texto: el
           modelo se escribía a mano y una errata no se veía al guardar sino
           meses después, cuando alguien pedía sugerencias y no pasaba nada. Si la
           lista no ha podido llegar se queda la caja, que es mejor que un
           desplegable vacío. */}
-      {modelos?.length ? (
-        <select id="ia-modelo" value={modelo} onChange={(e) => setModelo(e.target.value)}>
-          {/* Red de seguridad: un desplegable cuyo valor no está entre sus
-              opciones se pinta en blanco y parece que no hay nada elegido. */}
-          {!modelos.some((m) => m.id === modelo) && modelo && (
-            <option value={modelo}>{modelo} (el que hay puesto)</option>
-          )}
-          {modelos.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-        </select>
-      ) : (
-        <input id="ia-modelo" type="text" value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="claude-sonnet-4-5" />
-      )}
-      {ia?.hayClave && modelos?.length === 0 && (
-        <div className="pista">No se han podido traer los modelos. Escribe el identificador a mano.</div>
-      )}
+      <Campo
+        etiqueta="Modelo"
+        id="ia-modelo"
+        pista={!ia?.hayClave ? 'Con la clave puesta, aquí sale la lista de modelos que admite.'
+          : modelos?.length === 0 ? 'No se han podido traer los modelos. Escribe el identificador a mano.'
+            : 'Si Anthropic lo retira, se cambia solo por el más nuevo de su familia.'}
+      >
+        {modelos?.length ? (
+          <select id="ia-modelo" value={modelo} onChange={(e) => setModelo(e.target.value)}>
+            {/* Red de seguridad: un desplegable cuyo valor no está entre sus
+                opciones se pinta en blanco y parece que no hay nada elegido. */}
+            {!modelos.some((m) => m.id === modelo) && modelo && (
+              <option value={modelo}>{modelo} (el que hay puesto)</option>
+            )}
+            {modelos.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+          </select>
+        ) : (
+          <input id="ia-modelo" type="text" value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="claude-sonnet-4-5" />
+        )}
+      </Campo>
 
       <div className="editor-pie">
         <button className="btn" onClick={guardar}>Guardar</button>
         {ia?.hayClave && (
           <button className="btn ghost" disabled={probando} onClick={probar}>
-            {probando ? 'Probando…' : 'Probar'}
+            {probando ? 'Un momento…' : 'Probar'}
           </button>
         )}
       </div>
 
-      {aviso && <div className="note" role="status">{aviso}</div>}
-      <div className="note">
+      {/* Lo que contestó el servidor, tal cual y en su bloque: un fallo trae
+          modelo, estado HTTP y mensaje, y eso en prosa se lee mal. */}
+      {traza && (
+        <pre className={`traza${traza.mal ? ' mal' : ' bien'}`} role="status">{traza.texto}</pre>
+      )}
+      <div className="pista">
         🐳 La clave se queda en el servidor y no vuelve entera a ningún móvil — es una credencial de
         pago. Las llamadas al modelo salen del Worker, donde el texto se compone con lo que ya está
         en la base y el móvil no puede colar nada.

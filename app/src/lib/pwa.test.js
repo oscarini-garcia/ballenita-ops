@@ -10,6 +10,18 @@ afterEach(() => {
   sessionStorage.clear()
 })
 
+describe('los rótulos de los pasos', () => {
+  it('no llevan emoji ni puntos suspensivos: la lista se queda puesta', () => {
+    // La lista ya no vive en un modal que se cierra, se queda en Ajustes. Un
+    // «Descargando…» con su ✓ al lado se lee mal, y quien dice en qué estado va
+    // es la marca de la lista. Los emoji del cromo se retiraron (SPECS §14.13).
+    for (const texto of Object.values(UPDATE_STEPS)) {
+      expect(texto).not.toMatch(/…|\.\.\./)
+      expect(texto).not.toMatch(/\p{Extended_Pictographic}/u)
+    }
+  })
+})
+
 describe('forzarActualizacion', () => {
   it('espera a que el SW nuevo se active antes de recargar y reporta el progreso', async () => {
     // Worker nuevo ya activado: esperaActivado resuelve al momento.

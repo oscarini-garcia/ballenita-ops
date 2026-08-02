@@ -91,6 +91,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   verdad (§14.16-bis, `api/src/ia.js`). **Si el modelo apuntado ya no existe se cambia solo por
   el más nuevo de su familia** —al traer la lista, y al usarlo reintentando solo con un 404— y
   se dice por cuál: un modelo retirado no rompe el día que lo retiran, rompe meses después.
+- **Un campo es su rótulo, el control y la pista debajo** (`components/Campo.jsx`, SPECS
+  §14.16-ter, figura de `garciadoral-ops`): el estado vive **en el campo** —«Guardada, termina
+  en ab12»— y no en una ficha con icono encima, y lo que contesta el servidor va en una
+  **traza** (`<pre class="traza">`, `bien`/`mal`) y no en prosa. En **Actualizar** el progreso
+  se pinta en su sitio, como en Sincronización: el modal tapaba lo que se venía a mirar y
+  borraba lo que había contado al cerrarse.
 - **La web NO sincroniza**, a propósito: en navegador y PWA la app es una libreta local
   (`hayApi()` devuelve `false` si no es nativa). Ahorra todo el montaje web de Apple
   —Services ID, verificación de dominio— a cambio de exigir la app para participar.

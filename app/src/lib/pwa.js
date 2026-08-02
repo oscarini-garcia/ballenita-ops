@@ -10,10 +10,17 @@
 // Workbox (skipWaiting + clientsClaim + limpieza de precache) hace el resto.
 
 // Pasos del proceso, para pintar progreso en la UI en vez de un rebote mudo.
+//
+// En infinitivo y sin emoji, y las dos cosas por el mismo motivo: la lista ya no
+// vive en un modal que se cierra, se queda en Ajustes. Un gerundio con «…»
+// detrás se lee mal cuando el paso ya está hecho —«Descargando…» con su ✓ al
+// lado—, y quien dice en qué estado va es la marca de la lista, no el texto. Los
+// emoji del cromo se retiraron en su día (SPECS §14.13); estos tres se habían
+// quedado.
 export const UPDATE_STEPS = {
-  checking: '🔎 Buscando actualización…',
-  downloading: '⬇️ Descargando nueva versión…',
-  applying: '♻️ Aplicando la nueva versión…',
+  checking: 'Buscar la última versión',
+  downloading: 'Descargar el paquete',
+  applying: 'Aplicar la versión nueva',
 }
 
 // Recargar la PWA reinicia la app y la deja en la home. Para no perder el sitio,
