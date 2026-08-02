@@ -1262,8 +1262,15 @@ paquete OTA**, así que importarlo funciona aunque el binario no lleve su parte
 nativa. Y `Capacitor.isPluginAvailable` tampoco sirve: devuelve `true` con que
 el JavaScript se haya registrado, que es lo que acaba de ocurrir al importarlo.
 
-Lo único que distingue de verdad es que **la promesa no se resuelve ni se
-rechaza**. Así que **todas** las llamadas al puente llevan plazo —seis segundos
+**Y el plugin se coge del puente, no se importa.** El `await import()` del
+paquete se quedaba colgado dentro de la cáscara —en la consola de Xcode llegaba
+el `Haptics` del toque y ninguna llamada más—, y era el único punto del camino
+sin plazo. `Capacitor.Plugins` ya tiene el objeto: lo registra la parte nativa al
+arrancar, es el mismo que devolvería el paquete y consultarlo no le pide un
+fichero a nadie. El `import()` queda de reserva para la web, y con plazo.
+
+Lo único que distingue de verdad si el plugin está es que **la promesa no se
+resuelve ni se rechaza**. Así que **todas** las llamadas al puente llevan plazo —seis segundos
 las que contesta el sistema, quince la que abre la hoja de permiso, que la
 contesta una persona pero aparece en el acto o no aparece— y al agotarse se dice
 lo que pasa: hace falta un binario nuevo. Un botón que puede quedarse en
