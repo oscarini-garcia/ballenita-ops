@@ -330,9 +330,9 @@ export const removeDinner = (id) => removeRow('dinners', id)
  * únicamente el Demo. Sin eso, trastear en la demostración volvería a ensuciar
  * el catálogo de verdad, que es lo que se acaba de arreglar en §14.9-quater.
  */
-export async function addPlanIdea({ titulo, descripcion = '', ubicacion = '', enlace = '', costeEstimado = null }, evento = null) {
+export async function addPlanIdea({ titulo, descripcion = '', enlace = '', creadaPor = null }, evento = null) {
   const eventId = evento?.esDemo ? evento.id : null
-  return escribir('planIdeas', uid('idea'), { titulo, descripcion, ubicacion, enlace, costeEstimado, eventId })
+  return escribir('planIdeas', uid('idea'), { titulo, descripcion, enlace, creadaPor, eventId })
 }
 
 export async function listPlanIdeas(evento = null) {
@@ -364,11 +364,33 @@ export function traerIdeaAlViaje(eventId, idea) {
   return addPlan(eventId, {
     titulo: idea.titulo,
     descripcion: idea.descripcion,
-    ubicacion: idea.ubicacion,
     enlace: idea.enlace,
-    costeEstimado: idea.costeEstimado,
     ideaId: idea.id,
   })
+}
+
+/**
+ * Qué ideas ya están propuestas en este viaje.
+ *
+ * Se podía proponer la misma dos veces y quedaban dos filas idénticas
+ * compitiendo por los mismos votos, que además reparte el recuento en dos y
+ * ninguna gana. Con esto el botón dice «Ya propuesta» y no hace nada.
+ */
+export async function ideasYaPropuestas(eventId) {
+  const suyos = await db.plans.where({ eventId }).toArray()
+  return new Set(suyos.map((p) => p.ideaId).filter(Boolean))
+}
+
+/**
+ * Devolver un plan al catálogo: se va de este viaje y la idea se queda.
+ *
+ * Es lo contrario de proponer, y solo lo hace quien administra. Si el plan salió
+ * de una idea, esa idea sigue donde estaba y basta con retirar el plan; si lo
+ * escribió alguien a mano, primero se guarda para no perderlo.
+ */
+export async function devolverPlanAIdea(plan, evento = null) {
+  if (!plan.ideaId) await guardarPlanComoIdea(plan, evento)
+  await removePlan(plan.id)
 }
 
 /** El camino inverso: este plan ha salido bien, guárdalo para el año que viene. */
@@ -376,9 +398,7 @@ export async function guardarPlanComoIdea(plan, evento = null) {
   const ideaId = await addPlanIdea({
     titulo: plan.titulo,
     descripcion: plan.descripcion,
-    ubicacion: plan.ubicacion,
     enlace: plan.enlace,
-    costeEstimado: plan.costeEstimado,
   }, evento)
   await updatePlan(plan.id, { ideaId })
   return ideaId

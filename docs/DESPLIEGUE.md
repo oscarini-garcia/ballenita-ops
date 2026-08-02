@@ -66,10 +66,12 @@ comprueba `api/test/d1.js`.
 ```bash
 npm run migrar:remoto5
 npm run migrar:remoto6
+npm run migrar:remoto7
 ```
 
 La `0005` mantiene el evento «Demo» fuera del catálogo de platos (§14.9-quater);
-la `0006` añade el catálogo de ideas de plan (§14.18). Las de `main` —`0002` a
+la `0006` añade el catálogo de ideas de plan (§14.18) y la `0007`, el autor de cada
+idea (§14.19). Las de `main` —`0002` a
 `0004`— van antes. Correr una sobre una base que ya la tiene falla con
 «duplicate column name», que es la señal de que no hacía falta.
 

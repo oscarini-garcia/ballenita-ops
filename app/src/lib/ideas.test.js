@@ -51,7 +51,7 @@ describe('traer una idea al viaje', () => {
   it('llega sin día, sin votos y a votación: los tres son de aquel agosto', async () => {
     const eventId = await createEvent({ name: 'Viaje 2026', startDate: '2026-08-15', endDate: '2026-08-22' })
     const ideaId = await addPlanIdea({
-      titulo: 'Excursión a las cuevas', ubicacion: 'Nerja', enlace: 'https://cuevas', costeEstimado: 1200,
+      titulo: 'Excursión a las cuevas', descripcion: 'En Nerja, entrada a la vez', enlace: 'https://cuevas',
     })
     const idea = (await listPlanIdeas())[0]
     expect(idea.id).toBe(ideaId)
@@ -60,9 +60,8 @@ describe('traer una idea al viaje', () => {
     const [plan] = await plansOf(eventId)
 
     expect(plan.titulo).toBe('Excursión a las cuevas')
-    expect(plan.ubicacion).toBe('Nerja')
+    expect(plan.descripcion).toBe('En Nerja, entrada a la vez')
     expect(plan.enlace).toBe('https://cuevas')
-    expect(plan.costeEstimado).toBe(1200)
     // Lo que no puede viajar, y no es una elección de diseño sino una
     // consecuencia: los votos apuntan a personas de otro evento, «confirmado»
     // fue una decisión de aquel agosto y el día de entonces no es de este viaje.
@@ -73,14 +72,14 @@ describe('traer una idea al viaje', () => {
 
   it('se copia, no se enlaza: corregir la idea no reescribe el viaje ya planeado', async () => {
     const eventId = await createEvent({ name: 'Viaje 2026' })
-    await addPlanIdea({ titulo: 'Playa de la Cala', ubicacion: 'Cala del sur' })
+    await addPlanIdea({ titulo: 'Playa de la Cala', descripcion: 'La del sur' })
     await traerIdeaAlViaje(eventId, (await listPlanIdeas())[0])
 
-    await updatePlanIdea((await listPlanIdeas())[0].id, { titulo: 'Cala del sur', ubicacion: 'La otra cala' })
+    await updatePlanIdea((await listPlanIdeas())[0].id, { titulo: 'Cala del sur', descripcion: 'La otra' })
 
     const [plan] = await plansOf(eventId)
     expect(plan.titulo).toBe('Playa de la Cala')
-    expect(plan.ubicacion).toBe('Cala del sur')
+    expect(plan.descripcion).toBe('La del sur')
   })
 
   it('borrar la idea no se lleva los planes que salieron de ella', async () => {
@@ -100,8 +99,8 @@ describe('guardar un plan como idea', () => {
   it('sube al catálogo lo que se repite, y solo eso', async () => {
     const eventId = await createEvent({ name: 'Viaje 2026' })
     await addPlan(eventId, {
-      titulo: 'Torneo de petanca', descripcion: 'Por parejas', ubicacion: 'La pista',
-      dia: '2026-08-18', estado: 'confirmado', votos: { p1: '👍' }, costeEstimado: 500,
+      titulo: 'Torneo de petanca', descripcion: 'Por parejas, en la pista',
+      dia: '2026-08-18', estado: 'confirmado', votos: { p1: '👍' },
     })
     const [plan] = await plansOf(eventId)
 
@@ -109,8 +108,7 @@ describe('guardar un plan como idea', () => {
     const [idea] = await listPlanIdeas()
 
     expect(idea.titulo).toBe('Torneo de petanca')
-    expect(idea.ubicacion).toBe('La pista')
-    expect(idea.costeEstimado).toBe(500)
+    expect(idea.descripcion).toBe('Por parejas, en la pista')
     // La idea no tiene día, ni estado, ni votos: no son campos suyos.
     expect(idea.dia).toBeUndefined()
     expect(idea.estado).toBeUndefined()

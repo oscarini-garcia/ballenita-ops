@@ -512,6 +512,49 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
   color: var(--spout-deep); }
 /* Su gemela pequeña, en la ficha de Ajustes. */
 
+/* ── Planes e Ideas (SPECS §14.19) ───────────────────────────────────────────
+   La fila entera es el objetivo: en Planes abre el plan, en Ideas lo edita. Un
+   `button` para que el teclado y el lector de pantalla lo vean como lo que es,
+   pero sin nada de lo que un botón trae puesto. */
+.row.fila-plan, .fila-idea .main.destapa {
+  width: 100%; background: none; border: none; font-family: inherit;
+  text-align: left; color: inherit; padding: 0; }
+.row.fila-plan { display: flex; align-items: center; gap: 11px; padding: 10px 0; }
+.fila-idea .main.destapa { display: block; min-width: 0; flex: 1; }
+
+/* El título de un plan es lo único que lo identifica en su fila, así que **dobla
+   a dos líneas** en vez de recortarse: «Noche de juegos de mesa» salía «Noche de
+   juegos de m…», que es lo mismo que no ponerlo. Mismo trato que los platos. */
+.fila-plan .main .n { white-space: normal; }
+
+/* El día ya elegido se marca también en el icono, no solo en la pastilla: es lo
+   que separa los dos grupos de un vistazo sin leer el encabezado. */
+.ico.verde { background: color-mix(in srgb, var(--owed) 16%, transparent); color: var(--owed); }
+
+/* Los avatares agrupados bajo su voto (docs/diseño/planes-votar.html · V3): una
+   línea por voto, y los que faltan aparte y apagados, que es lo accionable. */
+.votantes { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.votantes-fila { display: flex; align-items: center; gap: 10px; min-height: 34px; }
+.votantes-voto { width: 42px; flex: none; font-size: var(--t-row); }
+.votantes-caras { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.votantes-caras .cara { font-size: var(--t-row); }
+.votantes-caras.apagadas { opacity: .45; filter: grayscale(1); }
+
+/* El carrusel de propuestas de la IA, con la figura del regalo de
+   garciadoral-ops: qué, por qué, y el pie con los verbos. */
+.propuesta { border: 1px dashed var(--line); border-radius: var(--r); padding: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: color-mix(in srgb, var(--spout) 6%, var(--foam-2)); }
+.propuesta-texto { min-height: 44px; }
+.propuesta-que { font-size: var(--t-row); font-weight: 600; }
+.propuesta-porque { font-size: var(--t-sub); color: var(--ink-soft); line-height: 1.45; }
+.propuesta-pie { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.propuesta-cuenta { font-size: var(--t-sub); color: var(--ink-faint); }
+
+/* El modal fino: el editor de una idea son dos campos, y la hoja alta de antes
+   dejaba media pantalla vacía debajo. */
+.modal.fino { max-width: 380px; }
+
 .version-grande { font-size: var(--t-title); font-weight: 700; letter-spacing: -.02em; color: var(--spout-deep); }
 
 .pasos { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 3px; text-align: left; }

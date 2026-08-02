@@ -68,7 +68,7 @@ export const TABLAS = {
     // El otro catálogo compartido, hermano de `dishes`: lo que se repite de un
     // viaje a otro. Ni día, ni estado, ni votos — esos son de cada agosto.
     // `eventId` nulo = de todos; con valor, solo del Demo (§14.9-quater).
-    columnas: ['titulo', 'descripcion', 'ubicacion', 'enlace', 'costeEstimado', 'eventId'],
+    columnas: ['titulo', 'descripcion', 'enlace', 'creadaPor', 'eventId'],
   },
   plans: {
     columnas: [

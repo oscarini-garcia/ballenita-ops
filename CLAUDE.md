@@ -53,6 +53,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
+- **En Planes solo se vota** (SPECS §14.19, `docs/diseño/planes-votar.html` · V3·V5·S2): el
+  día se pone en **Agenda**; la lista son dos grupos —elegidos y disponibles por votos— con
+  filas de 70,7 pt (antes tarjetas de 299,9 con siete botones y ocho colores); al abrir un
+  plan salen los avatares bajo su voto y los que faltan apagados. **La IA sugiere ideas**
+  (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
+  **los nombres no viajan**.
 - **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
