@@ -43,7 +43,7 @@ export async function hayAlgunaCuenta(db) {
  * excepción no habría manera de entrar en una instalación recién desplegada
  * salvo escribiendo en la base a mano.
  */
-export async function crearCuenta(db, { id, appleSub, nombre = '', email = null, rol = null }) {
+export async function crearCuenta(db, { id, appleSub, nombre = '', email = null, rol = null, activa = 1 }) {
   const primera = !(await hayAlgunaCuenta(db));
   const cuenta = {
     id,
@@ -51,7 +51,7 @@ export async function crearCuenta(db, { id, appleSub, nombre = '', email = null,
     nombre,
     email,
     rol: rol || (primera ? 'administrador' : 'miembro'),
-    activa: 1,
+    activa,
     creadoEn: ahoraISO(),
   };
   await db
@@ -59,13 +59,40 @@ export async function crearCuenta(db, { id, appleSub, nombre = '', email = null,
       `INSERT INTO cuenta (id, appleSub, nombre, email, rol, activa, creadoEn)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(cuenta.id, cuenta.appleSub, cuenta.nombre, cuenta.email, cuenta.rol, 1, cuenta.creadoEn)
+    .bind(cuenta.id, cuenta.appleSub, cuenta.nombre, cuenta.email, cuenta.rol, cuenta.activa, cuenta.creadoEn)
     .run();
   return cuenta;
 }
 
 export function listarCuentas(db) {
-  return filas(db, 'SELECT id, nombre, email, rol, activa, creadoEn, ultimoAcceso FROM cuenta ORDER BY creadoEn');
+  return filas(
+    db,
+    `SELECT id, nombre, email, rol, activa, personId, creadoEn, ultimoAcceso
+       FROM cuenta ORDER BY creadoEn`,
+  );
+}
+
+/**
+ * Enlaza una cuenta con una persona del grupo, **y con eso le da acceso**.
+ *
+ * Las dos cosas van juntas a propósito: una cuenta sin persona no es «alguien
+ * con permisos a medias», es alguien de quien no sabemos quién es, y en una app
+ * donde todo —el reparto, las cenas, los planes— cuelga de una persona, entrar
+ * sin serlo no lleva a ninguna pantalla útil. `personId = null` la deja otra vez
+ * esperando en la sala.
+ */
+export async function enlazarCuentaConPersona(db, cuentaId, personId) {
+  await db
+    .prepare('UPDATE cuenta SET personId = ?, activa = ? WHERE id = ?')
+    .bind(personId || null, personId ? 1 : 0, cuentaId)
+    .run();
+}
+
+/** Se va la fila entera: es del servidor, no se sincroniza y no deja huella en
+ *  la instantánea. Quien vuelva a entrar con Apple pedirá acceso de nuevo. */
+export async function eliminarCuenta(db, cuentaId) {
+  await db.prepare('DELETE FROM dispositivo WHERE cuentaId = ?').bind(cuentaId).run();
+  await db.prepare('DELETE FROM cuenta WHERE id = ?').bind(cuentaId).run();
 }
 
 export async function anotarAcceso(db, cuentaId) {
@@ -251,3 +278,51 @@ export async function importarInstantanea(db, instantanea) {
 }
 
 export { TABLAS, NOMBRES };
+
+// ---------------------------------------------------------------------------
+// Configuración del servidor (hoy: la IA)
+// ---------------------------------------------------------------------------
+
+/**
+ * La clave de la IA vive aquí y **no vuelve entera**: de la de verdad solo
+ * salen sus cuatro últimos caracteres y cuándo se guardó, que es lo justo para
+ * reconocer cuál está puesta sin poder copiarla de la pantalla de nadie. Es la
+ * regla de `garciadoral-ops`, y el motivo de que la llamada al modelo salga del
+ * Worker: una credencial de pago no viaja a un móvil.
+ */
+export async function leerConfiguracionIA(db) {
+  const { results } = await db
+    .prepare("SELECT clave, valor, actualizadoEn FROM configuracion WHERE clave LIKE 'ia.%'")
+    .all();
+  const filas = new Map((results || []).map((f) => [f.clave, f]));
+  const clave = filas.get('ia.clave');
+  return {
+    clave: clave?.valor || '',
+    guardadaEn: clave?.actualizadoEn || null,
+    modelo: filas.get('ia.modelo')?.valor || 'claude-sonnet-4-5',
+  };
+}
+
+/** Lo que se le puede enseñar a un administrador. */
+export function configuracionIAPublica(configuracion) {
+  return {
+    hayClave: Boolean(configuracion.clave),
+    cola: configuracion.clave ? configuracion.clave.slice(-4) : '',
+    guardadaEn: configuracion.guardadaEn,
+    modelo: configuracion.modelo,
+  };
+}
+
+export async function guardarConfiguracionIA(db, campos = {}) {
+  const ahora = ahoraISO();
+  for (const [nombre, valor] of Object.entries(campos)) {
+    if (valor === undefined || valor === null) continue;
+    await db
+      .prepare(
+        `INSERT INTO configuracion (clave, valor, actualizadoEn) VALUES (?, ?, ?)
+         ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizadoEn = excluded.actualizadoEn`,
+      )
+      .bind(`ia.${nombre}`, String(valor), ahora)
+      .run();
+  }
+}

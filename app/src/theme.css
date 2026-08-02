@@ -297,6 +297,11 @@ input[type=text], input[type=number], input[type=date], input[type=email], selec
      es menor. `--t-body` ya son 17 px de origen y sube con la escala. */
   padding: 12px 12px; font-size: var(--t-body); }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); outline-offset: 1px; }
+/* Un `input[type=date]` de iOS trae su propio ancho —el del texto completo más
+   el icono— y se sale de la caja aunque le pongas `width: 100%`: sin quitarle la
+   apariencia nativa, la hoja entera se iba de lado. */
+input[type=date] { -webkit-appearance: none; appearance: none; max-width: 100%; min-width: 0; }
+input[type=date]::-webkit-date-and-time-value { text-align: left; }
 
 .pill { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .pill.owe { background: var(--owe-bg); color: var(--owe); }
@@ -795,9 +800,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 /* Los dos verbos del editor, en la misma línea (docs/diseño/gente-editar.html · D1
    corregido: apilados y pegados, el rojo caía justo bajo el pulgar que acababa
    de dar a Guardar). Guardar manda —es el lleno— y borrar va al lado, con aire. */
-.editor-pie { margin-top: 16px; display: flex; gap: 10px; }
-.editor-pie .btn { flex: 1; white-space: nowrap; }
-.editor-pie.con-borrado .btn:first-child { flex: 1.4; }
+/* Guardar, Cancelar y —si lo hay— Borrar, en una línea. Con tres, el relleno
+   lateral baja de 16 a 10: «Cancelar» mide 76 pt y la columna, 100. */
+.editor-pie { margin-top: 16px; display: flex; gap: 8px; }
+.editor-pie .btn { flex: 1; white-space: nowrap; padding-left: 10px; padding-right: 10px; }
 
 /* Emoji a un toque, además del campo de escribir el que quieras. */
 .emojis { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 8px; }

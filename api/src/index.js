@@ -18,8 +18,10 @@
  *   GET  /api/sync      · instantánea completa del grupo
  *   POST /api/cambios   · aplica la cola del dispositivo y devuelve la instantánea
  *   GET  /api/cuentas   · quién tiene acceso (administradores)
- *   POST /api/cuentas   · alta, alta por invitación y baja (administradores)
+ *   POST /api/cuentas   · enlazar con persona, eliminar, activar y renombrar (administradores)
  *   POST /api/cuenta/baja · eliminar la cuenta propia (directriz 5.1.1(v) de Apple)
+ *   GET  /api/ia        · qué clave y qué modelo hay puestos (administradores)
+ *   POST /api/ia        · los cambia (administradores)
  *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
  */
 
@@ -28,8 +30,9 @@ import { coincideEnTiempoConstante, emitirSesion, verificarSesion } from './sesi
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
 import {
   administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
-  cuentaPorApple, cuentaPorId, darDeBajaCuenta, hayAlgunaCuenta, importarInstantanea,
-  leerInstantanea, listarCuentas,
+  cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta, enlazarCuentaConPersona,
+  hayAlgunaCuenta, importarInstantanea, leerInstantanea, listarCuentas,
+  configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
 } from './repositorio.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
@@ -109,11 +112,20 @@ async function abrirSesion(peticion, env) {
 
   if (!cuenta) {
     if (await hayAlgunaCuenta(env.DB)) {
+      // Sala de espera: en vez de un 403 seco con un código que había que
+      // copiar y pasarle a alguien, la solicitud **se apunta sola** con el
+      // nombre que entrega Apple, y quien administra la ve en Ajustes →
+      // Cuentas y la enlaza con una persona. Nace inactiva: enlazar es dar
+      // acceso, y hasta entonces no entra.
+      const espera = await crearCuenta(env.DB, {
+        id: idDeCuenta(), appleSub: sub, nombre, email, rol: 'miembro', activa: 0,
+      });
       return json(
         {
-          error: 'sin_vincular',
-          mensaje: 'Este identificador de Apple todavía no tiene acceso al grupo. Pídele a alguien del grupo que te dé de alta con este código.',
+          error: 'en_espera',
+          mensaje: 'Hemos apuntado tu petición. Quien lleva el grupo tiene que decir quién eres para dejarte entrar.',
           identificador: sub,
+          nombre: espera.nombre,
         },
         403,
       );
@@ -122,6 +134,19 @@ async function abrirSesion(peticion, env) {
   }
 
   if (!cuenta.activa) {
+    // Dos causas, y no dan el mismo mensaje: sin persona enlazada todavía se
+    // está esperando; con ella, alguien ha cerrado la puerta a propósito.
+    if (!cuenta.personId) {
+      return json(
+        {
+          error: 'en_espera',
+          mensaje: 'Tu petición sigue esperando a que quien lleva el grupo diga quién eres.',
+          identificador: sub,
+          nombre: cuenta.nombre,
+        },
+        403,
+      );
+    }
     return json({ error: 'cuenta_desactivada', mensaje: 'Tu acceso al grupo está desactivado.' }, 403);
   }
 
@@ -180,7 +205,7 @@ async function cuentas(peticion, env) {
 
   if (peticion.method === 'GET') return json({ cuentas: await listarCuentas(env.DB) });
 
-  const { accion, identificador, nombre = '', id, rol } = await peticion.json();
+  const { accion, identificador, nombre = '', id, rol, personId } = await peticion.json();
 
   if (accion === 'invitar') {
     // Se guarda el identificador que Apple mostró al aspirante, prefijado, para
@@ -205,6 +230,21 @@ async function cuentas(peticion, env) {
     return json({ ok: true });
   }
 
+  if (accion === 'enlazar') {
+    // Enlazar con una persona es lo que abre la puerta; con `personId` vacío se
+    // deshace el enlace y la cuenta vuelve a la sala de espera.
+    if (!id) return json({ error: 'falta el id de la cuenta' }, 400);
+    await enlazarCuentaConPersona(env.DB, id, personId || null);
+    return json({ ok: true });
+  }
+
+  if (accion === 'eliminar') {
+    if (!id) return json({ error: 'falta el id de la cuenta' }, 400);
+    if (id === cuenta.id) return json({ error: 'no puedes eliminarte a ti mismo desde aquí' }, 400);
+    await eliminarCuenta(env.DB, id);
+    return json({ ok: true });
+  }
+
   if (accion === 'activar' || accion === 'desactivar') {
     if (!id) return json({ error: 'falta el id de la cuenta' }, 400);
     if (accion === 'desactivar' && id === cuenta.id) {
@@ -217,6 +257,25 @@ async function cuentas(peticion, env) {
   }
 
   return json({ error: `acción desconocida: ${accion}` }, 400);
+}
+
+/**
+ * La clave de la IA y el modelo, para quien administra.
+ *
+ * La clave entra pero no sale: se responde siempre con la versión pública
+ * —cuatro últimos caracteres y fecha—, así que ni siquiera quien la puso puede
+ * volver a leerla desde la app. Cambiarla es escribir una nueva.
+ */
+async function configuracionIA(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+  if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
+
+  if (peticion.method === 'POST') {
+    const { clave, modelo } = await peticion.json();
+    await guardarConfiguracionIA(env.DB, { clave, modelo });
+  }
+
+  return json({ ia: configuracionIAPublica(await leerConfiguracionIA(env.DB)) });
 }
 
 /**
@@ -283,6 +342,8 @@ const RUTAS = [
   ['GET', '/api/cuentas', cuentas],
   ['POST', '/api/cuentas', cuentas],
   ['POST', '/api/cuenta/baja', darDeBaja],
+  ['GET', '/api/ia', configuracionIA],
+  ['POST', '/api/ia', configuracionIA],
   ['POST', '/api/importar', importar],
 ];
 

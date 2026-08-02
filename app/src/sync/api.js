@@ -110,6 +110,13 @@ export const listarCuentas = () => peticion('/api/cuentas')
 export const gestionarCuenta = (cuerpo) =>
   peticion('/api/cuentas', { method: 'POST', body: JSON.stringify(cuerpo) })
 
+/** Qué clave y qué modelo hay puestos. La clave nunca vuelve entera: solo sus
+ *  cuatro últimos caracteres y cuándo se guardó. */
+export const leerIA = () => peticion('/api/ia')
+
+export const guardarIA = (cuerpo) =>
+  peticion('/api/ia', { method: 'POST', body: JSON.stringify(cuerpo) })
+
 /**
  * Elimina la cuenta propia (directriz 5.1.1(v) de la App Store).
  *

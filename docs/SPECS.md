@@ -77,7 +77,7 @@ Ver §5 (es tan central que tiene sección propia).
 
 - **✅ Varios eventos a la vez, con uno "activo":** el grupo puede tener el de verano en curso y **ya ir planeando el de invierno**. La app **resalta el evento activo** (el que está pasando ahora) y deja el resto en una lista. Al abrir la app entras directo al activo.
 - **✅ Unirse por enlace / QR:** quien crea el evento comparte un **enlace o QR**; los demás entran y **eligen su familia** (§5). Sin gestionar emails ni invitaciones una a una. Ideal para pasarlo por el grupo de WhatsApp.
-- **Crear:** nombre, fecha de inicio y fin, moneda base. A partir de ahí se añaden familias, bungas y gente.
+- **Crear:** nombre, fecha de inicio y fin. **La moneda es siempre el euro** y no se pregunta: el grupo es de aquí y el desplegable solo servía para poder equivocarse. El **fin se propone solo** —el día siguiente al inicio— y el campo no deja elegir uno anterior. A partir de ahí se añaden familias, bungas y gente.
 - **✅ Duplicar el evento anterior:** al crear un evento se puede **clonar el del año pasado** (misma gente, familias, bungas, platos favoritos) y solo ajustar fechas y quién viene este año. Nadie quiere remontar el camping entero cada verano.
   - *(Recordatorio §2.2: la composición se **congela** por evento; duplicar copia el estado, no crea un vínculo vivo con el evento anterior.)*
 - **✅ Cerrar (reabrible):** al terminar, **cualquiera** puede marcar el evento como cerrado → se genera el **resumen de cuentas y la liquidación final** (§3.4). No hay candado (no hay roles, §9): se puede **reabrir** para meter ese gasto que faltaba y volver a cerrar.
@@ -1038,6 +1038,56 @@ recorre entera cada vez.
   solapas plegadas: tocabas «actualizar» dentro de «La app» y volvías a una
   lista de solapas cerradas sin saber si había pasado algo. Ahora vuelve al
   mismo sitio y además se desplaza hasta él.
+
+### 14.15 Quién entra: la sala de espera, las cuentas y los avisos
+
+El alta era **por invitación con código copiado a mano**: quien quería entrar
+veía un identificador de Apple en la pantalla de acceso, se lo pasaba por
+WhatsApp a alguien del grupo, y ese alguien lo pegaba en Ajustes. Tres pasos y
+dos personas para algo que el servidor ya sabía.
+
+- **✅ Sala de espera.** Quien entra con Apple **queda apuntado solo**, con el
+  nombre que Apple entrega, y recibe «ya estás en la lista» en vez de un error.
+  La cuenta nace **inactiva y sin persona**: no es alguien con permisos a
+  medias, es alguien de quien no sabemos quién es.
+- **✅ Enlazar con una persona es lo que abre la puerta** (`personId` en
+  `cuenta`, migración `0002`). Las dos cosas van juntas a propósito: en una app
+  donde el reparto, las cenas y los planes cuelgan de una persona, entrar sin
+  serlo no lleva a ninguna pantalla útil. Desenlazar devuelve a la sala de
+  espera; eliminar borra la cuenta y sus dispositivos, y quien vuelva a entrar
+  aparecerá otra vez pidiendo permiso.
+- **✅ «Tu cuenta» pasa a ser «Cuentas»**, y lista a quien ha pedido entrar con
+  el nombre que dio Apple, con quién es cada uno y qué familia. Todo eso, solo
+  para quien administra.
+- **✅ Un solo administrador, escrito a mano** (`lib/admin.js`): **Óscar García
+  Chillón**. La cuenta que abre una instalación vacía nace administradora, así
+  que sin esto el rol dependería de quién llegó primero. El nombre no da
+  permisos —los da el `rol` que firma el Worker—: sirve para decir en pantalla
+  de quién se está hablando.
+- **✅ Avisos derivados, nunca filas** (`lib/avisos.js`, figura de `avisos.js` en
+  `garciadoral-ops`). Hoy solo hay uno —alguien ha entrado y todavía no es
+  nadie— y es del administrador. Al enlazar la cuenta, el aviso desaparece
+  porque ya no hay nada que hacer: no hay que marcar nada como leído ni ir a
+  borrar una fila que miente. **Todavía no hay push** —se retiró con el SDK de
+  terceros que lo traía—, así que se ve al abrir Ajustes; cuando lo haya, lo que
+  se empuje será exactamente esta lista, y por eso se escribe aparte.
+- **✅ Buscar la última versión desde la pantalla de acceso.** Estaba solo dentro
+  de Ajustes, o sea detrás de la puerta: si lo que falla es justo la pantalla de
+  acceso —y es la que más cambia—, había que entrar para poder arreglarlo
+  entrando.
+
+### 14.16 La IA: la clave vive en el servidor
+
+Ajustes tiene un apartado **IA** que solo ve quien administra, con la clave de
+Anthropic y el modelo. La clave **entra pero no sale**: se guarda en la tabla
+`configuracion` (migración `0003`) y de vuelta solo salen sus cuatro últimos
+caracteres y la fecha en que se puso, lo justo para reconocer cuál está sin
+poder copiarla de la pantalla de nadie.
+
+Es el modelo de `garciadoral-ops` (`api/src/redaccion.js`) y la razón es la
+misma: es una credencial de pago y no debe viajar a ningún dispositivo, y la
+llamada al modelo sale del Worker —donde el texto se compone con lo que ya está
+en la base— y no del teléfono, así que el cliente no puede inyectarle nada.
 
 ### 14.12 Un solo tema, y sus dos caras
 

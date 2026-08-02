@@ -5,7 +5,9 @@ import AccesoScreen from './AccesoScreen.jsx'
 import { modoLocal } from '../auth/sesion.js'
 
 vi.mock('../auth/apple.js', () => ({ entrarConApple: vi.fn() }))
+vi.mock('../lib/pwa.js', () => ({ forzarActualizacion: vi.fn().mockResolvedValue('reloaded') }))
 const { entrarConApple } = await import('../auth/apple.js')
+const { forzarActualizacion } = await import('../lib/pwa.js')
 
 const CONFIG = { api: 'https://ejemplo.workers.dev' }
 
@@ -14,6 +16,28 @@ beforeEach(() => {
 })
 
 describe('AccesoScreen', () => {
+  it('quien no está enlazado todavía espera en la sala, no ve un error', async () => {
+    const error = new Error('Hemos apuntado tu petición.')
+    error.enEspera = true
+    error.nombre = 'Curro García'
+    entrarConApple.mockRejectedValue(error)
+
+    render(<AccesoScreen configuracion={CONFIG} onEntrar={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /Entrar con Apple/i }))
+
+    expect(await screen.findByText('Ya estás en la lista.')).toBeInTheDocument()
+    expect(screen.getByText(/Curro García/)).toBeInTheDocument()
+    // Es un estado, no un fallo: no hay alerta ni código que copiar.
+    expect(screen.queryByRole('alert')).toBe(null)
+    expect(screen.getByRole('button', { name: /¿Ya me han dejado entrar\?/ })).toBeInTheDocument()
+  })
+
+  it('se puede traer la última versión sin haber entrado', async () => {
+    render(<AccesoScreen configuracion={CONFIG} onEntrar={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: /Buscar la última versión/ }))
+    expect(forzarActualizacion).toHaveBeenCalled()
+  })
+
   it('entra con Apple y entrega la sesión', async () => {
     const sesion = { token: 'jwt', cuenta: { id: 'cta_1', nombre: 'Curro' } }
     entrarConApple.mockResolvedValue(sesion)
