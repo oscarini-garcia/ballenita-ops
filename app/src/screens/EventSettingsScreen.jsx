@@ -26,6 +26,11 @@ import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpia
 
 // El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
 // por dónde va en vez de un solo rótulo que parpadea.
+// Lo que el modal se queda en pantalla al acabar, para poder leerlo. Cinco
+// segundos es el rato en que se lee «Ya está» sin que dé tiempo a impacientarse;
+// el botón «Ok» lo salta.
+const ESPERA_FINAL = 5000
+
 const PASOS_APP = ['checking', 'downloading', 'applying']
 
 // Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en tests).
@@ -430,16 +435,12 @@ function EditorEvento({ event, onCerrar }) {
       <input id="ev-nombre" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ballenita 2026" autoFocus />
       <label htmlFor="ev-lugar">Lugar</label>
       <input id="ev-lugar" type="text" value={lugar} onChange={(e) => setLugar(e.target.value)} placeholder="Camping La Ballena Alegre" />
-      <div className="grid2">
-        <div>
-          <label htmlFor="ev-desde">Desde</label>
-          <input id="ev-desde" type="date" value={startDate} onChange={(e) => { setStart(e.target.value); setFuera(null) }} />
-        </div>
-        <div>
-          <label htmlFor="ev-hasta">Hasta</label>
-          <input id="ev-hasta" type="date" value={endDate} onChange={(e) => { setEnd(e.target.value); setFuera(null) }} />
-        </div>
-      </div>
+      {/* Una bajo la otra y no en dos columnas: el control de fecha nativo mide
+          más que media pantalla y sacaba la hoja de lado en un móvil de verdad. */}
+      <label htmlFor="ev-desde">Desde</label>
+      <input id="ev-desde" type="date" value={startDate} onChange={(e) => { setStart(e.target.value); setFuera(null) }} />
+      <label htmlFor="ev-hasta">Hasta</label>
+      <input id="ev-hasta" type="date" value={endDate} onChange={(e) => { setEnd(e.target.value); setFuera(null) }} />
 
       {gastosFuera > 0 && (
         <div className="note">
@@ -726,6 +727,11 @@ function AppSection() {
   const busy = paso !== null
   // Si venimos de recargar por una actualización, enseñamos el ✓ y limpiamos la marca.
   const [recienActualizada] = useState(veniaDeActualizar)
+  // Cuando la búsqueda acaba, el modal se queda unos segundos con su «Ok»: la
+  // recarga se lo llevaba por delante en cuanto terminaba, y lo único que se
+  // veía era la pantalla parpadeando sin decir en qué había quedado.
+  const [terminado, setTerminado] = useState(false)
+  const seguir = useRef(null)
   const caja = useRef(null)
   useEffect(() => {
     if (!recienActualizada) return
@@ -739,14 +745,17 @@ function AppSection() {
   function actualizar() {
     if (busy) return
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
+    setTerminado(false)
     setPaso('checking') // abre el modal ya, sin esperar al primer aviso
     const inicio = Date.now()
     forzarActualizacion(setPaso, {
       // La recarga es inevitable (hay que cargar el JS nuevo), pero la retrasamos
       // un poco para que el progreso se vea de verdad y no sea un parpadeo.
       reload: async () => {
-        const resto = 1600 - (Date.now() - inicio)
+        const resto = 1200 - (Date.now() - inicio)
         if (resto > 0) await new Promise((r) => setTimeout(r, resto))
+        setTerminado(true)
+        await new Promise((r) => { seguir.current = r; setTimeout(r, ESPERA_FINAL) })
         window.location.reload()
       },
     })
@@ -773,13 +782,19 @@ function AppSection() {
 
       {busy && (
         <ProgresoModal
-          titulo="Buscando la última versión"
+          titulo={terminado ? 'Ya está' : 'Buscando la última versión'}
           version={APP_VERSION}
           pasos={PASOS_APP.map((p, i) => ({
             texto: UPDATE_STEPS[p],
-            estado: i < PASOS_APP.indexOf(paso) ? 'hecho' : i === PASOS_APP.indexOf(paso) ? 'curso' : 'pendiente',
+            estado: terminado || i < PASOS_APP.indexOf(paso) ? 'hecho'
+              : i === PASOS_APP.indexOf(paso) ? 'curso' : 'pendiente',
           }))}
-          pista="No cierres la app: se recarga sola al terminar y volverás aquí, a Ajustes."
+          terminado={terminado}
+          onCerrar={() => { tap(); seguir.current?.() }}
+          etiquetaCerrar="Ok"
+          pista={terminado
+            ? `Se recarga sola en ${ESPERA_FINAL / 1000} segundos y volverás aquí, a Ajustes.`
+            : 'No cierres la app: se recarga sola al terminar y volverás aquí, a Ajustes.'}
         />
       )}
     </div>

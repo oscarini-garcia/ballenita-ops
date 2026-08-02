@@ -56,7 +56,7 @@ export function ListaDePasos({ pasos = [], onCopiado }) {
  * Mientras quede alguno en curso no hay salida dibujada: el proceso o termina o
  * recarga, y un «Cancelar» ahí sería mentira.
  */
-export default function ProgresoModal({ titulo, version, pasos = [], terminado = false, onCerrar, pista }) {
+export default function ProgresoModal({ titulo, version, pasos = [], terminado = false, onCerrar, etiquetaCerrar = 'Cerrar', pista }) {
   useBloqueoDeScroll()
 
   return (
@@ -78,7 +78,7 @@ export default function ProgresoModal({ titulo, version, pasos = [], terminado =
         {pista && <div className="hint">{pista}</div>}
 
         {terminado && onCerrar && (
-          <button className="btn block" style={{ marginTop: 14 }} onClick={onCerrar}>Cerrar</button>
+          <button className="btn block" style={{ marginTop: 14 }} onClick={onCerrar}>{etiquetaCerrar}</button>
         )}
       </div>
     </div>
