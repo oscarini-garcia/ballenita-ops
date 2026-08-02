@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, bungasOf, personsOf, updatePerson, olvidarTodo, listEvents,
+  updateEvent, dinnersOf, plansOf, expensesOf, removeDinner, removePlan,
 } from '../db.js'
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
@@ -10,6 +11,8 @@ import ProgresoModal, { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
 import StatsScreen from './StatsScreen.jsx'
 import GrupoSection from './GrupoSection.jsx'
+import Hoja from '../components/Hoja.jsx'
+import { loQueSeCaeFuera, enPalabras } from '../lib/evento.js'
 import { useTema, TEMAS } from '../lib/tema.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -23,6 +26,11 @@ import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpia
 
 // El orden real del proceso (lib/pwa.js), para pintarlo como lista y que se vea
 // por dónde va en vez de un solo rótulo que parpadea.
+// Lo que el modal se queda en pantalla al acabar, para poder leerlo. Cinco
+// segundos es el rato en que se lee «Ya está» sin que dé tiempo a impacientarse;
+// el botón «Ok» lo salta.
+const ESPERA_FINAL = 5000
+
 const PASOS_APP = ['checking', 'downloading', 'applying']
 
 // Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en tests).
@@ -326,19 +334,28 @@ function QuienEresSection({ eventId, persons }) {
 /** El evento en curso, y la lista para saltar a otro sin pasar por la portada. */
 function EventoSection({ event, onPickEvent }) {
   const events = useLiveQuery(listEvents, [], [])
+  const [editando, setEditando] = useState(false)
 
   return (
     <>
+      {/* El de en curso se toca y se edita, como una familia en El grupo
+          (§14.14 · E1 + F2): era la única ficha de Ajustes que se miraba sin
+          poder corregirla, y las fechas del viaje cambian más que ninguna otra
+          cosa del evento. */}
       <div className="card tight">
         <div className="row">
-          <div className="ico"><Icono nombre="evento" /></div>
-          <div className="main">
-            <div className="n">{event?.name || 'Evento'}</div>
-            <div className="sub">{event?.lugar || 'Ballena Ops'}</div>
-          </div>
+          <button type="button" className="row-quien" onClick={() => { tap(); setEditando(true) }}>
+            <span className="ico"><Icono nombre="evento" /></span>
+            <span className="main">
+              <span className="n">{event?.name || 'Evento'}</span>
+              <span className="sub">{[event?.lugar, fechasEnPalabras(event)].filter(Boolean).join(' · ') || 'Ballena Ops'}</span>
+            </span>
+          </button>
           <span className="pill neutral">en curso</span>
         </div>
       </div>
+
+      {editando && event && <EditorEvento event={event} onCerrar={() => setEditando(false)} />}
 
       {events.filter((e) => e.id !== event?.id).length > 0 && (
         <>
@@ -360,6 +377,94 @@ function EventoSection({ event, onPickEvent }) {
 
       <button className="btn ghost block" onClick={() => { tap(); onPickEvent?.(null) }}>↔ Ver todos los eventos</button>
     </>
+  )
+}
+
+/** «8 – 15 de agosto», para la segunda línea de la ficha del evento. */
+function fechasEnPalabras(event) {
+  if (!event?.startDate) return ''
+  const dia = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+  if (!event.endDate || event.endDate === event.startDate) return dia(event.startDate)
+  return `${dia(event.startDate)} – ${dia(event.endDate)}`
+}
+
+/**
+ * Editar el evento en curso, con la misma figura que El grupo: una hoja que
+ * sube desde abajo, guardar arriba y el aviso de lo que se lleva por delante.
+ *
+ * Aquí el aviso no es por borrar, es por **acortar**: una cena o un plan viven
+ * en un día concreto, y si ese día deja de existir se quedan fuera del
+ * calendario pero dentro de las estadísticas. Se dicen y se borran al confirmar.
+ * Los gastos se cuentan y **no se tocan** — la compra grande es del día antes de
+ * salir, y borrar dinero por mover una fecha cambiaría los saldos de todos.
+ */
+function EditorEvento({ event, onCerrar }) {
+  const [name, setName] = useState(event.name ?? '')
+  const [lugar, setLugar] = useState(event.lugar ?? '')
+  const [startDate, setStart] = useState(event.startDate ?? '')
+  const [endDate, setEnd] = useState(event.endDate ?? '')
+  const [fuera, setFuera] = useState(null)
+
+  const dinners = useLiveQuery(() => dinnersOf(event.id), [event.id], [])
+  const plans = useLiveQuery(() => plansOf(event.id), [event.id], [])
+  const expenses = useLiveQuery(() => expensesOf(event.id), [event.id], [])
+
+  const guardar = async () => {
+    if (!name.trim()) return
+    const fechas = { startDate, endDate }
+    const cae = loQueSeCaeFuera(fechas, { dinners, plans, expenses })
+    // Primero se avisa; el guardado de verdad va en `confirmar`.
+    if ((cae.cenas.length || cae.planes.length) && !fuera) { setFuera(cae); return }
+    await confirmar(cae)
+  }
+
+  const confirmar = async (cae) => {
+    for (const c of cae.cenas) await removeDinner(c.id)
+    for (const p of cae.planes) await removePlan(p.id)
+    await updateEvent(event.id, {
+      name: name.trim(), lugar: lugar.trim(), startDate, endDate,
+    })
+    onCerrar()
+  }
+
+  const gastosFuera = loQueSeCaeFuera({ startDate, endDate }, { expenses }).gastos.length
+
+  return (
+    <Hoja titulo="Editar evento" onCerrar={onCerrar}>
+      <label htmlFor="ev-nombre">Nombre</label>
+      <input id="ev-nombre" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ballenita 2026" autoFocus />
+      <label htmlFor="ev-lugar">Lugar</label>
+      <input id="ev-lugar" type="text" value={lugar} onChange={(e) => setLugar(e.target.value)} placeholder="Camping La Ballena Alegre" />
+      {/* Una bajo la otra y no en dos columnas: el control de fecha nativo mide
+          más que media pantalla y sacaba la hoja de lado en un móvil de verdad. */}
+      <label htmlFor="ev-desde">Desde</label>
+      <input id="ev-desde" type="date" value={startDate} onChange={(e) => { setStart(e.target.value); setFuera(null) }} />
+      <label htmlFor="ev-hasta">Hasta</label>
+      <input id="ev-hasta" type="date" value={endDate} onChange={(e) => { setEnd(e.target.value); setFuera(null) }} />
+
+      {gastosFuera > 0 && (
+        <div className="note">
+          🐳 {gastosFuera === 1 ? 'Hay 1 gasto' : `Hay ${gastosFuera} gastos`} con fecha fuera del viaje.
+          No se tocan: siguen contando en los saldos.
+        </div>
+      )}
+
+      <div className="editor-pie">
+        <button className="btn" onClick={guardar}>Guardar</button>
+      </div>
+
+      {fuera && (
+        <div className="confirmar">
+          <div className="que-se-lleva">
+            Con esas fechas se quedan fuera <b>{enPalabras(fuera)}</b>, y se borran al guardar.
+          </div>
+          <div className="grid2">
+            <button className="btn ghost" onClick={() => setFuera(null)}>Dejarlo</button>
+            <button className="btn danger" onClick={() => confirmar(fuera)}>Guardar y borrar</button>
+          </div>
+        </div>
+      )}
+    </Hoja>
   )
 }
 
@@ -622,26 +727,42 @@ function AppSection() {
   const busy = paso !== null
   // Si venimos de recargar por una actualización, enseñamos el ✓ y limpiamos la marca.
   const [recienActualizada] = useState(veniaDeActualizar)
-  useEffect(() => { if (recienActualizada) limpiarMarcaActualizacion() }, [recienActualizada])
+  // Cuando la búsqueda acaba, el modal se queda unos segundos con su «Ok»: la
+  // recarga se lo llevaba por delante en cuanto terminaba, y lo único que se
+  // veía era la pantalla parpadeando sin decir en qué había quedado.
+  const [terminado, setTerminado] = useState(false)
+  const seguir = useRef(null)
+  const caja = useRef(null)
+  useEffect(() => {
+    if (!recienActualizada) return
+    limpiarMarcaActualizacion()
+    // El apartado se reabre solo (Acordeon recuerda su solapa), pero la recarga
+    // deja la pantalla arriba del todo: sin esto acabas mirando «Aspecto» sin
+    // saber si la actualización llegó a pasar.
+    caja.current?.scrollIntoView({ block: 'center' })
+  }, [recienActualizada])
 
   function actualizar() {
     if (busy) return
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
+    setTerminado(false)
     setPaso('checking') // abre el modal ya, sin esperar al primer aviso
     const inicio = Date.now()
     forzarActualizacion(setPaso, {
       // La recarga es inevitable (hay que cargar el JS nuevo), pero la retrasamos
       // un poco para que el progreso se vea de verdad y no sea un parpadeo.
       reload: async () => {
-        const resto = 1600 - (Date.now() - inicio)
+        const resto = 1200 - (Date.now() - inicio)
         if (resto > 0) await new Promise((r) => setTimeout(r, resto))
+        setTerminado(true)
+        await new Promise((r) => { seguir.current = r; setTimeout(r, ESPERA_FINAL) })
         window.location.reload()
       },
     })
   }
 
   return (
-    <>
+    <div ref={caja}>
       <div className="card tight">
         {/* La versión en curso, grande: es lo que se viene a mirar aquí. */}
         <div className="row">
@@ -661,16 +782,22 @@ function AppSection() {
 
       {busy && (
         <ProgresoModal
-          titulo="Buscando la última versión"
+          titulo={terminado ? 'Ya está' : 'Buscando la última versión'}
           version={APP_VERSION}
           pasos={PASOS_APP.map((p, i) => ({
             texto: UPDATE_STEPS[p],
-            estado: i < PASOS_APP.indexOf(paso) ? 'hecho' : i === PASOS_APP.indexOf(paso) ? 'curso' : 'pendiente',
+            estado: terminado || i < PASOS_APP.indexOf(paso) ? 'hecho'
+              : i === PASOS_APP.indexOf(paso) ? 'curso' : 'pendiente',
           }))}
-          pista="No cierres la app: se recarga sola al terminar y volverás aquí, a Ajustes."
+          terminado={terminado}
+          onCerrar={() => { tap(); seguir.current?.() }}
+          etiquetaCerrar="Ok"
+          pista={terminado
+            ? `Se recarga sola en ${ESPERA_FINAL / 1000} segundos y volverás aquí, a Ajustes.`
+            : 'No cierres la app: se recarga sola al terminar y volverás aquí, a Ajustes.'}
         />
       )}
-    </>
+    </div>
   )
 }
 
@@ -698,28 +825,31 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
 
   return (
     <div className="body">
-      <Acordeon titulo="Sincronización" icono="sincronizar">
-        <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
-      </Acordeon>
-
+      {/* El orden es el de lo que se toca, no el del cableado: primero lo del
+          viaje —cómo se ve, qué evento es, quién viene y quién eres tú— y al
+          final la fontanería, que se abre cuando algo falla. */}
       <Acordeon titulo="Aspecto" icono="aspecto" nota={TEMAS.find((t) => t.id === temaPuesto)?.name}>
         <AspectoSection />
-      </Acordeon>
-
-      <Acordeon titulo="Quién eres" icono="persona" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
-        <QuienEresSection eventId={eventId} persons={persons} />
       </Acordeon>
 
       <Acordeon titulo="Evento" icono="evento" nota={event?.name}>
         <EventoSection event={event} onPickEvent={onPickEvent} />
       </Acordeon>
 
+      <Acordeon titulo="El grupo" icono="familia" nota={`${families.length} · ${bungas.length} · ${persons.length}`}>
+        <GrupoSection eventId={eventId} />
+      </Acordeon>
+
+      <Acordeon titulo="Quién eres" icono="persona" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
+        <QuienEresSection eventId={eventId} persons={persons} />
+      </Acordeon>
+
       <Acordeon titulo="Estadísticas" icono="grafico">
         <StatsScreen eventId={eventId} event={event} suelto />
       </Acordeon>
 
-      <Acordeon titulo="El grupo" icono="familia" nota={`${families.length} · ${bungas.length} · ${persons.length}`}>
-        <GrupoSection eventId={eventId} />
+      <Acordeon titulo="Sincronización" icono="sincronizar">
+        <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
       </Acordeon>
 
       {sesion && (

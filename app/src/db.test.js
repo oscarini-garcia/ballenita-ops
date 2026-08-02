@@ -75,11 +75,11 @@ describe('DB + reparto — flujo real gasto → saldo', () => {
     expect(bal.get(B)).toBe(0)
   })
 
-  it('el niño con peso 0,5 paga la mitad que un adulto', async () => {
+  it('el niño pesa 0,6 y paga menos que un adulto', async () => {
     const ev = await createEvent({ name: 'E', currency: 'EUR' })
     const A = await addFamily(ev, { name: 'A' })
     const adulto = await addPerson(ev, { name: 'adulto', familyId: A, edad: 'adulto' }) // peso 1
-    const nino = await addPerson(ev, { name: 'nino', familyId: A, edad: 'niño' }) // peso 0,5
+    const nino = await addPerson(ev, { name: 'nino', familyId: A, edad: 'niño' }) // peso 0,6
     const B = await addFamily(ev, { name: 'B' })
     const bPayer = await addPerson(ev, { name: 'b', familyId: B, edad: 'adulto' })
     await addExpense(ev, {
@@ -87,10 +87,10 @@ describe('DB + reparto — flujo real gasto → saldo', () => {
       dateISO: '2026-08-09', payers: [{ familyId: B, amountCents: 3000 }],
       participantIds: [adulto, nino, bPayer],
     })
-    // pesos 1 + 0,5 + 1 = 2,5 → cuota 1200/peso. A debe 1·1200 + 0,5·1200 = 1800.
+    // pesos 1 + 0,6 + 1 = 2,6 → cuota 30 €/2,6. A paga 1 + 0,6 de esas cuotas.
     const bal = await balancesFor(ev)
-    expect(bal.get(A)).toBe(-1800)
-    expect(bal.get(B)).toBe(1800)
+    expect(bal.get(A)).toBe(-1846)
+    expect(bal.get(B)).toBe(1846)
   })
 })
 

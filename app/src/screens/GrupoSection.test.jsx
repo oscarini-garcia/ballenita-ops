@@ -100,7 +100,7 @@ describe('El grupo — la ficha por familia (G2)', () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
     await userEvent.click(await screen.findByText('García'))
-    await userEvent.click(await screen.findByRole('button', { name: 'Borrar la familia' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Borrar' }))
     expect(await screen.findByText(/Su única persona se queda sin familia y Bunga 1 vuelve a quedar libre/)).toBeTruthy()
     await userEvent.click(screen.getByRole('button', { name: 'Sí, borrar' }))
     await waitFor(async () => {
@@ -112,10 +112,40 @@ describe('El grupo — la ficha por familia (G2)', () => {
     expect((await personsOf(eventId)).find((p) => p.name === 'Curro').familyId).toBe(null)
   })
 
+  it('la edad son dos botones y el peso sale de ella, sin campo que rellenar', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+    await userEvent.click((await screen.findAllByText('+ Persona'))[0])
+    const hoja = within(await screen.findByRole('dialog'))
+    await userEvent.type(hoja.getByLabelText('Nombre'), 'Fran')
+    await userEvent.click(hoja.getByRole('button', { name: /Niño/ }))
+    expect(hoja.queryByLabelText('Peso de reparto')).toBe(null)
+    await userEvent.click(hoja.getByRole('button', { name: 'Guardar' }))
+    await waitFor(async () => {
+      const fran = (await personsOf(eventId)).find((p) => p.name === 'Fran')
+      expect(fran?.edad).toBe('niño')
+      expect(fran?.pesoReparto).toBe(0.6)
+    })
+  })
+
+  it('el emoji se puede elegir de la galería, además de escribirlo', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+    await userEvent.click((await screen.findAllByText('+ Persona'))[0])
+    const hoja = within(await screen.findByRole('dialog'))
+    await userEvent.type(hoja.getByLabelText('Nombre'), 'Pablo')
+    await userEvent.click(hoja.getByRole('button', { name: 'Emoji 🐳' }))
+    await userEvent.click(hoja.getByRole('button', { name: 'Guardar' }))
+    await waitFor(async () => {
+      expect((await personsOf(eventId)).find((p) => p.name === 'Pablo')?.avatar).toBe('🐳')
+    })
+  })
+
   it('no hay ningún botón de borrar en las filas', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
     await screen.findByText('García')
+    // El verbo solo existe dentro del editor, nunca en el renglón.
     expect(screen.queryByRole('button', { name: 'Borrar' })).toBe(null)
   })
 })

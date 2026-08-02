@@ -10,6 +10,7 @@ import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import Icono from '../components/Icono.jsx'
 import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre } from '../lib/asignacion.js'
 import { tap } from '../lib/native.js'
+import { EDADES, EMOJIS_PERSONA, pesoDe } from '../lib/personas.js'
 
 const COLORES = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -94,7 +95,7 @@ export default function GrupoSection({ eventId }) {
                 <button type="button" className="mini" key={p.id} onClick={() => abrir({ tipo: 'persona', id: p.id })}>
                   <span className="av chica" style={{ background: f.color }}>{p.avatar}</span>
                   <span className="quien">{p.name}{p.apodo ? ` «${p.apodo}»` : ''}</span>
-                  <span className="dato">{p.edad} · {p.pesoReparto}</span>
+                  <span className="dato">{p.edad}</span>
                 </button>
               ))}
               <button type="button" className="mini anadir" onClick={() => abrir({ tipo: 'persona', familyId: f.id })}>
@@ -144,9 +145,9 @@ export default function GrupoSection({ eventId }) {
 
       <button className="btn block" onClick={() => abrir({ tipo: 'familia' })}>+ Familia</button>
       <div className="note">
-        🐳 El <b>peso de reparto</b> dice cuánto cuenta cada uno al dividir un gasto por cabezas
-        (un bebé 0, un niño 0,5, un adulto 1). Quien se queda <b>sin familia</b> no entra en el
-        reparto de ninguna.
+        🐳 Al dividir un gasto por cabezas, un <b>adulto</b> cuenta 1 y un <b>niño</b> 0,6.
+        Quien se queda <b>sin familia</b> no entra en el reparto de ninguna, y la gente de aquí es
+        la que puede tener cuenta: las peticiones de acceso se enlazan con una persona.
       </div>
 
       {editor?.tipo === 'familia' && (
@@ -264,14 +265,16 @@ function PieDeEditor({ onGuardar, borrado }) {
   const [confirmando, setConfirmando] = useState(false)
   return (
     <>
-      <div className="editor-pie">
-        <button className="btn block" onClick={onGuardar}>Guardar</button>
+      {/* Los dos verbos van en la misma línea y separados: apilados y pegados,
+          el rojo caía justo debajo del pulgar que acababa de dar a Guardar. */}
+      <div className={`editor-pie${borrado ? ' con-borrado' : ''}`}>
+        <button className="btn" onClick={onGuardar}>Guardar</button>
+        {borrado && !confirmando && (
+          <button className="btn ghost danger-txt" onClick={() => { tap(); setConfirmando(true) }}>
+            {borrado.corta ?? 'Borrar'}
+          </button>
+        )}
       </div>
-      {borrado && !confirmando && (
-        <button className="btn block ghost danger-txt" onClick={() => { tap(); setConfirmando(true) }}>
-          {borrado.etiqueta}
-        </button>
-      )}
       {borrado && confirmando && (
         <div className="confirmar">
           <div className="que-se-lleva">{borrado.queSeLleva}</div>
@@ -360,7 +363,7 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
       <PieDeEditor
         onGuardar={guardar}
         borrado={nueva ? null : {
-          etiqueta: 'Borrar la familia',
+          corta: 'Borrar',
           queSeLleva: `Se borran los ${familia.name}. ${suGente.length === 0
             ? 'No tienen gente'
             : suGente.length === 1
@@ -431,7 +434,7 @@ function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, on
       <PieDeEditor
         onGuardar={guardar}
         borrado={nuevo ? null : {
-          etiqueta: 'Borrar el bunga',
+          corta: 'Borrar',
           queSeLleva: `Se borra ${bunga.name}.${familia ? ` Los ${familia.name} se quedan sin bunga.` : ''}${
             sede > 0 ? ` Es sede de ${sede} ${sede === 1 ? 'cena' : 'cenas'}, que se quedarán sin anfitrión.` : ''}`,
           onBorrar: async () => { await removeBunga(bunga.id); onCerrar() },
@@ -465,7 +468,6 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
   const [apodo, setApodo] = useState(persona?.apodo ?? '')
   const [avatar, setAvatar] = useState(persona?.avatar ?? '🧑')
   const [edad, setEdad] = useState(persona?.edad ?? 'adulto')
-  const [peso, setPeso] = useState(persona?.pesoReparto ?? 1)
   const [familyId, setFamilyId] = useState(persona?.familyId ?? familyIdFijo ?? '')
   const [eligiendo, setEligiendo] = useState(false)
   const familia = families.find((f) => f.id === familyId)
@@ -477,7 +479,7 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
     if (!name.trim()) return
     const datos = {
       name: name.trim(), apodo: apodo.trim(), avatar: avatar || '🧑',
-      familyId: familyId || null, edad, pesoReparto: Number(peso),
+      familyId: familyId || null, edad, pesoReparto: pesoDe(edad),
     }
     if (nueva) await addPerson(eventId, datos)
     else await updatePerson(persona.id, datos)
@@ -503,6 +505,23 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
           <input id="per-emoji" type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} />
         </div>
       </div>
+      {/* Además del campo, unos cuantos a un toque: teclear un emoji en el móvil
+          es abrir el teclado de emoji y buscarlo, y por eso se quedaban todos
+          con el de fábrica. */}
+      <div className="emojis" role="group" aria-label="Emoji para elegir">
+        {EMOJIS_PERSONA.map((e) => (
+          <button
+            key={e}
+            type="button"
+            className={`emoji-op${avatar === e ? ' on' : ''}`}
+            aria-label={`Emoji ${e}`}
+            aria-pressed={avatar === e}
+            onClick={() => { tap(); setAvatar(e) }}
+          >
+            {e}
+          </button>
+        ))}
+      </div>
 
       {!familiaImplicita && (
         <>
@@ -513,28 +532,27 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
         </>
       )}
 
-      <div className="grid2">
-        <div>
-          <label htmlFor="per-edad">Edad</label>
-          <select
-            id="per-edad"
-            value={edad}
-            onChange={(e) => { setEdad(e.target.value); setPeso(e.target.value === 'adulto' ? 1 : 0.5) }}
+      {/* Dos botones y no un desplegable: son dos opciones, y el peso sale de
+          la que elijas en vez de ser un número que hay que decidir cada vez. */}
+      <label>Edad</label>
+      <div className="segmentado" role="group" aria-label="Edad">
+        {EDADES.map((e) => (
+          <button
+            key={e.id}
+            type="button"
+            className={edad === e.id ? 'on' : ''}
+            aria-pressed={edad === e.id}
+            onClick={() => { tap(); setEdad(e.id) }}
           >
-            <option value="adulto">Adulto</option>
-            <option value="niño">Niño</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="per-peso">Peso de reparto</label>
-          <input id="per-peso" type="number" step="0.5" min="0" value={peso} onChange={(e) => setPeso(e.target.value)} />
-        </div>
+            {e.etiqueta} <span className="peso tnum">{String(e.peso).replace('.', ',')}</span>
+          </button>
+        ))}
       </div>
 
       <PieDeEditor
         onGuardar={guardar}
         borrado={nueva ? null : {
-          etiqueta: 'Borrar a esta persona',
+          corta: 'Borrar',
           queSeLleva: `Se borra a ${persona.name}.${enGastos > 0
             ? ` Participa en ${enGastos} ${enGastos === 1 ? 'gasto' : 'gastos'}: su parte dejará de contar para ${familia ? `los ${familia.name}` : 'nadie'}.`
             : ' No participa en ningún gasto.'}`,

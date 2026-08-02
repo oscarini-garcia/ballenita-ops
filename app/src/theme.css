@@ -405,6 +405,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .empty .e { font-size: 42px; display: block; margin-bottom: 8px; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid2 > * { min-width: 0; }
 /* El botón de crear, con la palabra puesta: un «+» a secas no dice si va a
    apuntar un gasto, una cena o un plan. Pastilla y no cuadrado, porque ahora
    tiene que crecer con el rótulo. */
@@ -779,8 +780,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .av.chica { width: 28px; height: 28px; border-radius: 7px; font-size: var(--t-sub); }
 .av.sin { background: color-mix(in srgb, var(--ink-faint) 45%, transparent); }
 
-/* El pie del editor: guardar, y borrar en dos tiempos diciendo qué se lleva. */
-.editor-pie { margin-top: 16px; }
+/* El pie del editor: guardar y borrar, en dos tiempos y diciendo qué se lleva. */
 .confirmar { margin-top: 10px; border: 1px solid color-mix(in srgb, var(--owe) 45%, transparent);
   background: var(--owe-bg); border-radius: var(--r); padding: 12px; display: flex;
   flex-direction: column; gap: 10px; }
@@ -791,3 +791,24 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 .chip.color { width: 40px; padding: 0; justify-content: center; }
 .chip.color .punto { width: 16px; height: 16px; border-radius: 50%; display: block; }
 .chip.color.on { background: var(--foam-2); border-color: var(--spout); box-shadow: inset 0 0 0 1px var(--spout); }
+
+/* Los dos verbos del editor, en la misma línea (docs/diseño/gente-editar.html · D1
+   corregido: apilados y pegados, el rojo caía justo bajo el pulgar que acababa
+   de dar a Guardar). Guardar manda —es el lleno— y borrar va al lado, con aire. */
+.editor-pie { margin-top: 16px; display: flex; gap: 10px; }
+.editor-pie .btn { flex: 1; white-space: nowrap; }
+.editor-pie.con-borrado .btn:first-child { flex: 1.4; }
+
+/* Emoji a un toque, además del campo de escribir el que quieras. */
+.emojis { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 8px; }
+.emoji-op { min-height: 38px; border: 1px solid var(--line-soft); background: var(--foam-2);
+  border-radius: 8px; font-size: var(--t-body); line-height: 1; cursor: pointer; padding: 0; }
+.emoji-op.on { border-color: var(--spout); box-shadow: inset 0 0 0 1px var(--spout);
+  background: color-mix(in srgb, var(--spout) 12%, var(--foam-2)); }
+
+/* Dos opciones y no un desplegable: se ven las dos y se elige en un toque. */
+.segmentado { display: flex; gap: 4px; background: var(--line-soft); padding: 4px; border-radius: 10px; }
+.segmentado button { flex: 1; min-height: 40px; border: none; background: none; border-radius: 7px;
+  font: inherit; font-size: var(--t-row); font-weight: 600; color: var(--ink-soft); cursor: pointer; }
+.segmentado button.on { background: var(--foam-2); color: var(--spout-deep); }
+.segmentado .peso { font-size: var(--t-micro); font-weight: 550; opacity: .7; margin-left: 4px; }

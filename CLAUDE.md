@@ -103,6 +103,8 @@ app/src/
         tema.js tamano.js     aspecto: cara del tema y tamaño del texto (por dispositivo)
         identidad.js          quién eres en un evento (compartido cabecera ↔ Ajustes)
         asignacion.js         qué bungas y qué familias están libres (el 1 a 1)
+        personas.js           pesos por edad (1 · 0,6) y los emoji para elegir
+        evento.js             qué cenas y planes se caen al acortar las fechas
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
         hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
         scrollLock.js avatares.js
@@ -239,8 +241,12 @@ cenas (platos, bungas mayores/niños), planes (votación, día), agenda, estadí
 apuntado sube al entrar (SPECS §14.9).
 **El grupo en una sola sección** (SPECS §14.14): una ficha por familia con su bunga en una
 pastilla y su gente dentro, «Sueltos» para lo que no está colocado, y **edición de verdad**
-—se toca la fila y sube una hoja desde abajo—. Borrar salió de los renglones y vive al fondo
-del editor diciendo qué se lleva. Decidido en `docs/diseño/gente.html` (G2 · A3) y
+—se toca la fila y sube una hoja desde abajo—. Borrar salió de los renglones y vive al lado de Guardar,
+diciendo qué se lleva. **El evento también se edita ahí**, avisando de las cenas y
+planes que se caen al acortar las fechas. Ajustes va en el orden de lo que se toca
+(Aspecto · Evento · El grupo · Quién eres · Estadísticas · Sincronización · La app) y
+**cada acordeón recuerda si estaba abierto**, que es lo que hacía falta al recargar
+tras actualizar. Decidido en `docs/diseño/gente.html` (G2 · A3) y
 `docs/diseño/gente-editar.html` (E1 · F2 · N2 · N4 · D1).
 **Repaso de UX/UI** (SPECS §14.10–14.12), inspirado en `meeting-ops-air` y
 `garciadoral-ops`: barra de **Agenda · Dinero · Comidas · Planes · Ajustes** con los ajustes
