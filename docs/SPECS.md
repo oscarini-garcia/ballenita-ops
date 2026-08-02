@@ -1078,9 +1078,28 @@ pantalla con cinco botones cantando no dice cuál es el bueno.
 
 **La marca también se dibuja.** `WhaleLogo` era un emoji de ballena sobre un
 cuadrado con una «B» de marca de agua tan apagada que no se leía; ahora es el
-mismo trazo que el resto y se recolorea con `--whale`. El icono de la app —el de
-la pantalla de inicio— sigue siendo `public/favicon.svg` y se cambia cuando haya
-dibujo nuevo.
+mismo trazo que el resto y se recolorea con `--whale`.
+
+**El icono de la app sale de un solo sitio.** `app/assets/icon.png` (1024×1024)
+ya alimentaba el binario de iOS vía `npm run assets:ios`; ahora también la web y
+la PWA, con `npm run iconos:web` (`scripts/iconos-web.mjs`, sharp). Hasta aquí
+eran **dos dibujos distintos según por dónde entraras**: la app instalada
+enseñaba el de `assets/` y el navegador un `favicon.svg` que era un emoji sobre
+un cuadrado. Ese SVG se ha retirado.
+
+Lo que se genera, versionado en `public/`: `favicon-32.png`,
+`apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png` e
+`icon-maskable-512.png`. El **maskable va aparte** y no como `purpose: 'any
+maskable'` sobre el mismo fichero: quien recorta se cree esa promesa y le corta
+la cola a la ballena, que llega casi al borde. El de 512 encoge el dibujo al
+**80%** y rellena con el fondo del propio PNG (#08202C, que es prácticamente el
+`--abyss` de la cara oscura, así que no se ve costura). Y `index.html` **declara
+su icono**: sin eso el navegador iba a buscar `/favicon.ico`, que no existe.
+
+`sharp` no es dependencia del proyecto a propósito —binario nativo pesado, se usa
+una vez cada muchos meses—: se instala con `npm i --no-save sharp` el día que
+cambie el dibujo. `src/iconos.test.js` vigila que los ficheros sigan ahí, que
+sean PNG de verdad y que nadie vuelva a apuntar al SVG.
 
 ### 14.11 Lo que la App Store obliga a que exista
 
