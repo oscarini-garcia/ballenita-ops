@@ -392,6 +392,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
    quedaba; sobre el acento, `--foam-2` es lo correcto en las dos caras. */
 .av.hecho { background: var(--spout); color: var(--foam-2); }
 
+/* Un renglón de estado, apagado y sin caja: «Última actualización: hoy a las
+   14:03». No es un aviso, es un dato. */
+.pista { font-size: var(--t-sub); color: var(--ink-faint); }
+
 .note { font-size: var(--t-sub); line-height: 1.45; color: var(--ink-soft);
   background: color-mix(in srgb, var(--spout) 7%, var(--foam-2));
   border: 1px dashed var(--line); border-radius: var(--r); padding: 11px 13px; }
@@ -508,6 +512,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
   font-size: var(--t-sub); font-weight: 550; line-height: 1.35; }
 .pasos li .txt { flex: 1; min-width: 0; }
 .pasos li .marca { flex: none; font-size: var(--t-sub); }
+/* El renglón del fallo se toca para llevárselo. Se subraya con puntos, que es
+   lo que dice «esto hace algo» sin vestirlo de botón dentro de una lista. */
+.pasos li[data-copiable="si"] { cursor: pointer; text-decoration: underline;
+  text-decoration-style: dotted; text-underline-offset: 3px; }
 .pasos li[data-estado="pendiente"] { color: var(--ink-faint); opacity: .6; }
 .pasos li[data-estado="hecho"] { color: var(--owed); }
 .pasos li[data-estado="fallo"] { color: var(--owe); background: var(--owe-bg); }

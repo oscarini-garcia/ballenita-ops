@@ -47,6 +47,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   servidor es la autoridad → **no hay merge en el cliente ni tombstones**. Sync al abrir /
   online / foreground / cada 90 s. Sin `config.json` apuntando a una API, la app va **solo
   local** (indicador `● local` en la cabecera).
+- **Cuando falla, se dice qué ha fallado** (SPECS §14.9-bis, figura de `garciadoral-ops`):
+  el error lleva el **estado HTTP** (`sync/api.js`), lo que el servidor **rechaza** sale en
+  la lista de pasos —la interfaz es optimista, callarlo se lee como que la app pierde
+  cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
+  (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
+  progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
 - **Toda escritura pasa por `escribir()`/`removeRow()` en `db.js`**, que guardan el dato y su
   entrada en la cola **en la misma transacción**. No escribas en `db.<tabla>` directamente:
   el cambio no subiría nunca.
@@ -97,6 +103,7 @@ app/src/
         tema.js tamano.js     aspecto: cara del tema y tamaño del texto (por dispositivo)
         identidad.js          quién eres en un evento (compartido cabecera ↔ Ajustes)
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
+        hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
         scrollLock.js avatares.js
   auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo
   lib/  demo.js         demostración sin cuenta (directriz 2.1 de Apple)

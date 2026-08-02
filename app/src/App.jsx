@@ -66,13 +66,17 @@ export default function App() {
   const [pasosSync, setPasosSync] = useState(null)
   const [syncEnCurso, setSyncEnCurso] = useState(false)
 
-  async function sincronizarTodoAhora() {
+  // `alAvanzar` deja que quien lo dispara elija dónde se pinta: el punto de la
+  // cabecera abre su modal —allí un toque sin respuesta a la vista no diría
+  // nada—, y Ajustes lo cuenta en su sitio, debajo del botón, donde se queda.
+  async function sincronizarTodoAhora({ alAvanzar } = {}) {
     if (syncEnCurso) return
     setSyncEnCurso(true)
-    setPasosSync([])
+    const enModal = !alAvanzar
+    if (enModal) setPasosSync([])
     await sincronizarTodo({
       sincronizarDatos: sync.recheck,
-      alAvanzar: setPasosSync,
+      alAvanzar: alAvanzar ?? setPasosSync,
     })
     setSyncEnCurso(false)
   }
