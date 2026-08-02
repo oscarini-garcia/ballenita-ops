@@ -9,6 +9,7 @@ import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
 import ProgresoModal, { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
+import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
 import StatsScreen from './StatsScreen.jsx'
 import GrupoSection from './GrupoSection.jsx'
 import Hoja from '../components/Hoja.jsx'
@@ -475,7 +476,7 @@ function EditorEvento({ event, onCerrar }) {
  * código que le ha pasado el aspirante. Sin esto haría falta entrar en la base
  * de datos a mano para dejar entrar a nadie.
  */
-function CuentaSection() {
+function CuentaSection({ sincronizar }) {
   const sesion = leerSesion()
   const [cuentas, setCuentas] = useState(null)
   const [codigo, setCodigo] = useState('')
@@ -485,6 +486,9 @@ function CuentaSection() {
   const [editando, setEditando] = useState(null)
   // Baja de la cuenta: null en reposo · 'confirmando' · 'yendo' · el resultado.
   const [baja, setBaja] = useState(null)
+  // Salir: null en reposo · 'yendo' mientras intenta subir la cola · el
+  // resultado de `comprobarAntesDeSalir` cuando no ha podido y hay que decidir.
+  const [salida, setSalida] = useState(null)
 
   const esAdmin = sesion?.cuenta?.rol === 'administrador'
 
@@ -534,10 +538,25 @@ function CuentaSection() {
     }
   }
 
+  /**
+   * Salir, pero **subiendo antes lo que quede en la cola**.
+   *
+   * Los datos del grupo se van con la sesión —no tiene sentido dejarlos en un
+   * móvil que ya no va a poder actualizarlos— y eso incluía la cola de cambios,
+   * que es lo apuntado que aún no había llegado al servidor. Al volver a entrar
+   * la instantánea es la única fuente, así que eso no volvía: se veía como «he
+   * salido y ha desaparecido el evento». Ver `lib/salida.js`.
+   */
   async function salir() {
     tap()
-    // Los datos del grupo se van con la sesión: no tiene sentido dejarlos en un
-    // móvil que ya no va a poder actualizarlos.
+    setAviso(null)
+    setSalida('yendo')
+    const r = await comprobarAntesDeSalir({ sincronizar })
+    if (r.seguro) return salirDeVerdad()
+    setSalida(r)
+  }
+
+  async function salirDeVerdad() {
     borrarSesion()
     await olvidarTodo()
     window.location.reload()
@@ -577,9 +596,24 @@ function CuentaSection() {
             <div className="n">{sesion.cuenta?.nombre || 'Cuenta de Apple'}</div>
             <div className="sub">{esAdmin ? 'Administras el grupo' : 'Miembro del grupo'}</div>
           </div>
-          <button className="btn sm ghost" onClick={salir}>Salir</button>
+          <button className="btn sm ghost" disabled={salida === 'yendo'} onClick={salir}>
+            {salida === 'yendo' ? 'Subiendo…' : 'Salir'}
+          </button>
         </div>
       </div>
+
+      {/* Lo que no ha podido subir se dice con el número delante, que es lo que
+          se decide, y salir pasa a ser una segunda pulsación. Nadie pierde
+          trabajo por un botón que no avisaba. */}
+      {salida && salida !== 'yendo' && (
+        <div className="confirmar" role="alert">
+          <div className="que-se-lleva">{avisoDeSalida(salida)}</div>
+          <div className="grid2">
+            <button className="btn ghost" onClick={() => { tap(); setSalida(null) }}>Quedarme</button>
+            <button className="btn danger" onClick={() => { tap(); salirDeVerdad() }}>Salir igualmente</button>
+          </div>
+        </div>
+      )}
 
       {esAdmin && (
         <>
@@ -854,7 +888,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
 
       {sesion && (
         <Acordeon titulo="Tu cuenta" icono="llave" nota={sesion.cuenta?.nombre}>
-          <CuentaSection />
+          <CuentaSection sincronizar={sync?.recheck} />
         </Acordeon>
       )}
 

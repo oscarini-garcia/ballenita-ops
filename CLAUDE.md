@@ -53,6 +53,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
+- **Salir de la cuenta sube la cola antes de borrar** (SPECS §14.9-ter, `lib/salida.js`):
+  `olvidarTodo()` se lleva también el `outbox`, así que salir con cambios sin subir los
+  perdía para siempre —se leía como «he vuelto a entrar y el evento ha desaparecido»—. Ahora
+  se intenta subir; si no puede, **no borra**: dice cuántos y por qué, y salir es una segunda
+  pulsación.
 - **Toda escritura pasa por `escribir()`/`removeRow()` en `db.js`**, que guardan el dato y su
   entrada en la cola **en la misma transacción**. No escribas en `db.<tabla>` directamente:
   el cambio no subiría nunca.
@@ -106,6 +111,7 @@ app/src/
         personas.js           pesos por edad (1 · 0,6) y los emoji para elegir
         evento.js             qué cenas y planes se caen al acortar las fechas
         sincronizarTodo.js    datos + versión de la app, en una lista de pasos
+        salida.js             salir sin perder lo que no ha subido
         hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
         scrollLock.js avatares.js
   auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo

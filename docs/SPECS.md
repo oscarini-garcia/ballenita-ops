@@ -694,6 +694,50 @@ Lo que **no** se ha copiado: el porcentaje de descarga de la actualización.
 progreso—, así que la fase de la app sigue contándose por rótulos
 («Descargando…») y no por cifra. Ponerlo exige tocar el puente nativo.
 
+### 14.9-ter Salir de la cuenta sin llevarse la cola por delante
+
+**El fallo.** «Salir» (Ajustes → Tu cuenta) hacía `borrarSesion()` y
+`olvidarTodo()` de un tirón. Borrar la copia local está bien —los datos del grupo
+no se quedan en un móvil que ya no va a poder actualizarlos—, pero `olvidarTodo()`
+vacía también el **`outbox`**, que es lo apuntado que todavía no ha llegado al
+servidor. Al volver a entrar, la instantánea es la única fuente: lo que no había
+subido no vuelve. Visto desde fuera, **«he salido, he vuelto a entrar y el evento
+ha desaparecido»**.
+
+No hacía falta nada raro para caer en ello. Basta con haber apuntado sin
+cobertura, venir de «usar solo en este móvil» —donde por definición nada ha
+subido—, o que la última sincronización fallara. Y la promesa escrita en §14.9 es
+justo la contraria: *«los datos que se apunten aquí no se pierden: cada escritura
+deja su entrada en la cola»*.
+
+**El arreglo** (`lib/salida.js`, `comprobarAntesDeSalir`): antes de borrar nada se
+**intenta subir la cola**.
+
+- Cola vacía → se sale directo, sin preguntar. Salir no es el momento de esperar
+  a la red si no hay nada que esperar.
+- Sube entera → se sale igual: ya está todo en el servidor.
+- No sube (o sube a medias) → **no se borra nada**. Se dice **cuántos** cambios se
+  perderían y **por qué** no han subido —con los mismos motivos que la lista de
+  pasos, `MOTIVOS` se exporta de `sincronizarTodo.js`— y salir pasa a ser una
+  segunda pulsación («Quedarme» · «Salir igualmente»), con la figura de
+  `.confirmar` que ya usa el editor del grupo.
+
+El número va delante porque es lo que se decide: «3 cambios sin subir» permite
+elegir y «tienes cambios sin subir» no. Mismo criterio que §14.9-bis: lo que falla
+se cuenta, no se calla. Probado en `lib/salida.test.js` (la decisión) y en
+`screens/CuentaSalir.test.jsx` (que con cola pendiente **no se llama a
+`olvidarTodo`** hasta confirmar).
+
+### 14.9-quater El evento de ejemplo se llama «Demo»
+
+Se llamaba **«Ballenita 2026»**, que es exactamente como se llamaría un viaje de
+verdad. En la lista de eventos, al lado de los reales, no había forma de
+distinguirlo, y lo que se apuntara dentro parecía apuntado en el sitio bueno. El
+lugar y las fechas se quedan —sin ellos la app abre vacía y no enseña lo que
+hace—, pero el rótulo dice lo que es: `NOMBRE_DEMO` en `db.js`, usado por los dos
+caminos que siembran, la demostración de la pantalla de acceso (`lib/demo.js`,
+directriz 2.1) y el «Cargar el evento «Demo»» de la lista cuando no hay ninguno.
+
 ### 14.10 Cromo de la app: cabecera, barra inferior y modales
 
 Lo que rodea al contenido, que es donde se notan los roces del uso diario. Este

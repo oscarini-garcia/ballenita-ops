@@ -19,7 +19,7 @@ describe('App — smoke test', () => {
 
   it('cargar el ejemplo abre el evento y muestra las 5 pestañas', async () => {
     render(<App />)
-    await userEvent.click(await screen.findByText(/Cargar ejemplo/))
+    await userEvent.click(await screen.findByText(/Cargar el evento/))
     // La barra son 5 destinos: Agenda · Dinero · Comidas · Planes · Ajustes.
     // El rótulo nombra la sección, no su primera área: «Hoy» es un área dentro
     // de Agenda, y «Cenas» un área dentro de Comidas.
@@ -35,7 +35,7 @@ describe('App — smoke test', () => {
 describe('App — navegación', () => {
   async function abrirEjemplo() {
     render(<App />)
-    await userEvent.click(await screen.findByText(/Cargar ejemplo/))
+    await userEvent.click(await screen.findByText(/Cargar el evento/))
     await screen.findByText('Dinero')
   }
 
@@ -116,7 +116,7 @@ describe('App — navegación', () => {
   it('la cabecera son tres cosas: ballena, dónde estás y el punto', async () => {
     await abrirEjemplo()
     expect(document.querySelector('.appbar .logo')).not.toBeNull()
-    expect(document.querySelector('.appbar .ti')).toHaveTextContent('Ballenita')
+    expect(document.querySelector('.appbar .ti')).toHaveTextContent('Demo')
     // Sin config.json la app va en modo solo-local y así lo dice el punto.
     expect(document.querySelector('.appbar .sync-dot')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Solo local' })).toBeInTheDocument()

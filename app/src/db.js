@@ -102,6 +102,9 @@ export async function removeRow(tabla, id) {
 /** Cambios pendientes de subir, en orden de llegada. */
 export const colaPendiente = () => db.outbox.orderBy('orden').toArray()
 export const hayCambiosPendientes = async () => (await db.outbox.count()) > 0
+// Cuántos, no solo si los hay: al salir de la cuenta hay que decir qué se
+// perdería, y «tienes cambios sin subir» no deja decidir. Ver `lib/salida.js`.
+export const cuantosPendientes = () => db.outbox.count()
 
 /** Descarta de la cola lo que el servidor ya ha aceptado (o rechazado con motivo). */
 export const vaciarCola = (hastaOrden) =>
@@ -328,10 +331,25 @@ export async function clearBoughtShopItems(eventId) {
   return done.length
 }
 
-// ── Semilla de ejemplo (Ballenita 2026) para probar rápido ──
+/**
+ * ── El evento de demostración ──
+ *
+ * Se llama **«Demo»**, y el nombre es la mitad de su trabajo. Se llamaba
+ * «Ballenita 2026», que es exactamente como se llamaría un viaje de verdad: en
+ * la lista de eventos, junto a los reales, no había forma de distinguirlo, y lo
+ * apuntado dentro parecía apuntado en el sitio bueno. El sitio y las fechas se
+ * quedan —sin ellos la app abre vacía y no enseña lo que hace—, pero el rótulo
+ * dice lo que es.
+ *
+ * Lo usan los dos caminos: la demostración de la pantalla de acceso
+ * (`lib/demo.js`, directriz 2.1 de Apple) y el «cargar el de ejemplo» de la
+ * lista de eventos cuando no hay ninguno.
+ */
+export const NOMBRE_DEMO = 'Demo'
+
 export async function seedExample() {
   const eventId = await createEvent({
-    name: 'Ballenita 2026',
+    name: NOMBRE_DEMO,
     lugar: 'Camping La Ballena Alegre',
     currency: 'EUR',
     startDate: '2026-08-08',
