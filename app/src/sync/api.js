@@ -114,6 +114,9 @@ export const gestionarCuenta = (cuerpo) =>
 export const registrarPush = (token, avisos = true) =>
   peticion('/api/push', { method: 'POST', body: JSON.stringify({ token, avisos }) })
 
+/** Se manda un aviso a los aparatos de quien lo pide, y cuenta qué pasó. */
+export const probarPush = () => peticion('/api/push/prueba', { method: 'POST' })
+
 /** Qué clave y qué modelo hay puestos. La clave nunca vuelve entera: solo sus
  *  cuatro últimos caracteres y cuándo se guardó. */
 export const leerIA = () => peticion('/api/ia')

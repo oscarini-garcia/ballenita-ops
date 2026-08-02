@@ -128,3 +128,20 @@ test('olvidar un token lo deja en nada sin borrar el aparato', async () => {
   assert.equal(results.length, 1);
   assert.equal(results[0].tokenPush, null);
 });
+
+test('los aparatos de una cuenta son los suyos, y solo si quieren avisos', async () => {
+  const { tokensDeCuenta } = await import('../src/repositorio.js');
+  const db = baseDePrueba();
+  const mia = await crearCuenta(db, { id: 'cta_yo', appleSub: 'a', nombre: 'Óscar' });
+  const otra = await crearCuenta(db, { id: 'cta_otro', appleSub: 'b', nombre: 'Curro' });
+
+  await guardarTokenPush(db, { dispositivoId: 'movil', cuentaId: mia.id, tokenPush: 'tok_movil' });
+  await guardarTokenPush(db, { dispositivoId: 'ipad', cuentaId: mia.id, tokenPush: 'tok_ipad' });
+  await guardarTokenPush(db, { dispositivoId: 'suyo', cuentaId: otra.id, tokenPush: 'tok_ajeno' });
+
+  assert.deepEqual((await tokensDeCuenta(db, mia.id)).sort(), ['tok_ipad', 'tok_movil']);
+
+  // Silenciar el iPad lo deja fuera sin tocar el móvil.
+  await silenciarDispositivo(db, 'ipad', false);
+  assert.deepEqual(await tokensDeCuenta(db, mia.id), ['tok_movil']);
+});

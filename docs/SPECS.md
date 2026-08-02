@@ -1202,6 +1202,13 @@ firmado. Volver así habría sido volver al mismo sitio.
   es nadie del grupo, y llega **solo a quien administra**, que es quien puede
   arreglarlo. El aviso no puede tumbar el alta que lo provocó: se manda sin
   esperar y sin lanzar.
+- **✅ Un botón que se manda un aviso a sí mismo** (`POST /api/push/prueba`, en
+  Ajustes → Notificaciones). La cadena tiene **seis eslabones** —permiso en el
+  móvil, token de APNs, token guardado en la base, claves del Worker, entorno
+  correcto y Apple—, y sin esto la única manera de probarla era que **otra
+  persona** entrara con Apple. Devuelve **lo que dijo Apple, motivo incluido**:
+  con `BadDeviceToken` o «el Worker no tiene las claves» delante se sabe cuál de
+  los seis falta, que es la regla de §14.9-bis aplicada aquí.
 - **⚠ No viaja por OTA.** Un plugin nativo exige `npm run sync:ios`, archivar y
   **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
   repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.
