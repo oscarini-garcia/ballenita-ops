@@ -134,37 +134,33 @@ export const SIN_PLUGIN = 'sin-plugin'
 /**
  * El plugin, o `SIN_PLUGIN` si este binario no lo trae.
  *
- * **Nada de esto se puede saber preguntando, y costó dos intentos.** El
- * `import()` no vale: el JavaScript del plugin viaja **dentro del paquete OTA**,
- * así que importarlo funciona aunque el binario no lleve su parte nativa. Y
- * `Capacitor.isPluginAvailable` tampoco: devuelve `true` con que el JavaScript
- * se haya registrado, que es justo lo que acaba de pasar al importarlo.
+ * **Se coge del puente y no se importa**, y esto costó tres intentos. El
+ * `import()` dinámico del paquete se quedaba colgado dentro de la cáscara —en la
+ * consola de Xcode se veía llegar el `Haptics` del toque y ninguna llamada más—,
+ * y era el único punto del camino sin plazo, así que la pantalla se quedaba en
+ * «Pidiendo…» para siempre.
  *
- * Lo único que distingue de verdad es que **la llamada no vuelve**: sin
- * implementación nativa registrada, la promesa no se resuelve ni se rechaza. De
- * ahí que la comprobación de verdad sea `conPlazo`, y que las dos preguntas se
- * queden igualmente: cuestan nada y en algún caso contestarán antes.
+ * `Capacitor.Plugins` ya tiene el objeto: lo registra la parte nativa al
+ * arrancar, es exactamente el mismo que devolvería el paquete, y consultarlo no
+ * pide ningún fichero a nadie. El `import()` se queda solo como reserva para la
+ * web, y con plazo, porque ninguna llamada de este módulo puede no acabarse.
+ *
+ * Lo que **no** vale para saber si el plugin está: ni el `import()` —el
+ * JavaScript viaja dentro del paquete OTA, así que importarlo funciona igual—,
+ * ni `Capacitor.isPluginAvailable`, que devuelve `true` con que ese JavaScript
+ * se haya registrado.
  */
 async function plugin() {
-  if (Capacitor?.isPluginAvailable?.('PushNotifications') === false) throw new Error(SIN_PLUGIN)
+  const delPuente = Capacitor?.Plugins?.PushNotifications
+  if (delPuente) return delPuente
   try {
-    const { PushNotifications } = await import('@capacitor/push-notifications')
+    const { PushNotifications } = await conPlazo(import('@capacitor/push-notifications'))
     return PushNotifications
   } catch {
     throw new Error(SIN_PLUGIN)
   }
 }
 
-/**
- * Una llamada nativa con plazo. Pasado el plazo, se da por no implementada.
- *
- * **Todas las llamadas al puente llevan uno**, incluida la que abre la hoja de
- * permiso de iOS. Esa la contesta una persona y por eso su plazo es largo, pero
- * no puede no tenerlo: si la hoja no llega a aparecer —que es lo que pasa cuando
- * falta la parte nativa— la promesa no vuelve nunca y la pantalla se queda en
- * «Pidiendo…» hasta que alguien mata la app. Un botón que puede colgarse para
- * siempre es peor que uno que se rinde y lo cuenta.
- */
 export const PLAZOS = {
   // Lo que se le da al puente para contestar. Son objeto y no constantes para
   // que las pruebas puedan bajarlos a milisegundos: un plazo que solo se puede
