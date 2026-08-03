@@ -195,8 +195,13 @@ api/
 
 - **Web:** Cloudflare Pages conectado al repo; build `cd app && npm ci && npm run build`,
   salida `app/dist`. Cada push a `main` republica. Base path `/` (ya no hay subpath).
-- **API:** `cd api && npm run desplegar` (wrangler). Secretos: `SESION_SECRETO` y
-  `TOKEN_SERVICIO`, con `wrangler secret put`.
+- **API:** se publica **sola** al entrar en `main` cualquier cosa de `api/`
+  (`.github/workflows/desplegar-api.yml`, secreto `CLOUDFLARE_API_TOKEN`), y a mano
+  desde Actions → desplegar api → Run workflow, que es lo que se puede pulsar desde el
+  móvil. `cd api && npm run desplegar` sigue valiendo como salida de emergencia.
+  **Las migraciones no las lanza nadie por ti**, a propósito: van antes del despliegue,
+  desde la consola de D1 o con `npm run migrar:remotoN`. Secretos del Worker:
+  `SESION_SECRETO` y `TOKEN_SERVICIO`, con `wrangler secret put`.
 - **Pruebas:** `.github/workflows/pruebas.yml` corre las dos suites en cada rama.
 - **OTA de iOS:** sin cambios (`ota.yml`); sube la versión en `app/package.json` y mergea.
 - **Lo que no viaja por OTA** es todo lo nativo: plugins, permisos, iconos y
