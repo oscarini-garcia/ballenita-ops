@@ -229,8 +229,9 @@ La sección más peculiar y donde hay más miga logística.
   - **Día** (dentro del rango del evento).
   - **Platos** seleccionados (§6.2).
   - **Bunga(s)** donde se come (§6.4).
-  - **Campo "qué se hace / cómo"** (texto libre: preparación, quién cocina, instrucciones).
-  - **Campo "cantidades"** (texto o estructurado: "2 kg de arroz, 30 mejillones…").
+  - ~~**Campo "qué se hace / cómo"**~~ y ~~**Campo "cantidades"**~~ — **retirados en §14.20.**
+    Dos textos libres que se escribían en dos pantallas y se leían en una tercera,
+    y que nadie rellenaba. Las columnas siguen en D1 (ver §14.20).
 
 ### 6.2 Platos predefinidos
 - Catálogo de **platos** reutilizables ("tortilla", "paella", "sangría", "aceitunas").
@@ -305,7 +306,7 @@ Event 1─* Expense       (Expense → payers[Family], → shares[Person]→roll
 Event 1─* Settlement    (pago apuntado a mano: FamiliaA → FamiliaB, importe)
 Event 1─* SplitTemplate (por persona | solo mayores | por familia | personalizado)
 Event 1─* Plan          (estado, día opcional, votos[Person: 👍/🤷/👎])
-Event 1─* Cena          (1 por día: → Dish[], bungaMayores→Bunga, bungaNiños→Bunga, qué_se_hace, cantidades)
+Event 1─* Cena          (1 por día: → Dish[], bungaMayores→Bunga, bungaNiños→Bunga)
 Dish  *─* Category     (aperitivo|entrante|principal|acompañamiento|postre)   [catálogo GLOBAL + favoritos + ingredientes[]]
 Event 1─* AuditLog      (historial: quién tocó qué y cuándo — obligatorio, §9)
 ```
@@ -380,7 +381,8 @@ Cerrado: unidad de deuda = **familia**; Family/Person/Dish = **globales, congela
 - `eventId` (→Event) · `dia` (date, 1 por día)
 - `platos[]` (→Dish)
 - `bungaMayoresId` (→Bunga) · `bungaNiñosId` (→Bunga)
-- `queSeHace` (texto libre) · `cantidades` (texto libre)
+- ~~`queSeHace`~~ · ~~`cantidades`~~ — retirados de la app en §14.20; las columnas
+  se quedan en D1 y en `tablas.js` para no romper a un móvil sin actualizar
 
 **Dish** (plato — catálogo **global**)
 - `nombre` · `categorias[]` (`aperitivo` | `entrante` | `principal` | `acompañamiento` | `postre`)
@@ -1723,6 +1725,68 @@ Dos decisiones que conviene que queden escritas:
 botón no se pinta, y si la clave no está puesta el Worker contesta 409. Ofrecer
 algo que va a fallar al pulsarlo es peor que no ofrecerlo.
 
+### 14.21 El día del viaje: qué bungas, qué se cena y qué plan
+
+Decidido en `docs/diseño/agenda-dia.html` (**A1 · B4 · F1 · G1 · C2 · D2 · E1**),
+una hoja con seis partes y dieciocho opciones. El modal de un día pedía cuatro
+cosas a la vez —dos bungas, seis chips de platos, una tarjeta para inventarse un
+plato al vuelo, dos textos largos y una alfombra de nueve chips de planes— y
+medía **1.773,8 pt**, con el rótulo de los planes a 994,8 del principio: 218,8 por
+debajo de lo que se ve al abrir. Ahora son cuatro renglones y **679,8 pt**, un
+62 % menos, y todo cabe en los 776 que deja la pantalla.
+
+- **A1 · La fila de un día abre y no lo anuncia.** Fuera el lápiz de 44 × 44: un
+  día **no se edita** —no es una fila de la base, existe porque el evento tiene
+  esas fechas—, así que prometía algo que no pasa, y sus 52 pt eran justo los que
+  le faltaban al titular (237 → 289 pt, y «Cine de verano en la plaza» deja de
+  recortarse). La fecha larga la dice ahora el `aria-label` del botón, no un
+  `span` escondido: una sola manera de decir lo mismo.
+- **B4 · «Qué se hace» y «Cantidades», fuera de todo.** De los dos formularios
+  —el modal del día y el de Comidas → Cenas— y de la ficha de una cena, más la
+  semilla del Demo y este spec. **Las columnas se quedan** en D1 y en
+  `tablas.js`: quitarlas no gana nada y rompería a un móvil que todavía mande el
+  campo. Lo escrito se queda dormido, que es lo barato y lo reversible. Y las
+  cantidades de verdad ya no viven ahí desde §14.20: son la receta del plato, con
+  sus raciones y su regla de tres, y de ahí sale la compra. Un texto libre al lado
+  diciendo «2 kg arroz» sin contar para nada es justo lo que confunde.
+- **F1 · La cena es un renglón que abre su hoja.** «Qué se cena» dice lo que hay
+  —«Paella mixta y cinco cosas más», la frase que ya escribía `titularDeCena()`—
+  y al tocarlo sube la hoja con el catálogo, marcando los que entran
+  (`HojaDeMarcar`, hermana de la que elige bunga). Por debajo no cambia nada: una
+  cena sigue siendo sus `platoIds` y sus dos bungas.
+- **G1 · «Plato nuevo al vuelo» vuelve a Comidas → Platos.** Eran 300,8 pt en
+  medio del camino entre la cena y los planes, en una pantalla que ya existe
+  desde §14.10-ter. De paso desaparece de raíz un fallo: llamaba a
+  `addDish({…}, event)` con un `event` que **no existía en ese ámbito** —en el
+  navegador resolvía al `window.event` del clic—, así que el plato se guardaba
+  sin `eventId`, o sea en el catálogo compartido, también desde el Demo. El mismo
+  fallo estaba copiado en `CenasScreen` y ahí se ha arreglado pasando el evento.
+- **C2 · Los planes se eligen en una hoja, no en una alfombra de chips.** Nueve
+  planes libres eran 448,9 pt en nueve renglones, en el orden en que se crearon y
+  sin decir los votos ni quién falta. Ahora un renglón —«+ Añadir un plan (9
+  libres)»— abre la hoja con **los votos y quién falta por votar** en cada fila,
+  que es lo que hace falta para decidir. Sin planes libres el botón lo dice y no
+  abre una hoja vacía.
+- **D2 · Libre es «sin día» y también «fuera de las fechas».** Un plan cuyo día se
+  cayó al acortar el viaje no estaba ni entre los del día ni entre los que no
+  tienen ninguno: **desaparecía del modal** mientras en Planes seguía apartado y
+  marcado. Ahora cuenta como libre y la hoja dice de dónde viene («era el 17,
+  fuera del viaje»), que es lo que manda §14.10-quater.
+- **E1 · Los planes siguen naciendo en Planes.** El día **coloca**, no inventa: un
+  plan creado desde el calendario nacería con día y sin votos, que es justo lo que
+  evita §14.19.
+
+Las dos hojas no se comportan igual y no es un descuido: los platos se **marcan**
+—varios— y se guardan con el botón de la cena, como hasta ahora; un plan se
+**elige** —uno— y se coloca en el acto, porque un plan no es de la cena y ya se
+quitaba así. Quién falta por votar lo dice `lib/planes.js`, compartido con la fila
+cerrada de Planes: dos sitios contando lo mismo con palabras distintas se leen
+como dos cosas distintas.
+
+**Lo que la hoja deja escrito y no se hizo:** `F2`, un recetario de menús que se
+copian al día como las Ideas de Planes (§14.18). Es la única opción que pide tabla
+nueva, migración y sincronización, y **encaja sobre F1 sin deshacer nada** — el
+día que se note que «la paella de Curro» se vuelve a marcar cada verano.
 ### 14.19-ter Ideas: dos grupos, una firma y un renglón para apuntar
 
 Decidido en [`docs/diseño/planes-ideas.html`](diseño/planes-ideas.html) ·

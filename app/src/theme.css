@@ -824,10 +824,6 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .fila-boton { width: 100%; background: none; border: none; text-align: left; cursor: pointer;
   color: inherit; font: inherit; }
 
-/* Para quien no ve: la fila dice la fecha entera, que en la pantalla es un
-   número y tres letras. */
-.sr-solo { position: absolute; width: 1px; height: 1px; overflow: hidden;
-  clip-path: inset(50%); white-space: nowrap; }
 
  /* Solo la primera letra: `capitalize` a secas escribe «Domingo, 9 De Agosto». */
 .modal-dia-t::first-letter { text-transform: uppercase; }
@@ -882,6 +878,12 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .eleccion-op .tic { margin-left: auto; color: var(--spout-deep); display: grid; place-items: center; }
 .eleccion-op .tic svg { width: 20px; height: 20px; display: block; }
 .eleccion-op .no + .tic { margin-left: 8px; }
+/* La nota en su propio renglón, para cuando es una frase: «Noche de juegos de
+   mesa» con «0 👍 · faltan 5 por votar» al lado deja 92 pt al título y lo parte
+   en dos. Debajo, cada uno tiene su línea entera. */
+.eleccion.nota-debajo .eleccion-op { flex-wrap: wrap; row-gap: 2px; padding: 10px 14px; }
+.eleccion.nota-debajo .eleccion-op .et { flex: 1 0 100%; font-weight: 550; }
+.eleccion.nota-debajo .eleccion-op .no { margin-left: 0; text-align: left; flex: 1; }
 
 /* La ficha de una familia. */
 .ficha-fam { background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r);
