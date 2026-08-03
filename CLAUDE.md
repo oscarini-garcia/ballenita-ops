@@ -99,6 +99,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   verdad (§14.16-bis, `api/src/ia.js`). **Si el modelo apuntado ya no existe se cambia solo por
   el más nuevo de su familia** —al traer la lista, y al usarlo reintentando solo con un 404— y
   se dice por cuál: un modelo retirado no rompe el día que lo retiran, rompe meses después.
+- **Lo que se le pide al modelo se escribe en Ajustes** (`api/src/encargos.js`, SPECS
+  §14.16-quater): la clave y el modelo valen para todo, el **encargo** es de cada cosa —hoy
+  uno, las ideas de plan—. **Vacío devuelve el de origen**, la forma de la respuesta es parte
+  del encargo (si le quitas el JSON deja de salir nada) y **solo se guardan los del catálogo**:
+  sin ese filtro, un encargo llamado `clave` machacaría la credencial de pago.
 - **Un campo es su rótulo, el control y la pista debajo** (`components/Campo.jsx`, SPECS
   §14.16-ter, figura de `garciadoral-ops`): el estado vive **en el campo** —«Guardada, termina
   en ab12»— y no en una ficha con icono encima, y lo que contesta el servidor va en una

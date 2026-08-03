@@ -41,6 +41,7 @@ import {
 } from './repositorio.js';
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
+import { claveDeEncargo, esEncargoConocido } from './encargos.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
@@ -445,7 +446,7 @@ async function sugerirPlanes(peticion, env) {
   const { eventId, descartadas = [] } = await peticion.json();
   if (!eventId) return json({ error: 'falta el evento' }, 400);
 
-  const { clave, modelo } = await leerConfiguracionIA(env.DB);
+  const { clave, modelo, encargos } = await leerConfiguracionIA(env.DB);
   // Sin clave no se falla a mitad: se dice que no está puesta, y la app esconde
   // el botón en vez de ofrecer algo que no puede hacer.
   if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
@@ -475,7 +476,7 @@ async function sugerirPlanes(peticion, env) {
     const { resultado, cambiado } = await conModeloVigente({
       clave,
       modelo,
-      hacer: (m) => pedirPropuestas({ clave, modelo: m, material }),
+      hacer: (m) => pedirPropuestas({ clave, modelo: m, material, instruccion: encargos.ideas }),
       guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
     });
     return json({ propuestas: resultado, cambiado: cambiado || null });
@@ -489,8 +490,18 @@ async function configuracionIA(peticion, env) {
   if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
 
   if (peticion.method === 'POST') {
-    const { clave, modelo } = await peticion.json();
+    const { clave, modelo, encargos = {} } = await peticion.json();
     await guardarConfiguracionIA(env.DB, { clave, modelo });
+
+    // Los encargos se guardan **uno a uno y solo los conocidos**. Sin este
+    // filtro, `guardarConfiguracionIA` escribe la clave que le den —incluida
+    // `ia.clave`—, y entonces un móvil podría machacar la credencial de pago
+    // mandando un encargo que se llame así.
+    for (const [id, texto] of Object.entries(encargos)) {
+      if (!esEncargoConocido(id)) continue;
+      // Vacío no borra la fila: guarda «», y al leer eso vuelve el de origen.
+      await guardarConfiguracionIA(env.DB, { [claveDeEncargo(id)]: String(texto ?? '').trim() });
+    }
   }
 
   return json({ ia: configuracionIAPublica(await leerConfiguracionIA(env.DB)) });
