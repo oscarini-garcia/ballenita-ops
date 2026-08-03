@@ -1605,6 +1605,16 @@ del viaje, que es donde está el calendario y donde ya se podía. Lo de administ
 administra. Cada plan queda en una fila de **70,7 pt**: caben ocho, y los colores
 bajan a tres.
 
+**Y un plan no se crea en esta pantalla: sale de proponer una idea.** Había un
+«+ Plan» con su propio formulario, así que un plan podía nacer por dos caminos —
+desde el catálogo, enlazado a su idea, o suelto, sin idea detrás—. El segundo se
+lleva por delante media razón de ser del catálogo, porque lo que se apunta a mano
+este agosto no está el que viene, y duplicaba un formulario que ya existe en
+Ideas. Queda un solo camino, y la pantalla **lo dice**: el vacío manda a Ideas, y
+con la lista llena hay un renglón al final —donde aparece la pregunta, después de
+recorrerla y no encontrar lo que buscabas— que explica que un plan sale de
+proponer una idea.
+
 **Dos grupos y un orden que significa algo.** Primero los **elegidos**, los que
 ya tienen día; después los **disponibles**, ordenados por votos. El orden de
 creación no decía nada. Lo que se cayó fuera de las fechas sigue apartado al

@@ -177,15 +177,23 @@ describe('el plan abierto', () => {
   })
 })
 
-describe('crear un plan a mano', () => {
-  it('nace sin día y a votación', async () => {
+describe('un plan no se crea aquí: sale de proponer una idea', () => {
+  it('no hay botón de añadir, y el vacío dice por dónde se entra', async () => {
     const { eventId, event } = await viaje()
     render(<PlanesScreen eventId={eventId} event={event} />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Añadir plan' }))
-    await userEvent.type(screen.getByLabelText('Qué es'), 'Petanca')
-    await userEvent.click(screen.getByRole('button', { name: 'Proponer plan' }))
+    expect(await screen.findByText(/Ningún plan todavía/)).toBeInTheDocument()
+    expect(screen.getByText(/apunta la idea ahí y dale a/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Añadir plan' })).not.toBeInTheDocument()
+  })
 
-    expect((await plansOf(eventId))[0]).toMatchObject({ titulo: 'Petanca', dia: null, estado: 'votando' })
+  it('con planes en la lista, lo sigue diciendo al final', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Cuevas' })
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    // Es donde aparece la pregunta: se recorre la lista, no está lo que buscabas.
+    expect(await screen.findByText(/Un plan sale de/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Añadir plan' })).not.toBeInTheDocument()
   })
 })
