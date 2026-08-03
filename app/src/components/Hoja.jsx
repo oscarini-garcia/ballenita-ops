@@ -47,10 +47,13 @@ export default function Hoja({ titulo, onCerrar, children }) {
  * `extra` es la salida de N4 —«+ Bunga nuevo…»—: sin ella, quedarse sin nada
  * libre es un callejón que obliga a cerrar, buscar otra lista y volver.
  */
-export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, extra }) {
+export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, extra, notaDebajo = false }) {
   return (
     <Hoja titulo={titulo} onCerrar={onCerrar}>
-      <div className="eleccion">
+      {/* `notaDebajo` cuando la nota es una frase y no un dato de dos palabras:
+          «0 👍 · faltan 5 por votar» a la derecha parte el título en dos líneas y
+          estrecha a los dos. Medido en el navegador con la hoja de planes. */}
+      <div className={`eleccion${notaDebajo ? ' nota-debajo' : ''}`}>
         {opciones.map((o) => (
           <button
             key={o.id ?? 'ninguno'}

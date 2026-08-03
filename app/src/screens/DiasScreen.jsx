@@ -257,6 +257,7 @@ function ModalDia({ eventId, event, dia, cena, planes, bungas, personas, platos,
             titulo="Planes libres"
             opciones={libres.map((p) => ({ id: p.id, etiqueta: p.titulo, nota: notaDePlan(p) }))}
             valor={null}
+            notaDebajo
             onElegir={async (id) => { await updatePlan(id, { dia }); setEligiendo(null) }}
             onCerrar={() => setEligiendo(null)}
           />
