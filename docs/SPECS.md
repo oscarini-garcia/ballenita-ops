@@ -1626,10 +1626,16 @@ darles un toque— y cabe en el subtítulo que ya existe. Con uno o dos se dan l
 nombres, porque ahí un nombre sirve para algo; con más, el número: «faltan 5 por
 votar». Cinco nombres seguidos no caben y no dicen nada que el número no diga.
 
-**El plan abierto enseña los avatares agrupados bajo su voto** (V3). Una línea
-por voto, y los que no han votado aparte y **apagados**. Contesta las dos
-preguntas a la vez —quién opina qué y quién falta— en 44 pt, y usa los emoji que
-el grupo ya reconoce de Gente y de Gastos.
+**El plan abierto enseña los nombres agrupados bajo su voto.** Una línea por
+voto. Empezó siendo los **avatares** (V3), y el defecto se ve en cuanto hay gente:
+seis emoji en gris a 17,9 pt son seis manchas que hay que aprenderse, y quien no
+ha elegido el suyo sale con la carita de fábrica, así que dos personas se pintan
+igual. Un nombre no se aprende.
+
+**Y ahí dentro no se listan los que faltan por votar.** Esa pregunta la contesta
+la **fila cerrada**, en su subtítulo —«falta por votar Luis»—, que es donde
+sirve: es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
+gastaba 34 pt en decir lo mismo dos pantallas seguidas.
 
 **En Ideas**, siete cambios del mismo encargo: se **edita tocando la fila** (el
 lápiz competía por el pulgar con el verbo y gastaba 44 pt de 390); «traer» pasa a

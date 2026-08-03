@@ -114,7 +114,7 @@ describe('el plan abierto', () => {
     expect((await plansOf(eventId))[0].votos).toEqual({ [curro]: '👍' })
   })
 
-  it('enseña los avatares bajo su voto, y aparte los que faltan', async () => {
+  it('enseña los nombres bajo su voto, y no repite quién falta', async () => {
     const { eventId, event, curro, ana } = await viaje()
     await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '👎' } })
 
@@ -122,14 +122,27 @@ describe('el plan abierto', () => {
     await abrir('Cuevas')
 
     const filas = [...document.querySelectorAll('.votantes-fila')]
-    // 👍 · 🤷 · 👎 · falta
-    expect(filas).toHaveLength(4)
-    expect(within(filas[0]).getByTitle('Curro')).toHaveTextContent('🏖️')
+    // Tres filas y no cuatro: 👍 · 🤷 · 👎. La de «falta» se retiró — eso ya lo
+    // dice la fila cerrada, que es donde sirve.
+    expect(filas).toHaveLength(3)
+    expect(within(filas[0]).getByText('Curro')).toBeInTheDocument()
     expect(within(filas[1]).getByText('nadie')).toBeInTheDocument()
-    expect(within(filas[2]).getByTitle('Ana')).toHaveTextContent('🍷')
-    // Los que faltan van apagados: es a los que hay que dar un toque.
-    expect(filas[3].querySelector('.votantes-caras')).toHaveClass('apagadas')
-    expect(within(filas[3]).getByTitle('Luis')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('Ana')).toBeInTheDocument()
+    // Luis no ha votado, y aquí dentro no se le nombra.
+    expect(screen.queryByText('Luis')).not.toBeInTheDocument()
+  })
+
+  it('con varios en el mismo voto, los nombres van seguidos', async () => {
+    const { eventId, event, curro, ana, luis } = await viaje()
+    await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '👍', [luis]: '👍' } })
+
+    render(<PlanesScreen eventId={eventId} event={event} />)
+    await abrir('Cuevas')
+
+    // Los tres en la misma línea, separados por comas. El orden es el que trae
+    // la base, que no es el de creación: lo que importa es que estén los tres.
+    const linea = document.querySelector('.votantes-nombres').textContent
+    expect(linea.split(', ').sort()).toEqual(['Ana', 'Curro', 'Luis'])
   })
 
   it('sin ser administrador no se puede devolver a ideas', async () => {
