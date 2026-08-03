@@ -58,13 +58,16 @@ export const TABLAS = {
     // Catálogo compartido: es la única tabla que no cuelga de un evento… salvo
     // los platos del Demo, que llevan su `eventId` para no mezclarse con los de
     // verdad. Sin `eventId` el plato es de todos, que es el caso normal.
-    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes', 'eventId'],
+    // `raciones` es para cuántos es la receta (§14.20): sin ese denominador una
+    // cantidad no se puede estirar ni repartir entre las dos mesas.
+    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes', 'raciones', 'eventId'],
     json: ['categorias', 'ingredientes'],
     booleanos: ['esFavorito'],
   },
   dinners: {
-    columnas: ['eventId', 'dia', 'platoIds', 'bungaMayoresId', 'bungaNinosId', 'queSeHace', 'cantidades'],
-    json: ['platoIds'],
+    // `platoIdsNinos` en NULL quiere decir «los niños comen lo mismo» (§14.20).
+    columnas: ['eventId', 'dia', 'platoIds', 'platoIdsNinos', 'bungaMayoresId', 'bungaNinosId', 'queSeHace', 'cantidades'],
+    json: ['platoIds', 'platoIdsNinos'],
   },
   planIdeas: {
     // El otro catálogo compartido, hermano de `dishes`: lo que se repite de un
@@ -82,7 +85,9 @@ export const TABLAS = {
     json: ['votos'],
   },
   shop: {
-    columnas: ['eventId', 'texto', 'categoria', 'comprado', 'compradoPor', 'compradoEn'],
+    columnas: ['eventId', 'texto', 'categoria', 'comprado', 'compradoPor', 'compradoEn',
+      'origen', 'clave', 'cantidad', 'unidad', 'desglose', 'cambio'],
+    json: ['desglose', 'cambio'],
     booleanos: ['comprado'],
   },
 };

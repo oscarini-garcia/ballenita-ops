@@ -968,3 +968,35 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    del color con el que esta app dice que algo va mal. */
 .version[data-estado="curso"] { color: var(--ink-soft); }
 .version[data-estado="fallo"] { color: var(--owe); }
+
+/* ── La receta con cantidades (SPECS §14.20) ─────────────────────────────────
+   Decidido en `docs/diseño/cenas-cantidades.html` · A1 + A5, con el detalle de
+   A4. La cantidad va **en columna a la izquierda**, como en una receta impresa:
+   las cifras alineadas se comparan sin leerlas, que es lo que se hace al repasar
+   la lista para ver si falta alguna. La columna son 92 pt medidos y al nombre le
+   quedan 234, que es más de lo que ocupa cualquier ingrediente real. */
+.fila-ing { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; }
+.lista-ing .deslizable + .deslizable .fila-ing { border-top: 1px solid var(--line-soft); }
+/* La cifra y su unidad **en la misma línea**: apiladas, cada ingrediente medía
+   129 pt en vez de 66 y en pantalla cabían dos. La unidad es la coletilla del
+   número, no un dato aparte. */
+.ing-cifra { width: 92px; flex: none; display: flex; gap: 3px; }
+.ing-cifra input { padding: 8px 6px; text-align: right; min-width: 0; }
+.ing-cifra .ing-unidad { width: 34px; flex: none; font-size: var(--t-sub); padding: 8px 4px; text-align: center; }
+.ing-nombre { flex: 1; min-width: 0; }
+.ing-nombre input { padding: 8px 10px; }
+/* Lo que hay que decir de esa línea, y solo cuando hay algo que decir: vacío no
+   ocupa nada, así que la fila corriente sigue midiendo lo que medía. */
+.ing-detalle:not(:empty) { font-size: var(--t-sub); color: var(--ink-faint); margin: 4px 2px 0; line-height: 1.35; }
+.anadir-ing { display: flex; gap: 8px; margin-top: 8px; }
+.anadir-ing input { flex: 1; min-width: 0; }
+.anadir-ing .btn { flex: none; }
+
+/* La compra: el total grande y, debajo, de dónde viene y qué ha cambiado. */
+.compra-sub { font-size: var(--t-sub); color: var(--ink-faint); line-height: 1.35; margin-top: 2px; }
+.compra-sub .cambio { color: var(--gold); }
+/* La cifra no le come el nombre: «1 paquete de 1 kg» a la derecha dejaba
+   «Arr…» a la izquierda. El nombre manda y la cifra ocupa lo justo. */
+.compra-cant { font-size: var(--t-row); font-weight: 600; font-variant-numeric: tabular-nums;
+  white-space: nowrap; flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+.compra-cant.falta { font-weight: 500; font-style: italic; color: var(--ink-faint); }

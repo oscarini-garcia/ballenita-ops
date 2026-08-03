@@ -42,6 +42,7 @@ import {
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
 import { claveDeEncargo, esEncargoConocido } from './encargos.js';
+import { materialDelPlato, pedirCantidades } from './cantidades.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
@@ -485,6 +486,40 @@ async function sugerirPlanes(peticion, env) {
   }
 }
 
+/**
+ * Las cantidades que le faltan a una receta (SPECS §14.20).
+ *
+ * El cliente manda **el plato y los ingredientes que le faltan**, y nada más: no
+ * viajan los nombres de quién come, que para decir cuánto arroz lleva una paella
+ * no aportan. Lo que vuelve es cuánto de cada cosa **para las raciones de la
+ * receta** —no para el viaje: estirar es una regla de tres y la hace la app— y
+ * en qué envase se compra, que es el dato sin el cual no se puede redondear.
+ */
+async function cantidadesDeUnPlato(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { plato = '', raciones = null, ingredientes = [] } = await peticion.json();
+  const pedidos = (ingredientes || []).map((x) => String(x ?? '').trim()).filter(Boolean);
+  if (!pedidos.length) return json({ error: 'no hay ingredientes que rellenar' }, 400);
+
+  const { clave, modelo, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDelPlato({ plato, raciones, ingredientes: pedidos });
+
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo,
+      hacer: (m) => pedirCantidades({ clave, modelo: m, material, pedidos, instruccion: encargos.cantidades }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
+    });
+    return json({ cantidades: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
 async function configuracionIA(peticion, env) {
   const cuenta = await cuentaAutenticada(peticion, env);
   if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
@@ -578,6 +613,7 @@ const RUTAS = [
   ['GET', '/api/ia/modelos', modelosDeIA],
   ['POST', '/api/ia/probar', probarIA],
   ['POST', '/api/plan/sugerir', sugerirPlanes],
+  ['POST', '/api/plato/cantidades', cantidadesDeUnPlato],
   ['POST', '/api/importar', importar],
 ];
 
