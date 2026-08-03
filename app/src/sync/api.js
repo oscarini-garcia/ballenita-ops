@@ -168,6 +168,30 @@ export const cantidadesDePlato = ({ plato, raciones, ingredientes }) =>
     body: JSON.stringify({ plato, raciones, ingredientes }),
   }).then((r) => r.cantidades || [])
 
+/**
+ * Ordena una lista de ingredientes escrita a saco (§14.20-bis).
+ *
+ * Va el plato y las líneas tal como están: «tres pinchos de wagyu» vuelve como
+ * 3 · ud · «Pinchos de wagyu». Es traducción, no invención.
+ */
+export const arreglarIngredientes = ({ plato, raciones, lineas }) =>
+  peticion('/api/plato/arreglar', {
+    method: 'POST',
+    body: JSON.stringify({ plato, raciones, lineas }),
+  }).then((r) => r.lineas || [])
+
+/**
+ * Cinco platos que peguen con este, para ir adelante y atrás (§14.20-bis).
+ *
+ * Tanda de cinco, como los regalos de `garciadoral-ops`: lo caro es contarle el
+ * contexto, y pasar de una propuesta a otra no vuelve a pedir nada.
+ */
+export const platosParecidos = ({ plato, ingredientes, yaHay }) =>
+  peticion('/api/plato/parecidos', {
+    method: 'POST',
+    body: JSON.stringify({ plato, ingredientes, yaHay }),
+  }).then((r) => r.platos || [])
+
 export const sugerirPlanes = (eventId, descartadas = []) =>
   peticion('/api/plan/sugerir', {
     method: 'POST',

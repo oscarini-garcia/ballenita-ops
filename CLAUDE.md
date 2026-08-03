@@ -65,6 +65,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   niños hereda los platos mientras `platoIdsNinos` sea `null`. La compra enseña el total
   redondeado al envase y el reparto al abrir la línea; al cambiar una cena se rehace y **lo
   dice**, pero **nunca toca lo escrito a mano ni lo ya comprado**.
+- **El editor de receta: dos campos y dos botones** (SPECS §14.20-bis,
+  `docs/diseño/receta-ingredientes.html` · U1·B3·R1·L2+L4·P2·Q): la unidad va dentro de la
+  cantidad («1,2 kg» de un tirón), aspa de 26 pt, fila vacía siempre al final y pegar reparte
+  líneas. **Arreglar** ordena lo escrito a saco y **se deshace**; **Parecidos** propone cinco
+  platos enteros y coger uno **no guarda nada**: reabre el editor con todo puesto.
 - **En Planes solo se vota, y un plan solo nace de una idea** (SPECS §14.19,
   `docs/diseño/planes-votar.html` · V3·V5·S2): el «+ Plan» se retiró —dos caminos para
   crear un plan dejaban planes sueltos sin idea detrás, que es media razón de ser del

@@ -61,14 +61,13 @@ describe('PlatosScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Principal' }))
     await userEvent.type(screen.getByLabelText('Para cuántas raciones'), '6')
 
-    // Cada ingrediente es una línea. La caja de comas se fue: partía por comas y
-    // «sal, gorda» se guardaba como dos ingredientes.
+    // Cada ingrediente es una línea, y **siempre hay una vacía al final**: no
+    // cuesta ningún toque escribir el siguiente.
     for (const nombre of ['huevo', 'patata', 'cebolla']) {
       await userEvent.type(screen.getByLabelText('Ingrediente nuevo'), nombre)
-      await userEvent.click(screen.getByRole('button', { name: 'Añadir' }))
     }
-    await userEvent.type(screen.getByLabelText('Cantidad de huevo'), '8')
-    await userEvent.type(screen.getByLabelText('Unidad de huevo'), 'ud')
+    // Dos campos y no tres: «8 ud» se escribe de un tirón y la app lo parte.
+    await userEvent.type(screen.getByLabelText('Cantidad de huevo'), '8 ud')
     await userEvent.click(screen.getByRole('button', { name: 'Añadir al catálogo' }))
 
     const [plato] = await listDishes()

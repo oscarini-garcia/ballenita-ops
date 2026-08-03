@@ -24,6 +24,7 @@
 
 import { INSTRUCCION } from './sugerencias.js';
 import { INSTRUCCION as CANTIDADES } from './cantidades.js';
+import { INSTRUCCION_ARREGLAR, INSTRUCCION_PARECIDOS } from './receta.js';
 
 export const ENCARGOS = [
   {
@@ -37,6 +38,18 @@ export const ENCARGOS = [
     titulo: 'Poner las cantidades de una receta',
     pista: 'Se le da el plato, para cuántas raciones es y los ingredientes a los que les falta la cifra; contesta con la cantidad y con en qué se compra (el envase), que es lo que permite redondear. Espera un JSON con «nombre», «cantidad», «unidad» y «lote»: si reescribes esto, conserva esa parte. Estirar la receta para la gente que hay no lo hace el modelo, lo hace la app. Vacío, vuelve el encargo de origen.',
     origen: CANTIDADES,
+  },
+  {
+    id: 'arreglar',
+    titulo: 'Ordenar una lista de ingredientes escrita a saco',
+    pista: 'Convierte «tres pinchos de wagyu» en 3 · ud · «Pinchos de wagyu». Es traducción, no invención: lo que ya trae número se respeta y lo que no se entiende —«al gusto»— se queda sin cantidad. Espera un JSON con «i», «cantidad», «unidad» y «nombre»; si le quitas esa parte, el botón deja de hacer nada. Vacío, vuelve el encargo de origen.',
+    origen: INSTRUCCION_ARREGLAR,
+  },
+  {
+    id: 'parecidos',
+    titulo: 'Proponer platos parecidos a uno',
+    pista: 'Tanda de cinco a partir del plato abierto y de lo que ya hay en el catálogo. Cada propuesta llega entera —nombre, por qué, tipo e ingredientes con cantidades para 12— porque aceptarla abre el editor con todo puesto. Espera ese JSON: sin él no sale ninguna. Vacío, vuelve el encargo de origen.',
+    origen: INSTRUCCION_PARECIDOS,
   },
 ];
 
