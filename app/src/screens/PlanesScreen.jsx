@@ -6,6 +6,7 @@ import { useIdentidad } from '../lib/identidad.js'
 import { esAdministrador } from '../lib/admin.js'
 import { leerSesion } from '../auth/sesion.js'
 import { porDia } from '../lib/evento.js'
+import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
@@ -52,7 +53,6 @@ export default function PlanesScreen({ eventId, event }) {
   // un día que el viaje ya no tiene no es un plan elegido.
   const { dentro, fuera } = porDia(plans, event)
   const elegidos = dentro.filter((p) => p.dia)
-  const votosDe = (p) => Object.values(p.votos ?? {}).filter((v) => v === '👍').length
   const disponibles = dentro.filter((p) => !p.dia)
     .sort((a, b) => votosDe(b) - votosDe(a) || (a.titulo || '').localeCompare(b.titulo || '', 'es'))
 
@@ -62,17 +62,10 @@ export default function PlanesScreen({ eventId, event }) {
    * ya existe, sin gastar un sitio nuevo.
    */
   function Fila({ plan, elegido }) {
-    const sinVotar = persons.filter((p) => !(plan.votos ?? {})[p.id])
-    // Los nombres solo cuando son uno o dos: ahí un nombre es accionable —«dale
-    // un toque a Luis»—. Con cinco es una lista que no cabe y que además no dice
-    // nada que el número no diga.
-    const quienes = sinVotar.map((p) => p.apodo || p.name)
-    const detalle = elegido
-      ? fmtDay(plan.dia)
-      : sinVotar.length === 0 ? 'han votado todos'
-        : sinVotar.length === persons.length ? 'sin votos todavía'
-          : quienes.length <= 2 ? `falta por votar ${quienes.join(' y ')}`
-            : `faltan ${quienes.length} por votar`
+    // Quién falta lo dice `lib/planes.js`, que es de donde lo saca también la
+    // hoja de planes libres de Agenda: dos sitios contando lo mismo con palabras
+    // distintas se leen como dos cosas distintas.
+    const detalle = elegido ? fmtDay(plan.dia) : quienFaltaPorVotar(plan, persons)
     return (
       <button className="row fila-plan" onClick={() => { tap(); setAbierto(plan.id) }}>
         <div className={`ico${elegido ? ' verde' : ''}`}><Icono nombre="plan" /></div>

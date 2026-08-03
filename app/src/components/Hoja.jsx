@@ -47,10 +47,13 @@ export default function Hoja({ titulo, onCerrar, children }) {
  * `extra` es la salida de N4 —«+ Bunga nuevo…»—: sin ella, quedarse sin nada
  * libre es un callejón que obliga a cerrar, buscar otra lista y volver.
  */
-export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, extra }) {
+export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, extra, notaDebajo = false }) {
   return (
     <Hoja titulo={titulo} onCerrar={onCerrar}>
-      <div className="eleccion">
+      {/* `notaDebajo` cuando la nota es una frase y no un dato de dos palabras:
+          «0 👍 · faltan 5 por votar» a la derecha parte el título en dos líneas y
+          estrecha a los dos. Medido en el navegador con la hoja de planes. */}
+      <div className={`eleccion${notaDebajo ? ' nota-debajo' : ''}`}>
         {opciones.map((o) => (
           <button
             key={o.id ?? 'ninguno'}
@@ -71,6 +74,50 @@ export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, ex
             <span className="et">{extra.etiqueta}</span>
           </button>
         )}
+      </div>
+    </Hoja>
+  )
+}
+
+/**
+ * La misma hoja, pero para marcar **varias** (`docs/diseño/agenda-dia.html · F1`).
+ *
+ * Elegir un bunga es elegir uno; elegir los platos de una cena es marcar seis de
+ * catorce. Es el mismo mueble —la lista sube desde abajo, el fondo cierra— con
+ * la única diferencia de que aquí las filas no se cierran al tocarlas y llevan
+ * `aria-pressed` en vez de un tic decorativo.
+ *
+ * `opciones`: `[{ id, etiqueta, nota }]`. `marcados` es un `Set` de ids.
+ */
+export function HojaDeMarcar({ titulo, opciones, marcados, onAlternar, onCerrar, vacio, pie }) {
+  return (
+    <Hoja titulo={titulo} onCerrar={onCerrar}>
+      {opciones.length === 0 && vacio && <div className="note">{vacio}</div>}
+      {opciones.length > 0 && (
+        <div className="eleccion">
+          {opciones.map((o) => {
+            const puesto = marcados.has(o.id)
+            return (
+              <button
+                key={o.id}
+                type="button"
+                className="eleccion-op"
+                aria-pressed={puesto}
+                onClick={() => { tap(); onAlternar(o.id) }}
+              >
+                <span className="et">{o.etiqueta}</span>
+                {o.nota && <span className="no">{o.nota}</span>}
+                {puesto && <span className="tic"><Icono nombre="visto" /></span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {pie && <div className="apunte" style={{ marginTop: 10 }}>{pie}</div>}
+      {/* Elegir uno cierra la hoja solo; marcar varios no sabe cuándo has
+          terminado, así que la salida tiene que estar escrita. */}
+      <div style={{ marginTop: 14 }}>
+        <button type="button" className="btn block" onClick={() => { tap(); onCerrar() }}>Listo</button>
       </div>
     </Hoja>
   )

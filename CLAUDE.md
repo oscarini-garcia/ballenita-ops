@@ -74,6 +74,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   quién falta se dice en la fila cerrada y no dos veces. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
+- **Un día del viaje son cuatro renglones** (SPECS §14.21, `docs/diseño/agenda-dia.html` ·
+  A1·B4·F1·G1·C2·D2·E1): qué bungas, **qué se cena** y **qué plan**. La fila de un día ya no
+  lleva lápiz —un día no se edita, existe porque el evento tiene esas fechas— y el modal pasó
+  de 1.773,8 pt a 679,8: los platos se marcan en una hoja (`HojaDeMarcar`), los planes libres
+  se eligen en otra —con los votos y quién falta—, «Qué se hace» y «Cantidades» se retiraron
+  (las columnas siguen en D1) y «Plato nuevo al vuelo» volvió a Comidas → Platos. **Libre**
+  incluye lo que se cayó fuera de las fechas, que antes desaparecía del modal.
 - **La lista de ideas se parte en dos, y cada idea la firma alguien** (SPECS §14.19-ter,
   `docs/diseño/planes-ideas.html` · A1·B3·F2·C1+C3·D3): **Propuestas** —las que ya están a
   votación en este viaje— y **Posibles**; la firma es nombre + **alias de dos letras** de su

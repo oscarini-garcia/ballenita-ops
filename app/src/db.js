@@ -309,7 +309,18 @@ export async function listDishes(evento = null) {
 export const updateDish = (id, patch) => escribir('dishes', id, patch)
 export const removeDish = (id) => removeRow('dishes', id)
 
-// ── Cenas (§6) — una por día ──
+/**
+ * ── Cenas (§6) — una por día ──
+ *
+ * Una cena es **sus platos y sus dos bungas**, y nada más. `queSeHace` y
+ * `cantidades` —dos textos libres que se escribían en dos pantallas y se leían
+ * en una tercera— se retiraron en §14.21 (`docs/diseño/agenda-dia.html · B4`).
+ *
+ * Las columnas siguen en D1 y en `tablas.js` **a propósito**: quitarlas no gana
+ * nada —no ocupan, no se sincroniza de más— y rompería a un móvil que todavía no
+ * se haya actualizado y siga mandando el campo. Lo escrito se queda dormido, que
+ * es lo barato y lo reversible.
+ */
 export async function addDinner(eventId, d) {
   return escribir('dinners', uid('cena'), {
     eventId,
@@ -321,8 +332,6 @@ export async function addDinner(eventId, d) {
     platoIdsNinos: d.platoIdsNinos ?? null,
     bungaMayoresId: d.bungaMayoresId ?? null,
     bungaNinosId: d.bungaNinosId ?? null,
-    queSeHace: d.queSeHace ?? '',
-    cantidades: d.cantidades ?? '',
   })
 }
 export const dinnersOf = (eventId) => db.dinners.where({ eventId }).sortBy('dia')
@@ -660,8 +669,6 @@ export async function seedExample() {
     platoIds: ['Aceitunas y altramuces', 'Ensaladilla rusa', 'Paella mixta', 'Pan con tomate', 'Ensalada verde', 'Sandía'].map(dishId).filter(Boolean),
     bungaMayoresId: bPerez,
     bungaNinosId: bSolteros,
-    queSeHace: 'Curro enciende la paellera a las 20:00. Que nadie toque el socarrat.',
-    cantidades: '2 kg arroz · 30 mejillones · 1 pollo · 6 barras · 4 botellas tinto',
   })
 
   await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado', ubicacion: 'Cala del sur', votos: { [curro]: '👍', [ana]: '👍', [pablo]: '👍' } })
