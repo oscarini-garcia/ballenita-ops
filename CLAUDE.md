@@ -59,6 +59,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   plan salen los avatares bajo su voto y los que faltan apagados. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
+- **Un día del viaje son cuatro renglones** (SPECS §14.20, `docs/diseño/agenda-dia.html` ·
+  A1·B4·F1·G1·C2·D2·E1): qué bungas, **qué se cena** y **qué plan**. La fila de un día ya no
+  lleva lápiz —un día no se edita, existe porque el evento tiene esas fechas— y el modal pasó
+  de 1.773,8 pt a 679,8: los platos se marcan en una hoja (`HojaDeMarcar`), los planes libres
+  se eligen en otra —con los votos y quién falta—, «Qué se hace» y «Cantidades» se retiraron
+  (las columnas siguen en D1) y «Plato nuevo al vuelo» volvió a Comidas → Platos. **Libre**
+  incluye lo que se cayó fuera de las fechas, que antes desaparecía del modal.
 - **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,

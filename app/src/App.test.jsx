@@ -80,9 +80,10 @@ describe('App — navegación', () => {
     expect(await screen.findByRole('tab', { name: 'Hoy' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('tab', { name: 'Días' }))
 
-    // Los ocho días del ejemplo, vacíos incluidos, cada uno con su lápiz.
-    const lapices = await screen.findAllByRole('button', { name: /^Editar / })
-    expect(lapices).toHaveLength(8)
+    // Los ocho días del ejemplo, vacíos incluidos. Ya no llevan lápiz: la fila
+    // entera abre, y su rótulo es la fecha larga (agenda-dia.html · A1).
+    const dias = await screen.findAllByRole('button', { name: /de agosto:/ })
+    expect(dias).toHaveLength(8)
   })
 
   it('el área elegida no se olvida al ir y volver de otra sección', async () => {
@@ -91,7 +92,7 @@ describe('App — navegación', () => {
 
     await userEvent.click(barra[0])
     await userEvent.click(await screen.findByRole('tab', { name: 'Días' }))
-    await screen.findAllByRole('button', { name: /^Editar / })
+    await screen.findAllByRole('button', { name: /de agosto:/ })
 
     await userEvent.click(barra[1])           // a Dinero…
     await screen.findByText('Gasto total del evento')

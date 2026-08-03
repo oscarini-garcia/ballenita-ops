@@ -75,3 +75,47 @@ export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, ex
     </Hoja>
   )
 }
+
+/**
+ * La misma hoja, pero para marcar **varias** (`docs/diseño/agenda-dia.html · F1`).
+ *
+ * Elegir un bunga es elegir uno; elegir los platos de una cena es marcar seis de
+ * catorce. Es el mismo mueble —la lista sube desde abajo, el fondo cierra— con
+ * la única diferencia de que aquí las filas no se cierran al tocarlas y llevan
+ * `aria-pressed` en vez de un tic decorativo.
+ *
+ * `opciones`: `[{ id, etiqueta, nota }]`. `marcados` es un `Set` de ids.
+ */
+export function HojaDeMarcar({ titulo, opciones, marcados, onAlternar, onCerrar, vacio, pie }) {
+  return (
+    <Hoja titulo={titulo} onCerrar={onCerrar}>
+      {opciones.length === 0 && vacio && <div className="note">{vacio}</div>}
+      {opciones.length > 0 && (
+        <div className="eleccion">
+          {opciones.map((o) => {
+            const puesto = marcados.has(o.id)
+            return (
+              <button
+                key={o.id}
+                type="button"
+                className="eleccion-op"
+                aria-pressed={puesto}
+                onClick={() => { tap(); onAlternar(o.id) }}
+              >
+                <span className="et">{o.etiqueta}</span>
+                {o.nota && <span className="no">{o.nota}</span>}
+                {puesto && <span className="tic"><Icono nombre="visto" /></span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {pie && <div className="apunte" style={{ marginTop: 10 }}>{pie}</div>}
+      {/* Elegir uno cierra la hoja solo; marcar varios no sabe cuándo has
+          terminado, así que la salida tiene que estar escrita. */}
+      <div style={{ marginTop: 14 }}>
+        <button type="button" className="btn block" onClick={() => { tap(); onCerrar() }}>Listo</button>
+      </div>
+    </Hoja>
+  )
+}
