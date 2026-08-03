@@ -1627,10 +1627,17 @@ nombres, porque ahí un nombre sirve para algo; con más, el número: «faltan 5
 votar». Cinco nombres seguidos no caben y no dicen nada que el número no diga.
 
 **El plan abierto enseña los nombres agrupados bajo su voto.** Una línea por
-voto. Empezó siendo los **avatares** (V3), y el defecto se ve en cuanto hay gente:
+voto, y cada votante es **su avatar, su nombre y el alias de su familia** en
+pastilla de su color (`components/Alias.jsx`, la misma que firma una idea).
+Empezó siendo **solo los avatares** (V3), y el defecto se ve en cuanto hay gente:
 seis emoji en gris a 17,9 pt son seis manchas que hay que aprenderse, y quien no
 ha elegido el suyo sale con la carita de fábrica, así que dos personas se pintan
-igual. Un nombre no se aprende.
+igual. Un nombre no se aprende — y al lado del nombre el dibujo sí sirve, porque
+es lo que se reconoce de un vistazo. El alias añade lo que no dice ninguno de los
+otros dos: **de qué familia viene el voto**, que es lo que se mira para saber si
+una casa entera está a favor. Los tres van pegados y sin partirse entre líneas:
+partidos, el alias de uno queda junto al nombre del siguiente y el voto cambia de
+dueño de un vistazo.
 
 **Y ahí dentro no se listan los que faltan por votar.** Esa pregunta la contesta
 la **fila cerrada**, en su subtítulo —«falta por votar Luis»—, que es donde

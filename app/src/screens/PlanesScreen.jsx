@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { plansOf, updatePlan, personsOf, devolverPlanAIdea } from '../db.js'
+import { plansOf, updatePlan, personsOf, familiesOf, devolverPlanAIdea } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { esAdministrador } from '../lib/admin.js'
@@ -8,6 +8,7 @@ import { leerSesion } from '../auth/sesion.js'
 import { porDia } from '../lib/evento.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
+import Alias from '../components/Alias.jsx'
 
 const VOTES = ['👍', '🤷', '👎']
 const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -41,6 +42,7 @@ const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { we
 export default function PlanesScreen({ eventId, event }) {
   const plans = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
+  const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const { meId: me } = useIdentidad(eventId, persons)
   const [abierto, setAbierto] = useState(null)
 
@@ -147,6 +149,7 @@ export default function PlanesScreen({ eventId, event }) {
         <PlanAbierto
           plan={plan}
           persons={persons}
+          families={families}
           me={me}
           evento={event}
           esAdmin={esAdmin}
@@ -161,17 +164,21 @@ export default function PlanesScreen({ eventId, event }) {
  * El plan abierto: se vota, se ve quién ha votado qué, y quien administra puede
  * devolverlo al catálogo.
  *
- * Los votos se enseñan **con los nombres**, una línea por voto. Antes eran los
- * avatares (`planes-votar.html` · V3) y hay que aprendérselos: seis emoji en gris
- * a 17,9 pt son seis manchas, y quien no ha elegido el suyo sale con la carita de
- * fábrica, así que dos personas se pintan igual. Un nombre no se aprende.
+ * Los votos se enseñan **con los nombres**, una línea por voto, y cada nombre
+ * lleva delante **su avatar** y detrás **el alias de su familia** en pastilla de
+ * su color (`components/Alias.jsx`). Los avatares solos no valían —seis emoji en
+ * gris a 17,9 pt son seis manchas, y quien no eligió el suyo sale con la carita
+ * de fábrica, así que dos personas se pintan igual—, pero al lado del nombre sí:
+ * el nombre identifica y el dibujo es lo que se reconoce de un vistazo. El alias
+ * añade lo que no dice ninguno de los dos, que es **de qué familia va el voto**,
+ * y eso es lo que se mira cuando hay que saber si una casa entera está a favor.
  *
  * **Y no se listan los que faltan por votar.** Esa pregunta ya la contesta la
  * fila cerrada, en el subtítulo —«falta por votar Luis»—, que es donde sirve:
  * ahí es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
  * gastaba 34 pt en decir lo mismo dos pantallas seguidas.
  */
-function PlanAbierto({ plan, persons, me, evento, esAdmin, onClose }) {
+function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) {
   useBloqueoDeScroll()
   const [confirmando, setConfirmando] = useState(false)
 
@@ -227,7 +234,13 @@ function PlanAbierto({ plan, persons, me, evento, esAdmin, onClose }) {
               <span className="votantes-nombres">
                 {conVoto(v).length === 0
                   ? <span className="pista">nadie</span>
-                  : conVoto(v).map((p) => p.apodo || p.name).join(', ')}
+                  : conVoto(v).map((p) => (
+                    <span className="votante" key={p.id}>
+                      <span className="cara" aria-hidden>{p.avatar || '🙂'}</span>
+                      {p.apodo || p.name}
+                      <Alias familia={families.find((f) => f.id === p.familyId)} />
+                    </span>
+                  ))}
               </span>
             </div>
           ))}

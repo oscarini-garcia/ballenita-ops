@@ -6,7 +6,7 @@ import {
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
-import { aliasDe } from '../lib/alias.js'
+import Alias from '../components/Alias.jsx'
 import { formatearHace } from '../lib/hace.js'
 import { tap } from '../lib/native.js'
 import { sugerirPlanes, hayApi } from '../sync/api.js'
@@ -157,11 +157,10 @@ function Fila({ idea, cuando, persons, families, onEditar, onProponer }) {
 /**
  * Quién apuntó la idea y cuándo (`docs/diseño/planes-ideas.html` · B3).
  *
- * El alias va en pastilla y con el color de su familia, no en texto corrido:
- * «Curro GA» leído deprisa parece un apellido, y lo que se quiere es que tres
- * ideas de la misma familia se vean **sin leer ningún nombre**. El color se
- * mezcla con la tinta del tema para que las dos letras se lean igual de bien en
- * claro que en oscuro; el de la familia solo tiñe el fondo.
+ * El alias va en pastilla y con el color de su familia (`components/Alias.jsx`),
+ * no en texto corrido: «Curro GA» leído deprisa parece un apellido, y lo que se
+ * quiere es que tres ideas de la misma familia se vean **sin leer ningún
+ * nombre**.
  *
  * Sin autor —una idea traída de la IA o importada— se dice «sin autor» y punto:
  * es cierto, y es mejor que inventarse a alguien.
@@ -176,17 +175,7 @@ function Firma({ idea, persons, families, cuando }) {
       {quien ? (
         <>
           {quien.apodo || quien.name}
-          {familia && (
-            <span
-              className="alias"
-              style={{
-                background: `color-mix(in srgb, ${familia.color} 20%, transparent)`,
-                color: `color-mix(in srgb, ${familia.color} 55%, var(--ink))`,
-              }}
-            >
-              {aliasDe(familia)}
-            </span>
-          )}
+          <Alias familia={familia} />
         </>
       ) : 'sin autor'}
       {cuandoTexto && ` · ${cuandoTexto}`}

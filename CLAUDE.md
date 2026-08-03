@@ -70,8 +70,8 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   crear un plan dejaban planes sueltos sin idea detrás, que es media razón de ser del
   catálogo— y la pantalla dice por dónde se entra; el día se pone en **Agenda**; la lista son dos grupos —elegidos y disponibles por votos— con
   filas de 70,7 pt (antes tarjetas de 299,9 con siete botones y ocho colores); al abrir un
-  plan salen **los nombres** bajo su voto, y quién falta se dice en la fila cerrada y no
-  dos veces. **La IA sugiere ideas**
+  plan salen **los nombres** bajo su voto —con su avatar y el alias de su familia—, y
+  quién falta se dice en la fila cerrada y no dos veces. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
 - **La lista de ideas se parte en dos, y cada idea la firma alguien** (SPECS §14.19-ter,

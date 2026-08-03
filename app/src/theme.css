@@ -585,7 +585,14 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .votantes { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
 .votantes-fila { display: flex; align-items: flex-start; gap: 10px; min-height: 34px; padding: 4px 0; }
 .votantes-voto { width: 42px; flex: none; font-size: var(--t-row); }
-.votantes-nombres { flex: 1; min-width: 0; font-size: var(--t-row); line-height: 1.4; }
+.votantes-nombres { flex: 1; min-width: 0; font-size: var(--t-row); line-height: 1.4;
+  display: flex; flex-wrap: wrap; gap: 2px 14px; }
+/* Avatar, nombre y alias van juntos y no se parten entre dos líneas: partidos,
+   el alias de uno queda pegado al nombre del siguiente y el voto cambia de
+   dueño de un vistazo. */
+.votante { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.votante .cara { font-size: var(--t-row); }
+.votante .alias { margin: 0; }
 
 /* El carrusel de propuestas de la IA, con la figura del regalo de
    garciadoral-ops: qué, por qué, y el pie con los verbos. */
@@ -602,12 +609,14 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    dejaba media pantalla vacía debajo. */
 .modal.fino { max-width: 380px; }
 
-/* ── La firma de una idea (docs/diseño/planes-ideas.html · B3) ───────────────
+/* ── El alias de una familia (docs/diseño/planes-ideas.html · B3) ────────────
    Dos letras con el color de su familia detrás. La pastilla mide 22 pt de alto,
-   que es justo lo que ya ocupaba la línea de 15,7 con su interlínea: la fila
-   sigue midiendo 67,1 y no crece ni un pt. El color de fondo y el de la letra
-   los pone quien la pinta (`Firma`), porque salen del dato. */
-.sub .alias { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+   que es justo lo que ya ocupaba la línea de 15,7 con su interlínea: la fila de
+   una idea sigue midiendo 67,1 y no crece ni un pt. El color de fondo y el de la
+   letra los pone quien la pinta (`components/Alias.jsx`), porque salen del dato.
+   La clase no cuelga de `.sub` porque la usan dos sitios: la firma de una idea y
+   quién ha votado un plan. */
+.alias { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
   border-radius: 5px; padding: 1px 5px; margin: 0 2px 0 5px; display: inline-block;
   line-height: 1.35; vertical-align: baseline; }
 
