@@ -2,6 +2,7 @@ import Dexie from 'dexie'
 import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
 import { pesoDe } from './lib/personas.js'
+import { loQueHayQueComprar } from './lib/compra.js'
 
 // IndexedDB desde el día 1 (§14). Cada tabla guarda registros con `id` de cliente
 // y `updatedAt`. Desde la migración a la API propia (Worker + D1), IndexedDB deja
@@ -290,9 +291,13 @@ export const DISH_CATEGORIES = [
  * Las cenas, los planes, los gastos y la compra ya colgaban de su evento y
  * nunca se mezclaron. Los platos eran la única tabla suelta.
  */
-export async function addDish({ name, categorias = [], esFavorito = false, ingredientes = [] }, evento = null) {
+export async function addDish({ name, categorias = [], esFavorito = false, ingredientes = [], raciones = null }, evento = null) {
   const eventId = evento?.esDemo ? evento.id : null
-  return escribir('dishes', uid('dish'), { name, categorias, esFavorito, ingredientes, eventId })
+  // `raciones` es **para cuántos es la receta**, y sin él una cantidad no se
+  // puede estirar (SPECS §14.20). Va una vez por plato y no por ingrediente: el
+  // arroz para 12 y el pan para 20 es exactamente el lío que hace que nadie
+  // rellene nada.
+  return escribir('dishes', uid('dish'), { name, categorias, esFavorito, ingredientes, raciones, eventId })
 }
 
 export async function listDishes(evento = null) {
@@ -310,6 +315,10 @@ export async function addDinner(eventId, d) {
     eventId,
     dia: d.dia,
     platoIds: d.platoIds ?? [],
+    // Los niños heredan la lista de arriba mientras esto sea `null` (G2). En
+    // cuanto se les quita o se les añade algo, tienen la suya y las dos mesas
+    // dejan de ser una división.
+    platoIdsNinos: d.platoIdsNinos ?? null,
     bungaMayoresId: d.bungaMayoresId ?? null,
     bungaNinosId: d.bungaNinosId ?? null,
     queSeHace: d.queSeHace ?? '',
@@ -464,19 +473,97 @@ export const SHOP_CATEGORIES = [
   { id: 'hielo', label: 'Hielo y frío', icon: '🧊' },
   { id: 'otros', label: 'Otros', icon: '🧺' },
 ]
-export async function addShopItem(eventId, { texto, categoria = 'otros' }) {
+export async function addShopItem(eventId, { texto, categoria = 'otros', ...resto }) {
   return escribir('shop', uid('shop'), {
     eventId, texto, categoria, comprado: false, compradoPor: null, compradoEn: null,
+    // De dónde sale la línea. `mano` es lo de siempre —hielos, bolsas de
+    // basura— y **no se toca nunca** al recalcular; `cena` viene de una receta
+    // y es lo único que se puede rehacer solo (SPECS §14.20).
+    origen: resto.origen ?? 'mano',
+    clave: resto.clave ?? null,
+    cantidad: resto.cantidad ?? null,
+    unidad: resto.unidad ?? '',
+    compra: resto.compra ?? '',
+    exacto: resto.exacto ?? null,
+    envase: resto.envase ?? '',
+    desglose: resto.desglose ?? null,
+    // Lo que decía antes, cuando el número ha cambiado por su cuenta. Se enseña
+    // hasta que alguien marca la línea: un número que cambia sin decir por qué
+    // no se lee como «bien calculado», se lee como «esto se mueve solo».
+    cambio: resto.cambio ?? null,
   })
 }
 export const shopItemsOf = (eventId) => db.shop.where({ eventId }).toArray()
 export const updateShopItem = (id, patch) => escribir('shop', id, patch)
 export const removeShopItem = (id) => removeRow('shop', id)
-// Marcar/desmarcar comprado registrando quién (personId) y cuándo.
+// Marcar/desmarcar comprado registrando quién (personId) y cuándo. Marcar
+// también borra el «venía de» del recálculo: ya se ha visto y ya está en el carro.
 export const markBought = (id, personId = null) =>
-  updateShopItem(id, { comprado: true, compradoPor: personId, compradoEn: now() })
+  updateShopItem(id, { comprado: true, compradoPor: personId, compradoEn: now(), cambio: null })
 export const unmarkBought = (id) =>
   updateShopItem(id, { comprado: false, compradoPor: null, compradoEn: null })
+/**
+ * Rehace las líneas de la compra que vienen de las cenas (SPECS §14.20).
+ *
+ * Tres reglas, y las tres son de una sola frase:
+ *
+ * - **Lo escrito a mano no se toca nunca.** «Hielos» y «bolsas de basura» no son
+ *   de ninguna receta y la lista tiene que seguir siendo el sitio donde se
+ *   apunta lo que se te ocurre.
+ * - **Lo ya comprado tampoco.** Es lo único que no se puede deshacer: ya está en
+ *   el carro. Si la cuenta ha cambiado después, esa línea se queda como estaba.
+ * - **Lo que cambia, lo dice** (E2): se guarda de cuánto venía en `cambio`, y el
+ *   renglón desaparece en cuanto alguien marca la línea.
+ *
+ * Devuelve un resumen —cuántas nacieron, cuántas cambiaron y cuántas se
+ * quitaron— para poder contarlo sin volver a leer la tabla.
+ */
+export async function sincronizarCompraDesdeCenas(eventId, { cenas, platos, personas }) {
+  const calculado = loQueHayQueComprar({ cenas, platos, personas })
+  const enLista = (await db.shop.where({ eventId }).toArray()).filter((x) => x.origen === 'cena')
+  const porClave = new Map(enLista.map((x) => [x.clave, x]))
+  const resumen = { nuevas: 0, cambiadas: 0, quitadas: 0 }
+
+  for (const linea of calculado) {
+    const ya = porClave.get(linea.clave)
+    porClave.delete(linea.clave)
+    const campos = {
+      texto: linea.nombre,
+      cantidad: linea.cantidad,
+      unidad: linea.unidad,
+      desglose: linea.desglose,
+      // Lo que se mete en el carro, ya redondeado al envase —«2 paquetes de
+      // 1 kg»—, y debajo la cifra exacta por si se ve claro coger de menos.
+      // 1,62 kg no se compran; dos paquetes de uno, sí.
+      compra: linea.texto,
+      exacto: linea.exacto,
+      envase: linea.envase,
+    }
+    if (!ya) {
+      await addShopItem(eventId, { ...campos, categoria: 'comida', origen: 'cena', clave: linea.clave })
+      resumen.nuevas += 1
+      continue
+    }
+    if (ya.comprado) continue
+    const igual = ya.cantidad === linea.cantidad && ya.texto === linea.nombre && ya.compra === linea.texto
+    if (igual) continue
+    await updateShopItem(ya.id, {
+      ...campos,
+      cambio: { antes: ya.cantidad, unidad: ya.unidad ?? '' },
+    })
+    resumen.cambiadas += 1
+  }
+
+  // Lo que ya no sale en ninguna cena se va, salvo que esté comprado: eso ya
+  // está en el carro y quitarlo de la lista no lo saca de ahí.
+  for (const sobra of porClave.values()) {
+    if (sobra.comprado) continue
+    await removeShopItem(sobra.id)
+    resumen.quitadas += 1
+  }
+  return resumen
+}
+
 // Vacía lo ya comprado para dejar la lista limpia.
 export async function clearBoughtShopItems(eventId) {
   const done = (await db.shop.where({ eventId }).toArray()).filter((x) => x.comprado)
@@ -541,8 +628,28 @@ export async function seedExample() {
   for (const plato of [
     { name: 'Aceitunas y altramuces', categorias: ['aperitivo'] },
     { name: 'Ensaladilla rusa', categorias: ['entrante'] },
-    { name: 'Paella mixta', categorias: ['principal'], esFavorito: true, ingredientes: ['arroz', 'mejillones', 'pollo'] },
-    { name: 'Pan con tomate', categorias: ['acompanamiento'] },
+    {
+      name: 'Paella mixta',
+      categorias: ['principal'],
+      esFavorito: true,
+      raciones: 12,
+      ingredientes: [
+        { nombre: 'Arroz bomba', cantidad: 1.2, unidad: 'kg', lote: { tamano: 1, unidad: 'kg', nombre: 'paquete' } },
+        { nombre: 'Mejillones', cantidad: 30, unidad: 'ud', lote: { tamano: 1, unidad: 'kg', nombre: 'malla' } },
+        { nombre: 'Pollo troceado', cantidad: 1, unidad: 'ud' },
+        // Sin cantidad a propósito: es el caso que enseña el botón de la IA.
+        { nombre: 'Azafrán' },
+      ],
+    },
+    {
+      name: 'Pan con tomate',
+      categorias: ['acompanamiento'],
+      raciones: 12,
+      ingredientes: [
+        { nombre: 'Pan de payés', cantidad: 2, unidad: 'ud', lote: { tamano: 1, unidad: 'ud', nombre: 'hogaza' } },
+        { nombre: 'Tomate de untar', cantidad: 8, unidad: 'ud' },
+      ],
+    },
     { name: 'Ensalada verde', categorias: ['acompanamiento'] },
     { name: 'Sandía', categorias: ['postre'] },
   ]) await addDish(plato, evento)

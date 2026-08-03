@@ -6,6 +6,7 @@ import {
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { porDia } from '../lib/evento.js'
+import { tap } from '../lib/native.js'
 import Fab from '../components/Fab.jsx'
 
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
@@ -85,6 +86,15 @@ function FichaDeCena({ cena: c, bungaName, dishById, fuera = false }) {
         </div>
       )}
 
+      {/* La mesa de niños puede comer otra cosa (§14.20 · G2). Mientras herede
+          no se dice nada: la noche normal es que coman lo mismo, y un renglón
+          repitiéndolo en todas las cenas es ruido. */}
+      {c.platoIdsNinos && (
+        <div className="note" style={{ marginTop: 8 }}>
+          <b>Los niños comen otra cosa:</b>{' '}
+          {c.platoIdsNinos.map((id) => dishById[id]?.name).filter(Boolean).join(' · ') || 'nada apuntado'}
+        </div>
+      )}
       {c.cantidades && <div className="note" style={{ marginTop: 8 }}><b>Cantidades:</b> {c.cantidades}</div>}
       {c.queSeHace && <div className="note" style={{ marginTop: 8 }}><b>Qué se hace:</b> {c.queSeHace}</div>}
     </div>
@@ -97,6 +107,9 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
   const [bungaMayoresId, setMayores] = useState(bungas[0]?.id ?? '')
   const [bungaNinosId, setNinos] = useState(bungas[1]?.id ?? bungas[0]?.id ?? '')
   const [platoIds, setPlatoIds] = useState(() => new Set())
+  // `null` = los niños comen lo mismo. Es la noche normal, así que es lo de
+  // fábrica: separar las dos listas cuesta un toque, y no separarlas, ninguno.
+  const [platosNinos, setPlatosNinos] = useState(null)
   const [queSeHace, setQueSeHace] = useState('')
   const [cantidades, setCantidades] = useState('')
 
@@ -106,6 +119,9 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
 
   function toggle(id) {
     const s = new Set(platoIds); s.has(id) ? s.delete(id) : s.add(id); setPlatoIds(s)
+  }
+  function toggleNinos(id) {
+    const s = new Set(platosNinos ?? platoIds); s.has(id) ? s.delete(id) : s.add(id); setPlatosNinos(s)
   }
   function toggleCat(id) {
     const s = new Set(newCats); s.has(id) ? s.delete(id) : s.add(id); setNewCats(s)
@@ -118,7 +134,13 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
   }
   async function submit() {
     if (!dia) return
-    await addDinner(eventId, { dia, bungaMayoresId, bungaNinosId, platoIds: [...platoIds], queSeHace: queSeHace.trim(), cantidades: cantidades.trim() })
+    await addDinner(eventId, {
+      dia, bungaMayoresId, bungaNinosId,
+      platoIds: [...platoIds],
+      platoIdsNinos: platosNinos ? [...platosNinos] : null,
+      queSeHace: queSeHace.trim(),
+      cantidades: cantidades.trim(),
+    })
     onClose()
   }
 
@@ -150,6 +172,36 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
             </button>
           ))}
           {dishes.length === 0 && <span className="apunte">Catálogo vacío — crea uno abajo.</span>}
+        </div>
+
+        {/* Los niños heredan hasta que se toque (§14.20 · G2). Se sigue
+            escribiendo **una** lista: separarlas es para la noche en que ellos
+            cenan macarrones y los mayores paella, no para todas. */}
+        <div className="card tight" style={{ marginTop: 10 }}>
+          <div className="row">
+            <div className="main">
+              <div className="n">Los niños comen lo mismo</div>
+              <div className="sub">
+                {platosNinos ? 'Tienen su propia lista.' : 'Heredan los platos de arriba.'}
+              </div>
+            </div>
+            <button
+              className="btn sm ghost"
+              aria-pressed={Boolean(platosNinos)}
+              onClick={() => { tap(); setPlatosNinos(platosNinos ? null : new Set(platoIds)) }}
+            >
+              {platosNinos ? 'Que coman lo mismo' : 'Cambiar la suya'}
+            </button>
+          </div>
+          {platosNinos && (
+            <div className="chips" style={{ marginTop: 8 }}>
+              {dishes.map((d) => (
+                <button key={d.id} className={`chip${platosNinos.has(d.id) ? ' on' : ''}`} onClick={() => toggleNinos(d.id)}>
+                  {d.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="card tight" style={{ marginTop: 10 }}>

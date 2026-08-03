@@ -1474,6 +1474,64 @@ siete cajas de varias líneas que tiene la app —el encargo, la descripción de
 plan y de una idea, y las dos de cada cena—, y monoespaciadas además. Llevaba así
 desde que existen. `estilos.test.js` monta guardia.
 
+### 14.20 Recetas con cantidades, y la compra que sale de ellas
+
+Decidido en [`docs/diseño/cenas-cantidades.html`](diseño/cenas-cantidades.html) ·
+**G2 · A1+A5 · C1 · D5 · E2 · F1**, con el detalle de A4.
+
+**El problema.** Un plato guardaba **nombres sueltos** —«arroz, mejillones,
+pollo»— escritos en una caja que se partía por comas, y la lista de la compra
+era texto libre que nadie relacionaba con las cenas. Poner una cantidad al lado
+parece un campo más, pero arrastra cuatro decisiones seguidas: **para cuántos**
+es, **cómo se reparte** entre las dos mesas, **qué se redondea** al comprarlo y
+**qué pasa cuando algo cambia** después.
+
+**Para cuántos es** (`dishes.raciones`, una vez por plato). «2 kg» no se reparte
+ni se escala: falta el denominador. Va una vez por plato y no por ingrediente —el
+arroz para 12 y el pan para 20 es el lío que hace que nadie rellene nada—, y
+estirarlo es una **regla de tres**, sin IA de por medio: una multiplicación que
+unas veces diera 3 kg y otras 2,8 no valdría para comprar.
+
+**Las dos mesas ya se sabían.** `comeConMayores` decide el lado y `pesoReparto`
+—1 el adulto, 0,6 el niño— decide cuánto cuenta. Son los mismos números del
+reparto de un gasto; no hay un segundo censo. Y **la mesa de niños puede comer
+otra cosa** (G2): `dinners.platoIdsNinos` en `null` quiere decir «lo mismo», que
+es la noche normal y la que no hay que escribir dos veces.
+
+**La línea del ingrediente** (A1): la cantidad **en columna a la izquierda**,
+como en una receta impresa, porque las cifras alineadas se comparan sin leerlas.
+92 pt de columna y 234 para el nombre, medidos. Debajo crece el detalle de A4
+—cuánto sale por ración, en qué envase se compra, si lo puso la IA— y solo
+cuando hay algo que decir. Se borra deslizando (A5), como en Gastos.
+
+**La compra enseña el total** (C1) y el desglose al abrir la línea: se compra una
+vez, nadie va a dos supermercados, y el reparto sirve en la cocina. Se redondea
+**al alza al envase** —1,62 kg no se compran; dos paquetes de uno, sí— y el
+envase lo propone la IA (D5), porque nadie va a rellenar eso a mano en cuarenta
+ingredientes. Dos cosas que salieron al mirarlo en el navegador: **un lote que
+mide otra cosa que la receta no se usa** —«30 ud» de mejillones con una malla de
+«1 kg» daba «15 mallas», que tiene pinta de cuenta y no lo es— y **el texto va en
+la unidad de la receta** —«2 kg»—, porque «2 paquetes de 1 kg» empujaba el nombre
+hasta «Arr…».
+
+**Cuando cambia una cena** (E2), las líneas que vienen de recetas se rehacen
+solas y **lo dicen**: «eran 2 kg · cambió una cena», y el renglón desaparece al
+marcar la línea. Tres cosas no se tocan nunca: **lo escrito a mano** —«hielos» no
+es de ninguna receta—, **lo ya comprado** —está en el carro, y es lo único que no
+se puede deshacer— y, por lo mismo, tampoco se borra lo comprado que ya no sale
+en ninguna cena.
+
+**La IA se pide desde la receta** (F1), con un botón que rellena las que faltan
+de una vez: ahí está el plato entero delante, que es lo que le permite decir «30
+mejillones» en vez de «los que quieras», y de una vez porque lo caro es contarle
+el contexto (§14.19-bis). Como allí, **los nombres no viajan**: le llega el
+plato, para cuántos es y qué ingredientes le faltan. La marca «lo puso la IA» se
+queda hasta que alguien toque el número.
+
+**Lo que había guardado sigue valiendo.** Un `ingredientes: ['arroz']` se lee
+como una línea sin cantidad, que es lo que es. No hay migración de datos que
+correr; en la API sí hay columnas nuevas (`migraciones/0009_*.sql`).
+
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 
 Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·

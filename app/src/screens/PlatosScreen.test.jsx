@@ -53,19 +53,32 @@ describe('PlatosScreen', () => {
     expect((await listDishes())[0].esFavorito).toBe(true)
   })
 
-  it('añade un plato nuevo con sus ingredientes', async () => {
+  it('añade un plato nuevo con sus ingredientes, uno por línea y con cantidad', async () => {
     render(<PlatosScreen />)
 
     await userEvent.click(await screen.findByRole('button', { name: /Añadir plato/i }))
     await userEvent.type(screen.getByLabelText('Nombre'), 'Tortilla de patata')
     await userEvent.click(screen.getByRole('button', { name: 'Principal' }))
-    await userEvent.type(screen.getByLabelText(/Ingredientes/), 'huevo, patata, cebolla')
+    await userEvent.type(screen.getByLabelText('Para cuántas raciones'), '6')
+
+    // Cada ingrediente es una línea. La caja de comas se fue: partía por comas y
+    // «sal, gorda» se guardaba como dos ingredientes.
+    for (const nombre of ['huevo', 'patata', 'cebolla']) {
+      await userEvent.type(screen.getByLabelText('Ingrediente nuevo'), nombre)
+      await userEvent.click(screen.getByRole('button', { name: 'Añadir' }))
+    }
+    await userEvent.type(screen.getByLabelText('Cantidad de huevo'), '8')
+    await userEvent.type(screen.getByLabelText('Unidad de huevo'), 'ud')
     await userEvent.click(screen.getByRole('button', { name: 'Añadir al catálogo' }))
 
     const [plato] = await listDishes()
     expect(plato.name).toBe('Tortilla de patata')
     expect(plato.categorias).toEqual(['principal'])
-    expect(plato.ingredientes).toEqual(['huevo', 'patata', 'cebolla'])
+    expect(plato.raciones).toBe(6)
+    expect(plato.ingredientes.map((x) => x.nombre)).toEqual(['huevo', 'patata', 'cebolla'])
+    expect(plato.ingredientes[0]).toMatchObject({ cantidad: 8, unidad: 'ud' })
+    // Y a lo que no se le puso cifra se le nota que le falta.
+    expect(plato.ingredientes[1].cantidad).toBeNull()
   })
 
   it('antes de borrar avisa de que el catálogo es de todos los eventos', async () => {

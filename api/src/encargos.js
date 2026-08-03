@@ -23,6 +23,7 @@
  */
 
 import { INSTRUCCION } from './sugerencias.js';
+import { INSTRUCCION as CANTIDADES } from './cantidades.js';
 
 export const ENCARGOS = [
   {
@@ -30,6 +31,12 @@ export const ENCARGOS = [
     titulo: 'Proponer ideas de plan',
     pista: 'Se pide una tanda de cinco y la app espera un JSON con «que» y «porque»: si reescribes esto, conserva esa parte o dejará de salir nada. El sitio, las fechas, cuánta gente va y lo que ya hay apuntado se le dan aparte. Vacío, vuelve el encargo de origen.',
     origen: INSTRUCCION,
+  },
+  {
+    id: 'cantidades',
+    titulo: 'Poner las cantidades de una receta',
+    pista: 'Se le da el plato, para cuántas raciones es y los ingredientes a los que les falta la cifra; contesta con la cantidad y con en qué se compra (el envase), que es lo que permite redondear. Espera un JSON con «nombre», «cantidad», «unidad» y «lote»: si reescribes esto, conserva esa parte. Estirar la receta para la gente que hay no lo hace el modelo, lo hace la app. Vacío, vuelve el encargo de origen.',
+    origen: CANTIDADES,
   },
 ];
 

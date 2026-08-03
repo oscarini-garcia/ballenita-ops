@@ -156,6 +156,18 @@ export const listarModelosIA = () =>
 
 export const probarIA = () => peticion('/api/ia/probar', { method: 'POST', body: '{}' })
 
+/**
+ * Las cantidades que le faltan a una receta (§14.20).
+ *
+ * Va el plato, para cuántos es y **solo los ingredientes sin cifra**. Quién come
+ * no viaja: para decir cuánto arroz lleva una paella no aporta nada.
+ */
+export const cantidadesDePlato = ({ plato, raciones, ingredientes }) =>
+  peticion('/api/plato/cantidades', {
+    method: 'POST',
+    body: JSON.stringify({ plato, raciones, ingredientes }),
+  }).then((r) => r.cantidades || [])
+
 export const sugerirPlanes = (eventId, descartadas = []) =>
   peticion('/api/plan/sugerir', {
     method: 'POST',

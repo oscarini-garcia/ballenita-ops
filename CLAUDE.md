@@ -58,6 +58,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   `dirty`—, y «cambios sin subir» dice lo mismo con uno que con veinte. Ahora `pendientes`
   es el número, sale en el punto, en su rótulo y en su renglón, con tope de 99 en el punto
   (la cabecera es de 390 pt) y sin pintarse dentro de una tarjeta, donde no cabe y sobra.
+- **Una receta lleva cantidades, y de ahí sale la compra** (SPECS §14.20,
+  `docs/diseño/cenas-cantidades.html` · G2·A1·C1·D5·E2·F1): el plato dice **para cuántas
+  raciones** es (`raciones`) y cada ingrediente **cuánto**; estirarlo a la gente que hay es
+  una regla de tres con los pesos de siempre (`lib/compra.js`), **no la IA**. La mesa de
+  niños hereda los platos mientras `platoIdsNinos` sea `null`. La compra enseña el total
+  redondeado al envase y el reparto al abrir la línea; al cambiar una cena se rehace y **lo
+  dice**, pero **nunca toca lo escrito a mano ni lo ya comprado**.
 - **En Planes solo se vota** (SPECS §14.19, `docs/diseño/planes-votar.html` · V3·V5·S2): el
   día se pone en **Agenda**; la lista son dos grupos —elegidos y disponibles por votos— con
   filas de 70,7 pt (antes tarjetas de 299,9 con siete botones y ocho colores); al abrir un
