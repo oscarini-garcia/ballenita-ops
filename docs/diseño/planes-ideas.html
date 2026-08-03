@@ -1,0 +1,1249 @@
+<title>Ballena Ops — La lista de ideas no dice de quién es ninguna, y apuntar una tapa la pantalla entera</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256; --ab-linea-suave: #17384a;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea; --abc-linea-suave: #e9eff2;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code, .coste code, .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .ballena { width: 30px; height: 30px; flex: none; }
+  .t-cab .crece { flex: 1; min-width: 0; }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-cab .su { font-size: var(--t-micro); opacity: .78; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .tarj.junta { padding: 0 12px; }
+
+  /* 9 px arriba y abajo dejan la fila en ~70,7, que es lo que mide una `.row`
+     real medida contra theme.css. Con 11 se iba a 74 y el dibujo mentía. */
+  .fila { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  /* El título de un plan es lo único que identifica su fila, así que dobla a dos
+     líneas en vez de recortarse: «Noche de juegos de mesa» son 257,8 pt y en la
+     fila cerrada solo hay 245. Se mide y se dice, no se esconde con puntos. */
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .oscuro .pil { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .pil { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .pil.ok { background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .pil.ok { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); background: none; color: var(--ab-soft); font-family: inherit;
+    min-height: 40px; display: inline-flex; align-items: center; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+  .chip.rojo { color: #fff; background: var(--ab-owe); border-color: var(--ab-owe); }
+  .claro .chip.rojo { background: var(--abc-owe); border-color: var(--abc-owe); }
+  .chip.lleno { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .chip.lleno { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .plan-n { font-weight: 600; font-size: var(--t-row); }
+  .cifra-l { font-size: var(--t-label); }
+  .oscuro .cifra-l { color: var(--ab-faint); } .claro .cifra-l { color: var(--abc-faint); }
+  .fecha-nativa { border-radius: 7px; padding: 12px; font-size: var(--t-body);
+    display: flex; justify-content: space-between; align-items: center; }
+  .oscuro .fecha-nativa { border: 1px solid var(--ab-linea); color: var(--ab-ink); }
+  .claro .fecha-nativa { border: 1px solid var(--abc-linea); color: var(--abc-ink); }
+
+  .verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--ab-linea); border-radius: 9px; color: var(--ab-soft); background: none; }
+  .claro .verbo-fila { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .verbo-fila svg { width: 19px; height: 19px; }
+
+  /* Deslizamiento a medias, para enseñar los verbos de K3 */
+  .deslizada { position: relative; overflow: hidden; }
+  .verbos { position: absolute; inset: 0 0 0 auto; display: flex; }
+  .verbo { width: 76px; display: grid; place-items: center; gap: 4px; font-size: var(--t-micro);
+    font-weight: 700; color: #eaf6fb; }
+  .verbo.ed { background: #1f6f8f; } .verbo.bo { background: #a8322a; }
+  .verbo svg { width: 19px; height: 19px; }
+  .cara { position: relative; transform: translateX(-152px); }
+  .oscuro .cara { background: var(--ab-tarjeta); } .claro .cara { background: var(--abc-tarjeta); }
+
+  /* Los cuatro mandos de áreas de la parte cuatro */
+  .t-sub { padding: 12px 14px 0; }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 10px; }
+  .oscuro .seg { background: var(--ab-linea-suave); } .claro .seg { background: var(--abc-linea-suave); }
+  .seg button { flex: 1; padding: 10px 6px; border: none; background: none; border-radius: 7px;
+    font-weight: 600; font-size: var(--t-row); font-family: inherit; white-space: nowrap; }
+  .oscuro .seg button { color: var(--ab-soft); } .claro .seg button { color: var(--abc-soft); }
+  .oscuro .seg button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
+  .claro .seg button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); box-shadow: 0 1px 2px rgba(16,42,55,.12); }
+
+  .subr { display: flex; gap: 22px; padding: 0 4px; }
+  .subr button { border: none; background: none; padding: 10px 0 9px; font-family: inherit;
+    font-size: var(--t-row); font-weight: 600; border-bottom: 2px solid transparent; }
+  .oscuro .subr { border-bottom: 1px solid var(--ab-linea); } .claro .subr { border-bottom: 1px solid var(--abc-linea); }
+  .oscuro .subr button { color: var(--ab-faint); } .claro .subr button { color: var(--abc-faint); }
+  .oscuro .subr button.on { color: var(--ab-ink); border-bottom-color: var(--ab-acento); }
+  .claro .subr button.on { color: var(--abc-ink); border-bottom-color: var(--abc-acento); }
+
+  .past { display: flex; gap: 8px; }
+  .past button { border-radius: 999px; padding: 8px 15px; font-family: inherit;
+    font-size: var(--t-sub); font-weight: 600; background: none; }
+  .oscuro .past button { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .past button { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .oscuro .past button.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .past button.on { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .titmando { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px 0; }
+  .titmando .h { font-size: var(--t-title); font-weight: 700; letter-spacing: -.015em; }
+  .titmando .m { display: flex; gap: 2px; padding: 3px; border-radius: 8px; }
+  .oscuro .titmando .m { background: var(--ab-linea-suave); } .claro .titmando .m { background: var(--abc-linea-suave); }
+  .titmando .m button { border: none; background: none; border-radius: 6px; padding: 6px 11px;
+    font-family: inherit; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .titmando .m button { color: var(--ab-faint); } .claro .titmando .m button { color: var(--abc-faint); }
+  .oscuro .titmando .m button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); }
+  .claro .titmando .m button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); }
+
+  .t-barra { display: flex; justify-content: space-around; padding: 7px 0 10px; }
+  .oscuro .t-barra { background: var(--ab-cromo); border-top: 1px solid var(--ab-linea); }
+  .claro .t-barra { background: var(--abc-cromo); border-top: 1px solid var(--abc-linea); }
+  .t-barra .p { width: 76.4px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ab-faint); }
+  .claro .t-barra .p { color: var(--abc-faint); }
+  .t-barra .p.on { color: var(--ab-acento-txt); } .claro .t-barra .p.on { color: var(--abc-acento-txt); }
+  .t-barra .p svg { width: 23px; height: 23px; }
+  .t-barra .p span { font-size: var(--t-micro); font-weight: 550; }
+
+  .regla { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue);
+    display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+  .regla .barra { height: 6px; border-radius: 3px; background: var(--linea-fuerte); }
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  /* El color se pone a mano en la celda. Estas hojas no llevan doctype, así que
+     el navegador las lee en modo quirks y ahí **las tablas no heredan el color**:
+     el `td` se quedaba en negro y en la cara oscura no se leía una palabra. */
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+
+<style>
+  /* ── Añadidos de esta hoja ─────────────────────────────────────────────
+     Todo lo de arriba viene tal cual de `planes-votar.html`, para que las dos
+     hojas se comparen: mismos colores, misma escala, mismo marco de 390 pt. */
+
+  /* La fila de una idea no lleva icono: lo que la identifica es su título. */
+  .fila .n2 { font-size: var(--t-row); font-weight: 550; }
+  .fila .s2 { font-size: var(--t-sub); }
+  .oscuro .fila .s2 { color: var(--ab-soft); } .claro .fila .s2 { color: var(--abc-soft); }
+  .fila .s3 { font-size: var(--t-sub); }
+  .oscuro .fila .s3 { color: var(--ab-faint); } .claro .fila .s3 { color: var(--abc-faint); }
+
+  /* El alias de familia, en pastilla de dos letras. 22 pt de alto para que no
+     estire la línea de 15,7 en la que vive. */
+  .al { font-family: var(--mono); font-size: 11.5px; font-weight: 700; letter-spacing: .06em;
+    border-radius: 5px; padding: 2px 5px; display: inline-block; line-height: 1.3; }
+  .oscuro .al { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .al { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .al.gar { background: rgba(229,84,75,.18); color: #f0938c; }
+  .claro .al.gar { background: rgba(229,84,75,.12); color: #a8332b; }
+  .al.per { background: rgba(46,158,107,.18); color: #6fc79c; }
+  .claro .al.per { background: rgba(46,158,107,.12); color: #1f6d4b; }
+  .al.sol { background: rgba(31,166,214,.18); color: #6dc4e5; }
+  .claro .al.sol { background: rgba(31,166,214,.12); color: #14657f; }
+
+  .fecha-col { font-size: var(--t-sub); font-variant-numeric: tabular-nums; white-space: nowrap;
+    text-align: right; flex: none; }
+  .oscuro .fecha-col { color: var(--ab-faint); } .claro .fecha-col { color: var(--abc-faint); }
+
+  /* El botón pequeño de la fila («Proponer»), medido tal cual está hoy. */
+  .btn-sm { font-family: inherit; font-size: var(--t-sub); font-weight: 600; border-radius: 8px;
+    padding: 9px 13px; flex: none; }
+  .oscuro .btn-sm { border: 1px solid var(--ab-linea); background: none; color: var(--ab-acento-txt); }
+  .claro .btn-sm { border: 1px solid var(--abc-linea); background: none; color: var(--abc-acento-txt); }
+  .btn-sm.apagado { opacity: .45; }
+
+  /* ── El renglón de escribir ─────────────────────────────────────────── */
+  .form { border-radius: 9px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .oscuro .form { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .form { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .form .linea { display: flex; gap: 8px; align-items: center; }
+  .campo { flex: 1; min-width: 0; border-radius: 7px; padding: 11px 12px; font-size: var(--t-body);
+    font-family: inherit; }
+  .oscuro .campo { border: 1px solid var(--ab-linea); background: var(--ab-fondo); color: var(--ab-ink); }
+  .claro .campo { border: 1px solid var(--abc-linea); background: var(--abc-fondo); color: var(--abc-ink); }
+  .campo.vacio { color: var(--ab-faint); } .claro .campo.vacio { color: var(--abc-faint); }
+  .campo.foco { outline: 2px solid var(--ab-acento); outline-offset: -1px; }
+  .claro .campo.foco { outline-color: var(--abc-acento); }
+  .campo.alto { min-height: 76px; }
+  .ok { width: 44px; height: 44px; flex: none; border-radius: 8px; display: grid; place-items: center;
+    font-size: 18px; font-weight: 700; }
+  .oscuro .ok { background: var(--ab-acento); color: #04161f; }
+  .claro .ok { background: var(--abc-acento); color: #fff; }
+  .ok.apagado { opacity: .35; }
+  .mas-det { font-size: var(--t-sub); font-weight: 600; background: none; border: none;
+    font-family: inherit; padding: 4px 2px; text-align: left; }
+  .oscuro .mas-det { color: var(--ab-acento-txt); } .claro .mas-det { color: var(--abc-acento-txt); }
+  .rot { font-size: var(--t-label); font-weight: 600; padding: 2px 2px 0; }
+  .oscuro .rot { color: var(--ab-soft); } .claro .rot { color: var(--abc-soft); }
+
+  /* El teclado del sistema, a su medida real: 336 pt en un iPhone de 390×844
+     con la barra predictiva puesta, que es como sale al escribir en español. */
+  .teclado { height: 336px; flex: none; display: grid; place-items: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .oscuro .teclado { background: #1b2b33; color: #6d8590; border-top: 1px solid #2a3f4a; }
+  .claro .teclado { background: #d1d5db; color: #6b7280; border-top: 1px solid #b9bfc7; }
+
+  /* El modal de ahora, para poder medir lo que tapa. */
+  .velo { position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 14px; }
+  .oscuro .velo { background: rgba(4,12,18,.66); } .claro .velo { background: rgba(16,42,55,.34); }
+  .modal-m { width: 100%; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .oscuro .modal-m { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .modal-m { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .modal-m h4 { margin: 0 0 2px; font-size: var(--t-title); font-weight: 650; }
+  .btn-blq { border-radius: 9px; padding: 13px; text-align: center; font-weight: 650;
+    font-size: var(--t-body); font-family: inherit; }
+  .oscuro .btn-blq { background: var(--ab-acento); color: #04161f; }
+  .claro .btn-blq { background: var(--abc-acento); color: #fff; }
+
+  .fab-m { position: absolute; right: 14px; bottom: 14px; border-radius: 999px; padding: 13px 18px;
+    font-weight: 650; font-size: var(--t-body); display: flex; gap: 7px; align-items: center; }
+  .oscuro .fab-m { background: var(--ab-acento); color: #04161f; }
+  .claro .fab-m { background: var(--abc-acento); color: #fff; }
+
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .grid2m { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pista { font-size: var(--t-label); }
+  .oscuro .pista { color: var(--ab-faint); } .claro .pista { color: var(--abc-faint); }
+
+  .nota-t { font-size: var(--t-sub); border-radius: 9px; padding: 10px 12px; }
+  .oscuro .nota-t { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .nota-t { background: var(--abc-linea-suave); color: var(--abc-soft); }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Planes · Ideas</div>
+    <h1>La lista de ideas no dice de quién es ninguna ni cuándo se apuntó, y escribir una tapa la pantalla entera</h1>
+    <p class="entradilla">
+      Ideas es hoy <b>una lista plana</b>: las ya propuestas a este viaje y las que nadie ha sacado
+      todavía van revueltas, en el orden en que se guardaron, y lo único que las separa es un botón
+      apagado que dice «Ya propuesta». La firma existe a medias —<b>«la apuntó Curro»</b>— y no dice
+      <b>de qué familia</b> ni <b>cuándo</b>.
+    </p>
+    <p class="entradilla">
+      Y para apuntar una idea se abre <b>un modal</b> que ocupa el ancho entero y, con el teclado
+      arriba <b>tapa la lista entera</b>: mide <b>455,4 pt</b> de los 508 que quedan sobre el
+      teclado, y lo poco que asoma va detrás del velo. Se escribe a ciegas, sin ver lo que ya hay
+      apuntado, que es justo lo que evita repetir. El encargo pide otra cosa —<b>un renglón bajo el mando de
+      áreas</b>, con «más detalles» para lo largo—, y lo que queda por decidir es cómo se parte la
+      lista, qué dice la firma, dónde crece el renglón y cómo se pide el alias de dos letras.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.11.6 (<code>main</code>, 86f1665)</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Cuerpo de Ideas:</b> 633,6 pt</span>
+      <span><b>Con el teclado:</b> 369,6 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      El contenido de las maquetas es el de la semilla de <code>db.js</code>: familias <b>García</b>,
+      <b>Pérez</b> y <b>Solteros</b>; gente Curro, Marta, Fran, Ana, Luis y Pablo; y los tres planes
+      —Playa de la Cala, Excursión a las cuevas, Noche de juegos de mesa— como ideas ya propuestas.
+      Las cuatro ideas «posibles» están escritas para la hoja, porque el catálogo nace vacío.
+      Todas las medidas están tomadas en el navegador sobre esta misma hoja, con la escala real
+      (17 px × 1,12).
+    </p>
+  </div>
+
+  <!-- ══════════════ LO QUE NO SE ELIGE ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · seis cosas que no se eligen</h2>
+    <p>
+      Cuatro son defectos medidos y dos son fontanería que hay que hacer para que lo pedido sea
+      posible. No están sobre la mesa: se hacen y se cuentan. Van aquí porque cambian el dibujo de
+      todo lo que viene después.
+    </p>
+    <p class="linea-corte">
+      <b>1 · Hoy una idea no tiene fecha en el móvil.</b> <code>escribir()</code> guarda
+      <code>updatedAt</code>; <code>creadoEn</code> lo pone <b>el Worker</b> y solo vuelve en la
+      instantánea, así que una idea recién apuntada no tiene «cuándo» hasta que sincroniza, y en la
+      web —que no sincroniza <a href="#" style="color:inherit">a propósito</a>— no lo tiene nunca.
+      Pedir «y cuándo» obliga a un campo propio escrito en el cliente al crear
+      (<code>apuntadaEl</code>), no a reusar <code>creadoEn</code>, que es del servidor.<br>
+      <b>2 · Las familias no tienen alias.</b> Lo tienen los <b>bungas</b>
+      (<code>bungas.alias</code>, «El de la piscina»), no las familias. Hace falta migración
+      <code>0008_*.sql</code>, la columna declarada en <code>api/src/tablas.js</code> y el campo en
+      la ficha de familia — la parte cinco decide <b>cómo</b> se pide, no <b>si</b> se añade.<br>
+      <b>3 · El autor es una persona, y la familia se deduce.</b> <code>creadaPor</code> guarda una
+      persona del grupo; la familia sale de <code>persons.familyId</code>. Una idea traída de la IA
+      o importada <b>no tiene autor</b>, y eso se dice —«sin autor»— en vez de inventarlo.<br>
+      <b>4 · «Ya propuesta» deja de ser un botón.</b> Ocupa <b data-m="btnAncho">144,2</b> pt de ancho
+      en una fila de 390 para no hacer nada. Al partir la lista en dos, el grupo ya lo dice.<br>
+      <b>5 · El contador de viajes se va de la fila.</b> Hoy la línea de debajo pone «la apuntó
+      Curro · 3 viajes». En esa línea no caben el autor, la familia, la fecha <i>y</i> el contador:
+      el contador es lo menos accionable de los cuatro y se mira dentro de la idea abierta.<br>
+      <b>6 · Con renglón fijo no hay «+ Idea».</b> Dos puertas a lo mismo —el botón flotante y el
+      renglón— es una de más, y la flotante tapa la última fila. Cuál de las dos se queda depende
+      de la opción que elijas en la parte cuatro, y ahí se dice en cada una.
+    </p>
+  </div>
+
+  <!-- ══════════════ EL ANTES ══════════════ -->
+  <div class="parte">El punto de partida, para tener contra qué comparar</div>
+  <p class="parte-intro">
+    Esto es lo que hay puesto hoy en <code>IdeasScreen.jsx</code>, dibujado a 390 pt. No es una
+    opción: es la referencia de la que salen las medidas de las cinco partes.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body">
+        <div class="nota-t">Las ideas son <b>las mismas en todos los viajes</b>. Al proponer una se copia a este evento sin día, sin votos y a votación.</div>
+        <div class="tarj junta">
+          <div class="fila" data-m="filaHoy">
+            <div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">la apuntó Curro · 3 viajes</div></div>
+            <button class="btn-sm apagado" data-m="btnProponer">Ya propuesta</button>
+          </div>
+          <div class="fila">
+            <div class="txt"><div class="n2">Kayak en el río</div><div class="s2">la apuntó Ana · 1 viaje</div></div>
+            <button class="btn-sm">Proponer</button>
+          </div>
+          <div class="fila">
+            <div class="txt"><div class="n2">Excursión a las cuevas</div><div class="s2">la apuntó Curro · 2 viajes</div></div>
+            <button class="btn-sm apagado">Ya propuesta</button>
+          </div>
+          <div class="fila">
+            <div class="txt"><div class="n2">Feria del pueblo</div><div class="s2">sin usar todavía</div></div>
+            <button class="btn-sm">Proponer</button>
+          </div>
+          <div class="fila">
+            <div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">la apuntó Pablo · 1 viaje</div></div>
+            <button class="btn-sm apagado">Ya propuesta</button>
+          </div>
+          <div class="fila">
+            <div class="txt"><div class="n2">Mirador de las cabras</div><div class="s2">sin usar todavía</div></div>
+            <button class="btn-sm">Proponer</button>
+          </div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">Ahora · lista plana · el orden es el de guardado</p>
+      </div>
+    </div>
+
+    <div class="tel oscuro" style="height:844px">
+      <div class="t-cab">
+        <div class="ballena" style="border-radius:50%;background:#14303f"></div>
+        <div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="punto"></div>
+      </div>
+      <div class="velo">
+        <div class="modal-m" data-m="modalHoy">
+          <h4>Idea nueva</h4>
+          <div class="rot">Qué es</div>
+          <div class="campo vacio foco">Playa de la Cala</div>
+          <div class="rot">Descripción</div>
+          <div class="campo vacio alto">Cala del sur. Llevar sombrilla: no hay chiringuito.</div>
+          <div class="rot">Enlace</div>
+          <div class="campo vacio">https://…</div>
+          <div class="btn-blq" style="margin-top:8px">Añadir al catálogo</div>
+        </div>
+      </div>
+      <div class="teclado">teclado · 336 pt</div>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Fila de idea hoy:</b> de 68,1 a <span data-m="filaHoyAlto">91,5</span> y hasta 117,3 pt</span>
+    <span><b>Botón de la derecha:</b> <span data-m="btnAncho2">144,2</span> pt de ancho</span>
+    <span><b>Ancho útil del título:</b> <span data-m="tituloHoy">180,8</span> pt</span>
+    <span><b>Modal de apuntar:</b> <span data-m="modalAlto">455,4</span> pt de alto</span>
+    <span><b>Lista visible al escribir:</b> 0 pt</span>
+  </p>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · dónde está el corte entre lo propuesto y lo posible</div>
+  <p class="parte-intro">
+    Pediste «primero las propuestas y luego las posibles». Eso ya decide el <b>orden</b>; lo que
+    queda por decidir es <b>cómo se ve el corte</b>: con dos cabeceras como en Planes, con una
+    marca en la fila, o escondiendo un grupo detrás de un toque. La diferencia se paga en pt de
+    cuerpo y en cuántas ideas caben sin desplazar.
+  </p>
+
+  <div class="grupo">
+    <h3>Cinco maneras de partir la lista</h3>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">Dos grupos, como en Planes</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Las mismas dos cabeceras <code>.sec-h</code> que ya tiene Planes —«Elegidos» y
+        «Disponibles»— con otras dos palabras: <b>Propuestas · 3</b> y <b>Posibles · 4</b>. La
+        cabecera lleva a la derecha el criterio de orden, como allí.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> <span data-m="sechAlto">36</span> pt por cabecera, <span data-m="sechDos">72</span> pt
+        las dos. <b>Lo paga:</b> no hay nada nuevo que aprender —es el dibujo de la pantalla de al
+        lado—, el corte se ve sin leer, y el número dice de un vistazo cuánto queda por proponer.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">Dos grupos, y la propuesta trae sus votos</span></div>
+      <p class="op-idea">
+        Igual que A1, y además cada idea ya propuesta enseña a la derecha <b>la pastilla de votos</b>
+        de su plan, la misma de Planes. Ideas deja de ser un catálogo ciego: se ve si lo que
+        propusiste está gustando sin cambiar de pestaña.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> las filas de Ideas y las de Planes pasan a parecerse tanto que hay que mirar
+        el mando para saber en cuál estás; y mete en el catálogo un dato que es <b>de este agosto</b>,
+        justo lo que la separación idea/propuesta vino a evitar. <b>Lo paga:</b> un viaje menos a
+        Planes.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">Una sola lista, las propuestas marcadas arriba</span></div>
+      <p class="op-idea">
+        Sin cabeceras: una tarjeta única, las propuestas primero con una pastilla tenue
+        <b>«en el viaje»</b> y las demás detrás. El corte se deduce de dónde dejan de aparecer las
+        pastillas.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el corte hay que buscarlo —con tres propuestas y cuatro posibles se ve, con
+        doce y veinte no—, y no hay sitio donde poner los números. <b>Lo paga:</b>
+        <span data-m="sechDos2">72</span> pt de cuerpo, que es media fila.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">Un filtro: o unas o las otras</span></div>
+      <p class="op-idea">
+        Bajo el mando de áreas, un segundo mando de dos: <b>Posibles | Propuestas</b>, con
+        «Posibles» de entrada. Solo se ve una lista cada vez.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> 44 pt permanentes para un segundo mando <b>debajo de otro mando</b> —dos
+        segmentados apilados es lo que hace que una pantalla parezca un panel de control—, esconde
+        la mitad del catálogo y compite por el sitio con el renglón de escribir de la parte cuatro.
+        <b>Lo paga:</b> listas largas se recorren enteras sin pasar por lo ya propuesto.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A5</span><span class="op-nombre">Las propuestas, plegadas</span></div>
+      <p class="op-idea">
+        Dos grupos, y el de propuestas <b>plegado</b> (<code>&lt;details&gt;</code>, como los
+        acordeones de Ajustes): «Propuestas · 3 ▸». A Ideas se viene a <b>proponer</b>; lo ya
+        propuesto es historial y solo se mira para no repetirlo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> un toque para ver lo propuesto y un estado más que recordar entre visitas; y
+        lo plegado se lee como «esto ya no importa», cuando es justo lo que hay que consultar antes
+        de proponer. <b>Lo paga:</b> <b>173,3</b> pt —la cabecera y tres filas se van, entra un
+        renglón plegado de 52—, que son <b>7 ideas por proponer</b> a la vista en vez de <b>5</b>.
+      </p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body">
+        <div class="sec-h" data-m="sech"><span>Propuestas · 3</span><span>a este viaje</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span> · hace 3 días</div></div></div>
+          <div class="fila"><div class="txt"><div class="n2">Excursión a las cuevas</div><div class="s2">Curro <span class="al gar">GA</span> · el 12 de julio</div></div></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Pablo <span class="al sol">SO</span> · ayer a las 22:41</div></div></div>
+        </div>
+        <div class="sec-h"><span>Posibles · 4</span><span>por nombre</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Feria del pueblo</div><div class="s2">Ana <span class="al per">PE</span> · hace un rato</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Mirador de las cabras</div><div class="s2">sin autor · el 9 de julio</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Torneo de petanca</div><div class="s2">Luis <span class="al per">PE</span> · el 28 de junio</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">A1 · dos grupos, el dibujo de Planes</p>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body">
+        <div class="sec-h"><span>Propuestas · 3</span><span>a este viaje</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span> · hace 3 días</div></div><span class="pil ok">3</span></div>
+          <div class="fila"><div class="txt"><div class="n2">Excursión a las cuevas</div><div class="s2">Curro <span class="al gar">GA</span> · el 12 de julio</div></div><span class="pil">2</span></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Pablo <span class="al sol">SO</span> · ayer a las 22:41</div></div><span class="pil">0</span></div>
+        </div>
+        <div class="sec-h"><span>Posibles · 4</span><span>por nombre</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Feria del pueblo</div><div class="s2">Ana <span class="al per">PE</span> · hace un rato</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">A2 · con los votos del plan en la fila</p>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body">
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span> · hace 3 días</div></div><span class="pil">en el viaje</span></div>
+          <div class="fila"><div class="txt"><div class="n2">Excursión a las cuevas</div><div class="s2">Curro <span class="al gar">GA</span> · el 12 de julio</div></div><span class="pil">en el viaje</span></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Pablo <span class="al sol">SO</span> · ayer a las 22:41</div></div><span class="pil">en el viaje</span></div>
+          <div class="fila"><div class="txt"><div class="n2">Feria del pueblo</div><div class="s2">Ana <span class="al per">PE</span> · hace un rato</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Mirador de las cabras</div><div class="s2">sin autor · el 9 de julio</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Torneo de petanca</div><div class="s2">Luis <span class="al per">PE</span> · el 28 de junio</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">A3 · una lista, el corte se deduce</p>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body">
+        <div class="past" style="padding:2px"><button class="on">Posibles</button><button>Propuestas</button></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Feria del pueblo</div><div class="s2">Ana <span class="al per">PE</span> · hace un rato</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Mirador de las cabras</div><div class="s2">sin autor · el 9 de julio</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Torneo de petanca</div><div class="s2">Luis <span class="al per">PE</span> · el 28 de junio</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">A4 · dos mandos apilados, media lista</p>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body">
+        <div class="tarj" style="padding:11px 12px;display:flex;justify-content:space-between" data-m="plegado"><span style="font-size:var(--t-row);font-weight:600">▸ Propuestas · 3</span><span class="pil">a este viaje</span></div>
+        <div class="sec-h"><span>Posibles · 4</span><span>por nombre</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Feria del pueblo</div><div class="s2">Ana <span class="al per">PE</span> · hace un rato</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Mirador de las cabras</div><div class="s2">sin autor · el 9 de julio</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Torneo de petanca</div><div class="s2">Luis <span class="al per">PE</span> · el 28 de junio</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">A5 · lo propuesto, plegado</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Cabecera de sección:</b> <span data-m="sechAlto2">36</span> pt</span>
+    <span><b>Fila de idea con firma:</b> <span data-m="filaFirma">67,1</span> pt</span>
+    <span><b>Caben en 633,6 (A1):</b> <span data-m="cabenA1">8</span> filas — 3 propuestas y 5 por proponer</span>
+    <span><b>Caben (A5, plegado):</b> <span data-m="cabenA5">7</span> por proponer</span>
+  </p>
+
+  <p class="coste">
+    <b>Ojo a lo que ya va dibujado arriba:</b> las filas de la parte uno llevan puesta la firma
+    <b>B3</b> de la parte siguiente —«Curro <span class="al gar" style="font-size:10.5px">GA</span> ·
+    hace 3 días»— para que las cinco maquetas se comparen con el mismo contenido. Lo que se elige
+    ahí es <b>el corte</b>, no la firma.
+  </p>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · quién apuntó la idea y cuándo, en una línea de 15,7</div>
+  <p class="parte-intro">
+    Cabe una sola línea debajo del título, y en ella hay que meter <b>tres cosas</b>: el nombre, el
+    alias de la familia y la fecha. Hoy pone «la apuntó Curro · 3 viajes» y ni el «la apuntó» ni el
+    contador se ganan el sitio. Las cinco opciones se diferencian en <b>qué se sacrifica</b>:
+    el alto de la fila, el ancho del título, o el detalle de la fecha.
+  </p>
+
+  <div class="grupo">
+    <h3>Cinco firmas para la misma fila</h3>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">Todo en texto, en la línea que ya hay</span></div>
+      <p class="op-idea">
+        «<b>Curro · GA · hace 3 días</b>». El alias va en mayúsculas y separado por puntos, como el
+        resto de subtítulos de la app. Cero pt nuevos: la línea ya existía.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el alias se lee como parte del nombre —«Curro GA» parece un apellido— y con
+        un nombre largo la línea <b>dobla</b>: «Fran, el adolescente · GA · ayer a las 22:41» pasa
+        la fila de 67,1 a <b>92,5</b> pt, que es el defecto que ya tiene la pantalla de hoy.
+        <b>Lo paga:</b> es el cambio más pequeño posible, cero alto nuevo y ningún dibujo nuevo.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">El alias en pastilla, con el color de la familia</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        «Curro <span class="al gar" style="font-size:11px">GA</span> · hace 3 días». Dos letras en una
+        pastilla con el <b>color que ya tiene la familia</b> (<code>families.color</code>, el mismo
+        de Saldos). El alias deja de leerse como texto y pasa a leerse como marca: con el rabillo
+        del ojo, tres ideas seguidas de <span class="al gar" style="font-size:11px">GA</span> se ven
+        sin leer ni un nombre.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> un color más en una pantalla que solo tenía dos, y hay que decidir qué pasa
+        con una idea sin autor (queda «sin autor», sin pastilla). <b>Lo paga:</b> alto
+        <span data-m="filaB3">67,1</span> pt, lo mismo que B1 —la pastilla mide 22 y la línea de 15,7
+        con su interlínea ya ocupa eso—, y es lo único que hace que un alias de dos letras valga
+        para algo a la velocidad a la que se mira una lista.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">La fecha en su columna, a la derecha</span></div>
+      <p class="op-idea">
+        El nombre y el alias en la línea de debajo, y la fecha <b>alineada a la derecha</b>, en
+        columna propia y con cifras tabulares. Las fechas se comparan entre filas de un vistazo,
+        como los importes de Gastos.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> <span data-m="anchoFecha">100,9</span> pt de ancho que salen del título, y el
+        título es lo único que identifica la idea: «Excursión a las cuevas» pasa a dos líneas.
+        Además choca con «Proponer», que ya vive a la derecha. <b>Lo paga:</b> la única opción en la
+        que la fecha se compara sin leerla.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B4</span><span class="op-nombre">El emoji de la familia, sin alias en la fila</span></div>
+      <p class="op-idea">
+        «🏖️ Curro · hace 3 días», con el avatar que la familia ya tiene puesto. El alias se sigue
+        pidiendo y guardando, pero en la fila manda el emoji.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> obliga a mantener <b>dos identificadores</b> de familia y a que ninguno de
+        los dos se aprenda del todo; y un emoji a 15,7 en gris se distingue peor que dos letras
+        —🏖️ y 🍷 a ese tamaño son dos manchas—. <b>Lo paga:</b> no hay que configurar nada, los
+        avatares ya están puestos.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B5</span><span class="op-nombre">Tres líneas: título, descripción y firma</span></div>
+      <p class="op-idea">
+        La fila crece a tres renglones: el título, la primera línea de la descripción recortada, y
+        la firma abajo en tinta tenue. Se ve de qué va la idea sin abrirla.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la fila pasa de <span data-m="filaB3b">67,1</span> a <span data-m="filaB5">115,8</span> pt
+        y caben <span data-m="cabenB5">4</span> ideas en vez de <span data-m="cabenA1b">8</span>.
+        <b>Lo paga:</b> el catálogo se lee sin abrir nada, que es lo que se quiere cuando hay
+        veinte ideas y hay que elegir.
+      </p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="t-body">
+        <div class="sec-h"><span>B1 · todo en texto</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro · GA · hace 3 días</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana · PE · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Fran, el adolescente · GA · ayer a las 22:41</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+        <div class="sec-h" style="margin-top:14px"><span>B3 · el alias en pastilla</span></div>
+        <div class="tarj junta">
+          <div class="fila" data-m="filaB3m"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span> · hace 3 días</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Fran <span class="al gar">GA</span> · ayer a las 22:41</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-body">
+        <div class="sec-h"><span>B2 · la fecha en columna</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span></div></div><span class="fecha-col" data-m="fechaCol">hace 3 días</span></div>
+          <div class="fila"><div class="txt"><div class="n2">Excursión a las cuevas</div><div class="s2">Curro <span class="al gar">GA</span></div></div><span class="fecha-col">12 jul</span></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Pablo <span class="al sol">SO</span></div></div><span class="fecha-col">ayer</span></div>
+        </div>
+        <div class="sec-h" style="margin-top:14px"><span>B4 · el emoji de la familia</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">🏖️ Curro · hace 3 días</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">🍷 Ana · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Torneo de petanca</div><div class="s2">🎉 Pablo · el 28 de junio</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-body">
+        <div class="sec-h"><span>B5 · tres líneas</span></div>
+        <div class="tarj junta">
+          <div class="fila" data-m="filaB5m"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Cala del sur. Llevar sombrilla: no hay chirin…</div><div class="s3">Curro <span class="al gar">GA</span> · hace 3 días</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Alquiler en el puente viejo, 12 € la hora</div><div class="s3">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Torneo de petanca</div><div class="s2">En la pista de tierra, al lado del bar</div><div class="s3">Luis <span class="al per">PE</span> · el 28 de junio</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Mirador de las cabras</div><div class="s2">Media hora andando, mejor al atardecer</div><div class="s3">sin autor · el 9 de julio</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">B5 · caben 4 donde caben 8</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · qué «cuándo» es el que se enseña</div>
+  <p class="parte-intro">
+    Una idea tiene <b>dos fechas</b> y no son la misma: <b>cuándo se apuntó al catálogo</b> —puede
+    ser de hace tres agostos— y <b>cuándo se propuso a este viaje</b>. Con la lista partida en dos,
+    cada grupo tiene una pregunta distinta detrás, así que esto se decide aparte del dibujo.
+  </p>
+
+  <div class="grupo">
+    <h3>Cuatro respuestas</h3>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">Siempre la del catálogo</span></div>
+      <p class="op-idea">
+        La fila dice siempre cuándo se <b>apuntó la idea</b>, propuesta o no. Un solo campo
+        (<code>apuntadaEl</code>), una sola regla, y la lista de posibles se puede ordenar por
+        «lo último que se le ocurrió a alguien».
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> en el grupo de propuestas la fecha miente por vieja —«el 12 de julio de
+        2024» cuando se propuso ayer—, y ahí lo que se quiere saber es si esto es de esta semana.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">La que corresponde al grupo</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        En <b>Propuestas</b>, cuándo se propuso a este viaje (la fecha del <code>plan</code>). En
+        <b>Posibles</b>, cuándo se apuntó al catálogo. Cada grupo contesta su pregunta y no hay que
+        explicar nada: el rótulo del grupo ya dice de qué se está hablando.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la misma columna significa dos cosas según dónde esté la fila, y hay que
+        cruzar <code>planIdeas</code> con <code>plans</code> por <code>ideaId</code> para sacar la
+        segunda. <b>Lo paga:</b> las dos fechas son útiles justo en el grupo en el que salen.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">Las dos, con su verbo</span></div>
+      <p class="op-idea">
+        «<b>la apuntó Curro en julio · la propuso Ana ayer</b>». Dos hechos y dos personas: quien
+        tuvo la idea y quien la sacó este año, que muchas veces no son la misma.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> no cabe en una línea de <span data-m="anchoSub">215,4</span> pt —son
+        <span data-m="anchoF3">356,6</span> pt de texto— así que obliga a B5 o a recortar. <b>Lo paga:</b>
+        es lo más completo, y «¿quién sacó esto?» es una pregunta que se hace de verdad.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre">Sin fecha en la fila</span></div>
+      <p class="op-idea">
+        En la fila solo el nombre y el alias; las dos fechas, dentro de la idea abierta, donde hay
+        sitio para escribirlas enteras y con su verbo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> es justo lo que pediste que se viera, y esconderlo devuelve la lista a «no sé
+        si esto es de este año». <b>Lo paga:</b> la línea queda para el nombre, y con nombres largos
+        no se recorta nada. Va como <b>plan B</b> si la línea se queda corta de verdad.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · apuntar una idea sin que la pantalla dé un salto</div>
+  <p class="parte-intro">
+    El problema medido: el modal de ahora mide <span data-m="modalAlto2">455,4</span> pt, se centra en
+    la pantalla y al salir el teclado —<b>336 pt</b> de los 844— <b>la lista de ideas desaparece
+    del todo</b>. Se escribe sin ver lo que ya hay, que es lo que evita apuntar dos veces la misma
+    cosa. Un renglón <b>bajo el mando de áreas</b> deja
+    <b><span data-m="listaTeclado">258,2</span> pt</b> de lista visible mientras se escribe el
+    título —<b>tres ideas</b>, y la cabecera del grupo—. Abriendo además «más detalles» quedan
+    <b>5,6 pt</b>: con el detalle desplegado <b>C3 y C4 son casi lo mismo</b>, y eso está medido, no
+    supuesto.
+  </p>
+  <p class="parte-intro">
+    Hay <b>dos preguntas</b>, y se responden por separado: <b>¿el renglón está siempre puesto?</b>
+    (C1 · C2) y <b>¿hacia dónde crece «más detalles»?</b> (C3 · C4 · C5). Cualquiera de las dos
+    primeras se combina con cualquiera de las tres últimas.
+  </p>
+
+  <div class="grupo">
+    <h3>Pregunta uno · ¿siempre puesto?</h3>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">Siempre puesto, bajo el mando</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Un renglón fijo entre el mando de áreas y la lista: campo de texto con la pista
+        «<b>Apunta una idea…</b>» y un botón <b>✓</b> de 44×44 apagado hasta que hay texto. Al
+        guardar, el campo se vacía y <b>se queda enfocado</b>: apuntar tres ideas seguidas son tres
+        frases y tres toques, sin abrir ni cerrar nada.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> <span data-m="formCerrado">75,4</span> pt permanentes de cuerpo, se use o no
+        —una fila de idea entera— y el sitio más caro de la pantalla, que es el de arriba.
+        <b>Lo paga:</b> cero toques hasta empezar a escribir, la puerta se ve sin buscarla y
+        <b>desaparece el botón flotante de Ideas</b> (defecto 6), que tapaba la última fila. Nota:
+        el ✓ apagado hasta que hay texto no es adorno; sin él, el toque en vacío guarda una idea sin
+        título.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">Aparece al pedirlo</span></div>
+      <p class="op-idea">
+        El renglón <b>no está</b> hasta que se pulsa «+ Idea»; entonces se despliega en ese mismo
+        sitio —bajo el mando— con el foco puesto. Cerrarlo con el aspa o al guardar.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> un toque más siempre, y mantiene el botón flotante tapando la última fila.
+        <b>Lo paga:</b> <span data-m="formCerrado2">75,4</span> pt de lista mientras no escribes, que
+        es <b>casi todo el rato</b>: en Ideas se lee mucho más de lo que se apunta.
+      </p>
+    </div>
+
+    <h3 style="margin-top:8px">Pregunta dos · ¿hacia dónde crece «más detalles»?</h3>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">Crece hacia abajo, el campo no se mueve</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Debajo del campo, un «<b>Más detalles ▾</b>» que abre <b>descripción</b> y <b>enlace</b>
+        <i>por debajo</i>. Lo que está mirando el pulgar —el campo del título— <b>no se mueve ni un
+        pt</b>: lo nuevo empuja la lista, no el campo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el bloque pasa de <span data-m="formCerrado3">75,4</span> a
+        <span data-m="formAbierto">328</span> pt, y con el teclado arriba eso deja la lista en
+        <b>5,6 pt</b>: abierto del todo tapa tanto como C4, solo que sin decirlo. <b>Lo paga:</b> es la única en la que nada de lo ya escrito cambia de
+        sitio al abrir el detalle, que es exactamente lo que pediste evitar.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">El detalle se come la lista</span></div>
+      <p class="op-idea">
+        Al pulsar «Más detalles» la tarjeta crece hasta ocupar <b>todo el hueco sobre el teclado</b>
+        y la lista se apaga detrás. Sigue anclada arriba, así que el título no se mueve; deja de
+        haber lista que mirar.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> vuelve a ser un modal, solo que sin fondo oscuro —y un modal disfrazado es
+        peor que uno declarado, porque no se sabe cómo se sale—. <b>Lo paga:</b> la descripción tiene
+        seis renglones en vez de tres.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C5</span><span class="op-nombre">La hoja de siempre, pero pegada arriba</span><span class="etq no">no la recomiendo</span></div>
+      <p class="op-idea">
+        Se queda el modal de hoy con dos arreglos: <b>anclado a la cabecera</b> en vez de centrado,
+        y encogiendo cuando sale el teclado. Es el cambio más pequeño de los tres.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> sigue tapando la lista entera, sigue habiendo un fondo oscuro y un aspa, y no
+        se pueden apuntar dos ideas seguidas sin volver a abrirlo. <b>Lo paga:</b> no toca la
+        pantalla de Ideas; es lo que se hace si esto se aparca.
+      </p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel oscuro" style="height:844px">
+      <div class="t-cab">
+        <div class="ballena" style="border-radius:50%;background:#14303f"></div>
+        <div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="punto"></div>
+      </div>
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body" style="overflow:hidden">
+        <div class="form" data-m="formC1"><div class="linea"><div class="campo vacio">Apunta una idea…</div><div class="ok apagado">✓</div></div></div>
+        <div class="sec-h"><span>Propuestas · 3</span><span>a este viaje</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span> · hace 3 días</div></div></div>
+          <div class="fila"><div class="txt"><div class="n2">Excursión a las cuevas</div><div class="s2">Curro <span class="al gar">GA</span> · el 12 de julio</div></div></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Pablo <span class="al sol">SO</span> · ayer a las 22:41</div></div></div>
+        </div>
+        <div class="sec-h"><span>Posibles · 4</span><span>por nombre</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Feria del pueblo</div><div class="s2">Ana <span class="al per">PE</span> · hace un rato</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Kayak en el río</div><div class="s2">Ana <span class="al per">PE</span> · el 3 de agosto</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Mirador de las cabras</div><div class="s2">sin autor · el 9 de julio</div></div><button class="btn-sm">Proponer</button></div>
+          <div class="fila"><div class="txt"><div class="n2">Torneo de petanca</div><div class="s2">Luis <span class="al per">PE</span> · el 28 de junio</div></div><button class="btn-sm">Proponer</button></div>
+        </div>
+      </div>
+      <p class="pie-tel" style="color:var(--ab-faint);padding:0 14px 10px">C1 · en reposo, sin teclado</p>
+    </div>
+
+    <div class="tel oscuro" style="height:844px">
+      <div class="t-cab">
+        <div class="ballena" style="border-radius:50%;background:#14303f"></div>
+        <div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="punto"></div>
+      </div>
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body" style="overflow:hidden" data-m="cuerpoTeclado">
+        <div class="form">
+          <div class="linea"><div class="campo foco">Torneo de petanca</div><div class="ok">✓</div></div>
+          <button class="mas-det">Más detalles ▾</button>
+        </div>
+        <div class="sec-h"><span>Propuestas · 3</span><span>a este viaje</span></div>
+        <div class="tarj junta" data-m="listaVisible">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span> · hace 3 días</div></div></div>
+          <div class="fila"><div class="txt"><div class="n2">Excursión a las cuevas</div><div class="s2">Curro <span class="al gar">GA</span> · el 12 de julio</div></div></div>
+          <div class="fila"><div class="txt"><div class="n2">Noche de juegos de mesa</div><div class="s2">Pablo <span class="al sol">SO</span> · ayer a las 22:41</div></div></div>
+        </div>
+        <p class="pie-tel" style="color:var(--ab-faint)">C1 + C3 cerrado · 258,2 pt de lista sobre el teclado</p>
+      </div>
+      <div class="teclado">teclado · 336 pt</div>
+    </div>
+
+    <div class="tel oscuro" style="height:844px">
+      <div class="t-cab">
+        <div class="ballena" style="border-radius:50%;background:#14303f"></div>
+        <div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="punto"></div>
+      </div>
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body" style="overflow:hidden">
+        <div class="form" data-m="formC3">
+          <div class="linea"><div class="campo foco">Torneo de petanca</div><div class="ok">✓</div></div>
+          <button class="mas-det">Menos detalles ▴</button>
+          <div class="rot">Descripción</div>
+          <div class="campo vacio alto">En la pista de tierra, al lado del bar</div>
+          <div class="rot">Enlace</div>
+          <div class="campo vacio">https://…</div>
+        </div>
+        <div class="sec-h"><span>Propuestas · 3</span><span>a este viaje</span></div>
+        <div class="tarj junta">
+          <div class="fila"><div class="txt"><div class="n2">Playa de la Cala</div><div class="s2">Curro <span class="al gar">GA</span> · hace 3 días</div></div></div>
+        </div>
+      </div>
+      <div class="teclado">teclado · 336 pt</div>
+    </div>
+
+    <div class="tel oscuro" style="height:844px">
+      <div class="t-cab">
+        <div class="ballena" style="border-radius:50%;background:#14303f"></div>
+        <div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="punto"></div>
+      </div>
+      <div class="t-sub"><div class="seg"><button>Planes</button><button class="on">Ideas</button></div></div>
+      <div class="t-body" style="overflow:hidden">
+        <div class="form" style="flex:1">
+          <div class="linea"><div class="campo foco">Torneo de petanca</div><div class="ok">✓</div></div>
+          <button class="mas-det">Menos detalles ▴</button>
+          <div class="rot">Descripción</div>
+          <div class="campo vacio" style="flex:1">En la pista de tierra, al lado del bar</div>
+          <div class="rot">Enlace</div>
+          <div class="campo vacio">https://…</div>
+        </div>
+      </div>
+      <div class="teclado">teclado · 336 pt</div>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Renglón cerrado:</b> <span data-m="formCerrado4">75,4</span> pt</span>
+    <span><b>Renglón con detalles (C3):</b> <span data-m="formAbierto2">328</span> pt</span>
+    <span><b>Lista visible con teclado:</b> <span data-m="listaTeclado2">258,2</span> pt cerrado · 5,6 abierto (hoy: 0)</span>
+    <span><b>Modal de hoy:</b> <span data-m="modalAlto3">455,4</span> pt</span>
+  </p>
+
+  <!-- ══════════════ PARTE CINCO ══════════════ -->
+  <div class="parte">Parte cinco · el alias de dos letras, y cómo se pide</div>
+  <p class="parte-intro">
+    El campo va en la ficha de familia (<code>GrupoSection.jsx</code> · <code>EditorFamilia</code>),
+    que hoy tiene Nombre a lo ancho y luego <b>Emoji</b> y <b>Estado</b> en dos columnas. Lo que se
+    decide es <b>dónde entra el alias</b> y <b>si nace vacío o propuesto</b>. Dato que manda: son
+    <b>tres familias</b>, se configura una vez y no se vuelve a tocar, pero si queda vacío la fila
+    de una idea se queda coja.
+  </p>
+
+  <div class="grupo">
+    <h3>Cuatro maneras de pedir dos letras</h3>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">Tercera columna: Emoji · Alias · Estado</span></div>
+      <p class="op-idea">
+        La rejilla de dos pasa a tres. <code>maxLength=2</code>, en mayúsculas automáticas, y el
+        campo mide lo que mide una palabra de dos letras.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> «Estado» se queda en <span data-m="anchoTercio">106,7</span> pt de ancho y
+        «modo playa» ya no cabe entero mientras se escribe. <b>Lo paga:</b> no añade alto a la
+        ficha, y los tres campos cortos quedan juntos.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">Al lado del nombre, que es donde se piensa</span></div>
+      <p class="op-idea">
+        Primera fila: <b>Nombre</b> ancho y <b>Alias</b> estrecho a su derecha, en la misma línea.
+        Debajo, Emoji y Estado como están. La pista dice para qué sirve: «Dos letras. Salen en las
+        ideas».
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el nombre pierde <span data-m="anchoAlias">96</span> pt. <b>Lo paga:</b> se
+        rellena en el momento en que se está pensando el nombre, que es cuando «García → GA» es
+        obvio; puesto abajo, se salta.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">Se propone solo y se corrige</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        El campo (en el sitio de D2) <b>nace lleno</b> con las dos primeras letras del nombre
+        —García → <b>GA</b>— y se sigue escribiendo solo mientras nadie lo toque a mano. En cuanto
+        se corrige, deja de seguir al nombre.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> una regla que hay que explicar en una pista de una línea, y dos familias que
+        empiecen igual —García y Garrido— nacen con el mismo alias hasta que alguien lo cambie.
+        <b>Lo paga:</b> <b>nunca queda vacío</b>, que es el único fallo que rompe la lista de ideas,
+        y el caso normal es cero escritura.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D4</span><span class="op-nombre">Sin campo: siempre las dos primeras letras</span></div>
+      <p class="op-idea">
+        No se guarda nada. El alias se calcula del nombre cada vez que se pinta.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> no se puede corregir —«Solteros» sale <b>SO</b> y no hay manera de dejarlo en
+        <b>SL</b>—, y dos familias con la misma inicial doble no se distinguen justo en la lista
+        donde el alias existe para distinguirlas. Además es lo contrario de lo que pediste
+        («que las configuraré luego»). <b>Lo paga:</b> cero formulario y cero migración.
+      </p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel claro" style="min-height:auto">
+      <div class="t-body">
+        <div class="sec-h"><span>D1 · tres columnas</span></div>
+        <div class="tarj">
+          <div class="rot">Nombre</div>
+          <div class="campo">García</div>
+          <div class="grid3" style="margin-top:10px">
+            <div><div class="rot">Emoji</div><div class="campo">🏖️</div></div>
+            <div><div class="rot">Alias</div><div class="campo">GA</div></div>
+            <div><div class="rot">Estado</div><div class="campo" data-m="estadoTercio">modo pla…</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tel claro" style="min-height:auto">
+      <div class="t-body">
+        <div class="sec-h"><span>D2 y D3 · alias junto al nombre</span></div>
+        <div class="tarj">
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;min-width:0"><div class="rot">Nombre</div><div class="campo" data-m="nombreCorto">García</div></div>
+            <div style="width:88px;flex:none"><div class="rot">Alias</div><div class="campo" data-m="campoAlias" style="text-align:center;letter-spacing:.08em">GA</div></div>
+          </div>
+          <div class="pista" style="margin-top:6px">Dos letras. Salen en las ideas y en los saldos. Se propone del nombre; cámbialo si quieres.</div>
+          <div class="grid2m" style="margin-top:10px">
+            <div><div class="rot">Emoji</div><div class="campo">🏖️</div></div>
+            <div><div class="rot">Estado</div><div class="campo">modo playa</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte seis · cómo se combinan</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>A1</span><span>B3</span><span>F2</span><span>C1+C3</span><span>D3</span></div>
+    <p>
+      <b>Dos grupos como en Planes</b> (A1), porque el dibujo ya está aprendido en la pantalla de al
+      lado y el corte se ve sin leer. <b>La firma con el alias en pastilla</b> (B3): sin color, dos
+      letras al lado de un nombre son ruido; con él, tres ideas de la misma familia se ven de un
+      vistazo. <b>La fecha del grupo</b> (F2), que es la que contesta la pregunta de cada bloque.
+    </p>
+    <p>
+      <b>El renglón siempre puesto y creciendo hacia abajo</b> (C1 + C3): cuesta
+      <span data-m="formCerrado5">75,4</span> pt fijos —una fila de idea— y a cambio quita el botón
+      flotante, deja <span data-m="listaTeclado3">258,2</span> pt de lista visible mientras se escribe
+      (hoy: cero) y permite apuntar tres ideas seguidas sin abrir ni cerrar nada. Y
+      <b>el alias propuesto del nombre</b> (D3), porque el único fallo que rompe la fila de una idea
+      es que el alias esté vacío.
+    </p>
+    <p>
+      <b>Si quieres gastar menos:</b>
+      <span class="receta" style="display:inline"><span>A1</span><span>B1</span><span>F1</span><span>C2+C3</span><span>D1</span></span>
+      — sin color nuevo, sin cruzar tablas para la fecha, y el renglón solo cuando se pide. Es todo
+      lo pedido con la mitad de piezas nuevas.
+    </p>
+    <p>
+      <b>Si el catálogo se os llena de verdad</b> (más de veinte ideas), la combinación que aguanta
+      es <span class="receta" style="display:inline"><span>A5</span><span>B5</span><span>F3</span></span>:
+      lo propuesto plegado, tres líneas por idea y las dos fechas con su verbo. Hoy no compensa —hay
+      siete—, pero es hacia donde crece esto.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Dos cosas que dejo escritas en vez de decidirlas yo.</b> Una: el alias lo pediste para las
+      ideas, pero donde de verdad se echa de menos es en <b>Saldos</b> y en el reparto de un gasto,
+      donde hoy se lee «García» entero en cada renglón; si quieres que salga también ahí, dilo y va
+      en la misma vuelta. Dos: con la lista partida en dos, <b>«Proponer» solo tiene sentido en el
+      grupo de abajo</b>; en el de arriba la fila queda sin verbo a la derecha y solo se toca para
+      editar. Lo he dibujado así en A1, pero si prefieres que ahí salga «Ver en Planes», es un
+      renglón de código y lo digo aquí porque cambia el dibujo.
+    </p>
+    <p style="font-size:13.5px">
+      Esta hoja vive en <code>docs/diseño/planes-ideas.html</code>, junto a
+      <code>planes-catalogo.html</code> y <code>planes-votar.html</code>. <b>No se ha escrito código
+      de la app:</b> lo que sale de esta vuelta es la hoja.
+    </p>
+  </div>
+
+</div>
+</div>

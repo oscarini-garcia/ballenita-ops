@@ -69,8 +69,11 @@ describe('los modelos', () => {
     listarModelosIA.mockRejectedValue(new Error('la API respondió 502'))
     render(<IASection />)
 
-    expect((await screen.findByLabelText('Modelo')).tagName).toBe('INPUT')
-    expect(screen.getByText(/No se han podido traer los modelos/)).toBeInTheDocument()
+    // Se espera al aviso y no al campo: la caja de texto ya está puesta en el
+    // primer pintado —`modelos` es `null` hasta que se sabe—, así que mirarla a
+    // ella no espera a nada y la comprobación llegaba antes que la respuesta.
+    expect(await screen.findByText(/No se han podido traer los modelos/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Modelo').tagName).toBe('INPUT')
   })
 
   it('un modelo retirado se cambia solo por el más cercano, y se dice cuál', async () => {

@@ -306,7 +306,9 @@ label { display: block; font-size: var(--t-label); font-weight: 700; color: var(
    la app —la clave de Anthropic— salía con el borde cuadrado del navegador y
    sin el `width: 100%`: más estrecha que la de al lado y de otra familia. Se
    veía en el móvil, no en los tests. */
-input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], select, textarea {
+/* `url` estaba fuera de la lista, así que el campo del enlace —el único de ese
+   tipo en toda la app— se pintaba blanco sobre el tema oscuro. */
+input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=url], select, textarea {
   width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
   /* Nunca por debajo de 16 px: iOS hace zoom al enfocar el campo si el cuerpo
@@ -590,6 +592,50 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 /* El modal fino: el editor de una idea son dos campos, y la hoja alta de antes
    dejaba media pantalla vacía debajo. */
 .modal.fino { max-width: 380px; }
+
+/* ── La firma de una idea (docs/diseño/planes-ideas.html · B3) ───────────────
+   Dos letras con el color de su familia detrás. La pastilla mide 22 pt de alto,
+   que es justo lo que ya ocupaba la línea de 15,7 con su interlínea: la fila
+   sigue midiendo 67,1 y no crece ni un pt. El color de fondo y el de la letra
+   los pone quien la pinta (`Firma`), porque salen del dato. */
+.sub .alias { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  border-radius: 5px; padding: 1px 5px; margin: 0 2px 0 5px; display: inline-block;
+  line-height: 1.35; vertical-align: baseline; }
+
+/* ── El renglón de apuntar una idea (· C1 + C3) ──────────────────────────────
+   Va bajo el mando de áreas y **no se cierra al guardar**: se vacía y se queda
+   enfocado. El modal que había antes medía 455,4 pt de los 508 que quedan sobre
+   el teclado y dejaba la lista en cero; esto deja 258,2, que son tres ideas.
+
+   «Más detalles» crece hacia abajo: lo que se mueve es la lista, nunca el campo
+   que está mirando el pulgar. */
+.renglon { display: flex; flex-direction: column; gap: 8px;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 10px; }
+.renglon-linea { display: flex; gap: 8px; align-items: center; }
+.renglon-linea input { flex: 1; min-width: 0; margin: 0; }
+.renglon label { margin-bottom: -4px; }
+.renglon textarea, .renglon input[type="url"] { margin: 0; }
+
+/* El ✓: cuadrado de 44, que es el objetivo mínimo, y apagado mientras no hay
+   título —sin eso, un toque en vacío guarda una idea sin nombre—. */
+.btn.cuadrado { width: 44px; height: 44px; flex: none; padding: 0;
+  display: grid; place-items: center; }
+.btn.cuadrado svg { width: 20px; height: 20px; }
+.btn:disabled { opacity: .38; }
+
+.renglon-mas { align-self: flex-start; background: none; border: none; padding: 2px;
+  font-family: inherit; font-size: var(--t-sub); font-weight: 600; color: var(--spout-deep);
+  cursor: pointer; }
+
+/* ── La ficha de una familia (· D3) ──────────────────────────────────────────
+   Nombre y alias en la misma línea, porque el alias se piensa cuando se está
+   escribiendo el nombre; puesto abajo, se salta. El emoji cabe al lado. El
+   estado se quedó solo y a lo ancho: es lo que va a crecer. */
+.grid-familia { display: grid; grid-template-columns: 1fr 84px 72px; gap: 10px; }
+.grid-familia > * { min-width: 0; }
+.grid-familia input { margin-bottom: 0; }
+.campo-alias { text-align: center; letter-spacing: .1em; text-transform: uppercase; }
+.grid-familia + .pista { margin: 6px 2px 12px; line-height: 1.4; }
 
 .version-grande { font-size: var(--t-title); font-weight: 700; letter-spacing: -.02em; color: var(--spout-deep); }
 

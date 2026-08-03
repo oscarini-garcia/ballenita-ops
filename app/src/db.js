@@ -187,8 +187,8 @@ export const getEvent = (id) => db.events.get(id)
 export const updateEvent = (id, patch) => escribir('events', id, patch)
 
 // ── Familias ──
-export async function addFamily(eventId, { name, color = '#1FA6D6', avatar = '👨‍👩‍👧', estado = '' }) {
-  return escribir('families', uid('fam'), { eventId, name, color, avatar, estado })
+export async function addFamily(eventId, { name, alias = '', color = '#1FA6D6', avatar = '👨‍👩‍👧', estado = '' }) {
+  return escribir('families', uid('fam'), { eventId, name, alias, color, avatar, estado })
 }
 export const familiesOf = (eventId) => db.families.where({ eventId }).toArray()
 export const updateFamily = (id, patch) => escribir('families', id, patch)
@@ -332,7 +332,13 @@ export const removeDinner = (id) => removeRow('dinners', id)
  */
 export async function addPlanIdea({ titulo, descripcion = '', enlace = '', creadaPor = null }, evento = null) {
   const eventId = evento?.esDemo ? evento.id : null
-  return escribir('planIdeas', uid('idea'), { titulo, descripcion, enlace, creadaPor, eventId })
+  // `apuntadaEl` la escribe el cliente, y no vale `creadoEn`: esa la pone el
+  // Worker al insertar, así que una idea recién apuntada no tendría fecha hasta
+  // sincronizar, y en la web —que no sincroniza a propósito— no la tendría
+  // nunca (§14.19-ter, `docs/diseño/planes-ideas.html`, defecto 1).
+  return escribir('planIdeas', uid('idea'), {
+    titulo, descripcion, enlace, creadaPor, apuntadaEl: now(), eventId,
+  })
 }
 
 export async function listPlanIdeas(evento = null) {
@@ -378,7 +384,15 @@ export function traerIdeaAlViaje(eventId, idea) {
  */
 export async function ideasYaPropuestas(eventId) {
   const suyos = await db.plans.where({ eventId }).toArray()
-  return new Set(suyos.map((p) => p.ideaId).filter(Boolean))
+  const mapa = new Map()
+  for (const p of suyos) {
+    if (!p.ideaId) continue
+    // Si la misma idea estuviera dos veces —no debería, pero el dato viejo
+    // manda—, vale la más reciente: es la que contesta «¿esto es de ahora?».
+    const antes = mapa.get(p.ideaId)
+    if (!antes || (p.propuestoEl ?? '') > (antes.propuestoEl ?? '')) mapa.set(p.ideaId, p)
+  }
+  return mapa
 }
 
 /**
@@ -432,6 +446,10 @@ export async function addPlan(eventId, p) {
     // en cuántos viajes se ha usado: lo que se pinta son los campos de arriba,
     // que son copias (C1).
     ideaId: p.ideaId ?? null,
+    // Cuándo se propuso **a este viaje**, que no es cuándo se apuntó la idea:
+    // en el catálogo puede llevar tres agostos. Es la fecha que enseña el grupo
+    // «Propuestas» de Ideas (`docs/diseño/planes-ideas.html` · F2).
+    propuestoEl: p.propuestoEl ?? now(),
   })
 }
 export const plansOf = (eventId) => db.plans.where({ eventId }).toArray()
