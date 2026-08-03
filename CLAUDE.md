@@ -59,6 +59,14 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   plan salen los avatares bajo su voto y los que faltan apagados. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
+- **La lista de ideas se parte en dos, y cada idea la firma alguien** (SPECS §14.19-ter,
+  `docs/diseño/planes-ideas.html` · A1·B3·F2·C1+C3·D3): **Propuestas** —las que ya están a
+  votación en este viaje— y **Posibles**; la firma es nombre + **alias de dos letras** de su
+  familia en pastilla de su color (`lib/alias.js`, se propone del nombre) + cuándo, y el
+  «cuándo» es el del grupo —cuándo se propuso arriba, cuándo se apuntó abajo—. Se apunta desde
+  un **renglón fijo bajo el mando**, que no se cierra al guardar: el modal ocupaba 455,4 pt de
+  los 508 que quedan sobre el teclado y se escribía sin ver el catálogo. Las dos fechas las
+  escribe el cliente (`apuntadaEl`, `propuestoEl`), no `creadoEn`, que es del servidor.
 - **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
@@ -314,7 +322,7 @@ portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de te
 retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
 binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
-entrar, la demostración arranca llena y no sube nunca. 150 tests en la PWA + 37 en la API,
+entrar, la demostración arranca llena y no sube nunca. 375 tests en la PWA + 75 en la API,
 todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su

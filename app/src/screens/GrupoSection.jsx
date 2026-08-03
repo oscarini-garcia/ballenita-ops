@@ -9,6 +9,7 @@ import {
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import Icono from '../components/Icono.jsx'
 import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre } from '../lib/asignacion.js'
+import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
 import { EDADES, EMOJIS_PERSONA, pesoDe } from '../lib/personas.js'
 
@@ -293,6 +294,15 @@ function PieDeEditor({ onGuardar, onCancelar, borrado }) {
 function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar }) {
   const nueva = !familia
   const [name, setName] = useState(familia?.name ?? '')
+  // El alias se propone del nombre y **sigue escribiéndose solo mientras nadie
+  // lo toque a mano** (`docs/diseño/planes-ideas.html` · D3). Nace lleno porque
+  // el único fallo que rompe la firma de una idea es que esté vacío; se puede
+  // corregir porque «Solteros» sale SO y quizá se quiera SL.
+  const [alias, setAlias] = useState(() => aliasDe(familia))
+  const cambiarNombre = (valor) => {
+    if (aliasSigueAlNombre(alias, name)) setAlias(aliasSugerido(valor))
+    setName(valor)
+  }
   const [avatar, setAvatar] = useState(familia?.avatar ?? '👨‍👩‍👧')
   const [estado, setEstado] = useState(familia?.estado ?? '')
   const [color, setColor] = useState(familia?.color ?? COLORES[0])
@@ -305,7 +315,13 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
 
   const guardar = async () => {
     if (!name.trim()) return
-    const datos = { name: name.trim(), avatar: avatar || '👨‍👩‍👧', estado: estado.trim(), color }
+    const datos = {
+      name: name.trim(),
+      alias: (alias.trim() || aliasSugerido(name)).toUpperCase(),
+      avatar: avatar || '👨‍👩‍👧',
+      estado: estado.trim(),
+      color,
+    }
     if (nueva) {
       const id = await addFamily(eventId, datos)
       if (bungaId) await asignarBungaAFamilia(eventId, id, bungaId)
@@ -320,18 +336,32 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
 
   return (
     <Hoja titulo={nueva ? 'Nueva familia' : 'Editar familia'} onCerrar={onCerrar}>
-      <label htmlFor="fam-nombre">Nombre</label>
-      <input id="fam-nombre" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="García" autoFocus />
-      <div className="grid2">
+      <div className="grid-familia">
+        <div>
+          <label htmlFor="fam-nombre">Nombre</label>
+          <input id="fam-nombre" type="text" value={name} onChange={(e) => cambiarNombre(e.target.value)} placeholder="García" autoFocus />
+        </div>
+        <div>
+          <label htmlFor="fam-alias">Alias</label>
+          <input
+            id="fam-alias"
+            className="campo-alias"
+            type="text"
+            value={alias}
+            maxLength={2}
+            onChange={(e) => setAlias(e.target.value.toUpperCase())}
+          />
+        </div>
         <div>
           <label htmlFor="fam-emoji">Emoji</label>
           <input id="fam-emoji" type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} />
         </div>
-        <div>
-          <label htmlFor="fam-estado">Estado</label>
-          <input id="fam-estado" type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="modo playa" />
-        </div>
       </div>
+      <div className="pista">Dos letras. Firman las ideas. Se propone del nombre; cámbialo si quieres.</div>
+
+      {/* El estado va solo y a lo ancho: es lo que va a crecer. */}
+      <label htmlFor="fam-estado">Estado</label>
+      <input id="fam-estado" type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="modo playa" />
 
       <label>Bunga</label>
       {nueva ? (

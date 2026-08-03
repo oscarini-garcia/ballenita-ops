@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   listPlanIdeas, addPlanIdea, updatePlanIdea, removePlanIdea,
-  traerIdeaAlViaje, usoDeIdeas, ideasYaPropuestas, personsOf,
+  traerIdeaAlViaje, usoDeIdeas, ideasYaPropuestas, personsOf, familiesOf,
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
+import { aliasDe } from '../lib/alias.js'
+import { formatearHace } from '../lib/hace.js'
 import { tap } from '../lib/native.js'
 import { sugerirPlanes, hayApi } from '../sync/api.js'
-import Fab from '../components/Fab.jsx'
+import Icono from '../components/Icono.jsx'
 
 /**
  * «Ideas»: lo que se repite de un viaje a otro.
@@ -20,7 +22,22 @@ import Fab from '../components/Fab.jsx'
  *
  * Es la misma figura que Platos ↔ Cenas: un catálogo, y lo que se hace con él.
  * Decidido en `docs/diseño/planes-catalogo.html` (A3 · B3 · C1) y afinado en
- * `docs/diseño/planes-votar.html`.
+ * `docs/diseño/planes-votar.html` y `docs/diseño/planes-ideas.html`.
+ *
+ * Lo que trae la última vuelta (`planes-ideas.html` · A1 · B3 · F2 · C1+C3):
+ *
+ * - **Dos grupos, como en Planes**: «Propuestas» —las que ya están a votación en
+ *   este viaje— y «Posibles». Era una lista plana en orden de guardado, y lo
+ *   único que separaba a unas de otras era un botón apagado.
+ * - **Cada idea la firma quien la apuntó**, con el alias de su familia en una
+ *   pastilla de su color y el «cuándo» en palabras. Dos letras se leen de lejos;
+ *   «García» no cabe al lado de un nombre y una fecha en una línea de 15,7 pt.
+ * - **La fecha es la del grupo** (F2): en Propuestas, cuándo se propuso a este
+ *   viaje; en Posibles, cuándo se apuntó al catálogo. Son dos hechos distintos y
+ *   cada grupo pregunta por uno.
+ * - **Se apunta desde un renglón fijo bajo el mando**, no desde un modal. El
+ *   modal medía 455,4 pt de los 508 que quedan sobre el teclado: se escribía sin
+ *   ver el catálogo, que es justo lo que evita apuntar dos veces lo mismo.
  *
  * **Se toca la fila para editarla.** El lápiz de la derecha competía por el
  * pulgar con «Proponer», que es lo que se viene a hacer, y gastaba 44 pt de un
@@ -29,14 +46,20 @@ import Fab from '../components/Fab.jsx'
 export default function IdeasScreen({ eventId, event }) {
   const ideas = useLiveQuery(() => listPlanIdeas(event), [event?.id, event?.esDemo], [])
   const usos = useLiveQuery(usoDeIdeas, [], {})
-  const propuestas = useLiveQuery(() => ideasYaPropuestas(eventId), [eventId], new Set())
+  const propuestas = useLiveQuery(() => ideasYaPropuestas(eventId), [eventId], new Map())
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
+  const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const { meId } = useIdentidad(eventId, persons)
-  const [editando, setEditando] = useState(null) // la idea, o 'nueva'
+  const [editando, setEditando] = useState(null)
   const [sugiriendo, setSugiriendo] = useState(false)
 
-  const quien = (id) => persons.find((p) => p.id === id)
-  const nombreDe = (id) => { const p = quien(id); return p ? (p.apodo || p.name) : null }
+  // Propuestas primero, y dentro por lo más reciente: en ese grupo la pregunta
+  // es «¿qué se ha sacado ya?», y lo de esta semana manda sobre lo de julio.
+  const yaEstan = ideas.filter((i) => propuestas.has(i.id))
+    .sort((a, b) => (propuestas.get(b.id)?.propuestoEl ?? '').localeCompare(propuestas.get(a.id)?.propuestoEl ?? ''))
+  // Las posibles llegan ya ordenadas por nombre desde `listPlanIdeas`: sin votos
+  // ni fecha de propuesta, el nombre es el único orden que no cambia solo.
+  const posibles = ideas.filter((i) => !propuestas.has(i.id))
 
   async function proponer(idea) {
     tap()
@@ -45,58 +68,218 @@ export default function IdeasScreen({ eventId, event }) {
 
   return (
     <div className="body">
-      <div className="note">
-        Las ideas son <b>las mismas en todos los viajes</b>. Al proponer una se copia a este evento
-        <b> sin día, sin votos y a votación</b>: el día y los votos son de cada agosto.
-      </div>
+      <RenglonNuevaIdea evento={event} meId={meId} />
 
       {ideas.length === 0 && (
         <div className="empty">
           <span className="e">🗺️</span>Todavía no hay ideas guardadas.<br />
-          Apunta la primera, o guarda un plan desde Planes.
+          Apunta la primera ahí arriba, o guarda un plan desde Planes.
         </div>
       )}
 
-      {ideas.length > 0 && (
-        <div className="card tight">
-          {ideas.map((idea) => {
-            const yaEsta = propuestas.has(idea.id)
-            const autor = nombreDe(idea.creadaPor)
-            const viajes = usos[idea.id]
-            return (
-              <div className="row fila-idea" key={idea.id}>
-                {/* La fila entera edita. El verbo va aparte y no se traga el toque. */}
-                <button className="main destapa" onClick={() => { tap(); setEditando(idea) }}>
-                  <div className="n">{idea.titulo}</div>
-                  <div className="sub">
-                    {[
-                      autor ? `la apuntó ${autor}` : null,
-                      viajes ? `${viajes} ${viajes === 1 ? 'viaje' : 'viajes'}` : null,
-                    ].filter(Boolean).join(' · ') || 'sin usar todavía'}
-                  </div>
-                </button>
-                <button className="btn sm" disabled={yaEsta} onClick={() => proponer(idea)}>
-                  {yaEsta ? 'Ya propuesta' : 'Proponer'}
-                </button>
-              </div>
-            )
-          })}
-        </div>
+      {yaEstan.length > 0 && (
+        <>
+          <div className="sec-h"><span>Propuestas · {yaEstan.length}</span><span>a este viaje</span></div>
+          <div className="card tight">
+            {yaEstan.map((idea) => (
+              <Fila
+                key={idea.id}
+                idea={idea}
+                cuando={propuestas.get(idea.id)?.propuestoEl}
+                persons={persons}
+                families={families}
+                onEditar={() => { tap(); setEditando(idea) }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {posibles.length > 0 && (
+        <>
+          <div className="sec-h"><span>Posibles · {posibles.length}</span><span>por nombre</span></div>
+          <div className="card tight">
+            {posibles.map((idea) => (
+              <Fila
+                key={idea.id}
+                idea={idea}
+                cuando={idea.apuntadaEl}
+                persons={persons}
+                families={families}
+                onEditar={() => { tap(); setEditando(idea) }}
+                onProponer={() => proponer(idea)}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <Sugerencias eventId={eventId} evento={event} meId={meId} abierto={sugiriendo} onAbrir={setSugiriendo} />
 
-      <Fab label="Idea" onClick={() => setEditando('nueva')} />
       {editando && (
         <ModalIdea
-          idea={editando === 'nueva' ? null : editando}
-          evento={event}
-          meId={meId}
-          usos={editando === 'nueva' ? 0 : (usos[editando.id] ?? 0)}
+          idea={editando}
+          usos={usos[editando.id] ?? 0}
           onClose={() => setEditando(null)}
         />
       )}
     </div>
+  )
+}
+
+/**
+ * Una idea, en una fila de 67,1 pt.
+ *
+ * Vive **fuera** del componente a propósito: declarada dentro, cada pintado
+ * creaba un tipo nuevo y React desmontaba y volvía a montar la lista entera. Con
+ * seis consultas vivas encima eso llega a tragarse un toque —la fila se cambia
+ * por otra igual entre que baja el dedo y se levanta—.
+ *
+ * El verbo va aparte del cuerpo para que la fila entera pueda editar sin
+ * tragarse el toque de «Proponer». En el grupo de arriba no hay verbo: el
+ * encabezado ya dice que está propuesta, y el botón apagado de antes gastaba
+ * 144,2 pt de un ancho de 390 para no hacer nada.
+ */
+function Fila({ idea, cuando, persons, families, onEditar, onProponer }) {
+  return (
+    <div className="row fila-idea">
+      <button className="main destapa" onClick={onEditar}>
+        <div className="n">{idea.titulo}</div>
+        <div className="sub">
+          <Firma idea={idea} persons={persons} families={families} cuando={cuando} />
+        </div>
+      </button>
+      {onProponer && <button className="btn sm" onClick={onProponer}>Proponer</button>}
+    </div>
+  )
+}
+
+/**
+ * Quién apuntó la idea y cuándo (`docs/diseño/planes-ideas.html` · B3).
+ *
+ * El alias va en pastilla y con el color de su familia, no en texto corrido:
+ * «Curro GA» leído deprisa parece un apellido, y lo que se quiere es que tres
+ * ideas de la misma familia se vean **sin leer ningún nombre**. El color se
+ * mezcla con la tinta del tema para que las dos letras se lean igual de bien en
+ * claro que en oscuro; el de la familia solo tiñe el fondo.
+ *
+ * Sin autor —una idea traída de la IA o importada— se dice «sin autor» y punto:
+ * es cierto, y es mejor que inventarse a alguien.
+ */
+function Firma({ idea, persons, families, cuando }) {
+  const quien = persons.find((p) => p.id === idea.creadaPor)
+  const familia = quien ? families.find((f) => f.id === quien.familyId) : null
+  const cuandoTexto = formatearHace(cuando)
+
+  return (
+    <>
+      {quien ? (
+        <>
+          {quien.apodo || quien.name}
+          {familia && (
+            <span
+              className="alias"
+              style={{
+                background: `color-mix(in srgb, ${familia.color} 20%, transparent)`,
+                color: `color-mix(in srgb, ${familia.color} 55%, var(--ink))`,
+              }}
+            >
+              {aliasDe(familia)}
+            </span>
+          )}
+        </>
+      ) : 'sin autor'}
+      {cuandoTexto && ` · ${cuandoTexto}`}
+    </>
+  )
+}
+
+/**
+ * El renglón de apuntar, bajo el mando de áreas
+ * (`docs/diseño/planes-ideas.html` · C1 + C3).
+ *
+ * Dos medidas explican por qué no es un modal: el de antes ocupaba **455,4 pt**
+ * de los 508 que quedan sobre el teclado —la lista se veía cero— y este deja
+ * **258,2**, que son tres ideas. Se escribe viendo lo que ya hay apuntado, que
+ * es lo único que evita apuntar dos veces la misma cosa.
+ *
+ * Al guardar **no se cierra**: se vacía y se queda enfocado. Apuntar tres ideas
+ * seguidas son tres frases y tres toques.
+ *
+ * «Más detalles» crece **hacia abajo** (C3): lo que empuja es la lista, nunca el
+ * campo que se está mirando. Y el ✓ está apagado mientras no hay título, que no
+ * es adorno: sin eso, un toque en vacío guarda una idea sin nombre.
+ */
+function RenglonNuevaIdea({ evento, meId }) {
+  const [titulo, setTitulo] = useState('')
+  const [descripcion, setDescripcion] = useState('')
+  const [enlace, setEnlace] = useState('')
+  const [detalles, setDetalles] = useState(false)
+  const campo = useRef(null)
+
+  async function guardar(e) {
+    e.preventDefault()
+    if (!titulo.trim()) return
+    tap()
+    await addPlanIdea({
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim(),
+      enlace: enlace.trim(),
+      creadaPor: meId,
+    }, evento)
+    setTitulo('')
+    setDescripcion('')
+    setEnlace('')
+    setDetalles(false)
+    campo.current?.focus()
+  }
+
+  return (
+    <form className="renglon" onSubmit={guardar}>
+      <div className="renglon-linea">
+        <input
+          ref={campo}
+          type="text"
+          aria-label="Apunta una idea"
+          placeholder="Apunta una idea…"
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+        />
+        <button className="btn cuadrado" type="submit" disabled={!titulo.trim()} aria-label="Guardar idea">
+          <Icono nombre="visto" />
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className="renglon-mas"
+        aria-expanded={detalles}
+        onClick={() => { tap(); setDetalles(!detalles) }}
+      >
+        {detalles ? 'Menos detalles ▴' : 'Más detalles ▾'}
+      </button>
+
+      {detalles && (
+        <>
+          <label htmlFor="idea-nueva-desc">Descripción</label>
+          <textarea
+            id="idea-nueva-desc"
+            rows="3"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Cala del sur. Llevar sombrilla: no hay chiringuito."
+          />
+          <label htmlFor="idea-nueva-enlace">Enlace</label>
+          <input
+            id="idea-nueva-enlace"
+            type="url"
+            value={enlace}
+            onChange={(e) => setEnlace(e.target.value)}
+            placeholder="https://…"
+          />
+        </>
+      )}
+    </form>
   )
 }
 
@@ -190,25 +373,28 @@ function Sugerencias({ eventId, evento, meId, abierto, onAbrir }) {
 /**
  * El editor: un modal fino, porque son dos campos.
  *
+ * Solo **edita**: lo de crear se hace en el renglón de arriba, sin tapar nada.
  * La descripción es lo único largo y por eso crece a cuatro renglones: ahí cabe
  * «llevar sombrilla, no hay chiringuito y aparcar arriba», que es lo que se
  * apunta de verdad. El «dónde» se fue —cabía en la descripción— y el coste
  * también, que no se usó nunca.
  */
-function ModalIdea({ idea, evento, meId, usos, onClose }) {
+function ModalIdea({ idea, usos, onClose }) {
   useBloqueoDeScroll()
-  const [titulo, setTitulo] = useState(idea?.titulo ?? '')
-  const [descripcion, setDescripcion] = useState(idea?.descripcion ?? '')
-  const [enlace, setEnlace] = useState(idea?.enlace ?? '')
+  const [titulo, setTitulo] = useState(idea.titulo ?? '')
+  const [descripcion, setDescripcion] = useState(idea.descripcion ?? '')
+  const [enlace, setEnlace] = useState(idea.enlace ?? '')
   const [confirmando, setConfirmando] = useState(false)
 
   async function guardar() {
     if (!titulo.trim()) return
     tap()
-    const campos = { titulo: titulo.trim(), descripcion: descripcion.trim(), enlace: enlace.trim() }
-    if (idea) await updatePlanIdea(idea.id, campos)
-    // Quién la apuntó solo se pone al crearla: editarla no cambia de quién fue.
-    else await addPlanIdea({ ...campos, creadaPor: meId }, evento)
+    // Quién la apuntó no se toca al editar: editarla no cambia de quién fue.
+    await updatePlanIdea(idea.id, {
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim(),
+      enlace: enlace.trim(),
+    })
     onClose()
   }
 
@@ -222,7 +408,15 @@ function ModalIdea({ idea, evento, meId, usos, onClose }) {
     <div className="modal-bg" onClick={onClose}>
       <div className="modal fino" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
-        <h2>{idea ? 'Editar idea' : 'Idea nueva'}</h2>
+        <h2>Editar idea</h2>
+        {/* El contador de viajes vive aquí y ya no en la fila: en una línea de
+            15,7 pt no caben el autor, la familia, la fecha y el contador, y de
+            los cuatro es el menos accionable (`planes-ideas.html`, defecto 5). */}
+        <div className="dato-fijo">
+          {usos === 0
+            ? 'Todavía no la has propuesto en ningún viaje.'
+            : `Propuesta en ${usos} ${usos === 1 ? 'viaje' : 'viajes'}.`}
+        </div>
 
         <label htmlFor="idea-titulo">Qué es</label>
         <input id="idea-titulo" type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Playa de la Cala" autoFocus />
@@ -234,31 +428,27 @@ function ModalIdea({ idea, evento, meId, usos, onClose }) {
         <input id="idea-enlace" type="url" value={enlace} onChange={(e) => setEnlace(e.target.value)} placeholder="https://…" />
 
         <div style={{ marginTop: 16 }}>
-          <button className="btn block" onClick={guardar} disabled={!titulo.trim()}>
-            {idea ? 'Guardar' : 'Añadir al catálogo'}
-          </button>
+          <button className="btn block" onClick={guardar} disabled={!titulo.trim()}>Guardar</button>
         </div>
 
-        {idea && (
-          <div style={{ marginTop: 10 }}>
-            {confirmando ? (
-              <>
-                <div className="note">
-                  Se borra <b>de todos los viajes</b>.{' '}
-                  {usos > 0
-                    ? `Los planes de ${usos === 1 ? 'el viaje' : `los ${usos} viajes`} donde ya la propusiste se quedan como están: son copias.`
-                    : 'Todavía no la has propuesto en ningún viaje.'}
-                </div>
-                <div className="chips" style={{ marginTop: 8 }}>
-                  <button className="btn sm danger" onClick={borrar}>Sí, borrarla</button>
-                  <button className="btn sm ghost" onClick={() => setConfirmando(false)}>Dejarlo</button>
-                </div>
-              </>
-            ) : (
-              <button className="btn sm ghost block" onClick={() => { tap(); setConfirmando(true) }}>Borrar idea</button>
-            )}
-          </div>
-        )}
+        <div style={{ marginTop: 10 }}>
+          {confirmando ? (
+            <>
+              <div className="note">
+                Se borra <b>de todos los viajes</b>.{' '}
+                {usos > 0
+                  ? `Los planes de ${usos === 1 ? 'el viaje' : `los ${usos} viajes`} donde ya la propusiste se quedan como están: son copias.`
+                  : 'Todavía no la has propuesto en ningún viaje.'}
+              </div>
+              <div className="chips" style={{ marginTop: 8 }}>
+                <button className="btn sm danger" onClick={borrar}>Sí, borrarla</button>
+                <button className="btn sm ghost" onClick={() => setConfirmando(false)}>Dejarlo</button>
+              </div>
+            </>
+          ) : (
+            <button className="btn sm ghost block" onClick={() => { tap(); setConfirmando(true) }}>Borrar idea</button>
+          )}
+        </div>
       </div>
     </div>
   )

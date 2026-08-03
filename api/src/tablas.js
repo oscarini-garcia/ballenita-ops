@@ -30,7 +30,9 @@ export const TABLAS = {
     booleanos: ['esDemo'],
   },
   families: {
-    columnas: ['eventId', 'name', 'color', 'avatar', 'estado'],
+    // `alias` son las dos letras que firman una idea —«GA»— y que caben donde
+    // no cabe «García» (`docs/diseño/planes-ideas.html` · B3 · D3).
+    columnas: ['eventId', 'name', 'alias', 'color', 'avatar', 'estado'],
   },
   bungas: {
     columnas: ['eventId', 'name', 'alias', 'familyId'],
@@ -68,12 +70,14 @@ export const TABLAS = {
     // El otro catálogo compartido, hermano de `dishes`: lo que se repite de un
     // viaje a otro. Ni día, ni estado, ni votos — esos son de cada agosto.
     // `eventId` nulo = de todos; con valor, solo del Demo (§14.9-quater).
-    columnas: ['titulo', 'descripcion', 'enlace', 'creadaPor', 'eventId'],
+    // `apuntadaEl` la escribe el cliente al crear, y no se usa `creadoEn`: esa
+    // la pone el Worker y no existe hasta sincronizar (§14.19-ter).
+    columnas: ['titulo', 'descripcion', 'enlace', 'creadaPor', 'apuntadaEl', 'eventId'],
   },
   plans: {
     columnas: [
       'eventId', 'titulo', 'descripcion', 'dia', 'costeEstimado',
-      'ubicacion', 'enlace', 'estado', 'votos', 'ideaId',
+      'ubicacion', 'enlace', 'estado', 'votos', 'ideaId', 'propuestoEl',
     ],
     json: ['votos'],
   },

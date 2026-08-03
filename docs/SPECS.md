@@ -1508,7 +1508,8 @@ lápiz competía por el pulgar con el verbo y gastaba 44 pt de 390); «traer» p
 usó nunca— y el **dónde** —cabía en la descripción, que crece a cuatro
 renglones—; **una idea no se propone dos veces** —quedaban dos filas idénticas
 repartiéndose los votos, y no ganaba ninguna—; y el editor es un **modal fino**,
-que son dos campos.
+que son dos campos. Lo de la lista de ideas —los dos grupos, la firma y el
+renglón de apuntar— se rehízo después: §14.19-ter.
 
 ### 14.19-bis Las sugerencias de la IA: el material lo compone el Worker
 
@@ -1531,6 +1532,71 @@ Dos decisiones que conviene que queden escritas:
 **Sin clave, el botón no existe.** Si esta instalación no habla con la API el
 botón no se pinta, y si la clave no está puesta el Worker contesta 409. Ofrecer
 algo que va a fallar al pulsarlo es peor que no ofrecerlo.
+
+### 14.19-ter Ideas: dos grupos, una firma y un renglón para apuntar
+
+Decidido en [`docs/diseño/planes-ideas.html`](diseño/planes-ideas.html) ·
+**A1 · B3 · F2 · C1+C3 · D3**.
+
+**El defecto, medido.** Ideas era **una lista plana** en orden de guardado: las ya
+propuestas a este viaje y las que nadie había sacado, revueltas, y lo único que
+las separaba era un botón apagado de **144,2 pt** que decía «Ya propuesta» y no
+hacía nada. La firma existía a medias —«la apuntó Curro»— y no decía de qué
+familia ni cuándo. Y la fila **no medía lo mismo dos veces**: entre 68,1 y
+**117,3 pt**, porque el subtítulo doblaba contra ese botón.
+
+**Dos grupos, como en Planes** (A1): «Propuestas · N» —a este viaje— y
+«Posibles · N» —por nombre—. Es el dibujo de la pantalla de al lado, así que no
+hay nada nuevo que aprender, y el corte se ve sin leer. En el grupo de arriba la
+fila **no lleva verbo**: el encabezado ya dice que está propuesta.
+
+**Cada idea la firma quien la apuntó** (B3): el nombre, el **alias de dos letras**
+de su familia en una pastilla con su color, y el «cuándo» en palabras
+(`lib/hace.js`). Dos letras se leen de lejos y «García» no cabe al lado de un
+nombre y una fecha en una línea de 15,7 pt. El color de la familia tiñe el fondo
+y la letra se mezcla con la tinta del tema, para que se lea igual en las dos
+caras. Una idea sin autor —de la IA, o importada— dice **«sin autor»**.
+
+**La fecha es la del grupo** (F2): en Propuestas, cuándo se propuso a *este*
+viaje; en Posibles, cuándo se apuntó al catálogo. Son dos hechos distintos y cada
+grupo pregunta por uno; enseñar siempre la del catálogo hacía que una idea
+propuesta ayer dijera «el 12 de julio de 2024».
+
+**Las dos fechas las escribe el cliente** (`planIdeas.apuntadaEl`,
+`plans.propuestoEl`, migración `0008`) y **no se reusa `creadoEn`**: esa la pone
+el Worker al insertar, así que una idea recién apuntada no tenía fecha hasta
+sincronizar, y en la web —que no sincroniza a propósito, §14.9— no la tenía
+nunca.
+
+**Se apunta desde un renglón fijo bajo el mando de áreas** (C1 + C3), no desde un
+modal. El modal medía **455,4 pt** de los 508 que quedan sobre el teclado: se
+escribía sin ver el catálogo, que es justo lo que evita apuntar dos veces la
+misma cosa. El renglón deja **258,2 pt** de lista visible —tres ideas—, **no se
+cierra al guardar** —se vacía y se queda enfocado, así que apuntar tres seguidas
+son tres frases y tres toques— y «Más detalles» crece **hacia abajo**: lo que se
+mueve es la lista, nunca el campo que está mirando el pulgar. Con el renglón
+puesto, **Ideas no tiene botón flotante**: dos puertas a lo mismo es una de más,
+y la flotante tapaba la última fila. El ✓ está apagado mientras no hay título;
+sin eso, un toque en vacío guarda una idea sin nombre.
+
+**El contador de viajes se va de la fila** y vive dentro de la idea abierta: en
+una línea de 15,7 no caben el autor, la familia, la fecha *y* el contador, y de
+los cuatro es el menos accionable.
+
+**El alias se propone del nombre y se puede corregir** (D3, `lib/alias.js`):
+«García» → `GA`, y sigue escribiéndose solo mientras nadie lo toque a mano. Nace
+lleno porque el único fallo que rompe la firma de una idea es que esté vacío, y
+se puede cambiar porque «Solteros» sale `SO` y quizá se quiera `SL`. Las familias
+de antes de la columna caen al propuesto, así que ninguna se queda coja. En la
+ficha de familia el alias va **junto al nombre** —se piensa cuando se está
+escribiendo el nombre; puesto abajo, se salta— y el **estado se queda solo y a lo
+ancho**, que es lo que va a crecer.
+
+Una nota de oficio que costó un rato: `Fila` estaba declarada **dentro** del
+componente, y eso crea un tipo nuevo en cada pintado, así que React desmontaba y
+volvía a montar la lista entera. Con seis consultas vivas encima, llegaba a
+tragarse un toque —la fila se cambiaba por otra igual entre que bajaba el dedo y
+se levantaba—. Vive fuera y recibe lo suyo por props.
 
 ### 14.12 Un solo tema, y sus dos caras
 
