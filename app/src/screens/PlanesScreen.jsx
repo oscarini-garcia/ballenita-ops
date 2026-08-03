@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { plansOf, addPlan, updatePlan, personsOf, devolverPlanAIdea } from '../db.js'
+import { plansOf, updatePlan, personsOf, devolverPlanAIdea } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { esAdministrador } from '../lib/admin.js'
@@ -8,7 +8,6 @@ import { leerSesion } from '../auth/sesion.js'
 import { porDia } from '../lib/evento.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
-import Fab from '../components/Fab.jsx'
 
 const VOTES = ['👍', '🤷', '👎']
 const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -30,12 +29,19 @@ const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { we
  * **Dos grupos y un orden que significa algo**: primero los elegidos —los que ya
  * tienen día—, después los disponibles por votos. El orden de creación no decía
  * nada.
+ *
+ * **Y un plan no se crea aquí: sale de proponer una idea.** Había un «+ Plan» que
+ * abría su propio formulario, y con él un plan podía nacer por dos caminos: desde
+ * el catálogo, quedando enlazado a su idea, o suelto, sin idea detrás. El segundo
+ * se lleva por delante media razón de ser del catálogo —lo que se apunta a mano
+ * este agosto no está el que viene— y duplicaba un formulario que ya existe. Ahora
+ * hay un solo camino, y la pantalla **lo dice** en vez de dejar buscando el botón:
+ * apúntalo en Ideas y dale a «Proponer».
  */
 export default function PlanesScreen({ eventId, event }) {
   const plans = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const { meId: me } = useIdentidad(eventId, persons)
-  const [open, setOpen] = useState(false)
   const [abierto, setAbierto] = useState(null)
 
   const esAdmin = esAdministrador(leerSesion())
@@ -90,7 +96,7 @@ export default function PlanesScreen({ eventId, event }) {
       {plans.length === 0 && (
         <div className="empty">
           <span className="e">🗺️</span>Ningún plan todavía.<br />
-          Propón uno desde <b>Ideas</b>, o apúntalo con «+ Plan».
+          Los planes salen de <b>Ideas</b>: apunta la idea ahí y dale a <b>Proponer</b>.
         </div>
       )}
 
@@ -126,8 +132,17 @@ export default function PlanesScreen({ eventId, event }) {
         </>
       )}
 
-      <Fab label="Plan" onClick={() => setOpen(true)} />
-      {open && <AddPlanModal eventId={eventId} onClose={() => setOpen(false)} />}
+      {/* Va al final y en voz baja, que es donde aparece la pregunta: se recorre
+          la lista, no está lo que uno buscaba, y entonces —y solo entonces— hace
+          falta saber por dónde entra un plan nuevo. */}
+      {plans.length > 0 && (
+        <div className="note">
+          ¿Falta algo? Un plan sale de <b>proponer una idea</b>: apúntala en
+          <b> Ideas</b> y dale a <b>Proponer</b>. Así queda guardada para los
+          próximos viajes.
+        </div>
+      )}
+
       {plan && (
         <PlanAbierto
           plan={plan}
@@ -251,46 +266,6 @@ function PlanAbierto({ plan, persons, me, evento, esAdmin, onClose }) {
             )}
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-function AddPlanModal({ eventId, onClose }) {
-  useBloqueoDeScroll()
-  const [titulo, setTitulo] = useState('')
-  const [descripcion, setDescripcion] = useState('')
-  const [enlace, setEnlace] = useState('')
-
-  async function submit() {
-    if (!titulo.trim()) return
-    tap()
-    // Nace a votación y **sin día**: el día se pone en Agenda.
-    await addPlan(eventId, {
-      titulo: titulo.trim(),
-      descripcion: descripcion.trim(),
-      enlace: enlace.trim(),
-    })
-    onClose()
-  }
-
-  return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal fino" onClick={(e) => e.stopPropagation()}>
-        <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
-        <h2>Nuevo plan</h2>
-        <label htmlFor="plan-titulo">Qué es</label>
-        <input id="plan-titulo" type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Excursión a las cuevas" autoFocus />
-        <label htmlFor="plan-desc">Descripción</label>
-        <textarea id="plan-desc" rows="4" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
-        <label htmlFor="plan-enlace">Enlace</label>
-        <input id="plan-enlace" type="url" value={enlace} onChange={(e) => setEnlace(e.target.value)} placeholder="https://…" />
-        <div style={{ marginTop: 16 }}>
-          <button className="btn block" onClick={submit} disabled={!titulo.trim()}>Proponer plan</button>
-        </div>
-        <div className="note" style={{ marginTop: 10 }}>
-          Nace a votación y sin día. El día se pone en <b>Agenda</b> cuando esté decidido.
-        </div>
       </div>
     </div>
   )
