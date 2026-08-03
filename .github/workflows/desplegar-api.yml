@@ -1,0 +1,63 @@
+name: desplegar api
+
+# El Worker se publicaba a mano —`cd api && npm run desplegar`— y eso obliga a
+# tener un terminal con wrangler autenticado justo cuando hace falta. El coste
+# real no es el minuto que tarda: es que entre mergear y desplegar hay un rato
+# en el que la base ya tiene columnas nuevas y el Worker publicado todavía no
+# las conoce, así que descarta esos campos sin decir nada. Ahora se publica solo
+# al entrar en `main` cualquier cosa de `api/`.
+#
+# **Las migraciones siguen siendo a mano, y a propósito.** Un `ALTER TABLE`
+# automático es la clase de cosa que se ejecuta sola contra la base buena el día
+# que alguien mergea a las dos de la mañana. Se lanzan desde la consola de D1 o
+# con `npm run migrar:remotoN`, y **antes** de que llegue el Worker que usa esas
+# columnas.
+#
+# Secretos que hacen falta (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   · token con permiso de editar Workers
+#   CLOUDFLARE_ACCOUNT_ID  · solo si tu token ve más de una cuenta
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - '.github/workflows/desplegar-api.yml'
+  # Para poder lanzarlo a mano desde el móvil: Actions → desplegar api → Run
+  # workflow. Es lo que hay que usar cuando el cambio de `api/` ya está en
+  # `main` y no va a haber otro empujón que lo dispare.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Dos despliegues a la vez publicarían en orden indeterminado, y el que llegara
+# segundo mandaría aunque fuera el más viejo.
+concurrency:
+  group: desplegar-api
+  cancel-in-progress: false
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      # Node 22 como en las pruebas: `node:sqlite` lo necesita.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+      # Se vuelven a correr aquí aunque ya hayan pasado en la rama: lo que se
+      # publica es este commit de `main`, no el que se probó en la PR.
+      - run: npm test
+      - name: Publicar el Worker
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
