@@ -95,10 +95,14 @@ export async function syncNow() {
 // Expone lo que necesita el indicador de la cabecera:
 //   · `online`  → hay conexión de red (rojo si no).
 //   · `dirty`   → hay cambios en la cola sin subir (amarillo).
+//   · `pendientes` → **cuántos**. El número, y no solo el sí/no: sin red la cola
+//     crece y «cambios sin subir» dice lo mismo con uno que con veinte. Saber
+//     que hay quince es lo que hace esperar a tener cobertura en vez de dar por
+//     perdido lo apuntado.
 //   · `recheck` → fuerza recomprobar red + sincronizar (al tocar el punto).
 export function useSyncEngine() {
   const [state, setState] = useState({ status: 'idle' })
-  const [dirty, setDirty] = useState(false)
+  const [pendientes, setPendientes] = useState(0)
   const [isConfigured, setConfigured] = useState(false)
   const [online, setOnline] = useState(
     typeof navigator === 'undefined' ? true : navigator.onLine !== false,
@@ -109,8 +113,8 @@ export function useSyncEngine() {
   useEffect(() => {
     let vivo = true
     const revisar = async () => {
-      const pendientes = await db.outbox.count()
-      if (vivo) setDirty(pendientes > 0)
+      const cuantos = await db.outbox.count()
+      if (vivo) setPendientes(cuantos)
     }
     revisar()
     if (typeof window === 'undefined') return () => { vivo = false }
@@ -137,7 +141,7 @@ export function useSyncEngine() {
       if (!vivo) return
       setState(r)
       setConfigured(r.status !== 'no-config')
-      setDirty((await db.outbox.count()) > 0)
+      setPendientes(await db.outbox.count())
     }
 
     go()
@@ -168,13 +172,14 @@ export function useSyncEngine() {
     const r = await syncNow()
     setState(r)
     setConfigured(r.status !== 'no-config')
-    setDirty((await db.outbox.count()) > 0)
+    setPendientes(await db.outbox.count())
     return r
   }
 
   return {
     ...state,
-    dirty,
+    pendientes,
+    dirty: pendientes > 0,
     online,
     isConfigured,
     ultima: state.ultima ?? ultimaSincronizacion(),

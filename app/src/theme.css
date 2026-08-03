@@ -218,12 +218,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
    Un objetivo de 44 px alrededor de un punto de 12: el punto es lo que se lee y
    el botón es lo que se apunta, y no son la misma medida. */
 .sync-dot { flex: none; background: none; border: none; cursor: pointer;
-  min-width: var(--toque); min-height: var(--toque); display: grid; place-items: center; padding: 0; }
+  min-width: var(--toque); min-height: var(--toque);
+  display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0; }
+/* Cuántos cambios esperan, al lado del punto. Es lo único de la sincronización
+   que se ve sin entrar en Ajustes, y sin el número «hay cosas sin subir» y «hay
+   quince cosas sin subir» se ven igual. Hereda el color del estado: el número
+   rojo dice «sin red» sin leerlo. */
+.sync-dot .cuenta { font-size: var(--t-sub); font-weight: 700; line-height: 1; }
 .sync-dot:active { transform: translateY(1px); }
 .sync-dot .d { width: 12px; height: 12px; border-radius: 50%; display: block;
   box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 14%, transparent); }
 /* En Ajustes el punto va dentro de una tarjeta y ahí sí lleva su pastilla, para
-   que se lea como el icono de la fila y no como un lunar suelto. */
+   que se lea como el icono de la fila y no como un lunar suelto. Ahí el número
+   **no** se pinta: se sale de la pastilla —que mide lo que un icono— y además
+   el renglón de al lado ya lo dice con todas las letras. */
+.card .sync-dot .cuenta { display: none; }
 .card .sync-dot { background: color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 8px;
   min-width: 38px; min-height: 38px; }
 .sync-dot.checking .d { animation: syncpulse .8s ease-in-out infinite; }
