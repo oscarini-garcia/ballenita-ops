@@ -728,6 +728,33 @@ se cuenta, no se calla. Probado en `lib/salida.test.js` (la decisión) y en
 `screens/CuentaSalir.test.jsx` (que con cola pendiente **no se llama a
 `olvidarTodo`** hasta confirmar).
 
+### 14.9-quinquies Sin red, el punto dice **cuántos** cambios esperan
+
+El motor ya contaba la cola (`db.outbox.count()`) y **tiraba el número**:
+guardaba solo `dirty`, un sí/no. Sin cobertura la cola crece —una comida, tres
+gastos, un plan, la compra— y «cambios sin subir» dice exactamente lo mismo con
+uno que con veinte. La pregunta que se hace uno en el camping no es «¿hay algo
+pendiente?» sino **«¿está lo que acabo de apuntar?»**, y a eso solo contesta un
+número.
+
+Es el mismo criterio que en §14.9-ter, donde salir de la cuenta dice cuántos
+cambios se perderían: el número va delante porque es lo que se decide. Saber que
+hay quince es lo que hace subir a buscar cobertura, o al menos esperar; sin él,
+lo apuntado se da por perdido y se vuelve a teclear.
+
+- El motor expone **`pendientes`** (el número) y `dirty` pasa a derivarse de él.
+- El número sale **en el punto** —lo único de la sincronización que se ve sin
+  entrar en Ajustes—, **en su rótulo** («Sin conexión · 14 cambios») y **en su
+  renglón** («14 cambios esperando a que vuelva la red. No se pierde ninguno»).
+- También en **sesión caducada**, que es donde más importa: ahí lo apuntado no
+  sube hasta que alguien vuelva a entrar con Apple, y eso puede tardar días.
+- **Tope en 99**, porque el punto vive en una cabecera de 390 pt y cuatro cifras
+  la empujarían; el rótulo sí dice la cantidad exacta. Y **dentro de una tarjeta
+  el número no se pinta**: se sale de la pastilla —que mide lo que un icono— y el
+  renglón de al lado ya lo dice con todas las letras.
+- Si nadie ha contado todavía —la ficha de Ajustes se pinta antes de que haya
+  motor— **no se enseña un 0**: sería afirmar algo que no se sabe.
+
 ### 14.9-quater El evento de ejemplo se llama «Demo», y es un cajón de arena
 
 **El nombre.** Se llamaba **«Ballenita 2026»**, que es exactamente como se
