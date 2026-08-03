@@ -161,10 +161,15 @@ export default function PlanesScreen({ eventId, event }) {
  * El plan abierto: se vota, se ve quién ha votado qué, y quien administra puede
  * devolverlo al catálogo.
  *
- * Los votos se enseñan con **los avatares agrupados bajo su voto**
- * (`planes-votar.html` · V3): cabe en una línea por voto y contesta las dos
- * preguntas a la vez —quién opina qué y quién falta—. Los que no han votado van
- * aparte y apagados, que es lo accionable.
+ * Los votos se enseñan **con los nombres**, una línea por voto. Antes eran los
+ * avatares (`planes-votar.html` · V3) y hay que aprendérselos: seis emoji en gris
+ * a 17,9 pt son seis manchas, y quien no ha elegido el suyo sale con la carita de
+ * fábrica, así que dos personas se pintan igual. Un nombre no se aprende.
+ *
+ * **Y no se listan los que faltan por votar.** Esa pregunta ya la contesta la
+ * fila cerrada, en el subtítulo —«falta por votar Luis»—, que es donde sirve:
+ * ahí es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
+ * gastaba 34 pt en decir lo mismo dos pantallas seguidas.
  */
 function PlanAbierto({ plan, persons, me, evento, esAdmin, onClose }) {
   useBloqueoDeScroll()
@@ -173,8 +178,6 @@ function PlanAbierto({ plan, persons, me, evento, esAdmin, onClose }) {
   const votos = plan.votos ?? {}
   const mio = votos[me]
   const conVoto = (v) => persons.filter((p) => votos[p.id] === v)
-  const sinVotar = persons.filter((p) => !votos[p.id])
-  const avatar = (p) => p.avatar || '🙂'
 
   function votar(emoji) {
     if (!me) return
@@ -221,25 +224,13 @@ function PlanAbierto({ plan, persons, me, evento, esAdmin, onClose }) {
           {VOTES.map((v) => (
             <div className="votantes-fila" key={v}>
               <span className="votantes-voto" aria-hidden>{v}</span>
-              <span className="votantes-caras">
+              <span className="votantes-nombres">
                 {conVoto(v).length === 0
                   ? <span className="pista">nadie</span>
-                  : conVoto(v).map((p) => (
-                    <span key={p.id} className="cara" title={p.apodo || p.name}>{avatar(p)}</span>
-                  ))}
+                  : conVoto(v).map((p) => p.apodo || p.name).join(', ')}
               </span>
             </div>
           ))}
-          {sinVotar.length > 0 && (
-            <div className="votantes-fila">
-              <span className="votantes-voto pista">falta</span>
-              <span className="votantes-caras apagadas">
-                {sinVotar.map((p) => (
-                  <span key={p.id} className="cara" title={p.apodo || p.name}>{avatar(p)}</span>
-                ))}
-              </span>
-            </div>
-          )}
         </div>
 
         <div className="note" style={{ marginTop: 12 }}>

@@ -578,14 +578,14 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    que separa los dos grupos de un vistazo sin leer el encabezado. */
 .ico.verde { background: color-mix(in srgb, var(--owed) 16%, transparent); color: var(--owed); }
 
-/* Los avatares agrupados bajo su voto (docs/diseño/planes-votar.html · V3): una
-   línea por voto, y los que faltan aparte y apagados, que es lo accionable. */
+/* Una línea por voto, con **los nombres** de quien lo ha puesto. Eran avatares,
+   y un emoji en gris a 17,9 pt no identifica a nadie: quien no eligió el suyo
+   sale con la carita de fábrica y dos personas se pintan igual.
+   La fila se alinea arriba porque los nombres doblan cuando son varios. */
 .votantes { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
-.votantes-fila { display: flex; align-items: center; gap: 10px; min-height: 34px; }
+.votantes-fila { display: flex; align-items: flex-start; gap: 10px; min-height: 34px; padding: 4px 0; }
 .votantes-voto { width: 42px; flex: none; font-size: var(--t-row); }
-.votantes-caras { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.votantes-caras .cara { font-size: var(--t-row); }
-.votantes-caras.apagadas { opacity: .45; filter: grayscale(1); }
+.votantes-nombres { flex: 1; min-width: 0; font-size: var(--t-row); line-height: 1.4; }
 
 /* El carrusel de propuestas de la IA, con la figura del regalo de
    garciadoral-ops: qué, por qué, y el pie con los verbos. */
