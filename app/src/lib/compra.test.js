@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizarIngredientes, estirar, loQueSeCompra, cifra } from './receta.js'
+import { normalizarIngredientes, estirar, loQueSeCompra, cifra, partirCantidad, juntarCantidad, partirPegado } from './receta.js'
 import { racionesPorMesa, platosDeLaCena, loQueHayQueComprar, comoSeReparte } from './compra.js'
 
 /**
@@ -183,5 +183,31 @@ describe('cómo se lee el reparto', () => {
 
   it('una mesa a cero no se nombra', () => {
     expect(comoSeReparte({ mayores: 2, ninos: 0 }, { mayores: 'Pérez', ninos: 'Solteros' })).toBe('Pérez 2')
+  })
+})
+
+describe('los dos campos de la línea (§14.20-bis · U1)', () => {
+  it('«1,2 kg» se parte en número y unidad, que es como se dice en voz alta', () => {
+    expect(partirCantidad('1,2 kg')).toEqual({ cantidad: 1.2, unidad: 'kg', resto: '' })
+    expect(partirCantidad('30ud')).toEqual({ cantidad: 30, unidad: 'ud', resto: '' })
+    expect(partirCantidad('2')).toEqual({ cantidad: 2, unidad: '', resto: '' })
+  })
+
+  it('lo que no se entiende no se inventa: vuelve tal cual', () => {
+    // «al gusto» no es una cantidad, y ponerle un número sería peor que dejarlo.
+    expect(partirCantidad('al gusto')).toEqual({ cantidad: null, unidad: '', resto: 'al gusto' })
+    expect(partirCantidad('')).toEqual({ cantidad: null, unidad: '', resto: '' })
+  })
+
+  it('y se vuelve a juntar para enseñarlo en la caja', () => {
+    expect(juntarCantidad({ cantidad: 1.2, unidad: 'kg' })).toBe('1,2 kg')
+    expect(juntarCantidad({ cantidad: 30, unidad: '' })).toBe('30')
+    expect(juntarCantidad({ cantidad: null })).toBe('')
+  })
+
+  it('una receta pegada entra línea a línea, con guiones y viñetas fuera', () => {
+    expect(partirPegado('- 1 kg de arroz\n• 30 mejillones\n\n  azafrán  ')).toEqual([
+      '1 kg de arroz', '30 mejillones', 'azafrán',
+    ])
   })
 })

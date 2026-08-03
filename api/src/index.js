@@ -43,6 +43,7 @@ import {
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
 import { claveDeEncargo, esEncargoConocido } from './encargos.js';
 import { materialDelPlato, pedirCantidades } from './cantidades.js';
+import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
@@ -520,6 +521,68 @@ async function cantidadesDeUnPlato(peticion, env) {
   }
 }
 
+/**
+ * Ordena una lista de ingredientes escrita a saco (SPECS §14.20-bis).
+ *
+ * Del móvil salen las líneas tal como están y el nombre del plato; nada más. Lo
+ * que vuelve es, por línea, la cantidad, la unidad y el nombre limpio — y solo
+ * de las líneas que se mandaron: una línea de más aparecería sola en la receta
+ * de alguien.
+ */
+async function arreglarLaLista(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { plato = '', raciones = null, lineas = [] } = await peticion.json();
+  if (!Array.isArray(lineas) || !lineas.length) return json({ error: 'no hay líneas que ordenar' }, 400);
+
+  const { clave, modelo, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDeLaLista({ plato, raciones, lineas });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo,
+      hacer: (m) => pedirArreglo({ clave, modelo: m, material, cuantas: lineas.length, instruccion: encargos.arreglar }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
+    });
+    return json({ lineas: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
+/**
+ * Cinco platos que peguen con el que se está mirando (SPECS §14.20-bis).
+ *
+ * Tanda de cinco, como los regalos de `garciadoral-ops` y las ideas de plan: lo
+ * caro es contarle el contexto, y pasar de una propuesta a otra no vuelve a
+ * pedir nada. Llegan enteras —tipo e ingredientes incluidos— porque aceptar una
+ * abre el editor con todo puesto.
+ */
+async function platosParecidos(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { plato = '', ingredientes = [], yaHay = [] } = await peticion.json();
+  if (!plato && !ingredientes.length) return json({ error: 'hace falta al menos el nombre o los ingredientes' }, 400);
+
+  const { clave, modelo, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDelPlatoParecido({ plato, ingredientes, yaHay });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo,
+      hacer: (m) => pedirParecidos({ clave, modelo: m, material, instruccion: encargos.parecidos }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
+    });
+    return json({ platos: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
 async function configuracionIA(peticion, env) {
   const cuenta = await cuentaAutenticada(peticion, env);
   if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
@@ -614,6 +677,8 @@ const RUTAS = [
   ['POST', '/api/ia/probar', probarIA],
   ['POST', '/api/plan/sugerir', sugerirPlanes],
   ['POST', '/api/plato/cantidades', cantidadesDeUnPlato],
+  ['POST', '/api/plato/arreglar', arreglarLaLista],
+  ['POST', '/api/plato/parecidos', platosParecidos],
   ['POST', '/api/importar', importar],
 ];
 

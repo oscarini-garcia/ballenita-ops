@@ -1,41 +1,39 @@
-import { useState } from 'react'
-import Icono from './Icono.jsx'
-import Deslizable from './Deslizable.jsx'
+import { useRef } from 'react'
 import { tap } from '../lib/native.js'
-import { normalizarIngredientes, sinCantidad, cifra } from '../lib/receta.js'
+import { normalizarIngredientes, sinCantidad, cifra, partirCantidad, juntarCantidad, partirPegado } from '../lib/receta.js'
 
 /**
- * Los ingredientes de una receta, uno por línea y con su cantidad.
+ * Los ingredientes de una receta: **dos campos por línea** y todo inline.
  *
- * Decidido en [`docs/diseño/cenas-cantidades.html`](../../../docs/diseño/cenas-cantidades.html)
- * · **A1 + A5**, con el detalle de A4.
+ * Decidido en [`docs/diseño/receta-ingredientes.html`](../../../docs/diseño/receta-ingredientes.html)
+ * · **U1 · B3 · L2 + L4**.
  *
- * **La cantidad va en columna, a la izquierda**, como en una receta impresa: las
- * cifras alineadas se comparan sin leerlas, que es lo que se hace al repasar una
- * lista para ver si falta alguna. La columna cuesta 92 pt y al nombre le quedan
- * 234, medidos: caben los ingredientes reales —«Lomo de cerdo adobado» son
- * 216,5— y el que no cabe dobla a dos líneas en vez de recortarse.
- *
- * **La línea crece cuando hace falta** (A4): debajo del nombre sale lo que hay
- * que decir de esa línea —cuánto sale por ración, en qué envase se compra, quién
- * puso la cifra— sin robarle sitio a la columna cuando no hay nada que decir.
- *
- * Y **se borra deslizando** (A5), con el gesto que ya existe en Gastos
- * (§14.10-bis): cinco aspas en pantalla son cinco cosas que se pueden tocar sin
- * querer.
+ * - **La unidad vive dentro del campo de la cantidad** (U1). Se escribe «1,2 kg»
+ *   de un tirón, que es como se dice en voz alta, y la app lo parte al guardar.
+ *   La compra necesita el número y la unidad por separado —sin eso no puede
+ *   sumar dos recetas ni redondear al envase—, pero eso es cosa suya, no de
+ *   quien escribe. Se puede rellenar **solo el nombre**: «tres pinchos de
+ *   wagyu» es una línea válida hasta que alguien pulse «Arreglar».
+ * - **Un aspa pequeña y sin caja** (B3), de 26 pt. Deslizar no se veía, y borrar
+ *   es la mitad de lo que se hace escribiendo una receta. Cuesta 34 pt de ancho
+ *   al nombre, que es lo más barato de las cuatro formas medidas.
+ * - **Siempre hay una fila vacía al final** (L2): escribir un ingrediente no
+ *   cuesta ningún toque de más. La fila fantasma no se guarda.
+ * - **Pegar varias líneas las reparte** (L4): una receta de internet entra
+ *   entera y se ordena después con el botón.
  */
-export default function Ingredientes({ valor = [], raciones, onCambiar }) {
-  const lineas = normalizarIngredientes(valor)
-  const [nuevo, setNuevo] = useState('')
+export default function Ingredientes({ valor = [], raciones, onCambiar, autoFocus = false }) {
+  // Sin recortar: se está escribiendo, y el espacio que acabas de teclear no
+  // puede desaparecer antes de la letra siguiente. El recorte es al guardar.
+  const lineas = normalizarIngredientes(valor, { recortar: false })
+  const primera = useRef(null)
 
   const cambiar = (i, campos) => onCambiar(lineas.map((x, j) => (j === i ? { ...x, ...campos } : x)))
 
-  function anadir() {
-    const n = nuevo.trim()
-    if (!n) return
-    tap()
-    onCambiar([...lineas, { nombre: n, cantidad: null, unidad: '' }])
-    setNuevo('')
+  /** Escribir en la fila fantasma la convierte en una línea de verdad. */
+  function escribirEn(i, campos) {
+    if (i < lineas.length) return cambiar(i, campos)
+    onCambiar([...lineas, { nombre: '', cantidad: null, unidad: '', ...campos }])
   }
 
   function quitar(i) {
@@ -43,75 +41,69 @@ export default function Ingredientes({ valor = [], raciones, onCambiar }) {
     onCambiar(lineas.filter((_, j) => j !== i))
   }
 
-  return (
-    <>
-      <div className="card tight lista-ing">
-        {lineas.length === 0 && <div className="empty">Todavía no hay ingredientes.</div>}
-        {lineas.map((ing, i) => (
-          <Deslizable
-            key={`ing-${i}`}
-            ancho={76}
-            verbos={(
-              <button className="verbo borrar" onClick={() => quitar(i)}>
-                <Icono nombre="papelera" className="g" />Borrar
-              </button>
-            )}
-          >
-            <div className="fila-ing">
-              {/* La caja de la cantidad y la de la unidad, juntas y del mismo
-                  ancho siempre: un objetivo tocable que cambia de tamaño en cada
-                  renglón se falla más que uno que no se mueve. */}
-              <div className="ing-cifra">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  className="tnum"
-                  aria-label={`Cantidad de ${ing.nombre}`}
-                  value={ing.cantidad === null ? '' : String(ing.cantidad).replace('.', ',')}
-                  placeholder="—"
-                  onChange={(e) => {
-                    const t = e.target.value.replace(',', '.').trim()
-                    const n = Number(t)
-                    cambiar(i, { cantidad: t === '' ? null : (Number.isFinite(n) ? n : ing.cantidad), deIA: false })
-                  }}
-                />
-                <input
-                  type="text"
-                  className="ing-unidad"
-                  aria-label={`Unidad de ${ing.nombre}`}
-                  value={ing.unidad}
-                  placeholder="ud"
-                  onChange={(e) => cambiar(i, { unidad: e.target.value.trim() })}
-                />
-              </div>
-              <div className="ing-nombre">
-                <input
-                  type="text"
-                  aria-label={`Nombre del ingrediente ${i + 1}`}
-                  value={ing.nombre}
-                  onChange={(e) => cambiar(i, { nombre: e.target.value })}
-                />
-                <div className="ing-detalle">{detalleDe(ing, raciones)}</div>
-              </div>
-            </div>
-          </Deslizable>
-        ))}
-      </div>
+  /**
+   * Pegar una receta entera (L4).
+   *
+   * Cada línea se queda **completa en el nombre**: partirla aquí sería adivinar,
+   * y para eso está el botón de arreglar, que lo hace mirando el plato entero.
+   */
+  function alPegar(e, i) {
+    const trozos = partirPegado(e.clipboardData?.getData('text') ?? '')
+    if (trozos.length < 2) return
+    e.preventDefault()
+    const nuevas = trozos.map((nombre) => ({ nombre, cantidad: null, unidad: '' }))
+    onCambiar([...lineas.slice(0, i), ...nuevas, ...lineas.slice(i + 1)])
+  }
 
-      {/* El renglón de añadir va fijo bajo la lista y no se cierra al guardar,
-          como en Ideas (§14.19-ter): una receta se escribe de seguido. */}
-      <div className="anadir-ing">
-        <input
-          type="text"
-          value={nuevo}
-          aria-label="Ingrediente nuevo"
-          placeholder="Otro ingrediente…"
-          onChange={(e) => setNuevo(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') anadir() }}
-        />
-        <button className="btn sm" onClick={anadir} disabled={!nuevo.trim()}>Añadir</button>
-      </div>
-    </>
+  // La fila fantasma del final: siempre hay dónde escribir el siguiente.
+  const filas = [...lineas, null]
+
+  return (
+    <div className="card tight lista-ing">
+      {filas.map((ing, i) => {
+        const fantasma = ing === null
+        const linea = ing ?? { nombre: '', cantidad: null, unidad: '' }
+        const rotulo = linea.nombre || `${i + 1}`
+        return (
+          <div className="fila-ing" key={`ing-${i}`}>
+            <input
+              type="text"
+              className="ing-cant tnum"
+              aria-label={`Cantidad de ${rotulo}`}
+              value={juntarCantidad(linea)}
+              placeholder="—"
+              onChange={(e) => {
+                const { cantidad, unidad } = partirCantidad(e.target.value)
+                escribirEn(i, { cantidad, unidad, deIA: false })
+              }}
+            />
+            <div className="ing-nombre">
+              <input
+                ref={i === 0 ? primera : null}
+                type="text"
+                autoFocus={autoFocus && i === 0}
+                aria-label={fantasma ? 'Ingrediente nuevo' : `Ingrediente ${i + 1}`}
+                value={linea.nombre}
+                placeholder={fantasma ? 'Otro ingrediente…' : ''}
+                onChange={(e) => escribirEn(i, { nombre: e.target.value })}
+                onPaste={(e) => alPegar(e, i)}
+              />
+              <div className="ing-detalle">{fantasma ? '' : detalleDe(linea, raciones)}</div>
+            </div>
+            {/* Sin caja y de 26: cuesta 34 pt de nombre y pone a la vista lo
+                que más se hace. La fila fantasma no tiene nada que borrar. */}
+            <button
+              type="button"
+              className={`aspa-ing${fantasma ? ' invisible' : ''}`}
+              aria-label={fantasma ? undefined : `Quitar ${linea.nombre || 'el ingrediente'}`}
+              aria-hidden={fantasma || undefined}
+              tabIndex={fantasma ? -1 : undefined}
+              onClick={fantasma ? undefined : () => quitar(i)}
+            >×</button>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

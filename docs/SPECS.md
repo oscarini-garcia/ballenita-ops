@@ -1532,6 +1532,53 @@ queda hasta que alguien toque el número.
 como una línea sin cantidad, que es lo que es. No hay migración de datos que
 correr; en la API sí hay columnas nuevas (`migraciones/0009_*.sql`).
 
+### 14.20-bis El editor de una receta: dos campos, y dos botones
+
+Decidido en [`docs/diseño/receta-ingredientes.html`](diseño/receta-ingredientes.html) ·
+**U1 · B3 · R1 · L2+L4 · P2 · Q2+Q3+Q4**.
+
+**El orden y el foco.** Queda **Nombre · Ingredientes · Raciones · Tipo**, y al
+abrir un plato que ya existe el cursor entra en la primera línea de
+ingredientes. Editar un plato es casi siempre tocarle la lista; el tipo se pone
+una vez en la vida del plato y las raciones se afinan **mirando la lista**, no
+antes de escribirla.
+
+**Dos campos y no tres** (U1). La unidad vive dentro del de la cantidad: se
+escribe «1,2 kg» de un tirón, que es como se dice en voz alta, y `partirCantidad`
+lo separa. La compra necesita número y unidad aparte —sin eso no puede sumar dos
+recetas ni redondear al envase—, pero eso es cosa suya y no de quien escribe. Lo
+que no se entiende **no se inventa**: «al gusto» se queda sin cantidad.
+
+**Un aspa de 26 pt sin caja** (B3). Deslizar no se veía, y borrar es la mitad de
+lo que se hace escribiendo una receta. Medido: el aspa cuesta **34 pt** de ancho
+al nombre —una caja de 34 costaba 42 y una de 44, 52—. La fila fantasma del final
+reserva el hueco y no la pinta.
+
+**Siempre hay una fila vacía al final** (L2) y **pegar varias líneas las
+reparte** (L4): una receta de internet entra entera y cada línea se queda
+**completa en el nombre**, porque partirla ahí sería adivinar.
+
+**«Arreglar»** (R1) manda las líneas tal como están y devuelve cantidad, unidad y
+nombre limpio: «tres pinchos de wagyu» → `3 ud` + «Pinchos de wagyu». Se aplica
+directo —un toque es mejor que dos— y **se puede deshacer** mientras no se
+guarde, que es lo único que hace falta para poder pulsarlo sin miedo. Lo tocado
+queda marcado hasta que alguien cambie el número.
+
+**«Parecidos»** (P2) propone cinco platos a partir del título y los ingredientes,
+con la figura del regalo de `garciadoral-ops`: **tanda de cinco** —lo caro es
+contarle el contexto— y se va **adelante y atrás** entre ellas. Llegan **enteras**
+(Q2+Q3): nombre, por qué, tipo e ingredientes con cantidades. Coger una **no
+guarda nada** (Q4): reabre el editor con todo puesto y sin `id`, para corregirlo
+antes de que exista.
+
+Dos defectos que salieron **al mirarlo en el navegador**: `input[type=text]` tiene
+más especificidad que `.ing-cant`, así que su `width: 100%` ganaba y la caja de la
+cantidad se comía la fila dejando el nombre fuera de la pantalla; y el carrusel se
+pintaba al final del modal, donde no lo ve quien acaba de pulsar el botón. Y uno
+que salió en los tests: `normalizarIngredientes` recortaba el nombre en cada
+pintado, así que el espacio recién tecleado desaparecía y «Arroz bomba» se escribía
+«Arrozbomba» — ahora el recorte es solo al guardar.
+
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 
 Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·
