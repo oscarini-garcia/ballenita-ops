@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within, waitFor } from '@testing-library/react'
 import userEventBase from '@testing-library/user-event'
 import PlanesScreen from './PlanesScreen.jsx'
-import { db, createEvent, getEvent, addPerson, addPlan, plansOf, listPlanIdeas, addPlanIdea, traerIdeaAlViaje } from '../db.js'
+import { db, createEvent, getEvent, addPerson, addFamily, addPlan, plansOf, listPlanIdeas, addPlanIdea, traerIdeaAlViaje } from '../db.js'
 
 /**
  * Planes, rehecha: **aquí solo se vota** (`docs/diseño/planes-votar.html`).
@@ -13,9 +13,14 @@ import { db, createEvent, getEvent, addPerson, addPlan, plansOf, listPlanIdeas, 
  */
 async function viaje() {
   const eventId = await createEvent({ name: 'Viaje', startDate: '2026-08-15', endDate: '2026-08-22' })
-  const curro = await addPerson(eventId, { name: 'Curro', edad: 'adulto', avatar: '🏖️' })
-  const ana = await addPerson(eventId, { name: 'Ana', edad: 'adulto', avatar: '🍷' })
-  const luis = await addPerson(eventId, { name: 'Luis', edad: 'adulto', avatar: '🎉' })
+  // Cada uno de su familia: el alias que sale al votar es el de la suya, y sin
+  // familia no habría pastilla que comprobar.
+  const garcia = await addFamily(eventId, { name: 'García', color: '#E5544B' })
+  const perez = await addFamily(eventId, { name: 'Pérez', color: '#2E9E6B' })
+  const solteros = await addFamily(eventId, { name: 'Solteros', color: '#1FA6D6' })
+  const curro = await addPerson(eventId, { name: 'Curro', familyId: garcia, edad: 'adulto', avatar: '🏖️' })
+  const ana = await addPerson(eventId, { name: 'Ana', familyId: perez, edad: 'adulto', avatar: '🍷' })
+  const luis = await addPerson(eventId, { name: 'Luis', familyId: solteros, edad: 'adulto', avatar: '🎉' })
   localStorage.setItem(`ballena.me:${eventId}`, curro)
   return { eventId, event: await getEvent(eventId), curro, ana, luis }
 }
@@ -41,7 +46,7 @@ async function abrir(titulo) {
 let userEvent
 beforeEach(async () => {
   userEvent = userEventBase.setup()
-  for (const t of ['events', 'persons', 'plans', 'planIdeas', 'outbox']) await db[t].clear()
+  for (const t of ['events', 'persons', 'families', 'plans', 'planIdeas', 'outbox']) await db[t].clear()
   localStorage.clear()
 })
 
@@ -114,7 +119,7 @@ describe('el plan abierto', () => {
     expect((await plansOf(eventId))[0].votos).toEqual({ [curro]: '👍' })
   })
 
-  it('enseña los nombres bajo su voto, y no repite quién falta', async () => {
+  it('enseña los nombres bajo su voto, con su avatar y el alias de su familia', async () => {
     const { eventId, event, curro, ana } = await viaje()
     await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '👎' } })
 
@@ -130,6 +135,13 @@ describe('el plan abierto', () => {
     expect(within(filas[2]).getByText('Ana')).toBeInTheDocument()
     // Luis no ha votado, y aquí dentro no se le nombra.
     expect(screen.queryByText('Luis')).not.toBeInTheDocument()
+
+    // Con el nombre, su avatar y las dos letras de su familia: el nombre
+    // identifica, el dibujo se reconoce de un vistazo y el alias dice de qué
+    // casa viene el voto, que es lo que no dicen los otros dos.
+    const curroVota = filas[0].querySelector('.votante')
+    expect(curroVota.textContent).toBe('🏖️CurroGA')
+    expect(filas[2].querySelector('.votante').textContent).toBe('🍷AnaPE')
   })
 
   it('con varios en el mismo voto, los nombres van seguidos', async () => {
@@ -139,10 +151,10 @@ describe('el plan abierto', () => {
     render(<PlanesScreen eventId={eventId} event={event} />)
     await abrir('Cuevas')
 
-    // Los tres en la misma línea, separados por comas. El orden es el que trae
-    // la base, que no es el de creación: lo que importa es que estén los tres.
-    const linea = document.querySelector('.votantes-nombres').textContent
-    expect(linea.split(', ').sort()).toEqual(['Ana', 'Curro', 'Luis'])
+    // Los tres en la misma línea. El orden es el que trae la base, que no es el
+    // de creación: lo que importa es que estén los tres, cada uno entero.
+    const votantes = [...document.querySelectorAll('.votantes-fila')[0].querySelectorAll('.votante')]
+    expect(votantes.map((v) => v.textContent).sort()).toEqual(['🍷AnaPE', '🎉LuisSO', '🏖️CurroGA'].sort())
   })
 
   it('sin ser administrador no se puede devolver a ideas', async () => {
