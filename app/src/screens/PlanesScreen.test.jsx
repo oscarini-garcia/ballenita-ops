@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within, waitFor } from '@testing-library/react'
 import userEventBase from '@testing-library/user-event'
 import PlanesScreen from './PlanesScreen.jsx'
-import { db, createEvent, getEvent, addPerson, addPlan, plansOf, listPlanIdeas, addPlanIdea, traerIdeaAlViaje } from '../db.js'
+import { db, createEvent, getEvent, addPerson, addFamily, addPlan, plansOf, listPlanIdeas, addPlanIdea, traerIdeaAlViaje } from '../db.js'
 
 /**
  * Planes, rehecha: **aquí solo se vota** (`docs/diseño/planes-votar.html`).
@@ -13,9 +13,14 @@ import { db, createEvent, getEvent, addPerson, addPlan, plansOf, listPlanIdeas, 
  */
 async function viaje() {
   const eventId = await createEvent({ name: 'Viaje', startDate: '2026-08-15', endDate: '2026-08-22' })
-  const curro = await addPerson(eventId, { name: 'Curro', edad: 'adulto', avatar: '🏖️' })
-  const ana = await addPerson(eventId, { name: 'Ana', edad: 'adulto', avatar: '🍷' })
-  const luis = await addPerson(eventId, { name: 'Luis', edad: 'adulto', avatar: '🎉' })
+  // Cada uno de su familia: el alias que sale al votar es el de la suya, y sin
+  // familia no habría pastilla que comprobar.
+  const garcia = await addFamily(eventId, { name: 'García', color: '#E5544B' })
+  const perez = await addFamily(eventId, { name: 'Pérez', color: '#2E9E6B' })
+  const solteros = await addFamily(eventId, { name: 'Solteros', color: '#1FA6D6' })
+  const curro = await addPerson(eventId, { name: 'Curro', familyId: garcia, edad: 'adulto', avatar: '🏖️' })
+  const ana = await addPerson(eventId, { name: 'Ana', familyId: perez, edad: 'adulto', avatar: '🍷' })
+  const luis = await addPerson(eventId, { name: 'Luis', familyId: solteros, edad: 'adulto', avatar: '🎉' })
   localStorage.setItem(`ballena.me:${eventId}`, curro)
   return { eventId, event: await getEvent(eventId), curro, ana, luis }
 }
@@ -41,7 +46,7 @@ async function abrir(titulo) {
 let userEvent
 beforeEach(async () => {
   userEvent = userEventBase.setup()
-  for (const t of ['events', 'persons', 'plans', 'planIdeas', 'outbox']) await db[t].clear()
+  for (const t of ['events', 'persons', 'families', 'plans', 'planIdeas', 'outbox']) await db[t].clear()
   localStorage.clear()
 })
 
@@ -114,7 +119,7 @@ describe('el plan abierto', () => {
     expect((await plansOf(eventId))[0].votos).toEqual({ [curro]: '👍' })
   })
 
-  it('enseña los avatares bajo su voto, y aparte los que faltan', async () => {
+  it('enseña los nombres bajo su voto, con su avatar y el alias de su familia', async () => {
     const { eventId, event, curro, ana } = await viaje()
     await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '👎' } })
 
@@ -122,14 +127,34 @@ describe('el plan abierto', () => {
     await abrir('Cuevas')
 
     const filas = [...document.querySelectorAll('.votantes-fila')]
-    // 👍 · 🤷 · 👎 · falta
-    expect(filas).toHaveLength(4)
-    expect(within(filas[0]).getByTitle('Curro')).toHaveTextContent('🏖️')
+    // Tres filas y no cuatro: 👍 · 🤷 · 👎. La de «falta» se retiró — eso ya lo
+    // dice la fila cerrada, que es donde sirve.
+    expect(filas).toHaveLength(3)
+    expect(within(filas[0]).getByText('Curro')).toBeInTheDocument()
     expect(within(filas[1]).getByText('nadie')).toBeInTheDocument()
-    expect(within(filas[2]).getByTitle('Ana')).toHaveTextContent('🍷')
-    // Los que faltan van apagados: es a los que hay que dar un toque.
-    expect(filas[3].querySelector('.votantes-caras')).toHaveClass('apagadas')
-    expect(within(filas[3]).getByTitle('Luis')).toBeInTheDocument()
+    expect(within(filas[2]).getByText('Ana')).toBeInTheDocument()
+    // Luis no ha votado, y aquí dentro no se le nombra.
+    expect(screen.queryByText('Luis')).not.toBeInTheDocument()
+
+    // Con el nombre, su avatar y las dos letras de su familia: el nombre
+    // identifica, el dibujo se reconoce de un vistazo y el alias dice de qué
+    // casa viene el voto, que es lo que no dicen los otros dos.
+    const curroVota = filas[0].querySelector('.votante')
+    expect(curroVota.textContent).toBe('🏖️CurroGA')
+    expect(filas[2].querySelector('.votante').textContent).toBe('🍷AnaPE')
+  })
+
+  it('con varios en el mismo voto, los nombres van seguidos', async () => {
+    const { eventId, event, curro, ana, luis } = await viaje()
+    await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '👍', [luis]: '👍' } })
+
+    render(<PlanesScreen eventId={eventId} event={event} />)
+    await abrir('Cuevas')
+
+    // Los tres en la misma línea. El orden es el que trae la base, que no es el
+    // de creación: lo que importa es que estén los tres, cada uno entero.
+    const votantes = [...document.querySelectorAll('.votantes-fila')[0].querySelectorAll('.votante')]
+    expect(votantes.map((v) => v.textContent).sort()).toEqual(['🍷AnaPE', '🎉LuisSO', '🏖️CurroGA'].sort())
   })
 
   it('sin ser administrador no se puede devolver a ideas', async () => {
@@ -177,15 +202,23 @@ describe('el plan abierto', () => {
   })
 })
 
-describe('crear un plan a mano', () => {
-  it('nace sin día y a votación', async () => {
+describe('un plan no se crea aquí: sale de proponer una idea', () => {
+  it('no hay botón de añadir, y el vacío dice por dónde se entra', async () => {
     const { eventId, event } = await viaje()
     render(<PlanesScreen eventId={eventId} event={event} />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Añadir plan' }))
-    await userEvent.type(screen.getByLabelText('Qué es'), 'Petanca')
-    await userEvent.click(screen.getByRole('button', { name: 'Proponer plan' }))
+    expect(await screen.findByText(/Ningún plan todavía/)).toBeInTheDocument()
+    expect(screen.getByText(/apunta la idea ahí y dale a/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Añadir plan' })).not.toBeInTheDocument()
+  })
 
-    expect((await plansOf(eventId))[0]).toMatchObject({ titulo: 'Petanca', dia: null, estado: 'votando' })
+  it('con planes en la lista, lo sigue diciendo al final', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Cuevas' })
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    // Es donde aparece la pregunta: se recorre la lista, no está lo que buscabas.
+    expect(await screen.findByText(/Un plan sale de/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Añadir plan' })).not.toBeInTheDocument()
   })
 })

@@ -30,7 +30,9 @@ export const TABLAS = {
     booleanos: ['esDemo'],
   },
   families: {
-    columnas: ['eventId', 'name', 'color', 'avatar', 'estado'],
+    // `alias` son las dos letras que firman una idea —«GA»— y que caben donde
+    // no cabe «García» (`docs/diseño/planes-ideas.html` · B3 · D3).
+    columnas: ['eventId', 'name', 'alias', 'color', 'avatar', 'estado'],
   },
   bungas: {
     columnas: ['eventId', 'name', 'alias', 'familyId'],
@@ -56,29 +58,36 @@ export const TABLAS = {
     // Catálogo compartido: es la única tabla que no cuelga de un evento… salvo
     // los platos del Demo, que llevan su `eventId` para no mezclarse con los de
     // verdad. Sin `eventId` el plato es de todos, que es el caso normal.
-    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes', 'eventId'],
+    // `raciones` es para cuántos es la receta (§14.20): sin ese denominador una
+    // cantidad no se puede estirar ni repartir entre las dos mesas.
+    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes', 'raciones', 'eventId'],
     json: ['categorias', 'ingredientes'],
     booleanos: ['esFavorito'],
   },
   dinners: {
-    columnas: ['eventId', 'dia', 'platoIds', 'bungaMayoresId', 'bungaNinosId', 'queSeHace', 'cantidades'],
-    json: ['platoIds'],
+    // `platoIdsNinos` en NULL quiere decir «los niños comen lo mismo» (§14.20).
+    columnas: ['eventId', 'dia', 'platoIds', 'platoIdsNinos', 'bungaMayoresId', 'bungaNinosId', 'queSeHace', 'cantidades'],
+    json: ['platoIds', 'platoIdsNinos'],
   },
   planIdeas: {
     // El otro catálogo compartido, hermano de `dishes`: lo que se repite de un
     // viaje a otro. Ni día, ni estado, ni votos — esos son de cada agosto.
     // `eventId` nulo = de todos; con valor, solo del Demo (§14.9-quater).
-    columnas: ['titulo', 'descripcion', 'enlace', 'creadaPor', 'eventId'],
+    // `apuntadaEl` la escribe el cliente al crear, y no se usa `creadoEn`: esa
+    // la pone el Worker y no existe hasta sincronizar (§14.19-ter).
+    columnas: ['titulo', 'descripcion', 'enlace', 'creadaPor', 'apuntadaEl', 'eventId'],
   },
   plans: {
     columnas: [
       'eventId', 'titulo', 'descripcion', 'dia', 'costeEstimado',
-      'ubicacion', 'enlace', 'estado', 'votos', 'ideaId',
+      'ubicacion', 'enlace', 'estado', 'votos', 'ideaId', 'propuestoEl',
     ],
     json: ['votos'],
   },
   shop: {
-    columnas: ['eventId', 'texto', 'categoria', 'comprado', 'compradoPor', 'compradoEn'],
+    columnas: ['eventId', 'texto', 'categoria', 'comprado', 'compradoPor', 'compradoEn',
+      'origen', 'clave', 'cantidad', 'unidad', 'desglose', 'cambio'],
+    json: ['desglose', 'cambio'],
     booleanos: ['comprado'],
   },
 };

@@ -57,6 +57,43 @@ describe('El grupo — la ficha por familia (G2)', () => {
     })
   })
 
+  it('el alias se propone del nombre y se puede corregir (D3)', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+    await userEvent.click(await screen.findByText('+ Familia'))
+
+    // Nace vacío y se va escribiendo solo mientras nadie lo toque: el único
+    // fallo que rompe la firma de una idea es que se quede vacío.
+    await userEvent.type(screen.getByLabelText('Nombre'), 'Pérez')
+    expect(screen.getByLabelText('Alias')).toHaveValue('PE')
+
+    // Y en cuanto se corrige, deja de seguir al nombre.
+    await userEvent.clear(screen.getByLabelText('Alias'))
+    await userEvent.type(screen.getByLabelText('Alias'), 'PZ')
+    await userEvent.type(screen.getByLabelText('Nombre'), 'a')
+    expect(screen.getByLabelText('Alias')).toHaveValue('PZ')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(async () => {
+      const familias = await familiesOf(eventId)
+      expect(familias.find((f) => f.name === 'Péreza')?.alias).toBe('PZ')
+    })
+  })
+
+  it('una familia de antes se guarda con el alias que se le propone', async () => {
+    const { eventId, garcia } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+    await userEvent.click(await screen.findByText('García'))
+
+    // No tenía alias —es de antes de que existiera la columna— y la ficha lo
+    // enseña ya puesto, no en blanco.
+    expect(screen.getByLabelText('Alias')).toHaveValue('GA')
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(async () => {
+      expect((await familiesOf(eventId)).find((f) => f.id === garcia).alias).toBe('GA')
+    })
+  })
+
   it('la pastilla abre la hoja de elección con lo libre y lo tomado (A3)', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)

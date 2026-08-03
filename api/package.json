@@ -15,9 +15,13 @@
     "migrar:remoto6": "wrangler d1 execute ballena-ops --remote --file=migraciones/0006_ideas_de_plan.sql",
     "migrar:local7": "wrangler d1 execute ballena-ops --local --file=migraciones/0007_idea_con_autor.sql",
     "migrar:remoto7": "wrangler d1 execute ballena-ops --remote --file=migraciones/0007_idea_con_autor.sql",
+    "migrar:local8": "wrangler d1 execute ballena-ops --local --file=migraciones/0008_alias_de_familia_y_fechas.sql",
+    "migrar:remoto8": "wrangler d1 execute ballena-ops --remote --file=migraciones/0008_alias_de_familia_y_fechas.sql",
     "sembrar:ejemplo": "node herramientas/sembrar-ejemplo.mjs",
     "borrar:ejemplo": "wrangler d1 execute ballena-ops --remote --file=herramientas/borrar-ejemplo.sql",
-    "test": "node --test 'test/*.test.js'"
+    "test": "node --test 'test/*.test.js'",
+    "migrar:local9": "wrangler d1 execute ballena-ops --local --file=migraciones/0009_recetas_con_cantidades.sql",
+    "migrar:remoto9": "wrangler d1 execute ballena-ops --remote --file=migraciones/0009_recetas_con_cantidades.sql"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

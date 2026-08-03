@@ -157,7 +157,13 @@ input, textarea, [contenteditable="true"], .selectable {
   -webkit-user-select: text; user-select: text;
   -webkit-touch-callout: default;
 }
-button, input, select { font: inherit; color: inherit; }
+/* `textarea` estaba fuera de esta lista, y sin `color: inherit` un `textarea`
+   se pinta con el negro de fábrica del navegador: en la cara oscura era **texto
+   negro sobre fondo oscuro**, ilegible, en las siete cajas que tiene la app —el
+   encargo de la IA, la descripción de un plan o de una idea, y las dos de cada
+   cena—. Y sin `font: inherit` salían además monoespaciadas. Se veía en el
+   móvil, no en los tests. */
+button, input, select, textarea { font: inherit; color: inherit; }
 .tnum { font-variant-numeric: tabular-nums; }
 
 /* La columna es cabecera · contenido · barra, y el de en medio es lo único que
@@ -212,12 +218,21 @@ button, input, select { font: inherit; color: inherit; }
    Un objetivo de 44 px alrededor de un punto de 12: el punto es lo que se lee y
    el botón es lo que se apunta, y no son la misma medida. */
 .sync-dot { flex: none; background: none; border: none; cursor: pointer;
-  min-width: var(--toque); min-height: var(--toque); display: grid; place-items: center; padding: 0; }
+  min-width: var(--toque); min-height: var(--toque);
+  display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0; }
+/* Cuántos cambios esperan, al lado del punto. Es lo único de la sincronización
+   que se ve sin entrar en Ajustes, y sin el número «hay cosas sin subir» y «hay
+   quince cosas sin subir» se ven igual. Hereda el color del estado: el número
+   rojo dice «sin red» sin leerlo. */
+.sync-dot .cuenta { font-size: var(--t-sub); font-weight: 700; line-height: 1; }
 .sync-dot:active { transform: translateY(1px); }
 .sync-dot .d { width: 12px; height: 12px; border-radius: 50%; display: block;
   box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 14%, transparent); }
 /* En Ajustes el punto va dentro de una tarjeta y ahí sí lleva su pastilla, para
-   que se lea como el icono de la fila y no como un lunar suelto. */
+   que se lea como el icono de la fila y no como un lunar suelto. Ahí el número
+   **no** se pinta: se sale de la pastilla —que mide lo que un icono— y además
+   el renglón de al lado ya lo dice con todas las letras. */
+.card .sync-dot .cuenta { display: none; }
 .card .sync-dot { background: color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 8px;
   min-width: 38px; min-height: 38px; }
 .sync-dot.checking .d { animation: syncpulse .8s ease-in-out infinite; }
@@ -300,7 +315,9 @@ label { display: block; font-size: var(--t-label); font-weight: 700; color: var(
    la app —la clave de Anthropic— salía con el borde cuadrado del navegador y
    sin el `width: 100%`: más estrecha que la de al lado y de otra familia. Se
    veía en el móvil, no en los tests. */
-input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], select, textarea {
+/* `url` estaba fuera de la lista, así que el campo del enlace —el único de ese
+   tipo en toda la app— se pintaba blanco sobre el tema oscuro. */
+input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=url], select, textarea {
   width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
   /* Nunca por debajo de 16 px: iOS hace zoom al enfocar el campo si el cuerpo
@@ -561,14 +578,21 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    que separa los dos grupos de un vistazo sin leer el encabezado. */
 .ico.verde { background: color-mix(in srgb, var(--owed) 16%, transparent); color: var(--owed); }
 
-/* Los avatares agrupados bajo su voto (docs/diseño/planes-votar.html · V3): una
-   línea por voto, y los que faltan aparte y apagados, que es lo accionable. */
+/* Una línea por voto, con **los nombres** de quien lo ha puesto. Eran avatares,
+   y un emoji en gris a 17,9 pt no identifica a nadie: quien no eligió el suyo
+   sale con la carita de fábrica y dos personas se pintan igual.
+   La fila se alinea arriba porque los nombres doblan cuando son varios. */
 .votantes { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
-.votantes-fila { display: flex; align-items: center; gap: 10px; min-height: 34px; }
+.votantes-fila { display: flex; align-items: flex-start; gap: 10px; min-height: 34px; padding: 4px 0; }
 .votantes-voto { width: 42px; flex: none; font-size: var(--t-row); }
-.votantes-caras { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.votantes-caras .cara { font-size: var(--t-row); }
-.votantes-caras.apagadas { opacity: .45; filter: grayscale(1); }
+.votantes-nombres { flex: 1; min-width: 0; font-size: var(--t-row); line-height: 1.4;
+  display: flex; flex-wrap: wrap; gap: 2px 14px; }
+/* Avatar, nombre y alias van juntos y no se parten entre dos líneas: partidos,
+   el alias de uno queda pegado al nombre del siguiente y el voto cambia de
+   dueño de un vistazo. */
+.votante { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.votante .cara { font-size: var(--t-row); }
+.votante .alias { margin: 0; }
 
 /* El carrusel de propuestas de la IA, con la figura del regalo de
    garciadoral-ops: qué, por qué, y el pie con los verbos. */
@@ -584,6 +608,52 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 /* El modal fino: el editor de una idea son dos campos, y la hoja alta de antes
    dejaba media pantalla vacía debajo. */
 .modal.fino { max-width: 380px; }
+
+/* ── El alias de una familia (docs/diseño/planes-ideas.html · B3) ────────────
+   Dos letras con el color de su familia detrás. La pastilla mide 22 pt de alto,
+   que es justo lo que ya ocupaba la línea de 15,7 con su interlínea: la fila de
+   una idea sigue midiendo 67,1 y no crece ni un pt. El color de fondo y el de la
+   letra los pone quien la pinta (`components/Alias.jsx`), porque salen del dato.
+   La clase no cuelga de `.sub` porque la usan dos sitios: la firma de una idea y
+   quién ha votado un plan. */
+.alias { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  border-radius: 5px; padding: 1px 5px; margin: 0 2px 0 5px; display: inline-block;
+  line-height: 1.35; vertical-align: baseline; }
+
+/* ── El renglón de apuntar una idea (· C1 + C3) ──────────────────────────────
+   Va bajo el mando de áreas y **no se cierra al guardar**: se vacía y se queda
+   enfocado. El modal que había antes medía 455,4 pt de los 508 que quedan sobre
+   el teclado y dejaba la lista en cero; esto deja 258,2, que son tres ideas.
+
+   «Más detalles» crece hacia abajo: lo que se mueve es la lista, nunca el campo
+   que está mirando el pulgar. */
+.renglon { display: flex; flex-direction: column; gap: 8px;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 10px; }
+.renglon-linea { display: flex; gap: 8px; align-items: center; }
+.renglon-linea input { flex: 1; min-width: 0; margin: 0; }
+.renglon label { margin-bottom: -4px; }
+.renglon textarea, .renglon input[type="url"] { margin: 0; }
+
+/* El ✓: cuadrado de 44, que es el objetivo mínimo, y apagado mientras no hay
+   título —sin eso, un toque en vacío guarda una idea sin nombre—. */
+.btn.cuadrado { width: 44px; height: 44px; flex: none; padding: 0;
+  display: grid; place-items: center; }
+.btn.cuadrado svg { width: 20px; height: 20px; }
+.btn:disabled { opacity: .38; }
+
+.renglon-mas { align-self: flex-start; background: none; border: none; padding: 2px;
+  font-family: inherit; font-size: var(--t-sub); font-weight: 600; color: var(--spout-deep);
+  cursor: pointer; }
+
+/* ── La ficha de una familia (· D3) ──────────────────────────────────────────
+   Nombre y alias en la misma línea, porque el alias se piensa cuando se está
+   escribiendo el nombre; puesto abajo, se salta. El emoji cabe al lado. El
+   estado se quedó solo y a lo ancho: es lo que va a crecer. */
+.grid-familia { display: grid; grid-template-columns: 1fr 84px 72px; gap: 10px; }
+.grid-familia > * { min-width: 0; }
+.grid-familia input { margin-bottom: 0; }
+.campo-alias { text-align: center; letter-spacing: .1em; text-transform: uppercase; }
+.grid-familia + .pista { margin: 6px 2px 12px; line-height: 1.4; }
 
 .version-grande { font-size: var(--t-title); font-weight: 700; letter-spacing: -.02em; color: var(--spout-deep); }
 
@@ -903,3 +973,35 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    del color con el que esta app dice que algo va mal. */
 .version[data-estado="curso"] { color: var(--ink-soft); }
 .version[data-estado="fallo"] { color: var(--owe); }
+
+/* ── La receta con cantidades (SPECS §14.20) ─────────────────────────────────
+   Decidido en `docs/diseño/cenas-cantidades.html` · A1 + A5, con el detalle de
+   A4. La cantidad va **en columna a la izquierda**, como en una receta impresa:
+   las cifras alineadas se comparan sin leerlas, que es lo que se hace al repasar
+   la lista para ver si falta alguna. La columna son 92 pt medidos y al nombre le
+   quedan 234, que es más de lo que ocupa cualquier ingrediente real. */
+.fila-ing { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; }
+.lista-ing .deslizable + .deslizable .fila-ing { border-top: 1px solid var(--line-soft); }
+/* La cifra y su unidad **en la misma línea**: apiladas, cada ingrediente medía
+   129 pt en vez de 66 y en pantalla cabían dos. La unidad es la coletilla del
+   número, no un dato aparte. */
+.ing-cifra { width: 92px; flex: none; display: flex; gap: 3px; }
+.ing-cifra input { padding: 8px 6px; text-align: right; min-width: 0; }
+.ing-cifra .ing-unidad { width: 34px; flex: none; font-size: var(--t-sub); padding: 8px 4px; text-align: center; }
+.ing-nombre { flex: 1; min-width: 0; }
+.ing-nombre input { padding: 8px 10px; }
+/* Lo que hay que decir de esa línea, y solo cuando hay algo que decir: vacío no
+   ocupa nada, así que la fila corriente sigue midiendo lo que medía. */
+.ing-detalle:not(:empty) { font-size: var(--t-sub); color: var(--ink-faint); margin: 4px 2px 0; line-height: 1.35; }
+.anadir-ing { display: flex; gap: 8px; margin-top: 8px; }
+.anadir-ing input { flex: 1; min-width: 0; }
+.anadir-ing .btn { flex: none; }
+
+/* La compra: el total grande y, debajo, de dónde viene y qué ha cambiado. */
+.compra-sub { font-size: var(--t-sub); color: var(--ink-faint); line-height: 1.35; margin-top: 2px; }
+.compra-sub .cambio { color: var(--gold); }
+/* La cifra no le come el nombre: «1 paquete de 1 kg» a la derecha dejaba
+   «Arr…» a la izquierda. El nombre manda y la cifra ocupa lo justo. */
+.compra-cant { font-size: var(--t-row); font-weight: 600; font-variant-numeric: tabular-nums;
+  white-space: nowrap; flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
+.compra-cant.falta { font-weight: 500; font-style: italic; color: var(--ink-faint); }

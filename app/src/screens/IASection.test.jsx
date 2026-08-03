@@ -69,8 +69,11 @@ describe('los modelos', () => {
     listarModelosIA.mockRejectedValue(new Error('la API respondió 502'))
     render(<IASection />)
 
-    expect((await screen.findByLabelText('Modelo')).tagName).toBe('INPUT')
-    expect(screen.getByText(/No se han podido traer los modelos/)).toBeInTheDocument()
+    // Se espera al aviso y no al campo: la caja de texto ya está puesta en el
+    // primer pintado —`modelos` es `null` hasta que se sabe—, así que mirarla a
+    // ella no espera a nada y la comprobación llegaba antes que la respuesta.
+    expect(await screen.findByText(/No se han podido traer los modelos/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Modelo').tagName).toBe('INPUT')
   })
 
   it('un modelo retirado se cambia solo por el más cercano, y se dice cuál', async () => {
@@ -139,5 +142,41 @@ describe('probar', () => {
 
     await screen.findByText(/Todavía no hay ninguna puesta/)
     expect(screen.queryByRole('button', { name: 'Probar' })).not.toBeInTheDocument()
+  })
+})
+
+describe('los encargos', () => {
+  const CON_ENCARGO = {
+    ia: {
+      hayClave: true, cola: 'ab12', modelo: 'claude-haiku-4-5',
+      encargos: [{ id: 'ideas', titulo: 'Proponer ideas de plan', pista: 'Conserva el JSON.', texto: 'el de origen', esDeOrigen: true }],
+    },
+  }
+
+  it('se pueden reescribir desde aquí, con su rótulo y su pista', async () => {
+    leerIA.mockResolvedValue(CON_ENCARGO)
+    render(<IASection />)
+
+    // El rótulo del campo es el del encargo: con una sola caja, un «Encargo»
+    // debajo de un encabezado que dice lo mismo se lee dos veces para nada.
+    const caja = await screen.findByLabelText('Proponer ideas de plan')
+    expect(caja.tagName).toBe('TEXTAREA')
+    expect(caja.value).toBe('el de origen')
+    expect(screen.getByText('Conserva el JSON.')).toBeInTheDocument()
+  })
+
+  it('se guardan con lo demás, y vuelve lo que ha quedado', async () => {
+    leerIA.mockResolvedValue(CON_ENCARGO)
+    // Se guarda en blanco: el servidor contesta con el de origen, que es lo que
+    // hay de verdad, y no con la caja vacía que se acaba de mandar.
+    guardarIA.mockResolvedValue(CON_ENCARGO)
+    render(<IASection />)
+
+    const caja = await screen.findByLabelText('Proponer ideas de plan')
+    await userEvent.clear(caja)
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    expect(guardarIA).toHaveBeenCalledWith(expect.objectContaining({ encargos: { ideas: '' } }))
+    expect((await screen.findByLabelText('Proponer ideas de plan')).value).toBe('el de origen')
   })
 })

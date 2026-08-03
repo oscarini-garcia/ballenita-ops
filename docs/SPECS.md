@@ -730,6 +730,33 @@ se cuenta, no se calla. Probado en `lib/salida.test.js` (la decisión) y en
 `screens/CuentaSalir.test.jsx` (que con cola pendiente **no se llama a
 `olvidarTodo`** hasta confirmar).
 
+### 14.9-quinquies Sin red, el punto dice **cuántos** cambios esperan
+
+El motor ya contaba la cola (`db.outbox.count()`) y **tiraba el número**:
+guardaba solo `dirty`, un sí/no. Sin cobertura la cola crece —una comida, tres
+gastos, un plan, la compra— y «cambios sin subir» dice exactamente lo mismo con
+uno que con veinte. La pregunta que se hace uno en el camping no es «¿hay algo
+pendiente?» sino **«¿está lo que acabo de apuntar?»**, y a eso solo contesta un
+número.
+
+Es el mismo criterio que en §14.9-ter, donde salir de la cuenta dice cuántos
+cambios se perderían: el número va delante porque es lo que se decide. Saber que
+hay quince es lo que hace subir a buscar cobertura, o al menos esperar; sin él,
+lo apuntado se da por perdido y se vuelve a teclear.
+
+- El motor expone **`pendientes`** (el número) y `dirty` pasa a derivarse de él.
+- El número sale **en el punto** —lo único de la sincronización que se ve sin
+  entrar en Ajustes—, **en su rótulo** («Sin conexión · 14 cambios») y **en su
+  renglón** («14 cambios esperando a que vuelva la red. No se pierde ninguno»).
+- También en **sesión caducada**, que es donde más importa: ahí lo apuntado no
+  sube hasta que alguien vuelva a entrar con Apple, y eso puede tardar días.
+- **Tope en 99**, porque el punto vive en una cabecera de 390 pt y cuatro cifras
+  la empujarían; el rótulo sí dice la cantidad exacta. Y **dentro de una tarjeta
+  el número no se pinta**: se sale de la pastilla —que mide lo que un icono— y el
+  renglón de al lado ya lo dice con todas las letras.
+- Si nadie ha contado todavía —la ficha de Ajustes se pinta antes de que haya
+  motor— **no se enseña un 0**: sería afirmar algo que no se sabe.
+
 ### 14.9-quater El evento de ejemplo se llama «Demo», y es un cajón de arena
 
 **El nombre.** Se llamaba **«Ballenita 2026»**, que es exactamente como se
@@ -1414,6 +1441,99 @@ la única caja de contraseña de la app salía con el borde cuadrado del navegad
 más estrecha que la de al lado; y los tres rótulos con emoji eran los últimos que
 quedaban del cromo.
 
+### 14.16-quater Lo que se le pide al modelo se escribe en Ajustes
+
+La clave y el modelo valen para **todo** lo que la app haga con un modelo; el
+**encargo** es de cada cosa. Por eso van debajo y con su rótulo, uno por
+función, como en `garciadoral-ops` —allí son seis; aquí, de momento, uno: las
+ideas de plan (`api/src/encargos.js`)—.
+
+El motivo de que sean editables no es la curiosidad. Un encargo es donde se sube
+o se baja el tono, donde se le prohíbe lo que se suelta a decir y donde se ajusta
+lo que no encaja con este grupo, y **todo eso se descubre usándolo**, no
+escribiéndolo. Si vive en el código, cada retoque es una versión nueva de la app
+y un OTA; en Ajustes es escribir en una caja y guardar.
+
+Tres reglas:
+
+- **La forma de la respuesta es parte del encargo.** El de ideas pide un JSON con
+  cinco propuestas y la app lo lee así (`leerPropuestas`): reescribirlo perdiendo
+  esa parte hace que no salga nada. La pista lo dice en la pantalla, no solo en
+  el código.
+- **Vacío no es un encargo vacío: devuelve el de origen.** Es la manera de
+  deshacer, y tiene que estar a mano — quien la ha liado reescribiéndolo no
+  debería tener que pedirle a nadie el texto de antes. Se guarda `''` y al leer
+  vuelve el del catálogo.
+- **Solo se guardan los encargos del catálogo** (`esEncargoConocido`). Esto no es
+  ceremonia: `guardarConfiguracionIA` escribe la clave que le den, así que sin el
+  filtro un móvil podría machacar `ia.clave` —la credencial de pago— mandando un
+  encargo que se llame así.
+
+Y un defecto que salió **al mirarlo en el navegador**: `textarea` estaba fuera de
+`button, input, select { font: inherit; color: inherit; }`, y un `textarea` no lo
+hereda solo. En la cara oscura eso era **texto negro sobre fondo oscuro** en las
+siete cajas de varias líneas que tiene la app —el encargo, la descripción de un
+plan y de una idea, y las dos de cada cena—, y monoespaciadas además. Llevaba así
+desde que existen. `estilos.test.js` monta guardia.
+
+### 14.20 Recetas con cantidades, y la compra que sale de ellas
+
+Decidido en [`docs/diseño/cenas-cantidades.html`](diseño/cenas-cantidades.html) ·
+**G2 · A1+A5 · C1 · D5 · E2 · F1**, con el detalle de A4.
+
+**El problema.** Un plato guardaba **nombres sueltos** —«arroz, mejillones,
+pollo»— escritos en una caja que se partía por comas, y la lista de la compra
+era texto libre que nadie relacionaba con las cenas. Poner una cantidad al lado
+parece un campo más, pero arrastra cuatro decisiones seguidas: **para cuántos**
+es, **cómo se reparte** entre las dos mesas, **qué se redondea** al comprarlo y
+**qué pasa cuando algo cambia** después.
+
+**Para cuántos es** (`dishes.raciones`, una vez por plato). «2 kg» no se reparte
+ni se escala: falta el denominador. Va una vez por plato y no por ingrediente —el
+arroz para 12 y el pan para 20 es el lío que hace que nadie rellene nada—, y
+estirarlo es una **regla de tres**, sin IA de por medio: una multiplicación que
+unas veces diera 3 kg y otras 2,8 no valdría para comprar.
+
+**Las dos mesas ya se sabían.** `comeConMayores` decide el lado y `pesoReparto`
+—1 el adulto, 0,6 el niño— decide cuánto cuenta. Son los mismos números del
+reparto de un gasto; no hay un segundo censo. Y **la mesa de niños puede comer
+otra cosa** (G2): `dinners.platoIdsNinos` en `null` quiere decir «lo mismo», que
+es la noche normal y la que no hay que escribir dos veces.
+
+**La línea del ingrediente** (A1): la cantidad **en columna a la izquierda**,
+como en una receta impresa, porque las cifras alineadas se comparan sin leerlas.
+92 pt de columna y 234 para el nombre, medidos. Debajo crece el detalle de A4
+—cuánto sale por ración, en qué envase se compra, si lo puso la IA— y solo
+cuando hay algo que decir. Se borra deslizando (A5), como en Gastos.
+
+**La compra enseña el total** (C1) y el desglose al abrir la línea: se compra una
+vez, nadie va a dos supermercados, y el reparto sirve en la cocina. Se redondea
+**al alza al envase** —1,62 kg no se compran; dos paquetes de uno, sí— y el
+envase lo propone la IA (D5), porque nadie va a rellenar eso a mano en cuarenta
+ingredientes. Dos cosas que salieron al mirarlo en el navegador: **un lote que
+mide otra cosa que la receta no se usa** —«30 ud» de mejillones con una malla de
+«1 kg» daba «15 mallas», que tiene pinta de cuenta y no lo es— y **el texto va en
+la unidad de la receta** —«2 kg»—, porque «2 paquetes de 1 kg» empujaba el nombre
+hasta «Arr…».
+
+**Cuando cambia una cena** (E2), las líneas que vienen de recetas se rehacen
+solas y **lo dicen**: «eran 2 kg · cambió una cena», y el renglón desaparece al
+marcar la línea. Tres cosas no se tocan nunca: **lo escrito a mano** —«hielos» no
+es de ninguna receta—, **lo ya comprado** —está en el carro, y es lo único que no
+se puede deshacer— y, por lo mismo, tampoco se borra lo comprado que ya no sale
+en ninguna cena.
+
+**La IA se pide desde la receta** (F1), con un botón que rellena las que faltan
+de una vez: ahí está el plato entero delante, que es lo que le permite decir «30
+mejillones» en vez de «los que quieras», y de una vez porque lo caro es contarle
+el contexto (§14.19-bis). Como allí, **los nombres no viajan**: le llega el
+plato, para cuántos es y qué ingredientes le faltan. La marca «lo puso la IA» se
+queda hasta que alguien toque el número.
+
+**Lo que había guardado sigue valiendo.** Un `ingredientes: ['arroz']` se lee
+como una línea sin cantidad, que es lo que es. No hay migración de datos que
+correr; en la API sí hay columnas nuevas (`migraciones/0009_*.sql`).
+
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 
 Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·
@@ -1487,6 +1607,16 @@ del viaje, que es donde está el calendario y donde ya se podía. Lo de administ
 administra. Cada plan queda en una fila de **70,7 pt**: caben ocho, y los colores
 bajan a tres.
 
+**Y un plan no se crea en esta pantalla: sale de proponer una idea.** Había un
+«+ Plan» con su propio formulario, así que un plan podía nacer por dos caminos —
+desde el catálogo, enlazado a su idea, o suelto, sin idea detrás—. El segundo se
+lleva por delante media razón de ser del catálogo, porque lo que se apunta a mano
+este agosto no está el que viene, y duplicaba un formulario que ya existe en
+Ideas. Queda un solo camino, y la pantalla **lo dice**: el vacío manda a Ideas, y
+con la lista llena hay un renglón al final —donde aparece la pregunta, después de
+recorrerla y no encontrar lo que buscabas— que explica que un plan sale de
+proponer una idea.
+
 **Dos grupos y un orden que significa algo.** Primero los **elegidos**, los que
 ya tienen día; después los **disponibles**, ordenados por votos. El orden de
 creación no decía nada. Lo que se cayó fuera de las fechas sigue apartado al
@@ -1498,10 +1628,23 @@ darles un toque— y cabe en el subtítulo que ya existe. Con uno o dos se dan l
 nombres, porque ahí un nombre sirve para algo; con más, el número: «faltan 5 por
 votar». Cinco nombres seguidos no caben y no dicen nada que el número no diga.
 
-**El plan abierto enseña los avatares agrupados bajo su voto** (V3). Una línea
-por voto, y los que no han votado aparte y **apagados**. Contesta las dos
-preguntas a la vez —quién opina qué y quién falta— en 44 pt, y usa los emoji que
-el grupo ya reconoce de Gente y de Gastos.
+**El plan abierto enseña los nombres agrupados bajo su voto.** Una línea por
+voto, y cada votante es **su avatar, su nombre y el alias de su familia** en
+pastilla de su color (`components/Alias.jsx`, la misma que firma una idea).
+Empezó siendo **solo los avatares** (V3), y el defecto se ve en cuanto hay gente:
+seis emoji en gris a 17,9 pt son seis manchas que hay que aprenderse, y quien no
+ha elegido el suyo sale con la carita de fábrica, así que dos personas se pintan
+igual. Un nombre no se aprende — y al lado del nombre el dibujo sí sirve, porque
+es lo que se reconoce de un vistazo. El alias añade lo que no dice ninguno de los
+otros dos: **de qué familia viene el voto**, que es lo que se mira para saber si
+una casa entera está a favor. Los tres van pegados y sin partirse entre líneas:
+partidos, el alias de uno queda junto al nombre del siguiente y el voto cambia de
+dueño de un vistazo.
+
+**Y ahí dentro no se listan los que faltan por votar.** Esa pregunta la contesta
+la **fila cerrada**, en su subtítulo —«falta por votar Luis»—, que es donde
+sirve: es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
+gastaba 34 pt en decir lo mismo dos pantallas seguidas.
 
 **En Ideas**, siete cambios del mismo encargo: se **edita tocando la fila** (el
 lápiz competía por el pulgar con el verbo y gastaba 44 pt de 390); «traer» pasa a
@@ -1510,7 +1653,8 @@ lápiz competía por el pulgar con el verbo y gastaba 44 pt de 390); «traer» p
 usó nunca— y el **dónde** —cabía en la descripción, que crece a cuatro
 renglones—; **una idea no se propone dos veces** —quedaban dos filas idénticas
 repartiéndose los votos, y no ganaba ninguna—; y el editor es un **modal fino**,
-que son dos campos.
+que son dos campos. Lo de la lista de ideas —los dos grupos, la firma y el
+renglón de apuntar— se rehízo después: §14.19-ter.
 
 ### 14.19-bis Las sugerencias de la IA: el material lo compone el Worker
 
@@ -1534,7 +1678,7 @@ Dos decisiones que conviene que queden escritas:
 botón no se pinta, y si la clave no está puesta el Worker contesta 409. Ofrecer
 algo que va a fallar al pulsarlo es peor que no ofrecerlo.
 
-### 14.20 El día del viaje: qué bungas, qué se cena y qué plan
+### 14.21 El día del viaje: qué bungas, qué se cena y qué plan
 
 Decidido en `docs/diseño/agenda-dia.html` (**A1 · B4 · F1 · G1 · C2 · D2 · E1**),
 una hoja con seis partes y dieciocho opciones. El modal de un día pedía cuatro
@@ -1554,7 +1698,10 @@ debajo de lo que se ve al abrir. Ahora son cuatro renglones y **679,8 pt**, un
   —el modal del día y el de Comidas → Cenas— y de la ficha de una cena, más la
   semilla del Demo y este spec. **Las columnas se quedan** en D1 y en
   `tablas.js`: quitarlas no gana nada y rompería a un móvil que todavía mande el
-  campo. Lo escrito se queda dormido, que es lo barato y lo reversible.
+  campo. Lo escrito se queda dormido, que es lo barato y lo reversible. Y las
+  cantidades de verdad ya no viven ahí desde §14.20: son la receta del plato, con
+  sus raciones y su regla de tres, y de ahí sale la compra. Un texto libre al lado
+  diciendo «2 kg arroz» sin contar para nada es justo lo que confunde.
 - **F1 · La cena es un renglón que abre su hoja.** «Qué se cena» dice lo que hay
   —«Paella mixta y cinco cosas más», la frase que ya escribía `titularDeCena()`—
   y al tocarlo sube la hoja con el catálogo, marcando los que entran
@@ -1593,6 +1740,70 @@ como dos cosas distintas.
 copian al día como las Ideas de Planes (§14.18). Es la única opción que pide tabla
 nueva, migración y sincronización, y **encaja sobre F1 sin deshacer nada** — el
 día que se note que «la paella de Curro» se vuelve a marcar cada verano.
+### 14.19-ter Ideas: dos grupos, una firma y un renglón para apuntar
+
+Decidido en [`docs/diseño/planes-ideas.html`](diseño/planes-ideas.html) ·
+**A1 · B3 · F2 · C1+C3 · D3**.
+
+**El defecto, medido.** Ideas era **una lista plana** en orden de guardado: las ya
+propuestas a este viaje y las que nadie había sacado, revueltas, y lo único que
+las separaba era un botón apagado de **144,2 pt** que decía «Ya propuesta» y no
+hacía nada. La firma existía a medias —«la apuntó Curro»— y no decía de qué
+familia ni cuándo. Y la fila **no medía lo mismo dos veces**: entre 68,1 y
+**117,3 pt**, porque el subtítulo doblaba contra ese botón.
+
+**Dos grupos, como en Planes** (A1): «Propuestas · N» —a este viaje— y
+«Posibles · N» —por nombre—. Es el dibujo de la pantalla de al lado, así que no
+hay nada nuevo que aprender, y el corte se ve sin leer. En el grupo de arriba la
+fila **no lleva verbo**: el encabezado ya dice que está propuesta.
+
+**Cada idea la firma quien la apuntó** (B3): el nombre, el **alias de dos letras**
+de su familia en una pastilla con su color, y el «cuándo» en palabras
+(`lib/hace.js`). Dos letras se leen de lejos y «García» no cabe al lado de un
+nombre y una fecha en una línea de 15,7 pt. El color de la familia tiñe el fondo
+y la letra se mezcla con la tinta del tema, para que se lea igual en las dos
+caras. Una idea sin autor —de la IA, o importada— dice **«sin autor»**.
+
+**La fecha es la del grupo** (F2): en Propuestas, cuándo se propuso a *este*
+viaje; en Posibles, cuándo se apuntó al catálogo. Son dos hechos distintos y cada
+grupo pregunta por uno; enseñar siempre la del catálogo hacía que una idea
+propuesta ayer dijera «el 12 de julio de 2024».
+
+**Las dos fechas las escribe el cliente** (`planIdeas.apuntadaEl`,
+`plans.propuestoEl`, migración `0008`) y **no se reusa `creadoEn`**: esa la pone
+el Worker al insertar, así que una idea recién apuntada no tenía fecha hasta
+sincronizar, y en la web —que no sincroniza a propósito, §14.9— no la tenía
+nunca.
+
+**Se apunta desde un renglón fijo bajo el mando de áreas** (C1 + C3), no desde un
+modal. El modal medía **455,4 pt** de los 508 que quedan sobre el teclado: se
+escribía sin ver el catálogo, que es justo lo que evita apuntar dos veces la
+misma cosa. El renglón deja **258,2 pt** de lista visible —tres ideas—, **no se
+cierra al guardar** —se vacía y se queda enfocado, así que apuntar tres seguidas
+son tres frases y tres toques— y «Más detalles» crece **hacia abajo**: lo que se
+mueve es la lista, nunca el campo que está mirando el pulgar. Con el renglón
+puesto, **Ideas no tiene botón flotante**: dos puertas a lo mismo es una de más,
+y la flotante tapaba la última fila. El ✓ está apagado mientras no hay título;
+sin eso, un toque en vacío guarda una idea sin nombre.
+
+**El contador de viajes se va de la fila** y vive dentro de la idea abierta: en
+una línea de 15,7 no caben el autor, la familia, la fecha *y* el contador, y de
+los cuatro es el menos accionable.
+
+**El alias se propone del nombre y se puede corregir** (D3, `lib/alias.js`):
+«García» → `GA`, y sigue escribiéndose solo mientras nadie lo toque a mano. Nace
+lleno porque el único fallo que rompe la firma de una idea es que esté vacío, y
+se puede cambiar porque «Solteros» sale `SO` y quizá se quiera `SL`. Las familias
+de antes de la columna caen al propuesto, así que ninguna se queda coja. En la
+ficha de familia el alias va **junto al nombre** —se piensa cuando se está
+escribiendo el nombre; puesto abajo, se salta— y el **estado se queda solo y a lo
+ancho**, que es lo que va a crecer.
+
+Una nota de oficio que costó un rato: `Fila` estaba declarada **dentro** del
+componente, y eso crea un tipo nuevo en cada pintado, así que React desmontaba y
+volvía a montar la lista entera. Con seis consultas vivas encima, llegaba a
+tragarse un toque —la fila se cambiaba por otra igual entre que bajaba el dedo y
+se levantaba—. Vive fuera y recibe lo suyo por props.
 
 ### 14.12 Un solo tema, y sus dos caras
 

@@ -53,19 +53,42 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cosas—, se guarda la **última correcta** (`ballena.sync.ultima`) y se enseña en palabras
   (`lib/hace.js`), y el renglón del fallo **se toca para copiar el informe**. En Ajustes el
   progreso se pinta en su sitio (`ListaDePasos`); el punto de la cabecera abre su modal.
-- **En Planes solo se vota** (SPECS §14.19, `docs/diseño/planes-votar.html` · V3·V5·S2): el
-  día se pone en **Agenda**; la lista son dos grupos —elegidos y disponibles por votos— con
+- **Sin red, el punto dice cuántos cambios esperan** (SPECS §14.9-quinquies,
+  `components/SyncDot.jsx`): el motor contaba la cola y tiraba el número —solo guardaba
+  `dirty`—, y «cambios sin subir» dice lo mismo con uno que con veinte. Ahora `pendientes`
+  es el número, sale en el punto, en su rótulo y en su renglón, con tope de 99 en el punto
+  (la cabecera es de 390 pt) y sin pintarse dentro de una tarjeta, donde no cabe y sobra.
+- **Una receta lleva cantidades, y de ahí sale la compra** (SPECS §14.20,
+  `docs/diseño/cenas-cantidades.html` · G2·A1·C1·D5·E2·F1): el plato dice **para cuántas
+  raciones** es (`raciones`) y cada ingrediente **cuánto**; estirarlo a la gente que hay es
+  una regla de tres con los pesos de siempre (`lib/compra.js`), **no la IA**. La mesa de
+  niños hereda los platos mientras `platoIdsNinos` sea `null`. La compra enseña el total
+  redondeado al envase y el reparto al abrir la línea; al cambiar una cena se rehace y **lo
+  dice**, pero **nunca toca lo escrito a mano ni lo ya comprado**.
+- **En Planes solo se vota, y un plan solo nace de una idea** (SPECS §14.19,
+  `docs/diseño/planes-votar.html` · V3·V5·S2): el «+ Plan» se retiró —dos caminos para
+  crear un plan dejaban planes sueltos sin idea detrás, que es media razón de ser del
+  catálogo— y la pantalla dice por dónde se entra; el día se pone en **Agenda**; la lista son dos grupos —elegidos y disponibles por votos— con
   filas de 70,7 pt (antes tarjetas de 299,9 con siete botones y ocho colores); al abrir un
-  plan salen los avatares bajo su voto y los que faltan apagados. **La IA sugiere ideas**
+  plan salen **los nombres** bajo su voto —con su avatar y el alias de su familia—, y
+  quién falta se dice en la fila cerrada y no dos veces. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
-- **Un día del viaje son cuatro renglones** (SPECS §14.20, `docs/diseño/agenda-dia.html` ·
+- **Un día del viaje son cuatro renglones** (SPECS §14.21, `docs/diseño/agenda-dia.html` ·
   A1·B4·F1·G1·C2·D2·E1): qué bungas, **qué se cena** y **qué plan**. La fila de un día ya no
   lleva lápiz —un día no se edita, existe porque el evento tiene esas fechas— y el modal pasó
   de 1.773,8 pt a 679,8: los platos se marcan en una hoja (`HojaDeMarcar`), los planes libres
   se eligen en otra —con los votos y quién falta—, «Qué se hace» y «Cantidades» se retiraron
   (las columnas siguen en D1) y «Plato nuevo al vuelo» volvió a Comidas → Platos. **Libre**
   incluye lo que se cayó fuera de las fechas, que antes desaparecía del modal.
+- **La lista de ideas se parte en dos, y cada idea la firma alguien** (SPECS §14.19-ter,
+  `docs/diseño/planes-ideas.html` · A1·B3·F2·C1+C3·D3): **Propuestas** —las que ya están a
+  votación en este viaje— y **Posibles**; la firma es nombre + **alias de dos letras** de su
+  familia en pastilla de su color (`lib/alias.js`, se propone del nombre) + cuándo, y el
+  «cuándo» es el del grupo —cuándo se propuso arriba, cuándo se apuntó abajo—. Se apunta desde
+  un **renglón fijo bajo el mando**, que no se cierra al guardar: el modal ocupaba 455,4 pt de
+  los 508 que quedan sobre el teclado y se escribía sin ver el catálogo. Las dos fechas las
+  escribe el cliente (`apuntadaEl`, `propuestoEl`), no `creadoEn`, que es del servidor.
 - **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
@@ -98,6 +121,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   verdad (§14.16-bis, `api/src/ia.js`). **Si el modelo apuntado ya no existe se cambia solo por
   el más nuevo de su familia** —al traer la lista, y al usarlo reintentando solo con un 404— y
   se dice por cuál: un modelo retirado no rompe el día que lo retiran, rompe meses después.
+- **Lo que se le pide al modelo se escribe en Ajustes** (`api/src/encargos.js`, SPECS
+  §14.16-quater): la clave y el modelo valen para todo, el **encargo** es de cada cosa —hoy
+  uno, las ideas de plan—. **Vacío devuelve el de origen**, la forma de la respuesta es parte
+  del encargo (si le quitas el JSON deja de salir nada) y **solo se guardan los del catálogo**:
+  sin ese filtro, un encargo llamado `clave` machacaría la credencial de pago.
 - **Un campo es su rótulo, el control y la pista debajo** (`components/Campo.jsx`, SPECS
   §14.16-ter, figura de `garciadoral-ops`): el estado vive **en el campo** —«Guardada, termina
   en ab12»— y no en una ficha con icono encima, y lo que contesta el servidor va en una
@@ -184,8 +212,13 @@ api/
 
 - **Web:** Cloudflare Pages conectado al repo; build `cd app && npm ci && npm run build`,
   salida `app/dist`. Cada push a `main` republica. Base path `/` (ya no hay subpath).
-- **API:** `cd api && npm run desplegar` (wrangler). Secretos: `SESION_SECRETO` y
-  `TOKEN_SERVICIO`, con `wrangler secret put`.
+- **API:** se publica **sola** al entrar en `main` cualquier cosa de `api/`
+  (`.github/workflows/desplegar-api.yml`, secreto `CLOUDFLARE_API_TOKEN`), y a mano
+  desde Actions → desplegar api → Run workflow, que es lo que se puede pulsar desde el
+  móvil. `cd api && npm run desplegar` sigue valiendo como salida de emergencia.
+  **Las migraciones no las lanza nadie por ti**, a propósito: van antes del despliegue,
+  desde la consola de D1 o con `npm run migrar:remotoN`. Secretos del Worker:
+  `SESION_SECRETO` y `TOKEN_SERVICIO`, con `wrangler secret put`.
 - **Pruebas:** `.github/workflows/pruebas.yml` corre las dos suites en cada rama.
 - **OTA de iOS:** sin cambios (`ota.yml`); sube la versión en `app/package.json` y mergea.
 - **Lo que no viaja por OTA** es todo lo nativo: plugins, permisos, iconos y
@@ -321,7 +354,7 @@ portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de te
 retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
 binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
-entrar, la demostración arranca llena y no sube nunca. 150 tests en la PWA + 37 en la API,
+entrar, la demostración arranca llena y no sube nunca. 375 tests en la PWA + 75 en la API,
 todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su

@@ -5,6 +5,9 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Fab from '../components/Fab.jsx'
+import Ingredientes from '../components/Ingredientes.jsx'
+import { normalizarIngredientes, sinCantidad } from '../lib/receta.js'
+import { cantidadesDePlato } from '../sync/api.js'
 
 /**
  * «Platos»: el catálogo, que hasta ahora no tenía pantalla.
@@ -113,8 +116,41 @@ function ModalPlato({ plato, usos, onClose }) {
   useBloqueoDeScroll()
   const [name, setName] = useState(plato?.name ?? '')
   const [cats, setCats] = useState(() => new Set(plato?.categorias ?? []))
-  const [ingredientes, setIngredientes] = useState((plato?.ingredientes ?? []).join(', '))
+  const [raciones, setRaciones] = useState(plato?.raciones ? String(plato.raciones) : '')
+  const [ingredientes, setIngredientes] = useState(() => normalizarIngredientes(plato?.ingredientes))
   const [confirmando, setConfirmando] = useState(false)
+  // La IA: null en reposo · 'yendo' mientras pregunta · el motivo si falló.
+  const [ia, setIa] = useState(null)
+
+  const faltan = ingredientes.filter(sinCantidad)
+
+  /**
+   * Las cantidades que faltan, pedidas de una vez (F1).
+   *
+   * Se piden **desde la receta** y no desde la compra porque aquí está el plato
+   * entero delante: es lo que le permite al modelo decir «30 mejillones» en vez
+   * de «los que quieras». Y de una vez y no de una en una, por lo mismo que las
+   * ideas de plan (§14.19-bis): lo caro es contarle el contexto, no el número.
+   */
+  async function pedirALaIA() {
+    tap()
+    setIa('yendo')
+    try {
+      const puestas = await cantidadesDePlato({
+        plato: name.trim(),
+        raciones: Number(raciones) || null,
+        ingredientes: faltan.map((x) => x.nombre),
+      })
+      const porNombre = new Map(puestas.map((x) => [x.nombre, x]))
+      setIngredientes(ingredientes.map((x) => {
+        const puesta = porNombre.get(x.nombre)
+        return puesta ? { ...x, cantidad: puesta.cantidad, unidad: puesta.unidad, lote: puesta.lote, deIA: true } : x
+      }))
+      setIa(puestas.length ? null : 'No ha sabido ponerle cantidad a ninguno.')
+    } catch (e) {
+      setIa(String(e.message ?? e))
+    }
+  }
 
   function alternar(id) {
     const s = new Set(cats); s.has(id) ? s.delete(id) : s.add(id); setCats(s)
@@ -126,7 +162,8 @@ function ModalPlato({ plato, usos, onClose }) {
     const campos = {
       name: n,
       categorias: [...cats],
-      ingredientes: ingredientes.split(',').map((x) => x.trim()).filter(Boolean),
+      raciones: Number(raciones) > 0 ? Number(raciones) : null,
+      ingredientes: normalizarIngredientes(ingredientes),
     }
     if (plato) await updateDish(plato.id, campos)
     else await addDish(campos, event)
@@ -166,14 +203,32 @@ function ModalPlato({ plato, usos, onClose }) {
           ))}
         </div>
 
-        <label htmlFor="plato-ingredientes">Ingredientes <span className="apunte">(separados por comas)</span></label>
+        {/* Para cuántos es la receta, una sola vez por plato. Sin este número
+            una cantidad no se puede estirar: «2 kg» no se reparte entre dos
+            mesas porque falta el denominador (§14.20). */}
+        <label htmlFor="plato-raciones">Para cuántas raciones</label>
         <input
-          id="plato-ingredientes"
+          id="plato-raciones"
           type="text"
-          value={ingredientes}
-          onChange={(e) => setIngredientes(e.target.value)}
-          placeholder="arroz, mejillones, pollo"
+          inputMode="numeric"
+          className="tnum"
+          value={raciones}
+          onChange={(e) => setRaciones(e.target.value.replace(/[^0-9]/g, ''))}
+          placeholder="12"
         />
+        <div className="pista">Es la receta, no el viaje: la app la estira sola para la gente que haya.</div>
+
+        <label>Ingredientes</label>
+        <Ingredientes valor={ingredientes} raciones={Number(raciones) || null} onCambiar={setIngredientes} />
+
+        {faltan.length > 0 && (
+          <button className="btn ghost block" style={{ marginTop: 10 }} disabled={ia === 'yendo'} onClick={pedirALaIA}>
+            {ia === 'yendo'
+              ? 'Un momento…'
+              : `🐳 Sugerir ${faltan.length === 1 ? 'la que falta' : `las ${faltan.length} que faltan`}`}
+          </button>
+        )}
+        {ia && ia !== 'yendo' && <pre className="traza mal" role="status">{ia}</pre>}
 
         <div style={{ marginTop: 16 }}>
           <button className="btn block" onClick={guardar} disabled={!name.trim()}>

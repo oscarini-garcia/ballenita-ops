@@ -67,17 +67,32 @@ comprueba `api/test/d1.js`.
 npm run migrar:remoto5
 npm run migrar:remoto6
 npm run migrar:remoto7
+npm run migrar:remoto8
 ```
 
 La `0005` mantiene el evento «Demo» fuera del catálogo de platos (§14.9-quater);
-la `0006` añade el catálogo de ideas de plan (§14.18) y la `0007`, el autor de cada
-idea (§14.19). Las de `main` —`0002` a
+la `0006` añade el catálogo de ideas de plan (§14.18), la `0007` el autor de cada
+idea (§14.19) y la `0008` el alias de familia y las dos fechas de una idea
+(§14.19-ter). Las de `main` —`0002` a
 `0004`— van antes. Correr una sobre una base que ya la tiene falla con
 «duplicate column name», que es la señal de que no hacía falta.
 
-> **Y después, despliega el Worker** (`npm run desplegar`). Las columnas nuevas
-> no sirven de nada mientras el Worker siga con el `tablas.js` viejo: no las
-> transmitiría, y la instantánea las devolvería vacías en cada sincronización.
+**Sin terminal a mano**, una migración de dos o tres `ALTER TABLE` se puede pegar
+en el panel de Cloudflare: **Workers & Pages → D1 → ballena-ops → Console**. Es
+el mismo SQL del fichero, y es lo que hace que esto se pueda desatascar desde un
+teléfono.
+
+> **Y después, el Worker tiene que publicarse con esas columnas ya declaradas.**
+> Desde que existe `desplegar-api.yml` eso pasa **solo** al entrar el cambio en
+> `main` (§2.1); si la migración va después del merge —el caso normal cuando se
+> corre a mano— hay que **relanzar el despliegue** para que el Worker nuevo pise
+> al viejo. Mientras tanto no se rompe nada, pero el Worker viejo **descarta** los
+> campos que no conoce: no los transmite, y la instantánea los devuelve vacíos en
+> cada sincronización.
+>
+> **El orden bueno es migrar primero y desplegar después.** Al revés, el Worker
+> nuevo escribe contra columnas que no existen, el cambio se rechaza —con su
+> motivo en la lista de pasos— y lo apuntado desaparece al llegar la instantánea.
 
 ---
 
@@ -130,6 +145,27 @@ npm run desplegar
 curl https://ballena-ops-api.oscarini.workers.dev/api/salud
 # {"estado":"ok","ahora":"..."}
 ```
+
+### 2.1 El Worker se publica solo
+
+`.github/workflows/desplegar-api.yml` lo publica en cada empujón a `main` que
+toque `api/`, y también a mano desde **Actions → desplegar api → Run workflow**,
+que es la forma de lanzarlo desde el móvil. `npm run desplegar` se queda como
+salida de emergencia, no como el camino de todos los días.
+
+Hace falta **un secreto** en el repositorio (**Settings → Secrets and variables →
+Actions → New repository secret**):
+
+- `CLOUDFLARE_API_TOKEN` — se crea en **dash.cloudflare.com → My Profile → API
+  Tokens → Create Token**, plantilla **Edit Cloudflare Workers**. Es una
+  credencial que puede publicar Workers: va en los secretos del repositorio y no
+  en `wrangler.toml`, que está versionado.
+- `CLOUDFLARE_ACCOUNT_ID` — **solo si ese token ve más de una cuenta**; si no,
+  wrangler la deduce. Es el identificador que sale en la URL del panel.
+
+Lo que **no** hace el workflow es migrar. Un `ALTER TABLE` automático es la clase
+de cosa que se ejecuta sola contra la base buena el día que alguien mergea a las
+dos de la mañana; las migraciones se lanzan mirándolas, y antes del despliegue.
 
 Esa dirección va en `app/public/config.json`, campo `api`. **Ya está puesta.**
 

@@ -91,3 +91,21 @@ describe('las dos líneas de una fila', () => {
     expect(regla('.row .main .sub')).toMatch(/display:\s*block/)
   })
 })
+
+/**
+ * Un `textarea` se pinta con el negro y la monoespaciada de fábrica.
+ *
+ * No los hereda como el resto: sin `color: inherit` la cara oscura enseñaba
+ * **texto negro sobre fondo oscuro** en las siete cajas de la app —el encargo de
+ * la IA, la descripción de un plan o de una idea, y las dos de cada cena—. Se
+ * veía en el móvil y no aquí, así que aquí queda la guardia.
+ */
+describe('las cajas de varias líneas', () => {
+  const CSS = readFileSync(join(RAIZ, 'theme.css'), 'utf8')
+
+  it('heredan el color y la letra, como los demás controles', () => {
+    const i = CSS.indexOf('{ font: inherit; color: inherit; }')
+    expect(i, 'no encuentro la regla que hereda font y color').toBeGreaterThan(-1)
+    expect(CSS.slice(0, i)).toMatch(/textarea[^{]*$/)
+  })
+})
