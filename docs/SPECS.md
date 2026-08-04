@@ -1700,6 +1700,44 @@ el texto de origen.
 solo existe para que las cinco propuestas sean cinco propuestas que se pueden
 cocinar.
 
+### 14.20-quinquies El editor de receta se abre a leer, y el OTA dice por qué no ha traído nada
+
+**El editor no roba el foco** y va **estrecho y centrado** (`.modal.center
+.formulario`), la misma figura que el editor de una idea (§14.19-ter). Con el
+cursor puesto, iOS saca el teclado solo: entre el teclado abajo y el modal a
+ancho completo había que hacer scroll para ver la receta que venías a mirar. El
+teclado ya no sale hasta que se toca un campo.
+
+`.modal.center` estrecha **dos veces** —los 14 pt de aire del fondo y luego un
+90 %—, y eso en un formulario se paga en la columna del nombre: medido, dejaba
+al nombre 143,8 pt y «Costillas de cerdo» (169) se cortaba. `.formulario` deja
+que estreche solo el aire del fondo: **362 pt frente a los 390 de antes**, y al
+nombre le quedan **180**. La columna de la cantidad baja de 92 a **78** —estaba
+medida para un modal de 390— y a 104 mientras se escribe por persona, que es
+cuando las cifras se alargan. Con eso solo se corta un nombre de dieciocho
+letras, y el campo se desplaza al tocarlo.
+
+**Y el lápiz de la fila se retiró.** Era un objetivo de 44 pt al final de una
+fila que ya se podía tocar entera, y decía «editar» cuando lo que se abre sirve
+igual para **mirar** la receta —que desde que los platos llevan cantidades es la
+mitad de las veces que se entra—. Ahora se toca la fila y se abre, que es el
+idioma de El grupo (§14.14). La fila lleva **rótulo propio** («Abrir Paella
+mixta»): la estrella de al lado también dice el nombre del plato, y sin él quien
+lo oye tiene dos botones que dicen lo mismo y ninguno dice cuál abre la receta.
+La estrella se queda aparte porque hace otra cosa y se hace sin abrir nada.
+
+**Cuando el OTA no trae nada, se dice qué ha pasado** (§14.9-bis). El botón de
+Actualizar llamaba al paquete OTA y **tiraba la respuesta**: si no era
+«actualizado», seguía con el camino del service worker —que dentro de la app de
+iOS no trae nada— y terminaba con su ✓. La pantalla decía que sí y el teléfono se
+quedaba en la de antes. Ahora cada una de las cuatro respuestas
+(`motivoDelOta`) dice **dónde** está el problema, porque están en sitios
+distintos: ya la tienes, no se ha podido leer el manifiesto, aquí no hay paquete
+que traer, o el error tal cual. Y el renglón de la versión enseña **el paquete
+puesto** cuando no coincide con el que se horneó en el binario: dentro de la app
+hay dos números, y saber cuál se ha quedado atrás es la diferencia entre «no ha
+actualizado» y poder arreglarlo.
+
 ### 14.16-quinquies Cada encargo puede llevar su propio modelo
 
 La clave es de la instalación —una credencial de pago, §14.16— pero **el modelo

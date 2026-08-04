@@ -587,6 +587,15 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    para el teclado que salía solo al abrir, y al quitar el foco automático el
    remedio sobró — sin teclado que lo pelee, centrado se lee mejor. */
 
+/* Un `center` para un **formulario**, y no para leer cuatro renglones.
+   `.modal.center` estrecha dos veces —los 14 pt de aire del fondo y luego un
+   90 %—, y en el editor de una receta eso se paga en la columna del nombre:
+   medido, dejaba 143,8 pt y «Costillas de cerdo» (169) se cortaba. Aquí el aire
+   del fondo es el único que estrecha: 362 pt frente a los 390 del modal de
+   antes, y al nombre le quedan 180. */
+.modal.center.formulario { width: 100%; }
+
+
 .modal h2 { margin: 4px 0 2px; font-size: var(--t-title); }
 .modal .x { float: right; background: none; border: none; font-size: 26px; line-height: 1;
   color: var(--ink-faint); cursor: pointer; padding: 0 4px; min-width: var(--toque); }
@@ -1176,12 +1185,16 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    campos es `input[type=text]`, que tiene más especificidad que una clase sola,
    así que su `width: 100%` ganaba y la caja de la cantidad se comía la fila
    entera dejando el nombre fuera de la pantalla. Se veía en el navegador. */
-.fila-ing .ing-cant { width: 92px; flex: none; padding: 8px 9px; text-align: right; }
+/* 78 pt y no 92: la columna estaba medida para un modal de 390 de ancho, y el
+   editor pasó a 325,8 —estrecho y pegado arriba, para que no lo tape el
+   teclado—. Con 92 al nombre le quedaban 156 y «Otro ingrediente» se cortaba.
+   En 78 caben «1,2 kg» y «30 ud», que es lo que hay que leer. */
+.fila-ing .ing-cant { width: 78px; flex: none; padding: 8px 9px; text-align: right; }
 /* Escribiendo **por persona** las cifras se alargan: un pollo entre doce son
-   0,083 ud, y en 92 pt eso salía «0,083 u». La columna crece 16 pt mientras dure
-   la postura y al nombre le quedan 178, que siguen sobrando para «Pollo
-   troceado» (134,8) o «Costillas de cerdo» (169). */
-.lista-ing.repartiendo .ing-cant { width: 108px; }
+   0,083 ud, y en la columna de siempre eso salía «0,083 u». Crece 18 pt mientras
+   dure la postura, que es lo que se le puede quitar al nombre en un modal de
+   325,8 sin que se corte lo que se escribe ahí. */
+.lista-ing.repartiendo .ing-cant { width: 104px; }
 .ing-nombre { flex: 1; min-width: 0; }
 .ing-nombre input { padding: 8px 10px; }
 /* El aspa de B3: 26 pt y sin caja. Cuesta 34 pt de ancho al nombre —la caja de
