@@ -107,6 +107,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   un **renglón fijo bajo el mando**, que no se cierra al guardar: el modal ocupaba 455,4 pt de
   los 508 que quedan sobre el teclado y se escribía sin ver el catálogo. Las dos fechas las
   escribe el cliente (`apuntadaEl`, `propuestoEl`), no `creadoEn`, que es del servidor.
+  **El editor de una idea abre centrado y sin robar el foco** (§14.24) —el teclado no sale
+  hasta tocar un campo; vale también para la hoja de una mejora— y lleva **«Mejorarla»**:
+  la figura de «Arreglar» de la receta, encargo `mejorarIdea` (`api/src/idea.js`,
+  `POST /api/idea/mejorar`) — rellena sin guardar, se deshace, y los nombres no viajan.
 - **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,

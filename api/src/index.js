@@ -28,6 +28,7 @@
  *   GET  /api/mejoras   · las mejoras pendientes, para quien hace el trabajo (servicio)
  *   GET  /api/migraciones  · qué migraciones conoce el código y cuáles le faltan a la base (administradores)
  *   POST /api/migraciones  · aplica la siguiente pendiente (administradores)
+ *   POST /api/idea/mejorar · la misma idea, mejor contada por el modelo (IA)
  */
 
 import { verificarTokenDeApple } from './apple.js';
@@ -50,6 +51,7 @@ import {
 import { claveDeEncargo, claveDeModelo, esEncargoConocido } from './encargos.js';
 import { materialDelPlato, pedirCantidades } from './cantidades.js';
 import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
+import { materialDeLaIdea, pedirMejora } from './idea.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 import { aplicarMigracion, estadoDeMigraciones } from './migrador.js';
 
@@ -591,6 +593,37 @@ async function platosParecidos(peticion, env) {
 }
 
 /**
+ * La misma idea, mejor contada (SPECS §14.24).
+ *
+ * Del móvil van el título, la descripción y el enlace de esa idea; nada más —
+ * los nombres no viajan—. Lo que vuelve **no se guarda aquí**: rellena el
+ * editor, se puede deshacer, y guardar sigue siendo el botón de siempre. Es la
+ * figura de «Arreglar» de la receta aplicada a una idea.
+ */
+async function mejorarLaIdea(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { titulo = '', descripcion = '', enlace = '' } = await peticion.json();
+  if (!String(titulo).trim() && !String(descripcion).trim()) return json({ error: 'no hay idea que mejorar' }, 400);
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDeLaIdea({ titulo, descripcion, enlace });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.mejorarIdea,
+      hacer: (m) => pedirMejora({ clave, modelo: m, material, instruccion: encargos.mejorarIdea }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('mejorarIdea')]: m }),
+    });
+    return json({ idea: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
+/**
  * La tanda de recadillos del viaje (SPECS §14.22).
  *
  * Tiene una diferencia con los otros servicios de IA y es la que decide lo que
@@ -811,6 +844,7 @@ const RUTAS = [
   ['POST', '/api/plato/cantidades', cantidadesDeUnPlato],
   ['POST', '/api/plato/arreglar', arreglarLaLista],
   ['POST', '/api/plato/parecidos', platosParecidos],
+  ['POST', '/api/idea/mejorar', mejorarLaIdea],
   ['POST', '/api/recados', recadosDelViaje],
   ['POST', '/api/importar', importar],
   ['GET', '/api/mejoras', mejorasPendientes],

@@ -2322,6 +2322,34 @@ para que el progreso que se pinta sea el de verdad y no un rótulo delante de
 una petición larga. Y las dos rutas funcionan con la base por detrás —no tocan
 las tablas del grupo—, que es exactamente cuándo hacen falta.
 
+### 14.24 El editor de una idea: centrado, sin teclado encima, y con «Mejorarla»
+
+Dos vueltas del mismo editor (`ModalIdea` en `IdeasScreen.jsx`), y las dos
+valen también para la hoja de una mejora, que es su hermana.
+
+**Centrado y sin robar el foco.** El editor abría como hoja pegada abajo y con
+el foco puesto en «Qué es»: el teclado salía solo y, entre él y el modal, había
+que hacer scroll para llegar a Guardar y Borrar. Se abre a **leer** —la firma,
+el contador, los verbos— tanto como a escribir, así que el foco ya no se roba
+(el teclado no sale hasta tocar un campo) y, sin teclado que lo pelee, el modal
+va **centrado** (`modal-bg center`), que se lee mejor que pegado a ningún
+borde. Hubo una versión intermedia pegada arriba (`arriba`): era el remedio
+para el teclado, y al quitar el foco automático el remedio sobró.
+
+**«Mejorarla» (IA).** La figura de «Arreglar» del editor de receta
+(§14.20-bis), aplicada a una idea: un botón que manda el título, la
+descripción y el enlace **tal como están** y recibe la misma idea mejor
+contada — título corto y concreto, descripción de una a tres frases con lo
+práctico, **sin inventar datos que no estén**. Lo que vuelve **no se guarda**:
+rellena los campos, hay «deshacer» mientras no se guarde, y tocar un campo a
+mano retira el deshacer, porque lo escrito ya es tuyo y no del modelo. El
+encargo es `mejorarIdea` (`api/src/idea.js`, reescribible desde Ajustes →
+IA como los demás, §14.16-quater), la ruta `POST /api/idea/mejorar` sale del
+Worker como todas (la clave no viaja, §14.16) y **los nombres de la gente no
+viajan**: para pulir «playa cala sur llevar sombrilla» no hacen falta. El
+botón no aparece donde nunca va a funcionar (web, sin clave), como el resto de
+botones de IA (§14.20-ter).
+
 ---
 
 ## 15. Registro de decisiones
