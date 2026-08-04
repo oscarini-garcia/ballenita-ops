@@ -47,3 +47,13 @@ test('pedirMejora habla con la API del modelo y devuelve la idea leída', async 
 test('el encargo está en el catálogo: se puede reescribir desde Ajustes y nada más que él', () => {
   assert.ok(esEncargoConocido('mejorarIdea'));
 });
+
+test('trae Sonnet fijado, y la instrucción pide la coña sin tocar los datos', async () => {
+  const { ENCARGOS } = await import('../src/encargos.js');
+  const encargo = ENCARGOS.find((e) => e.id === 'mejorarIdea');
+  // Contar con gracia sí pide criterio: una coña que no aterriza es peor que
+  // ninguna, así que este encargo no hereda el modelo general.
+  assert.equal(encargo.modelo, 'claude-sonnet-4-5');
+  assert.match(INSTRUCCION_MEJORAR, /coña/);
+  assert.match(INSTRUCCION_MEJORAR, /nunca en los datos/);
+});

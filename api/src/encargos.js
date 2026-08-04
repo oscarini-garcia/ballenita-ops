@@ -54,8 +54,11 @@ export const ENCARGOS = [
   {
     id: 'mejorarIdea',
     titulo: 'Mejorar la redacción de una idea',
-    pista: 'El botón «Mejorarla» del editor de una idea: devuelve el título y la descripción mejor contados, sin inventar datos que no estén. Espera un JSON con «titulo» y «descripcion»: si reescribes esto, conserva esa parte o el botón dejará de hacer nada. Lo que vuelve no se guarda solo: rellena el editor, se puede deshacer, y guardar sigue siendo el botón de siempre. Vacío, vuelve el encargo de origen.',
+    pista: 'El botón «Mejorarla» del editor de una idea: devuelve el título y la descripción mejor contados y con una coña ligera, sin inventar datos que no estén — el humor va en la forma, nunca en los datos. Espera un JSON con «titulo» y «descripcion»: si reescribes esto, conserva esa parte o el botón dejará de hacer nada. Lo que vuelve no se guarda solo: rellena el editor, se puede deshacer, y guardar sigue siendo el botón de siempre. Vacío, vuelve el encargo de origen.',
     origen: INSTRUCCION_MEJORAR,
+    // Sonnet fijado a propósito: contar con gracia sí pide criterio —una coña
+    // que no aterriza es peor que ninguna— y este botón se pulsa poco.
+    modelo: 'claude-sonnet-4-5',
   },
   {
     id: 'parecidos',
