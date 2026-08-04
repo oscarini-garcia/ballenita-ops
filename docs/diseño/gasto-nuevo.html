@@ -267,7 +267,10 @@
   .medida .mal { color: var(--coral); font-weight: 700; }
   .medida .bien { color: var(--acento); font-weight: 700; }
 
-  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; color: var(--tinta-suave); }
+  /* La tabla se desborda ella sola y no la página: en un móvil de 390 las tres
+     columnas no caben, y sin esto el cuerpo entero se va de lado. */
+  .tabla-scroll { overflow-x: auto; }
+  table.comp { width: 100%; min-width: 480px; border-collapse: collapse; font-size: 14.5px; color: var(--tinta-suave); }
   table.comp th, table.comp td { text-align: left; padding: 8px 10px;
     border-bottom: 1px solid var(--linea); vertical-align: top; color: var(--tinta-suave); }
   table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
@@ -1058,6 +1061,7 @@ reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 
       talla donde pasaría. Lo que <b>no</b> se puede es dejar el 48 clavado en píxeles: eso es exactamente lo
       que <code>src/estilos.test.js</code> para en seco.</p>
 
+    <div class="tabla-scroll">
     <table class="comp">
       <tr><th>Lo que se hace</th><th>Hoy</th><th>Con la combinación</th></tr>
       <tr><td>Apuntar 24,30 de bebida</td><td>escribir descripción · abrir teclado · teclear importe · elegir categoría · scroll · guardar</td><td class="si">2·4·3·0 · Bebida · Guardar</td></tr>
@@ -1067,6 +1071,7 @@ reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 
       <tr><td>La mitad los Pérez</td><td class="no">no se puede</td><td class="si">Detalles → Importes</td></tr>
       <tr><td>Escribir el porqué de un gasto</td><td>obligatorio</td><td>Detalles → Descripción</td></tr>
     </table>
+    </div>
   </div>
 
   <!-- ══ CIERRE ════════════════════════════════════════════════════════════ -->
