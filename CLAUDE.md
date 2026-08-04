@@ -131,6 +131,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   uno, las ideas de plan—. **Vacío devuelve el de origen**, la forma de la respuesta es parte
   del encargo (si le quitas el JSON deja de salir nada) y **solo se guardan los del catálogo**:
   sin ese filtro, un encargo llamado `clave` machacaría la credencial de pago.
+- **Cada encargo puede llevar su propio modelo** (SPECS §14.16-quinquies): la clave es de la
+  instalación, el modelo no. `ia.modelo:<id>` con el mismo filtro que los encargos, y el orden
+  es lo guardado → el de origen del encargo → el general. Hoy solo «Ordenar una lista de
+  ingredientes» trae uno puesto (haiku): es traducción y es el botón que más se pulsa.
 - **Un campo es su rótulo, el control y la pista debajo** (`components/Campo.jsx`, SPECS
   §14.16-ter, figura de `garciadoral-ops`): el estado vive **en el campo** —«Guardada, termina
   en ab12»— y no en una ficha con icono encima, y lo que contesta el servidor va en una
