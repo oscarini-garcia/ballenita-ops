@@ -1,0 +1,1030 @@
+<title>Ballena Ops · La receta y la IA</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256; --ab-linea-suave: #17384a;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea; --abc-linea-suave: #e9eff2;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code, .coste code, .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .ballena { width: 30px; height: 30px; flex: none; }
+  .t-cab .crece { flex: 1; min-width: 0; }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-cab .su { font-size: var(--t-micro); opacity: .78; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .tarj.junta { padding: 0 12px; }
+
+  /* 9 px arriba y abajo dejan la fila en ~70,7, que es lo que mide una `.row`
+     real medida contra theme.css. Con 11 se iba a 74 y el dibujo mentía. */
+  .fila { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  /* El título de un plan es lo único que identifica su fila, así que dobla a dos
+     líneas en vez de recortarse: «Noche de juegos de mesa» son 257,8 pt y en la
+     fila cerrada solo hay 245. Se mide y se dice, no se esconde con puntos. */
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .oscuro .pil { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .pil { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .pil.ok { background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .pil.ok { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); background: none; color: var(--ab-soft); font-family: inherit;
+    min-height: 40px; display: inline-flex; align-items: center; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+  .chip.rojo { color: #fff; background: var(--ab-owe); border-color: var(--ab-owe); }
+  .claro .chip.rojo { background: var(--abc-owe); border-color: var(--abc-owe); }
+  .chip.lleno { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .chip.lleno { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .plan-n { font-weight: 600; font-size: var(--t-row); }
+  .cifra-l { font-size: var(--t-label); }
+  .oscuro .cifra-l { color: var(--ab-faint); } .claro .cifra-l { color: var(--abc-faint); }
+  .fecha-nativa { border-radius: 7px; padding: 12px; font-size: var(--t-body);
+    display: flex; justify-content: space-between; align-items: center; }
+  .oscuro .fecha-nativa { border: 1px solid var(--ab-linea); color: var(--ab-ink); }
+  .claro .fecha-nativa { border: 1px solid var(--abc-linea); color: var(--abc-ink); }
+
+  .verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--ab-linea); border-radius: 9px; color: var(--ab-soft); background: none; }
+  .claro .verbo-fila { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .verbo-fila svg { width: 19px; height: 19px; }
+
+  /* Deslizamiento a medias, para enseñar los verbos de K3 */
+  .deslizada { position: relative; overflow: hidden; }
+  .verbos { position: absolute; inset: 0 0 0 auto; display: flex; }
+  .verbo { width: 76px; display: grid; place-items: center; gap: 4px; font-size: var(--t-micro);
+    font-weight: 700; color: #eaf6fb; }
+  .verbo.ed { background: #1f6f8f; } .verbo.bo { background: #a8322a; }
+  .verbo svg { width: 19px; height: 19px; }
+  .cara { position: relative; transform: translateX(-152px); }
+  .oscuro .cara { background: var(--ab-tarjeta); } .claro .cara { background: var(--abc-tarjeta); }
+
+  /* Los cuatro mandos de áreas de la parte cuatro */
+  .t-sub { padding: 12px 14px 0; }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 10px; }
+  .oscuro .seg { background: var(--ab-linea-suave); } .claro .seg { background: var(--abc-linea-suave); }
+  .seg button { flex: 1; padding: 10px 6px; border: none; background: none; border-radius: 7px;
+    font-weight: 600; font-size: var(--t-row); font-family: inherit; white-space: nowrap; }
+  .oscuro .seg button { color: var(--ab-soft); } .claro .seg button { color: var(--abc-soft); }
+  .oscuro .seg button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
+  .claro .seg button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); box-shadow: 0 1px 2px rgba(16,42,55,.12); }
+
+  .subr { display: flex; gap: 22px; padding: 0 4px; }
+  .subr button { border: none; background: none; padding: 10px 0 9px; font-family: inherit;
+    font-size: var(--t-row); font-weight: 600; border-bottom: 2px solid transparent; }
+  .oscuro .subr { border-bottom: 1px solid var(--ab-linea); } .claro .subr { border-bottom: 1px solid var(--abc-linea); }
+  .oscuro .subr button { color: var(--ab-faint); } .claro .subr button { color: var(--abc-faint); }
+  .oscuro .subr button.on { color: var(--ab-ink); border-bottom-color: var(--ab-acento); }
+  .claro .subr button.on { color: var(--abc-ink); border-bottom-color: var(--abc-acento); }
+
+  .past { display: flex; gap: 8px; }
+  .past button { border-radius: 999px; padding: 8px 15px; font-family: inherit;
+    font-size: var(--t-sub); font-weight: 600; background: none; }
+  .oscuro .past button { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .past button { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .oscuro .past button.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .past button.on { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .titmando { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px 0; }
+  .titmando .h { font-size: var(--t-title); font-weight: 700; letter-spacing: -.015em; }
+  .titmando .m { display: flex; gap: 2px; padding: 3px; border-radius: 8px; }
+  .oscuro .titmando .m { background: var(--ab-linea-suave); } .claro .titmando .m { background: var(--abc-linea-suave); }
+  .titmando .m button { border: none; background: none; border-radius: 6px; padding: 6px 11px;
+    font-family: inherit; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .titmando .m button { color: var(--ab-faint); } .claro .titmando .m button { color: var(--abc-faint); }
+  .oscuro .titmando .m button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); }
+  .claro .titmando .m button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); }
+
+  .t-barra { display: flex; justify-content: space-around; padding: 7px 0 10px; }
+  .oscuro .t-barra { background: var(--ab-cromo); border-top: 1px solid var(--ab-linea); }
+  .claro .t-barra { background: var(--abc-cromo); border-top: 1px solid var(--abc-linea); }
+  .t-barra .p { width: 76.4px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ab-faint); }
+  .claro .t-barra .p { color: var(--abc-faint); }
+  .t-barra .p.on { color: var(--ab-acento-txt); } .claro .t-barra .p.on { color: var(--abc-acento-txt); }
+  .t-barra .p svg { width: 23px; height: 23px; }
+  .t-barra .p span { font-size: var(--t-micro); font-weight: 550; }
+
+  .regla { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue);
+    display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+  .regla .barra { height: 6px; border-radius: 3px; background: var(--linea-fuerte); }
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  /* El color se pone a mano en la celda. Estas hojas no llevan doctype, así que
+     el navegador las lee en modo quirks y ahí **las tablas no heredan el color**:
+     el `td` se quedaba en negro y en la cara oscura no se leía una palabra. */
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+
+<style>
+  /* ── Añadidos de esta hoja ─────────────────────────────────────────────
+     Todo lo de arriba viene tal cual de `planes-votar.html`, para que las dos
+     hojas se comparen: mismos colores, misma escala, mismo marco de 390 pt. */
+
+  /* La fila de una idea no lleva icono: lo que la identifica es su título. */
+  .fila .n2 { font-size: var(--t-row); font-weight: 550; }
+  .fila .s2 { font-size: var(--t-sub); }
+  .oscuro .fila .s2 { color: var(--ab-soft); } .claro .fila .s2 { color: var(--abc-soft); }
+  .fila .s3 { font-size: var(--t-sub); }
+  .oscuro .fila .s3 { color: var(--ab-faint); } .claro .fila .s3 { color: var(--abc-faint); }
+
+  /* El alias de familia, en pastilla de dos letras. 22 pt de alto para que no
+     estire la línea de 15,7 en la que vive. */
+  .al { font-family: var(--mono); font-size: 11.5px; font-weight: 700; letter-spacing: .06em;
+    border-radius: 5px; padding: 2px 5px; display: inline-block; line-height: 1.3; }
+  .oscuro .al { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .al { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .al.gar { background: rgba(229,84,75,.18); color: #f0938c; }
+  .claro .al.gar { background: rgba(229,84,75,.12); color: #a8332b; }
+  .al.per { background: rgba(46,158,107,.18); color: #6fc79c; }
+  .claro .al.per { background: rgba(46,158,107,.12); color: #1f6d4b; }
+  .al.sol { background: rgba(31,166,214,.18); color: #6dc4e5; }
+  .claro .al.sol { background: rgba(31,166,214,.12); color: #14657f; }
+
+  .fecha-col { font-size: var(--t-sub); font-variant-numeric: tabular-nums; white-space: nowrap;
+    text-align: right; flex: none; }
+  .oscuro .fecha-col { color: var(--ab-faint); } .claro .fecha-col { color: var(--abc-faint); }
+
+  /* El botón pequeño de la fila («Proponer»), medido tal cual está hoy. */
+  .btn-sm { font-family: inherit; font-size: var(--t-sub); font-weight: 600; border-radius: 8px;
+    padding: 9px 13px; flex: none; }
+  .oscuro .btn-sm { border: 1px solid var(--ab-linea); background: none; color: var(--ab-acento-txt); }
+  .claro .btn-sm { border: 1px solid var(--abc-linea); background: none; color: var(--abc-acento-txt); }
+  .btn-sm.apagado { opacity: .45; }
+
+  /* ── El renglón de escribir ─────────────────────────────────────────── */
+  .form { border-radius: 9px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .oscuro .form { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .form { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .form .linea { display: flex; gap: 8px; align-items: center; }
+  .campo { flex: 1; min-width: 0; border-radius: 7px; padding: 11px 12px; font-size: var(--t-body);
+    font-family: inherit; }
+  .oscuro .campo { border: 1px solid var(--ab-linea); background: var(--ab-fondo); color: var(--ab-ink); }
+  .claro .campo { border: 1px solid var(--abc-linea); background: var(--abc-fondo); color: var(--abc-ink); }
+  .campo.vacio { color: var(--ab-faint); } .claro .campo.vacio { color: var(--abc-faint); }
+  .campo.foco { outline: 2px solid var(--ab-acento); outline-offset: -1px; }
+  .claro .campo.foco { outline-color: var(--abc-acento); }
+  .campo.alto { min-height: 76px; }
+  .ok { width: 44px; height: 44px; flex: none; border-radius: 8px; display: grid; place-items: center;
+    font-size: 18px; font-weight: 700; }
+  .oscuro .ok { background: var(--ab-acento); color: #04161f; }
+  .claro .ok { background: var(--abc-acento); color: #fff; }
+  .ok.apagado { opacity: .35; }
+  .mas-det { font-size: var(--t-sub); font-weight: 600; background: none; border: none;
+    font-family: inherit; padding: 4px 2px; text-align: left; }
+  .oscuro .mas-det { color: var(--ab-acento-txt); } .claro .mas-det { color: var(--abc-acento-txt); }
+  .rot { font-size: var(--t-label); font-weight: 600; padding: 2px 2px 0; }
+  .oscuro .rot { color: var(--ab-soft); } .claro .rot { color: var(--abc-soft); }
+
+  /* El teclado del sistema, a su medida real: 336 pt en un iPhone de 390×844
+     con la barra predictiva puesta, que es como sale al escribir en español. */
+  .teclado { height: 336px; flex: none; display: grid; place-items: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .oscuro .teclado { background: #1b2b33; color: #6d8590; border-top: 1px solid #2a3f4a; }
+  .claro .teclado { background: #d1d5db; color: #6b7280; border-top: 1px solid #b9bfc7; }
+
+  /* El modal de ahora, para poder medir lo que tapa. */
+  .velo-viejo { position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 14px; }
+  .oscuro .velo-viejo { background: rgba(4,12,18,.66); } .claro .velo-viejo { background: rgba(16,42,55,.34); }
+  .modal-m { width: 100%; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .oscuro .modal-m { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .modal-m { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .modal-m h4 { margin: 0 0 2px; font-size: var(--t-title); font-weight: 650; }
+  .btn-blq { border-radius: 9px; padding: 13px; text-align: center; font-weight: 650;
+    font-size: var(--t-body); font-family: inherit; }
+  .oscuro .btn-blq { background: var(--ab-acento); color: #04161f; }
+  .claro .btn-blq { background: var(--abc-acento); color: #fff; }
+
+  .fab-m { position: absolute; right: 14px; bottom: 14px; border-radius: 999px; padding: 13px 18px;
+    font-weight: 650; font-size: var(--t-body); display: flex; gap: 7px; align-items: center; }
+  .oscuro .fab-m { background: var(--ab-acento); color: #04161f; }
+  .claro .fab-m { background: var(--abc-acento); color: #fff; }
+
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .grid2m { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pista { font-size: var(--t-label); }
+  .oscuro .pista { color: var(--ab-faint); } .claro .pista { color: var(--abc-faint); }
+
+  .nota-t { font-size: var(--t-sub); border-radius: 9px; padding: 10px 12px; }
+  .oscuro .nota-t { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .nota-t { background: var(--abc-linea-suave); color: var(--abc-soft); }
+</style>
+<style>
+  /* ── Añadidos de esta hoja ─────────────────────────────────────────────
+     Lo de arriba viene de `cenas-cantidades.html`, para que las dos hojas de
+     recetas se comparen: mismos colores, misma escala, mismo marco de 390 pt. */
+
+  .fila2 { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+  .fila2 + .fila2 { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila2 + .fila2 { border-top-color: var(--abc-linea-suave); }
+
+  .campo2 { border-radius: 7px; padding: 9px 10px; font-size: var(--t-row); min-height: 42px;
+    display: flex; align-items: center; }
+  .oscuro .campo2 { border: 1px solid var(--ab-linea); background: var(--ab-fondo); color: var(--ab-ink); }
+  .claro .campo2 { border: 1px solid var(--abc-linea); background: var(--abc-fondo); color: var(--abc-ink); }
+  .campo2.cant { width: 92px; flex: none; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+  .campo2.cant.corta { width: 70px; }
+  .campo2.crece { flex: 1; min-width: 0; }
+  .campo2.vacio { font-style: italic; }
+  .oscuro .campo2.vacio { color: var(--ab-faint); } .claro .campo2.vacio { color: var(--abc-faint); }
+  .oscuro .campo2.foco { border-color: var(--ab-acento); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ab-acento) 35%, transparent); }
+  .claro .campo2.foco { border-color: var(--abc-acento); box-shadow: 0 0 0 2px color-mix(in srgb, var(--abc-acento) 30%, transparent); }
+  .campo2.sinborde { border-color: transparent; background: none; }
+
+  /* El aspa de borrar, en sus varios tamaños. 44 es el toque cómodo, 30 el que
+     cabe en la fila sin robarle ancho al nombre. */
+  .aspa { flex: none; display: grid; place-items: center; border-radius: 7px; font-size: var(--t-sub);
+    background: none; }
+  .oscuro .aspa { border: 1px solid var(--ab-linea); color: var(--ab-faint); }
+  .claro .aspa { border: 1px solid var(--abc-linea); color: var(--abc-faint); }
+  .aspa.g { width: 44px; height: 44px; }
+  .aspa.m { width: 34px; height: 34px; }
+  .aspa.p { width: 26px; height: 26px; font-size: var(--t-micro); border: none; }
+
+  .past-ia { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    border-radius: 5px; padding: 2px 6px; display: inline-block; line-height: 1.35; }
+  .oscuro .past-ia { background: rgba(201,167,104,.20); color: #d9bd83; }
+  .claro .past-ia { background: rgba(138,108,44,.14); color: #7a5f21; }
+
+  .btn-ia { border-radius: 9px; padding: 12px 14px; font-family: inherit; font-size: var(--t-row);
+    font-weight: 600; width: 100%; text-align: center; background: none; }
+  .oscuro .btn-ia { border: 1px solid var(--ab-linea); color: var(--ab-acento-txt); }
+  .claro .btn-ia { border: 1px solid var(--abc-linea); color: var(--abc-acento-txt); }
+  .btn-ia.lleno { border-color: transparent; }
+  .oscuro .btn-ia.lleno { background: var(--ab-acento); color: #04161f; }
+  .claro .btn-ia.lleno { background: var(--abc-acento); color: #fff; }
+
+  .rot2 { font-size: var(--t-label); font-weight: 700; margin: 12px 2px 5px; }
+  .oscuro .rot2 { color: var(--ab-soft); } .claro .rot2 { color: var(--abc-soft); }
+  .pista2 { font-size: var(--t-sub); line-height: 1.4; }
+  .oscuro .pista2 { color: var(--ab-faint); } .claro .pista2 { color: var(--abc-faint); }
+
+  .antes2 { text-decoration: line-through; }
+  .oscuro .antes2 { color: var(--ab-faint); } .claro .antes2 { color: var(--abc-faint); }
+
+  /* La propuesta de plato, con la figura del regalo de garciadoral-ops. */
+  .prop { border: 1px dashed var(--ab-linea); border-radius: 9px; padding: 12px;
+    display: flex; flex-direction: column; gap: 9px; }
+  .claro .prop { border-color: var(--abc-linea); }
+  .prop .que { font-size: var(--t-row); font-weight: 650; }
+  .prop .porque { font-size: var(--t-sub); line-height: 1.4; }
+  .oscuro .prop .porque { color: var(--ab-soft); } .claro .prop .porque { color: var(--abc-soft); }
+  .prop .pie { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cuenta2 { font-size: var(--t-sub); }
+  .oscuro .cuenta2 { color: var(--ab-faint); } .claro .cuenta2 { color: var(--abc-faint); }
+</style>
+
+<style>
+  /* ── Añadidos de esta hoja ───────────────────────────────────────────── */
+  .fina { display: flex; align-items: center; gap: 8px; }
+  .fina .c { width: 84px; flex: none; text-align: right; font-variant-numeric: tabular-nums; }
+  .fina .n { flex: 1; min-width: 0; }
+  .fina .x { width: 24px; flex: none; text-align: center; }
+  .oscuro .fina .x, .oscuro .fina .c { color: var(--ab-faint); }
+  .claro .fina .x, .claro .fina .c { color: var(--abc-faint); }
+
+  .caja-fina { border-radius: 6px; padding: 5px 8px; font-size: var(--t-row); min-height: 32px;
+    display: flex; align-items: center; }
+  .oscuro .caja-fina { border: 1px solid var(--ab-linea); background: var(--ab-fondo); }
+  .claro .caja-fina { border: 1px solid var(--abc-linea); background: var(--abc-fondo); }
+  .sub-linea { display: block; font-size: var(--t-micro); line-height: 1.25; }
+  .oscuro .sub-linea { color: var(--ab-faint); } .claro .sub-linea { color: var(--abc-faint); }
+
+  .rayas { border-radius: 0; }
+  .oscuro .rayas + .rayas { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .rayas + .rayas { border-top: 1px solid var(--abc-linea-suave); }
+
+  /* El modal de parecidos, dibujado dentro del teléfono */
+  .velo { position: relative; border-radius: 12px; padding: 12px; display: flex;
+    align-items: flex-start; }
+  .oscuro .velo { background: rgba(4,12,18,.72); } .claro .velo { background: rgba(16,42,55,.28); }
+  .hoja-modal { width: 100%; }
+  .hoja-modal { border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .oscuro .hoja-modal { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .hoja-modal { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .hoja-modal h3 { margin: 0; font-size: var(--t-title); font-weight: 700; letter-spacing: -.01em; }
+
+  /* El punto que late mientras piensa */
+  .latido { display: inline-flex; gap: 4px; align-items: center; }
+  .latido i { width: 7px; height: 7px; border-radius: 50%; display: block; }
+  .oscuro .latido i { background: var(--ab-acento-txt); } .claro .latido i { background: var(--abc-acento-txt); }
+  .latido i:nth-child(2) { opacity: .6; } .latido i:nth-child(3) { opacity: .3; }
+
+  .barra-falsa { height: 3px; border-radius: 2px; overflow: hidden; }
+  .oscuro .barra-falsa { background: var(--ab-linea-suave); } .claro .barra-falsa { background: var(--abc-linea-suave); }
+  .barra-falsa i { display: block; height: 100%; width: 38%; border-radius: 2px; }
+  .oscuro .barra-falsa i { background: var(--ab-acento); } .claro .barra-falsa i { background: var(--abc-acento); }
+
+  .esqueleto { border-radius: 6px; height: 13px; }
+  .oscuro .esqueleto { background: var(--ab-linea-suave); } .claro .esqueleto { background: var(--abc-linea-suave); }
+
+  .apagado { opacity: .45; }
+
+  /* La lista de hoy, con las clases de la app (`theme.css`, .fila-ing y las suyas)
+     copiadas tal cual para que lo que se mide aquí sea lo que se mide allí. */
+  .fila-ing { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; }
+  .oscuro .fila-ing + .fila-ing { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila-ing + .fila-ing { border-top: 1px solid var(--abc-linea-suave); }
+  .fila-ing .campo2.cant { padding: 8px 9px; min-height: 40px; }
+  .ing-nombre { flex: 1; min-width: 0; }
+  .ing-nombre .campo2 { padding: 8px 10px; min-height: 40px; }
+  .ing-detalle { font-size: var(--t-sub); margin: 4px 2px 0; line-height: 1.35; }
+  .oscuro .ing-detalle { color: var(--ab-faint); } .claro .ing-detalle { color: var(--abc-faint); }
+
+  /* El rótulo sobre las columnas (C2 y C4) y el pie del editor. */
+  .cabtabla { display: flex; gap: 8px; font-size: var(--t-label); font-weight: 600;
+    padding: 0 2px 5px; }
+  .oscuro .cabtabla { color: var(--ab-soft); } .claro .cabtabla { color: var(--abc-soft); }
+  .cabtabla span { flex: none; } .cabtabla span:last-child { flex: 1; }
+  .editor-pie { padding: 10px 0 0; }
+</style>
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · la receta y la IA</div>
+    <h1>Cuatro ingredientes ocupan media pantalla, y la IA piensa sin decirlo</h1>
+    <p class="entradilla">
+      Cuatro cosas de la misma pantalla, y las cuatro tienen alternativas de verdad: la lista de
+      ingredientes es <b>demasiado alta</b> —cuatro líneas y una vacía son <b>437,8 pt de los 844
+      que hay</b>—, la cantidad no dice si es <b>por persona o para la receta entera</b>, pulsar un
+      botón de IA <b>no se nota</b>, y las propuestas de «Parecidos» salen <b>inline</b> cuando lo
+      que hacen es abrir una receta nueva.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado sobre</b> v0.14.1</span>
+      <span><b>Ancho</b> 390 pt</span>
+      <span><b>Tema</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Escala</b> 17 px × 1,12</span>
+      <span><b>Medido en</b> Paella mixta, 4 ingredientes</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ ANTES DE LAS OPCIONES ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · dos arreglos que no se eligen</h2>
+    <p>
+      <b>1 · Sin conexión, la IA no se ofrece.</b> Hoy los tres botones se pueden pulsar sin red y
+      lo que sale es <code>la API respondió …</code> o nada: el error del transporte, contado con
+      las palabras del transporte. Los botones pasan a estar <b>apagados</b> cuando el punto de la
+      cabecera está en rojo, y dicen por qué. No hay nada que votar aquí; lo que sí se elige es
+      cómo se ve que <i>sí</i> está trabajando, y eso va en la parte tres.
+    </p>
+    <p class="linea-corte">
+      <b>2 · Pulsar «Parecidos» hace que hable el otro botón.</b> El texto «Un momento…» está
+      escrito en <b>«Arreglar»</b> y se enciende con la misma variable de estado, así que al pedir
+      parecidos lo que cambia es el botón de al lado; el que has tocado se queda diciendo «🐳
+      Parecidos», apagado. Los dos segundos siguientes no dicen quién está trabajando, y dicen mal
+      quién. Eso es un fallo, no una opción.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · la lista, más fina</div>
+  <p class="parte-intro">
+    <b>Lo medido, que es de lo que hay que partir.</b> Todo lo de abajo está medido con el
+    <code>theme.css</code> de la app a 390 pt, con los mismos cuatro ingredientes más la fila vacía
+    del final. Una fila sin detalle mide <b>60,6</b> pt; con detalle de dos líneas —«0,1 kg/ración ·
+    paquete de 1 kg»—, <b>105,9</b>. La lista entera son <b>437,8</b> pt de los <b>844</b> que tiene
+    la pantalla: <b>media pantalla para cuatro cosas</b>, y una paella de verdad lleva siete u ocho.
+    <b>El alto no lo pone el borde: lo pone el relleno del campo</b>, y eso cambia cuál de las
+    opciones sirve para lo que preguntas.
+  </p>
+
+  <div class="grupo">
+    <h3>F · Cuánto ocupa una línea</h3>
+
+    <div class="tabla-scroll">
+      <table class="comp">
+        <tr><th>Forma</th><th>Alto de fila</th><th>Las cinco líneas</th><th>Frente a hoy</th></tr>
+        <tr><td><b>Hoy</b></td><td class="num">105,9 con detalle · 60,6 sin</td><td class="num">437,8</td><td class="num">—</td></tr>
+        <tr><td><b>F1</b> · el detalle solo al enfocar</td><td class="num">60,6</td><td class="num">320,0</td><td class="num">−117,8</td></tr>
+        <tr><td><b>F3</b> · cajas más bajas, <b>sin tocar el detalle</b></td><td class="num">91,6 con detalle · 46,6 sin</td><td class="num">367,8</td><td class="num">−70,0</td></tr>
+        <tr><td><b>F1 + F3</b></td><td class="num">46,6</td><td class="num">250,0</td><td class="num">−187,8</td></tr>
+        <tr><td><b>F1 + F2</b> · y además sin cajas</td><td class="num">58,6</td><td class="num">310,0</td><td class="num">−127,8</td></tr>
+        <tr><td><b>F4</b> · F1 + un renglón al pie</td><td class="num">60,6</td><td class="num">371,4</td><td class="num">−66,4</td></tr>
+        <tr><td><b>F5</b> · sin fila fantasma</td><td class="num">—</td><td class="num">se restan 60,6</td><td class="num">se suma a cualquiera</td></tr>
+      </table>
+    </div>
+    <p class="coste">
+      <b>Dos cosas que solo se ven midiendo.</b> Una: <b>F2 no adelgaza</b>. Quitar los bordes
+      ahorra <b>2 pt por fila</b>, porque el alto lo manda el relleno del <code>input</code> y no
+      el borde: es una decisión de <b>aspecto</b>, no de sitio. Y dos: <b>el detalle pesa más que
+      la caja</b> —117,8 pt frente a 70,0—, así que si solo se hace una cosa, la que hay que hacer
+      es F1. Las dos juntas dejan la lista en <b>250,0</b>, y con F5 en <b>189,4</b>: <b>menos de la
+      mitad</b> de lo de hoy.
+    </p>
+
+    <div class="tira-tel">
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">Hoy · 437,8 pt</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="tarj junta" data-m="hoy">
+            <div class="fila-ing"><span class="campo2 cant">1,2 kg</span><div class="ing-nombre"><span class="campo2 crece">Arroz bomba</span><div class="ing-detalle">0,1 kg/ración · paquete de 1 kg</div></div><span class="aspa p">×</span></div>
+            <div class="fila-ing"><span class="campo2 cant">30 ud</span><div class="ing-nombre"><span class="campo2 crece">Mejillones</span><div class="ing-detalle">2,5 ud/ración · malla de 1 kg</div></div><span class="aspa p">×</span></div>
+            <div class="fila-ing"><span class="campo2 cant">1 ud</span><div class="ing-nombre"><span class="campo2 crece">Pollo troceado</span><div class="ing-detalle">0,1 ud/ración</div></div><span class="aspa p">×</span></div>
+            <div class="fila-ing"><span class="campo2 cant vacio">—</span><div class="ing-nombre"><span class="campo2 crece">Azafrán</span></div><span class="aspa p">×</span></div>
+            <div class="fila-ing"><span class="campo2 cant vacio">—</span><div class="ing-nombre"><span class="campo2 crece vacio">Otro ingrediente…</span></div><span class="aspa p" style="visibility:hidden">×</span></div>
+          </div>
+          <div class="pista2">El detalle casi dobla la fila —105,9 frente a 60,6— y sale en todas las que tienen cifra.</div>
+        </div>
+      </div>
+
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">F1 · el detalle al tocar · 320,0 pt</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="tarj junta" data-m="f1">
+            <div class="fila2"><span class="campo2 cant">1,2 kg</span><span class="campo2 crece">Arroz bomba</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant">30 ud</span><span class="campo2 crece">Mejillones</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant">1 ud</span><span class="campo2 crece">Pollo troceado</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant vacio">—</span><span class="campo2 crece">Azafrán</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant vacio">—</span><span class="campo2 crece vacio">Otro ingrediente…</span></div>
+          </div>
+          <div class="pista2">Cinco filas en lo que antes cabían tres. El «por ración» sale al enfocar la línea.</div>
+        </div>
+      </div>
+
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">F2 · sin cajas · 310,0 pt</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="tarj junta" data-m="f2">
+            <div class="fina rayas" style="padding:17px 0"><span class="c">1,2 kg</span><span class="n">Arroz bomba</span><span class="x">×</span></div>
+            <div class="fina rayas" style="padding:17px 0"><span class="c">30 ud</span><span class="n">Mejillones</span><span class="x">×</span></div>
+            <div class="fina rayas" style="padding:17px 0"><span class="c">1 ud</span><span class="n">Pollo troceado</span><span class="x">×</span></div>
+            <div class="fina rayas" style="padding:17px 0"><span class="c">—</span><span class="n">Azafrán</span><span class="x">×</span></div>
+            <div class="fina rayas" style="padding:17px 0"><span class="c">—</span><span class="n apagado">Otro ingrediente…</span><span class="x"></span></div>
+          </div>
+          <div class="pista2">Los bordes se van y se escribe encima igual. Pero la fila solo baja 2 pt: el alto lo pone el relleno del campo, no el borde.</div>
+        </div>
+      </div>
+
+      <div class="tel claro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">F3 · cajas más bajas · 250,0 pt</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="tarj junta" data-m="f3">
+            <div class="fila2" style="padding:3px 0"><span class="campo2 cant caja-fina">1,2 kg</span><span class="campo2 crece caja-fina">Arroz bomba</span><button class="aspa p">×</button></div>
+            <div class="fila2" style="padding:3px 0"><span class="campo2 cant caja-fina">30 ud</span><span class="campo2 crece caja-fina">Mejillones</span><button class="aspa p">×</button></div>
+            <div class="fila2" style="padding:3px 0"><span class="campo2 cant caja-fina">1 ud</span><span class="campo2 crece caja-fina">Pollo troceado</span><button class="aspa p">×</button></div>
+            <div class="fila2" style="padding:3px 0"><span class="campo2 cant caja-fina vacio">—</span><span class="campo2 crece caja-fina">Azafrán</span><button class="aspa p">×</button></div>
+            <div class="fila2" style="padding:3px 0"><span class="campo2 cant caja-fina vacio">—</span><span class="campo2 crece caja-fina vacio">Otro ingrediente…</span></div>
+          </div>
+          <div class="pista2">Mismo dibujo, menos aire: la caja pasa de 45,6 pt a 32. El que más devuelve.</div>
+        </div>
+      </div>
+
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">F4 · el detalle al pie · 371,4 pt</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="tarj junta" data-m="f4">
+            <div class="fila2"><span class="campo2 cant">1,2 kg</span><span class="campo2 crece">Arroz bomba</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant">30 ud</span><span class="campo2 crece">Mejillones</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant">1 ud</span><span class="campo2 crece">Pollo troceado</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant vacio">—</span><span class="campo2 crece">Azafrán</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant vacio">—</span><span class="campo2 crece vacio">Otro ingrediente…</span></div>
+          </div>
+          <div class="pista2" style="margin-top:8px">Para 12 · 0,1 kg de arroz y 2,5 mejillones por ración · 1 sin cantidad</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">El detalle solo en la línea que estás tocando</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La fila se queda en <b>60,6</b> pt <b>siempre</b>. El «0,1 kg/ración · paquete de 1 kg»
+        aparece bajo la línea <b>enfocada</b> y desaparece al salir: es información para juzgar
+        <i>esa</i> cifra, no para leer las ocho a la vez.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> que el detalle ya no se pueda comparar entre líneas de un vistazo.
+        <b>Se gana:</b> <b>117,8</b> pt —de 437,8 a <b>320,0</b>—, y sobre todo que la altura deja
+        de depender de cuántas líneas tengan cifra: hoy escribir una cantidad <b>alarga la lista
+        45 pt</b>, que es lo que hace que se mueva bajo el dedo mientras la rellenas.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">Sin cajas: la lista parece una lista</span><span class="etq no">es de aspecto, no de sitio</span></div>
+      <p class="op-idea">Los bordes se van y se escribe encima del texto, como en Notas.</p>
+      <p class="coste">
+        <b>Cuesta:</b> deja de verse que son campos hasta que se tocan — en una pantalla que es
+        <b>toda</b> formulario eso se aprende rápido, pero la primera vez despista.
+        <b>Se gana:</b> <b>2 pt por fila</b> (58,6 en vez de 60,6) y una lista que se lee como una
+        lista. <b>No es la respuesta a «más fina»</b>, aunque lo parezca: son 10 pt de los 437,8.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">Las mismas cajas, más bajas</span></div>
+      <p class="op-idea">Nada cambia de sitio ni de forma: el campo pasa de 45,6 pt de alto a 32. Es una regla de CSS.</p>
+      <p class="coste">
+        <b>Cuesta:</b> el objetivo tocable baja a <b>32 pt</b>, por debajo de los 44 que pide Apple
+        — y aquí se toca <b>mucho</b>, no como el aspa. <b>Se gana:</b> <b>70,0</b> pt él solo
+        (367,8), y <b>187,8</b> puesto encima de F1 (<b>250,0</b>). <b>Es el único que no toca
+        ninguna lógica</b>, y por eso el más barato de probar y de deshacer.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre">El detalle, en un solo renglón al pie de la lista</span></div>
+      <p class="op-idea">Es F1 más un renglón: «Para 12 · 0,1 kg de arroz y 2,5 mejillones por ración · 1 sin cantidad».</p>
+      <p class="coste">
+        <b>Cuesta:</b> <b>51,4</b> pt sobre F1 (371,4 frente a 320,0), y un renglón que resume mal
+        en cuanto hay ocho ingredientes. <b>Se gana:</b> un sitio donde decir <b>cuántas van sin
+        cantidad</b>, que hoy hay que contar a ojo.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F5</span><span class="op-nombre">La fila vacía solo cuando la última está escrita</span><span class="etq rec">va con cualquiera</span></div>
+      <p class="op-idea">Hoy la fila fantasma está <b>siempre</b>, también nada más abrir un plato lleno.</p>
+      <p class="coste"><b>Cuesta:</b> un toque cuando quieres añadir al final de una lista ya completa. <b>Se gana:</b> <b>60,6</b> pt que casi nunca hacen falta, y se suman a la opción que elijas.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · por persona, o para la receta entera</div>
+  <p class="parte-intro">
+    Hoy la cifra es <b>para las raciones de la receta</b> —«1,2 kg para 12»— y el «por ración» se
+    calcula y se enseña debajo. Lo que falta no es el dato: es que <b>al escribir no se sabe cuál
+    de los dos te está pidiendo</b>. «1,2» en la caja del arroz puede ser el kilo y pico de la
+    paella o los cien gramos de un plato, y la caja no lo dice.
+  </p>
+
+  <div class="grupo">
+    <h3>C · Cuál se escribe, y cómo se sabe</h3>
+    <div class="tabla-scroll">
+      <table class="comp">
+        <tr><th>Opción</th><th>Qué se teclea</th><th>Qué se lee debajo</th><th>Qué cuesta</th></tr>
+        <tr>
+          <td><b>C1</b> · Para la receta entera <span style="font-size:12px">(hoy, sin decirlo)</span></td>
+          <td class="num">1,2 kg</td><td class="num">0,1 kg/ración</td>
+          <td>Nada nuevo. Sigue sin decir cuál es cuál mientras escribes.</td>
+        </tr>
+        <tr>
+          <td><b>C2</b> · Para la receta, <b>y el rótulo lo dice</b></td>
+          <td class="num">1,2 kg</td><td class="num">0,1 kg/ración</td>
+          <td>Un rótulo sobre la columna: «Cantidad <b>para 12</b>». Cambia solo si cambias las raciones. <b>Es lo más barato que resuelve la queja.</b></td>
+        </tr>
+        <tr>
+          <td><b>C3</b> · Un mando para elegir cuál escribes</td>
+          <td class="num">1,2 kg <span style="font-size:12px">o</span> 0,1 kg</td><td class="num">el otro</td>
+          <td>Dos posturas de la misma pantalla. Quien escribe elige la que sabe: la receta del libro va «para 12», la de la cabeza va «por persona».</td>
+        </tr>
+        <tr>
+          <td><b>C4</b> · Las dos cajas, una al lado de otra</td>
+          <td class="num">1,2 kg · 0,1 kg</td><td class="num">—</td>
+          <td>Escribes en cualquiera y la otra se recalcula sola. <b>Ancho:</b> dos cajas de cifra dejan al nombre <b>146 pt</b> (hoy tiene 226). «Arroz bomba» son 121,6 y cabe; «Costillas de cerdo», 169, no.</td>
+        </tr>
+        <tr>
+          <td><b>C5</b> · Solo por persona</td>
+          <td class="num">0,1 kg</td><td class="num">1,2 kg para 12</td>
+          <td>El dato más comparable —«100 g de arroz por cabeza» se juzga—; el peor de teclear, porque ninguna receta viene así.</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="tira-tel">
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">C2 · el rótulo lo dice</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="cabtabla" style="padding-left:2px"><span style="width:92px">Para 12</span><span>Ingrediente</span></div>
+          <div class="tarj junta">
+            <div class="fila2"><span class="campo2 cant">1,2 kg</span><span class="campo2 crece">Arroz bomba</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant">30 ud</span><span class="campo2 crece">Mejillones</span><button class="aspa p">×</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">C3 · el mando</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="seg" data-m="c3mando"><button class="on">Para 12</button><button>Por persona</button></div>
+          <div class="tarj junta" style="margin-top:10px">
+            <div class="fila2"><span class="campo2 cant">1,2 kg</span><span class="campo2 crece">Arroz bomba</span><button class="aspa p">×</button></div>
+            <div class="fila2"><span class="campo2 cant">30 ud</span><span class="campo2 crece">Mejillones</span><button class="aspa p">×</button></div>
+          </div>
+          <div class="pista2">Cambiar de postura no cambia lo guardado: solo cómo se escribe.</div>
+        </div>
+      </div>
+
+      <div class="tel claro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">C4 · las dos cajas</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="cabtabla" style="padding-left:2px"><span style="width:92px">Para 12</span><span style="width:78px">Por persona</span><span>Ingrediente</span></div>
+          <div class="tarj junta" data-m="c4">
+            <div class="fila2"><span class="campo2 cant">1,2 kg</span><span class="campo2 cant corta">0,1</span><span class="campo2 crece">Arroz…</span></div>
+            <div class="fila2"><span class="campo2 cant">30 ud</span><span class="campo2 cant corta">2,5</span><span class="campo2 crece">Mejill…</span></div>
+          </div>
+          <div class="pista2">Al nombre le quedan <b>146</b> pt de los 226 de hoy. «Arroz bomba» son 121,6 y entra; «Costillas de cerdo», 169, se corta.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="coste">
+      <b>Lo que de verdad se decide:</b> si esto es un problema de <b>rótulo</b> o de <b>entrada</b>.
+      Si lo que falta es saber qué te piden, basta C2 y no cuesta nada. Si de verdad quieres poder
+      apuntar «100 g por cabeza» cuando es lo que sabes, hace falta C3 — y entonces C2 va dentro,
+      porque el mando <b>es</b> el rótulo.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · que se note que está pensando</div>
+  <p class="parte-intro">
+    Una llamada al modelo tarda entre <b>dos y seis segundos</b>. Hoy lo único que pasa es que los
+    dos botones se apagan y <b>«Arreglar»</b> escribe «Un momento…» —lo haya pedido él o no—. Que
+    se apaguen impide pulsar dos veces, pero no dice <b>quién</b> está trabajando ni <b>que</b> se
+    está trabajando: un botón gris se lee igual que un botón que no se puede usar todavía. Lo que
+    se decide aquí es <b>cuánto ocupa decirlo</b> y <b>si se puede seguir tocando</b> mientras.
+  </p>
+
+  <div class="grupo">
+    <h3>P · Cómo se dice que está trabajando</h3>
+
+    <div class="tira-tel">
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">P1 · el botón lo dice</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="editor-pie" style="display:flex;gap:8px">
+            <button class="btn-ia" data-m="p1boton"><span class="latido"><i></i><i></i><i></i></span> Pensando…</button>
+            <button class="btn-ia apagado">🐳 Parecidos</button>
+          </div>
+          <div class="pista2">Los tres puntos laten. El otro botón se apaga: dos llamadas a la vez no se pueden pagar dos veces.</div>
+        </div>
+      </div>
+
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">P2 · una barra bajo el botón</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="editor-pie" style="display:flex;gap:8px">
+            <button class="btn-ia">🐳 Arreglar</button>
+            <button class="btn-ia apagado">🐳 Parecidos</button>
+          </div>
+          <div class="barra-falsa" data-m="p2barra" style="margin-top:8px"><i></i></div>
+          <div class="pista2" style="margin-top:8px">Tres píxeles que se mueven. Cuesta casi nada y se ve desde el otro lado de la mesa.</div>
+        </div>
+      </div>
+
+      <div class="tel claro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">P3 · las líneas se ponen en gris</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="tarj junta">
+            <div class="fila2"><span class="campo2 cant">1,2 kg</span><span class="campo2 crece">Arroz bomba</span></div>
+            <div class="fila2 apagado"><span class="campo2 cant"><span class="esqueleto" style="width:40px"></span></span><span class="campo2 crece">tres pinchos de wagyu</span></div>
+            <div class="fila2 apagado"><span class="campo2 cant"><span class="esqueleto" style="width:40px"></span></span><span class="campo2 crece">un par de limones</span></div>
+          </div>
+          <div class="pista2">Se ve <b>qué</b> está pensando y qué no va a tocar. Y no se puede escribir encima mientras.</div>
+        </div>
+      </div>
+
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">Sin red · no se ofrece</div></div><div class="punto" style="background:#d97b6c"></div></div>
+        <div class="t-body">
+          <div class="editor-pie" style="display:flex;gap:8px">
+            <button class="btn-ia apagado">🐳 Arreglar</button>
+            <button class="btn-ia apagado">🐳 Parecidos</button>
+          </div>
+          <div class="pista2" style="margin-top:8px">Sin conexión: la IA vive en el servidor y ahora mismo no se le llega.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">P1</span><span class="op-nombre">El botón dice «Pensando…» y late</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">Tres puntos que laten dentro del propio botón, y el de al lado apagado.</p>
+      <p class="coste"><b>Cuesta:</b> cero altura. <b>Se gana:</b> la respuesta está donde acabas de tocar, que es donde miras. Apagar el otro no es adorno: cada llamada se paga.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P2</span><span class="op-nombre">Una barra fina que se mueve, bajo los botones</span><span class="etq rec">va con P1</span></div>
+      <p class="op-idea">Tres píxeles de alto que van y vienen mientras dure.</p>
+      <p class="coste"><b>Cuesta:</b> <b>11</b> pt (3 de barra y 8 de aire). <b>Se gana:</b> se ve que sigue vivo aunque el botón se quede quieto — y a los cinco segundos eso importa.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P3</span><span class="op-nombre">Las líneas que van a cambiar se ponen en gris</span></div>
+      <p class="op-idea">Solo para «Arreglar»: se ve <b>qué</b> está pensando.</p>
+      <p class="coste"><b>Cuesta:</b> más código, y no sirve para «Parecidos», que no toca ninguna línea. <b>Se gana:</b> es lo único que además <b>enseña el alcance</b> de lo que va a pasar.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P4</span><span class="op-nombre">La ballena de la cabecera se pone a nadar</span></div>
+      <p class="op-idea">El icono del título hace lo suyo mientras haya una llamada en vuelo, venga de donde venga.</p>
+      <p class="coste"><b>Cuesta:</b> está lejos de donde has tocado, y se confunde con el punto de sincronización, que ya vive ahí al lado. <b>Se gana:</b> vale para toda la app de una vez.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · «Parecidos» abre una receta, no una tarjeta</div>
+  <p class="parte-intro">
+    Hoy las cinco propuestas salen <b>inline</b>, en una tarjeta de <b>242,4</b> pt metida entre
+    los botones y «Para cuántas raciones» —que con la lista de F1 delante (320) deja el pie del
+    editor fuera de la pantalla—. Y lo que cabe ahí dentro son <b>tres renglones</b>: el nombre, el
+    porqué y <b>los ingredientes como una ristra de nombres separados por puntos</b>, sin sus
+    cantidades. Pides un modal; lo que se decide es <b>qué enseña</b> y <b>qué se puede hacer con
+    ella</b>.
+  </p>
+
+  <div class="grupo">
+    <h3>M · Qué enseña el modal</h3>
+
+    <div class="tira-tel">
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">M · mientras carga</div></div><div class="punto"></div></div>
+        <div class="t-body velo" style="min-height:420px">
+          <div class="hoja-modal" data-m="cargando">
+            <h3>Buscando platos parecidos</h3>
+            <div class="barra-falsa"><i></i></div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="esqueleto" style="width:70%"></div>
+              <div class="esqueleto" style="width:90%"></div>
+              <div class="esqueleto" style="width:45%"></div>
+            </div>
+            <div class="pista2">Con lo que lleva la paella y lo que ya hay en el catálogo.</div>
+            <button class="chip" style="align-self:flex-start">Dejarlo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tel oscuro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">M2 · la receta entera</div></div><div class="punto"></div></div>
+        <div class="t-body velo" style="min-height:420px">
+          <div class="hoja-modal" data-m="m2">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <h3>Fideuá de sepia</h3><span class="cuenta2 tnum">2 de 5</span>
+            </div>
+            <div class="pista2">Se hace en la misma paellera y con la mitad de vigilancia que el arroz.</div>
+            <div class="pil" style="align-self:flex-start">Principal · para 12</div>
+            <div class="tarj junta">
+              <div class="fina rayas" style="padding:7px 0"><span class="c">1 kg</span><span class="n">Fideos del 2</span></div>
+              <div class="fina rayas" style="padding:7px 0"><span class="c">0,8 kg</span><span class="n">Sepia</span></div>
+              <div class="fina rayas" style="padding:7px 0"><span class="c">1,5 l</span><span class="n">Caldo de pescado</span></div>
+              <div class="fina rayas" style="padding:7px 0"><span class="c">1 ud</span><span class="n">Alioli</span></div>
+            </div>
+            <div class="chips">
+              <button class="chip">‹</button><button class="chip">›</button>
+              <button class="chip lleno">Añadir como plato nuevo</button>
+              <button class="chip">Sustituir esta receta</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tel claro">
+        <div class="t-cab"><div class="ballena">🐳</div><div class="crece"><div class="ti">Paella mixta</div><div class="su">M3 · las cinco en lista</div></div><div class="punto"></div></div>
+        <div class="t-body velo" style="min-height:420px">
+          <div class="hoja-modal" data-m="m3">
+            <h3>Cinco que pegan con esta</h3>
+            <div class="tarj junta">
+              <div class="fila2"><span class="campo2 crece sinborde"><b>Fideuá de sepia</b><span class="sub-linea">Misma paellera · 4 ingredientes</span></span></div>
+              <div class="fila2"><span class="campo2 crece sinborde"><b>Arroz negro</b><span class="sub-linea">Mismo cacharro · 5 ingredientes</span></span></div>
+              <div class="fila2"><span class="campo2 crece sinborde"><b>Fideos a la cazuela</b><span class="sub-linea">De cuchara · 6 ingredientes</span></span></div>
+            </div>
+            <div class="pista2">Se toca una para verla entera.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">M2</span><span class="op-nombre">Una propuesta a pantalla, con sus ingredientes</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Nombre, por qué, tipo, para cuántos, <b>la lista de ingredientes con sus cantidades</b>, y
+        ‹ › para moverse. Que es lo que hay que ver para decidir si esa receta te vale.
+      </p>
+      <p class="coste"><b>Cuesta:</b> <b>486,6</b> pt de modal con cuatro ingredientes —de los 844 de la pantalla, y es un modal, así que no empuja nada. <b>Se gana:</b> se decide mirando la receta y no el titular. Hoy los ingredientes salen en una ristra de nombres separados por puntos, sin cantidades.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">M3</span><span class="op-nombre">Las cinco en lista, y se abre la que interese</span></div>
+      <p class="op-idea">Primero el vistazo a las cinco, luego el detalle.</p>
+      <p class="coste"><b>Cuesta:</b> un toque más para ver cualquiera, y <b>ninguna</b> se lee entera de primeras. <b>Se gana:</b> comparar cinco nombres a la vez, que es rápido cuando cuatro no te interesan.</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">M4</span><span class="op-nombre">Se queda inline, pero más alto</span><span class="etq no">no la recomiendo</span></div>
+      <p class="op-idea">Lo de hoy, dándole sitio a los ingredientes.</p>
+      <p class="coste"><b>Cuesta:</b> empuja «Para cuántas raciones» y «Tipo» fuera de la pantalla justo cuando estás mirando otra cosa. Un modal existe para esto.</p>
+    </div>
+  </div>
+
+  <div class="grupo">
+    <h3>A · Qué se puede hacer con la que te gusta</h3>
+    <div class="tabla-scroll">
+      <table class="comp">
+        <tr><th>Opción</th><th>Qué hace</th><th>Qué cuesta</th></tr>
+        <tr><td><b>A1</b> · <b>Añadir como plato nuevo</b></td><td>Cierra el modal y abre el editor con la propuesta puesta, sin <code>id</code>: al guardar nace un plato</td><td>Lo de hoy. Deja el plato desde el que llamaste <b>sin tocar</b>, que es lo que suele querer uno.</td></tr>
+        <tr><td><b>A2</b> · <b>Sustituir esta receta</b></td><td>Escribe nombre, tipo e ingredientes <b>encima del plato abierto</b>, sin guardar</td><td>Es lo que pides, y es el que hay que hacer con cuidado: si el plato está en tres cenas, cambia lo que se cena esas noches. <b>Tiene que decirlo antes.</b></td></tr>
+        <tr><td><b>A3</b> · Solo traerse los ingredientes</td><td>Deja tu nombre y tu tipo, y cambia la lista</td><td>El caso de «me gusta cómo lo plantea, pero mi plato se llama como se llama». Un verbo más en el pie.</td></tr>
+        <tr><td><b>A4</b> · Guardar las cinco de golpe</td><td>Entran todas al catálogo</td><td>Barato de hacer y caro de deshacer: cuatro platos que no querías, y el catálogo es de todos los viajes.</td></tr>
+      </table>
+    </div>
+    <p class="coste">
+      <b>A1 + A2</b> es lo que has pedido, y con una condición que no me quiero saltar: <b>sustituir
+      avisa de en cuántas cenas está metido ese plato</b> antes de hacerlo, con el mismo criterio con
+      el que borrar un plato ya lo dice. Nada se guarda hasta que le des a Guardar en el editor: el
+      modal solo rellena.
+    </p>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte cinco · cómo se combinan</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>F1+F5</span><span>C2</span><span>P1+P2</span><span>M2</span><span>A1+A2</span></div>
+    <p>
+      <b>F1</b> —el detalle solo en la línea enfocada— es el que arregla lo que duele: la fila deja
+      de medir 105,9 o 60,6 según le toque, se queda fija en 60,6, y la lista baja de <b>437,8</b> a
+      <b>320,0</b>. <b>F5</b> quita la fila fantasma cuando la última ya está escrita: <b>259,4</b>
+      entre las dos, que es <b>menos de la mitad</b> de lo de hoy. Si con eso todavía no te parece
+      fina, el siguiente escalón es <b>F3 encima</b> —<b>250,0</b>, o <b>189,4</b> con F5— y lo que
+      se paga es tocar cajas de 32 pt en vez de 45,6. <b>F2 no es ese escalón</b>: son 10 pt en
+      total, y es una decisión de aspecto que puedes tomar aparte.
+    </p>
+    <p>
+      <b>C2</b> porque la queja era «no se sabe cuál de los dos me pide», y eso lo arregla un rótulo
+      sobre la columna —«Para 12»— que no cuesta nada. Si de verdad quieres poder <b>escribir</b> por
+      persona, entonces es <b>C3</b> y el mando hace de rótulo; dime cuál de las dos cosas era.
+    </p>
+    <p>
+      <b>P1 + P2</b>: el botón dice «Pensando…» con los puntos latiendo y una barra fina debajo, y
+      el otro botón se apaga. Y sin conexión los dos se apagan y dicen por qué, que es de los
+      arreglos que no se votan. <b>M2</b> para el modal —una receta entera por pantalla, con
+      ‹ ›— y <b>A1 + A2</b>: añadir como nuevo o sustituir la abierta, <b>avisando de en cuántas
+      cenas está metida</b>.
+    </p>
+    <p>
+      <b>Si quieres gastar la mitad:</b>
+      <span class="receta" style="display:inline"><span>F3</span><span>C2</span><span>P1</span><span>M2</span><span>A1</span></span>
+      — cajas más bajas (una regla de CSS, ninguna lógica), el rótulo, el botón que late y el modal
+      solo para añadir platos nuevos. Es todo lo pedido menos sustituir la receta abierta, y deja
+      la lista en <b>367,8</b> sin tocar una sola línea de lógica: una regla de CSS y tres botones.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Dos cosas que dejo escritas.</b> Una: <b>C4 entra por los pelos</b> —dos cajas de cifra
+      dejan al nombre <b>146</b> pt de los 226 de hoy, y ahí caben «Arroz bomba» (121,6) y «Pollo
+      troceado» (134,8) pero no «Costillas de cerdo» (169)—, así que si quieres las dos cantidades
+      a la vez, la fila sube además a <b>68,6</b> pt y hay que aceptar que los nombres largos se
+      cortan. Dos: <b>«Sustituir esta
+      receta» y el deshacer que ya existe no se llevan bien</b>: hoy el «deshacer» de Arreglar
+      guarda una sola foto de la lista; si sustituir también la usa, uno pisa al otro. Se arregla,
+      pero conviene decidir si sustituir es deshacible o pide confirmar.
+    </p>
+    <p style="font-size:13.5px">
+      Esta hoja vive en <code>docs/diseño/receta-fina.html</code>, junto a
+      <code>receta-ingredientes.html</code> y <code>cenas-cantidades.html</code>. <b>No se ha
+      escrito código de la app:</b> lo que sale de esta vuelta es la hoja.
+    </p>
+  </div>
+
+</div>
+</div>
