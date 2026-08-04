@@ -1894,6 +1894,100 @@ volvía a montar la lista entera. Con seis consultas vivas encima, llegaba a
 tragarse un toque —la fila se cambiaba por otra igual entre que bajaba el dedo y
 se levantaba—. Vive fuera y recibe lo suyo por props.
 
+### 14.22 Que se note que es verano: el sol de la cabecera y los recados
+
+Decidido en `docs/diseño/verano.html` (**A4 · B2 · C2+C4 · D2+D3**), una hoja con
+cinco partes y diecinueve opciones. El encargo eran dos cosas de cariño y ninguna
+arregla nada — que es exactamente el motivo por el que había que medir lo que
+cuestan antes de ponerlas: una app que va a un camping con nueve personas dentro
+puede permitirse ser simpática, pero no que la simpatía se coma la pantalla.
+
+**Antes de las opciones, dos arreglos que no se votaron.** Los tres emoji grandes
+—`.empty .e` a 42 px, la cara del perfil a 28 y la ballena del modal a 52— iban en
+píxeles a pelo, fuera de `--escala`: el cuerpo va de 17,0 pt en Normal a 21,4 en
+Enorme y ellos se quedaban clavados en las tres tallas (`estilos.test.js` no los
+veía porque persigue los `style={{…}}` del JSX, no el CSS). Y
+`prefers-reduced-motion` era una lista de tres selectores escritos a mano en vez de
+una regla de barrido: con esa forma, cada cosa nueva que se moviera había que
+acordarse de apuntarla. Los dos van en `theme.css`.
+
+**A4 · La línea del horizonte.** Una franja de **3 pt** —el 0,4 % del cuerpo—
+pegada bajo la cabecera, que se llena de amanecer a anochecer con el astro de 9 pt
+como tirador (`components/LineaDelHorizonte.jsx`). No es decoración con forma de
+sol: es el día dibujado como una barra, y de un vistazo dice cuánta luz queda, que
+en un camping es una pregunta de verdad. Se descartó el **arco** que cruza la
+cabecera (A1) porque el disco pasa **7 h 29 al día por detrás del título** —el sol
+avanza 25,2 pt a la hora sobre los 358 que da un iPhone de 390— y el **cielo
+literal** (A6) porque al mediodía deja el título en **1,26 : 1** y al ocaso no hay
+tinta que llegue a 4,5 : 1 con ninguna de las dos caras.
+
+Tres detalles que se descubrieron dibujándola: el surco **no** puede ser del color
+de la cabecera —siéndolo, lo que falta por recorrer no se ve y la franja queda en
+un lunar suelto—; el disco viaja **de su propio radio al ancho menos su radio**,
+porque al amanecer exacto se salía media luna por el borde; y **no se anima, salta**
+cada minuto: a 0,4 pt por minuto, interpolar sería gastar batería para mover menos
+de medio punto.
+
+**B2 · La hora del sol se calcula** (`lib/sol.js`): día juliano, anomalía media,
+declinación y ángulo horario en unas cuarenta líneas puras, sin red y sin
+dependencias, comprobadas contra tres fechas conocidas. Las alternativas se caían
+solas: dos constantes de verano (B1) mienten **3 h 28** en el ocaso de un puente de
+enero, y cuatro tramos de reloj (B3) no dan el continuo que la franja necesita. La
+latitud va escrita a mano (40,4 N) y no sale del `lugar` del evento, que pediría
+geocodificar: 500 km al norte o al sur mueven el ocaso unos 20 minutos en agosto,
+menos de un punto de franja.
+
+**C2 + C4 · Los recados viven donde no cuestan nada.** Al final del *scroll*
+—donde ya vive la versión— y dentro de las pantallas vacías, que en un camping se
+ven todo el rato porque el primer día no hay ni gastos ni cenas ni planes. Los dos
+sitios cuestan **0 pt permanentes**. El **renglón fijo sobre la barra** (C1) se
+descartó midiéndolo: entre **42,6 y 60,5 pt** del cuerpo según lo larga que sea la
+frase —el ancho útil son 329,2 pt, o sea 37 letras— y **66,2 en Enorme**, o sea que
+quien peor ve pagaba más por la broma. En los vacíos la broma va **además** de la
+instrucción, nunca en su lugar: «Ponlas en Ajustes → Evento» dice por dónde se
+sigue y una frase que lo sustituya deja a alguien colgado.
+
+**D3 · Las frases con datos no se repiten porque los datos cambian**
+(`lib/recados.js`, puro y testeado). No son frases: son plantillas con un número
+dentro, sacadas de lo que ya está apuntado, y no dan risa por ser ingeniosas sino
+**por ser verdad**. Dos reglas de oficio: **cada una lleva su guarda** —sin ella un
+evento recién creado saluda con «0,00 € apuntados», que se lee como que la app
+cuenta mal— y **no se señala a nadie**, ni a una persona ni a una familia: se habla
+en plural o de números, porque «lleváis cuatro días sin apuntar nada» tiene gracia
+y con un nombre delante la pierde el día que alguien lo lea torcido.
+
+**D2 · La tanda de la IA, y por qué cuesta céntimos** (`api/src/recados.js`,
+`lib/tanda.js`). Se piden **doce de una vez**, porque lo caro de la llamada no es
+el texto sino contarle el contexto al modelo: doce frases son unas 350 fichas de
+salida contra 60 de dos, así que el número no lo decide el dinero —lo decide que a
+partir de quince el modelo se repite—. Con haiku, una tanda sale por unas **0,25
+décimas de céntimo**, y a seis u ocho tandas al día son **dos o tres céntimos
+diarios**, unos veinte por un viaje de siete días.
+
+**La ventana de dos horas se cumple dos veces, y las dos hacen falta.** La del
+Worker evita la llamada al modelo: el primero que pregunta pasadas las dos horas la
+paga y los otros ocho teléfonos se llevan la misma tanda de la base —sin eso serían
+nueve llamadas por ventana y, peor en un grupo, nueve bromas distintas a la vez—.
+La del móvil evita la petición: se mira al abrir, al volver del fondo y **cada cinco
+minutos**, y un latido corto con una ventana larga es lo que hace que valga igual
+con la app abierta toda la tarde que abriéndola una vez al día. **La hora se apunta
+aunque la respuesta venga vacía**: sin eso, una instalación sin clave de IA
+preguntaría cada cinco minutos para siempre.
+
+Y las dos fuentes se mezclan en **una sola bolsa** de la que se saca una al azar
+(`bolsaDeRecados`): las de datos son pocas y condicionales —de cero a cinco— y la
+tanda es una docena, así que los números de verdad salen una de cada cuatro o cinco
+veces, que es la proporción que hace que sorprendan. **Sin nada que decir no se
+pinta nada**: un hueco con un emoji de relleno es peor que el silencio.
+
+**Dos detalles de fontanería que costaron un rato.** La tanda se guarda en
+`localStorage` y **no** en Dexie —es una copia de algo que el servidor ya tiene, no
+un hecho del grupo, y en la cola de cambios no pinta nada—, pero hay que
+llevársela en `olvidarTodo()` o el siguiente que entre en ese móvil lee las bromas
+del viaje del anterior. Y `lib/tanda.js` trae el transporte con un `import()`
+**dentro** de la función: con el `import` de arriba, `db.js` acababa arrastrando
+`sync/api.js` —y con él la configuración y la sesión— a la capa de datos.
+
 ### 14.12 Un solo tema, y sus dos caras
 
 **Los nueve skins se van.** Eran nueve paletas: nueve sitios donde un contraste

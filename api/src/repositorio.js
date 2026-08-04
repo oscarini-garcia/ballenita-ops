@@ -338,6 +338,49 @@ export async function guardarConfiguracionIA(db, campos = {}) {
 }
 
 // ---------------------------------------------------------------------------
+// Recados: la tanda de frases de cada evento (SPECS §14.22)
+// ---------------------------------------------------------------------------
+
+/**
+ * La tanda vive en la misma tabla `configuracion`, con la clave `recados:<id>`.
+ *
+ * No lleva el prefijo `ia.` **a propósito**: `leerConfiguracionIA` se lleva todo
+ * lo que empieza por ahí, y una tanda de bromas no es configuración de nadie.
+ * Tampoco hace falta tabla nueva ni migración: es un valor por evento que se
+ * puede tirar entero sin perder nada.
+ */
+const claveDeRecados = (eventId) => `recados:${eventId}`;
+
+/** Lo guardado, o `null` si no hay nada o si está roto. */
+export async function leerRecadosGuardados(db, eventId) {
+  const fila = await db
+    .prepare('SELECT valor, actualizadoEn FROM configuracion WHERE clave = ?')
+    .bind(claveDeRecados(eventId))
+    .first();
+  if (!fila?.valor) return null;
+  try {
+    const recados = JSON.parse(fila.valor);
+    if (!Array.isArray(recados) || !recados.length) return null;
+    return { recados, generadoEn: fila.actualizadoEn };
+  } catch {
+    return null;
+  }
+}
+
+/** Guarda la tanda con su hora, que es lo que decide si sigue sirviendo. */
+export async function guardarRecados(db, eventId, recados) {
+  const ahora = ahoraISO();
+  await db
+    .prepare(
+      `INSERT INTO configuracion (clave, valor, actualizadoEn) VALUES (?, ?, ?)
+       ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizadoEn = excluded.actualizadoEn`,
+    )
+    .bind(claveDeRecados(eventId), JSON.stringify(recados), ahora)
+    .run();
+  return ahora;
+}
+
+// ---------------------------------------------------------------------------
 // Avisos: a qué aparatos hay que empujar
 // ---------------------------------------------------------------------------
 

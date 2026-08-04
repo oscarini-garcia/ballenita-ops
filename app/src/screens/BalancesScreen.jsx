@@ -22,7 +22,11 @@ export default function BalancesScreen({ eventId, event }) {
   return (
     <div className="body">
       {expenses.length === 0 ? (
-        <div className="empty"><span className="e">📊</span>Sin gastos, sin cuentas.<br />Añade gastos y aquí verás quién debe a quién.</div>
+        <div className="empty">
+          <span className="e">📊</span>Sin gastos, sin cuentas.<br />
+          Añade gastos y aquí verás quién debe a quién.<br />
+          De momento nadie debe nada a nadie, que es el mejor saldo posible.
+        </div>
       ) : (
         <>
           <div className="sec-h">Saldo por familia</div>

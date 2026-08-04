@@ -5,6 +5,7 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Fab from '../components/Fab.jsx'
+import Recado from '../components/Recado.jsx'
 import Ingredientes from '../components/Ingredientes.jsx'
 import { normalizarIngredientes, sinCantidad } from '../lib/receta.js'
 import { arreglarIngredientes, platosParecidos } from '../sync/api.js'
@@ -49,7 +50,8 @@ export default function PlatosScreen({ event }) {
       {platos.length === 0 && (
         <div className="empty">
           <span className="e">🍳</span>El catálogo está vacío.<br />
-          Apunta el primero con «+ Plato».
+          Apunta el primero con «+ Plato».<br />
+          Alguien tendrá que decir qué se cena el martes.
         </div>
       )}
 
@@ -74,6 +76,9 @@ export default function PlatosScreen({ event }) {
           </div>
         </div>
       )}
+
+      {/* El recado del viaje, al final del scroll (SPECS §14.22). */}
+      <Recado evento={event} />
 
       <Fab label="Plato" onClick={() => setEditando('nuevo')} />
       {editando && (

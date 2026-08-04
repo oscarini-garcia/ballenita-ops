@@ -25,6 +25,7 @@
 import { INSTRUCCION } from './sugerencias.js';
 import { INSTRUCCION as CANTIDADES } from './cantidades.js';
 import { INSTRUCCION_ARREGLAR, INSTRUCCION_PARECIDOS } from './receta.js';
+import { INSTRUCCION as RECADOS, POR_TANDA } from './recados.js';
 
 export const ENCARGOS = [
   {
@@ -54,6 +55,15 @@ export const ENCARGOS = [
     titulo: 'Proponer platos parecidos a uno',
     pista: 'Tanda de cinco a partir del plato abierto y de lo que ya hay en el catálogo. Cada propuesta llega entera —nombre, por qué, tipo e ingredientes con cantidades para 12— porque aceptarla abre el editor con todo puesto. Espera ese JSON: sin él no sale ninguna. Vacío, vuelve el encargo de origen.',
     origen: INSTRUCCION_PARECIDOS,
+  },
+  {
+    id: 'recados',
+    titulo: 'Escribir los recadillos del viaje',
+    pista: `Las frases con emoji que salen al final de las listas y en las pantallas vacías. Se pide una tanda de ${POR_TANDA} y vale dos horas, así que son unas seis llamadas al día por evento y no una por frase. Espera un JSON con «emoji» y «texto»: si le quitas esa parte dejan de salir las de la IA, pero las que salen de los datos del viaje siguen apareciendo. Es donde se sube o se baja el tono. Vacío, vuelve el encargo de origen.`,
+    origen: RECADOS,
+    // Doce frases de camping no piden el modelo grande, y es lo que más veces
+    // se pide del catálogo: una tanda cada dos horas mientras dura el viaje.
+    modelo: 'claude-haiku-4-5',
   },
 ];
 

@@ -210,6 +210,39 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding-inline: 11px; }
 .appbar .demo-pill:active { transform: translateY(1px); }
 
+/* ── La línea del horizonte ────────────────────────────────────────────────
+   Tres puntos pegados bajo la cabecera que son el día: se llenan de amanecer a
+   anochecer y el disco de 9 pt es el sol. Ver `docs/diseño/verano.html`, A4.
+
+   Cuesta 3 pt del cuerpo —el 0,4%— y es `flex: none` como las dos barras, así
+   que no se solapa con nada ni obliga a tocar el esqueleto de §14.10.
+
+   El fondo se apoya en el de la cabecera y no en el del cuerpo: la franja es el
+   último renglón del cromo, no el primero de lo que se lee. Pero el surco
+   **no** es del color de la cabecera: siendo el mismo, la parte que
+   falta por recorrer no se veía y la franja quedaba en un lunar suelto en vez de
+   en una línea que va de un lado a otro. Es el color de la cabecera aclarado lo
+   justo para que se lea el camino sin competir con nada.
+
+   Y el disco no viaja de 0 a 100 sino **de su propio radio al ancho menos su
+   radio**: a primera hora del amanecer, con el recorrido a cero, media luna se
+   salía por el borde izquierdo. `--f` es la fracción del tramo (0 a 1) y la
+   pone el componente; el resto es cuenta de CSS. */
+.horizonte { position: relative; flex: none; height: 3px; z-index: 4;
+  background: color-mix(in srgb, var(--appbar-ink) 18%, var(--appbar-bg)); }
+.horizonte .recorrido { position: absolute; inset: 0 auto 0 0; display: block;
+  width: calc(4.5px + (100% - 9px) * var(--f, 0));
+  background: linear-gradient(90deg, #e08b5a, #f7c34f); }
+.horizonte .astro { position: absolute; top: -3px; width: 9px; height: 9px;
+  left: calc(4.5px + (100% - 9px) * var(--f, 0)); margin-left: -4.5px;
+  border-radius: 50%; background: #f7c34f;
+  box-shadow: 0 0 0 2px var(--appbar-bg), 0 0 10px 2px rgba(247, 195, 79, .45); }
+/* De noche el mismo dibujo en frío: la luna recorre su tramo igual que el sol
+   el suyo, y así la franja nunca está apagada del todo. */
+.horizonte[data-fase="noche"] .recorrido { background: linear-gradient(90deg, #2c5468, #8fa8c4); }
+.horizonte[data-fase="noche"] .astro { background: #d7e3ee;
+  box-shadow: 0 0 0 2px var(--appbar-bg), 0 0 8px 2px rgba(215, 227, 238, .35); }
+
 /* Punto de estado de la sincronización. Verde al día · amarillo con cola · rojo
    sin red · gris solo local. Vuelve a la cabecera, y ahora **es el botón de
    sincronizar todo**: un toque sube los datos, trae la copia del grupo y de paso
@@ -453,8 +486,14 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .traza.mal { color: var(--owe); background: var(--owe-bg);
   border-color: color-mix(in srgb, var(--owe) 35%, var(--line)); }
 
+/* Los emoji grandes cuelgan de la escala como todo lo demás. Iban en píxeles a
+   pelo —42, 28 y 52— y eso los dejaba fuera de `--escala`: el ajuste de tamaño
+   crecía la app **menos** el emoji del vacío, la cara del avatar y la ballena
+   del modal. En «Enorme» el cuerpo pasa de 17,0 a 21,4 pt y esos tres se
+   quedaban clavados. Se apoyan en `--t-hero`, que es el rango más grande que
+   hay, con el múltiplo que los deja donde estaban en la talla de fábrica. */
 .empty { text-align: center; color: var(--ink-faint); padding: 30px 16px; font-size: var(--t-row); }
-.empty .e { font-size: 42px; display: block; margin-bottom: 8px; }
+.empty .e { font-size: calc(var(--t-hero) * 1.25); display: block; margin-bottom: 8px; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid2 > * { min-width: 0; }
@@ -539,7 +578,7 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 /* Sheet del usuario: cabecera con la cara grande, acciones y lista de personas. */
 .perfil-cab { display: flex; align-items: center; gap: 12px; margin: 2px 0 10px; }
 .perfil-cara { flex: none; width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center;
-  font-size: 28px; overflow: hidden; background: color-mix(in srgb, var(--spout) 16%, var(--foam-2));
+  font-size: calc(var(--t-hero) * .83); overflow: hidden; background: color-mix(in srgb, var(--spout) 16%, var(--foam-2));
   border: 1px solid var(--line); }
 .perfil-txt { min-width: 0; }
 .perfil-txt h2 { margin: 0; }
@@ -566,7 +605,8 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    comprobar la versión desde Ajustes—, que son el mismo gesto a capas distintas
    y por eso comparten figura. */
 .progreso-modal { text-align: center; }
-.progreso-modal .whale { font-size: 52px; line-height: 1; animation: whalebob 1.7s ease-in-out infinite; }
+.progreso-modal .whale { font-size: calc(var(--t-hero) * 1.55); line-height: 1;
+  animation: whalebob 1.7s ease-in-out infinite; }
 .progreso-modal h2 { margin: 6px 0 12px; }
 
 /* La versión, bien grande: es el dato que se viene a comprobar. */
@@ -709,9 +749,18 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
   animation: progslide 1.15s ease-in-out infinite; }
 @keyframes progslide { 0% { transform: translateX(-110%); } 100% { transform: translateX(240%); } }
 @keyframes whalebob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+/* Movimiento reducido, de barrido y no a mano.
+   Eran dos listas de selectores escritos uno a uno, y con esa forma cada cosa
+   nueva que se moviera había que acordarse de apuntarla; el día que se olvide,
+   quien tiene el ajuste puesto se come la animación igual. Ahora se apaga todo
+   y las excepciones se escriben aparte si alguna vez hacen falta. */
 @media (prefers-reduced-motion: reduce) {
-  .progreso-modal .whale, .progreso-modal .prog i,
-  .pasos li[data-estado="ahora"] .marca, .pasos li[data-estado="curso"] .marca { animation: none; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── Apartados plegables de Ajustes ─────────────────────────────────────────
@@ -744,7 +793,6 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
   color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .acordeon-cuerpo { display: flex; flex-direction: column; gap: 11px; padding: 13px 0 15px; }
 .acordeon-cuerpo > .sec-h:first-child { margin-top: 0; }
-@media (prefers-reduced-motion: reduce) { .acordeon > summary::after { transition: none; } }
 
 /* Una columna suelta, para meter una pantalla entera dentro de un apartado
    (Estadísticas) sin que arrastre el relleno y el scroll de `.body`. */
@@ -990,6 +1038,24 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
   font: inherit; font-size: var(--t-row); font-weight: 600; color: var(--ink-soft); cursor: pointer; }
 .segmentado button.on { background: var(--foam-2); color: var(--spout-deep); }
 .segmentado .peso { font-size: var(--t-micro); font-weight: 550; opacity: .7; margin-left: 4px; }
+
+/* ── El recado ─────────────────────────────────────────────────────────────
+   Un emoji y una frase al final del scroll, donde el ojo ya ha terminado. Ver
+   `docs/diseño/verano.html`, C2.
+
+   Cuesta **0 pt permanentes**: mientras se lee la lista esto no existe, y por
+   eso pudo descartarse el renglón fijo sobre la barra (C1), que se llevaba
+   entre 42,6 y 66,2 pt del cuerpo para siempre.
+
+   Va en voz baja a propósito —`--t-sub` y tinta tenue—: es lo último de la
+   pantalla y no compite con nada. Aquí sí puede doblar a dos líneas sin
+   molestar, que es la otra mitad de por qué este sitio y no el de arriba. */
+.recado { display: flex; align-items: baseline; gap: 9px; justify-content: center;
+  margin: 22px 0 0; padding: 0 8px; text-align: center;
+  font-size: var(--t-sub); color: var(--ink-faint); line-height: 1.45; }
+.recado .e { font-size: var(--t-body); flex: none; }
+/* Dentro de un vacío el recado ya está en su sitio: no hace falta empujarlo. */
+.empty .recado { margin-top: 10px; }
 
 /* La versión, abajo del todo y a la derecha (figura de garciadoral-ops). Se
    queda ahí aunque el día esté vacío: es un pie de pantalla, no la última línea

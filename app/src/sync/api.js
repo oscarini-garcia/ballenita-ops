@@ -198,6 +198,20 @@ export const sugerirPlanes = (eventId, descartadas = []) =>
     body: JSON.stringify({ eventId, descartadas }),
   }).then((r) => r.propuestas || [])
 
+/**
+ * La tanda de recadillos del viaje (SPECS §14.22).
+ *
+ * Devuelve lo que el servidor tenga: la tanda guardada si sigue dentro de su
+ * ventana de dos horas, una nueva si no. Sin clave de IA contesta la lista
+ * vacía y **no es un error** — las frases que salen de los datos del viaje se
+ * calculan en el móvil y siguen apareciendo igual.
+ */
+export const traerRecados = (eventId, hoy) =>
+  peticion('/api/recados', {
+    method: 'POST',
+    body: JSON.stringify({ eventId, hoy }),
+  }).then((r) => ({ recados: r.recados || [], generadoEn: r.generadoEn || null }))
+
 export const eliminarMiCuenta = (codigoApple = null) =>
   peticion('/api/cuenta/baja', {
     method: 'POST',
