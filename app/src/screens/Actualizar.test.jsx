@@ -25,6 +25,14 @@ describe('por qué no ha actualizado', () => {
     expect(m).toMatch(/red/)
   })
 
+  it('armado para el próximo arranque no es un fallo, y dice cuándo se verá', () => {
+    // Es lo que devuelve la comprobación de fondo: `next()` deja el paquete
+    // puesto sin recargar encima de nadie. Antes aquí se llamaba a `set()`, que
+    // recarga en el acto, así que abrir la app con versión nueva la reiniciaba
+    // sola nada más arrancar.
+    expect(motivoDelOta({ status: 'armed', version: '0.18.1' })).toMatch(/próximo arranque/)
+  })
+
   it('en la web no hay paquete que traer, y no es un fallo', () => {
     expect(motivoDelOta({ status: 'skip' })).toMatch(/app de iOS/)
   })

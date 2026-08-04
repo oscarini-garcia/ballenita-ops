@@ -76,15 +76,26 @@ export async function checkForOtaUpdate({ aplicarYa = false } = {}) {
       version: manifest.version,
       checksum: manifest.checksum,
     })
-    // Se aplica en la próxima carga/apertura; notifyAppReady() (en initNative)
-    // confirma que arrancó bien para que el plugin no haga rollback.
-    await CapacitorUpdater.set(bundle)
-    // Con `aplicarYa` no se espera a ese próximo arranque: `reload()` cambia al
-    // paquete nuevo en el acto. Es lo que hace falta detrás de un botón que se
-    // llama «Forzar la última versión», porque quien lo toca ha venido a verla
-    // ahora y no la próxima vez que le apetezca abrir la app.
-    if (aplicarYa) await CapacitorUpdater.reload().catch(() => {})
-    return { status: 'updated', version: manifest.version }
+    // **`set()` no es lo que decía este comentario.** La documentación del
+    // plugin es explícita: cambia el paquete y **recarga en el acto**,
+    // destruyendo este contexto de JavaScript —«terminal operation»—. Aquí se
+    // llamaba siempre, también en la comprobación de fondo de `initNative()`:
+    // o sea que abrir la app con versión nueva la recargaba sola nada más
+    // arrancar, y el `reload()` de la línea siguiente era código muerto porque
+    // nunca llegaba a ejecutarse.
+    //
+    // Detrás del botón sí es lo que se quiere: quien lo toca ha venido a ver la
+    // versión nueva ahora.
+    if (aplicarYa) {
+      await CapacitorUpdater.set(bundle)
+      return { status: 'updated', version: manifest.version }
+    }
+    // En segundo plano no se interrumpe a nadie: `next()` lo deja armado para el
+    // próximo arranque, que es lo que este código creía estar haciendo desde el
+    // principio. `notifyAppReady()` (en `initNative`) confirma que arrancó bien
+    // para que el plugin no lo devuelva.
+    await CapacitorUpdater.next({ id: bundle.id })
+    return { status: 'armed', version: manifest.version }
   } catch (e) {
     return { status: 'error', error: String(e?.message ?? e) }
   }
@@ -102,6 +113,43 @@ export async function versionInstalada() {
     return (await CapacitorUpdater.current())?.bundle?.version ?? null
   } catch {
     return null
+  }
+}
+
+/**
+ * Qué paquetes tiene el plugin y en qué estado, tal cual.
+ *
+ * Hasta ahora, cuando la app se quedaba en la versión de antes no había **nada**
+ * que mirar: el manifiesto decía una cosa, el release estaba publicado, el
+ * `bundle.zip` constaba descargado, y la pantalla seguía enseñando el número
+ * viejo. Con eso no se puede decidir si el fallo está en la descarga, en
+ * aplicarlo o en que el plugin lo ha devuelto.
+ *
+ * Y devolverlo es un caso real: capgo hace **rollback** al paquete anterior si
+ * el nuevo no llama a `notifyAppReady()` a tiempo, y entonces se queda en
+ * `error`. Eso, visto desde fuera, es exactamente «se descarga y no se queda».
+ *
+ * Se devuelve crudo a propósito —id, versión y estado de cada uno—: es un dato
+ * para diagnosticar, no un rótulo, y resumirlo es lo que nos ha tenido a ciegas.
+ */
+export async function estadoDelPaquete() {
+  if (!isNative()) return null
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
+    const [actual, lista] = await Promise.all([
+      CapacitorUpdater.current().catch((e) => ({ error: String(e?.message ?? e) })),
+      CapacitorUpdater.list().catch((e) => ({ error: String(e?.message ?? e) })),
+    ])
+    return {
+      actual: actual?.bundle
+        ? { version: actual.bundle.version, estado: actual.bundle.status, id: actual.bundle.id }
+        : null,
+      nativa: actual?.native ?? null,
+      bundles: (lista?.bundles ?? []).map((b) => ({ version: b.version, estado: b.status, id: b.id })),
+      error: actual?.error || lista?.error || null,
+    }
+  } catch (e) {
+    return { error: String(e?.message ?? e) }
   }
 }
 
