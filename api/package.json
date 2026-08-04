@@ -24,6 +24,8 @@
     "migrar:remoto9": "wrangler d1 execute ballena-ops --remote --file=migraciones/0009_recetas_con_cantidades.sql",
     "migrar:local10": "wrangler d1 execute ballena-ops --local --file=migraciones/0010_mejoras.sql",
     "migrar:remoto10": "wrangler d1 execute ballena-ops --remote --file=migraciones/0010_mejoras.sql",
+    "migrar:local12": "wrangler d1 execute ballena-ops --local --file=migraciones/0012_reparto_del_gasto.sql",
+    "migrar:remoto12": "wrangler d1 execute ballena-ops --remote --file=migraciones/0012_reparto_del_gasto.sql",
     "generar:migraciones": "node herramientas/generar-migraciones.mjs"
   },
   "devDependencies": {

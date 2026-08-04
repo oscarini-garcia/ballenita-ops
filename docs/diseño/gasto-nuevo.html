@@ -22,9 +22,11 @@
     --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
     --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
 
-    /* Los cinco tonos de categoría, cara oscura y cara clara (theme.css). */
-    --cat-bebida: #c9a768; --cat-compra: #7fc0a0; --cat-comida: #d9a08c;
-    --cat-restaurante: #8fb4d6; --cat-varios: #9fb3bf;
+    /* Los cinco tonos de categoría, cara oscura (theme.css, subidos en §14.26). */
+    --cat-bebida: #f5c542; --cat-compra: #4fd3a0; --cat-comida: #ff9d63;
+    --cat-restaurante: #5cc2f0; --cat-varios: #b49bf7;
+    --cat-bebida-bg: #3a2f14; --cat-compra-bg: #12362a; --cat-comida-bg: #3a2119;
+    --cat-restaurante-bg: #12303f; --cat-varios-bg: #262046;
 
     /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
     --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
@@ -236,8 +238,17 @@
   .oscuro .cat { background: var(--ab-fondo); border: 1px solid var(--ab-linea); color: var(--ab-soft); }
   .claro .cat { background: var(--abc-fondo); border: 1px solid var(--abc-linea); color: var(--abc-soft); }
   .cat svg { width: 21px; height: 21px; }
-  .oscuro .cat.on { border-color: var(--ab-acento); background: color-mix(in srgb, var(--ab-acento) 18%, var(--ab-fondo)); color: var(--ab-ink); }
-  .claro .cat.on { border-color: var(--abc-acento); background: color-mix(in srgb, var(--abc-acento) 10%, var(--abc-tarjeta)); color: var(--abc-ink); }
+  .cat[data-cat="bebida"]      { color: var(--cat-bebida); }
+  .cat[data-cat="compra"]      { color: var(--cat-compra); }
+  .cat[data-cat="comida"]      { color: var(--cat-comida); }
+  .cat[data-cat="restaurante"] { color: var(--cat-restaurante); }
+  .cat[data-cat="varios"]      { color: var(--cat-varios); }
+  .cat.on { border-width: 2px; padding: 6px 1px 5px; font-weight: 700; }
+  .cat.on[data-cat="bebida"]      { background: var(--cat-bebida-bg);      border-color: var(--cat-bebida); }
+  .cat.on[data-cat="compra"]      { background: var(--cat-compra-bg);      border-color: var(--cat-compra); }
+  .cat.on[data-cat="comida"]      { background: var(--cat-comida-bg);      border-color: var(--cat-comida); }
+  .cat.on[data-cat="restaurante"] { background: var(--cat-restaurante-bg); border-color: var(--cat-restaurante); }
+  .cat.on[data-cat="varios"]      { background: var(--cat-varios-bg);      border-color: var(--cat-varios); }
 
   .chips { display: flex; gap: 8px; flex-wrap: wrap; }
   .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
@@ -314,6 +325,37 @@
       <span><b>Contenido</b> el del Demo: García · Pérez · Solteros</span>
       <span><b>Las medidas</b> salen de renderizar el marcado contra <code>theme.css</code>, no de estimarlas</span>
     </div>
+  </div>
+
+  <!-- ══ LO DECIDIDO ═══════════════════════════════════════════════════════ -->
+  <div class="cierre">
+    <h2>Decidido y hecho · A1 · B3 (con el subtítulo de B2) · C1 · D2 · E2</h2>
+    <p>La hoja se escribió para elegir y ya se eligió: esto es lo que hay puesto en la app desde
+      la <b>v0.19.0</b>, no una propuesta. Se implementaron las cinco partes de una vez, incluida
+      la quinta, que es la única que toca la base (columna <code>reparto</code>, migración
+      <code>0012</code>, y se aplica desde <b>Ajustes → Actualizar</b>).</p>
+    <p><b>Dos cosas cambiaron al construirlo</b>, y las dos se ven en los dibujos de abajo, ya
+      corregidos:</p>
+    <ol>
+      <li><b>La tecla de la coma es ahora <code>C</code>.</b> El recorrido que promete esta hoja
+        —«2·4·3·0 son 24,30»— solo funciona tecleando <b>como una caja registradora</b>, con los
+        dígitos entrando por la derecha; y en registradora una coma no significa nada. Con
+        <code>C</code> el pad gana lo que le faltaba: <code>⌫</code> borra un dígito, y con dos
+        sumandos mal puestos eso eran ocho toques. Registradora además quita la duda de si «148»
+        son ciento cuarenta y ocho euros o un euro con cuarenta y ocho.</li>
+      <li><b>Los cinco tonos de categoría subieron de saturación.</b> Los de antes eran el mismo
+        tono apagado con la temperatura movida —«varios» era gris de oficina— y aquí se ven por
+        primera vez <b>los cinco juntos en una rejilla</b>, donde eso no se lee como una paleta
+        sino como una avería. Ahora son cinco colores de verdad y uno es morado, que era el único
+        hueco libre entre el azul del acento y el rojo y el verde de los saldos. Siguen igualados
+        a mano: el trazo contra su propio fondo va de <b>4,57 a 5,56 : 1</b> en la cara clara y de
+        <b>5,89 a 8,49 : 1</b> en la oscura, medido. Y llevan su tono <b>siempre puesto</b>, no
+        solo la elegida: cinco casillas grises con una azul son un formulario.</li>
+    </ol>
+    <p>Lo demás salió como está dibujado. Los <b>cinco arreglos que no se eligen</b> están los
+      cinco hechos, y las familias de la ficha se ordenan ahora <b>por nombre</b> —Dexie las
+      devolvía en el orden en que caen los ids, o sea al azar, y con el reparto por importes eso
+      importa: la última es la que lleva lo que falte—.</p>
   </div>
 
   <!-- ══ LO QUE HAY HOY ════════════════════════════════════════════════════ -->
@@ -429,7 +471,7 @@
                 <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div><div class="tec op">⌫</div>
                 <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div><div class="tec op">+</div>
                 <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div><div class="tec op">−</div>
-                <div class="tec">,</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
               </div>
             </div>
           </div>
@@ -449,7 +491,7 @@
                 <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
                 <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
                 <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
-                <div class="tec">,</div><div class="tec">0</div><div class="tec">00</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div>
               </div>
             </div>
           </div>
@@ -471,7 +513,7 @@
                 <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
                 <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
                 <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
-                <div class="tec">,</div><div class="tec">0</div><div class="tec op">⌫</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec op">⌫</div>
               </div>
               <div class="btn-fino" style="margin-top:8px">＋ Otro ticket</div>
             </div>
@@ -496,7 +538,7 @@
                 <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
                 <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
                 <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
-                <div class="tec">,</div><div class="tec">0</div><div class="tec">00</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div>
               </div>
             </div>
           </div>
@@ -517,11 +559,11 @@
               </div>
               <div class="rot">Categoría</div>
               <div class="cats">
-                <div class="cat on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
-                <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
-                <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
-                <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
-                <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
+                <div class="cat on" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
+                <div class="cat" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
+                <div class="cat" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
+                <div class="cat" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
+                <div class="cat" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
               </div>
               <div class="btn-block" style="margin-top:16px">Guardar gasto</div>
             </div>
@@ -849,7 +891,7 @@
               <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
               <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
               <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
-              <div class="tec">,</div><div class="tec">0</div><div class="tec">00</div>
+              <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div>
             </div>
             <div class="btn-block" style="margin-top:14px">Guardar gasto</div>
           </div>
@@ -1001,14 +1043,14 @@ reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 
               <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div><div class="tec op">⌫</div>
               <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div><div class="tec op">+</div>
               <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div><div class="tec op">−</div>
-              <div class="tec">,</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
+              <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
             </div>
             <div class="cats" style="margin-top:14px">
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
-              <div class="cat on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
+              <div class="cat" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
+              <div class="cat" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
+              <div class="cat on" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
+              <div class="cat" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
+              <div class="cat" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
             </div>
             <div class="caja-reng" style="margin-top:12px">
               <div class="reng"><span class="k">Paga</span><span class="v">García <span class="fle">›</span></span></div>
@@ -1030,14 +1072,14 @@ reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 
               <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div><div class="tec op">⌫</div>
               <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div><div class="tec op">+</div>
               <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div><div class="tec op">−</div>
-              <div class="tec">,</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
+              <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
             </div>
             <div class="cats" style="margin-top:14px">
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
-              <div class="cat on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
-              <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
+              <div class="cat" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
+              <div class="cat" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
+              <div class="cat on" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
+              <div class="cat" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
+              <div class="cat" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
             </div>
             <div class="caja-reng" style="margin-top:12px">
               <div class="reng"><span class="k">Paga</span><span class="v">García <span class="fle">›</span></span></div>

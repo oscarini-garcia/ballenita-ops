@@ -60,6 +60,52 @@ export function expensePersonShares(expense, personsById) {
 }
 
 /**
+ * Céntimos que le tocan a cada **familia** en un gasto (SPECS §14.26,
+ * `docs/diseño/gasto-nuevo.html` · E2).
+ *
+ * Es lo que de verdad importa —el saldo acaba en la familia de todas formas— y
+ * es lo que permite decir «la mitad los Pérez», que con una lista de personas y
+ * sus pesos era inexpresable. Tres modos, y los tres pasan por `splitCents`:
+ *
+ *   · `pesos` (o sin `reparto`, que es el 95 % de los gastos): lo de siempre,
+ *     persona a persona por su peso, y luego se suman por familia.
+ *   · `partes`:   `{ garcia: 2, perez: 1 }` → dos partes contra una.
+ *   · `importes`: `{ garcia: 1040, perez: 350 }` en **céntimos enteros**.
+ *
+ * `importes` también pasa por `splitCents` en vez de leerse tal cual, y no es
+ * ceremonia: si los números guardados no suman el total —un gasto corregido a
+ * 26,40 después de repartir 24,60— la diferencia se reparte en proporción y no
+ * se pierde ni un céntimo. Cuando sí suman, `splitCents` devuelve exactamente
+ * lo escrito.
+ *
+ * Un cliente viejo que no entienda `reparto` reparte por pesos, que es el modo
+ * por defecto: el gasto se sigue leyendo, solo que con la cuenta de antes.
+ */
+export function expenseFamilyShares(expense, personsById = {}) {
+  const modo = expense.reparto?.modo
+  if (modo === 'partes' || modo === 'importes') {
+    const entradas = Object.entries(expense.reparto.porFamilia ?? {})
+      .filter(([, v]) => Number(v) > 0)
+    if (entradas.length) {
+      return splitCents(
+        expense.amountCents ?? 0,
+        entradas.map(([id, v]) => ({ id, weight: Number(v) })),
+      )
+    }
+    // Un reparto a medio escribir —todo a cero— no puede tragarse el gasto:
+    // se cae al modo por defecto, que siempre tiene respuesta.
+  }
+
+  const porFamilia = new Map()
+  for (const [personId, cents] of expensePersonShares(expense, personsById)) {
+    // Persona sin familia → se trata como "familia de uno" (§3.3).
+    const fid = personsById[personId]?.familyId ?? `solo:${personId}`
+    porFamilia.set(fid, (porFamilia.get(fid) ?? 0) + cents)
+  }
+  return porFamilia
+}
+
+/**
  * Saldos netos por familia a partir de todos los gastos y liquidaciones.
  * Devuelve Map<familyId, cents>. Cada gasto suma 0 (pagado − consumido);
  * cada liquidación mueve céntimos de deudora a acreedora.
@@ -74,12 +120,7 @@ export function computeFamilyBalances(expenses = [], settlements = [], personsBy
 
   for (const e of expenses) {
     for (const p of e.payers ?? []) add(p.familyId, p.amountCents)
-    const shares = expensePersonShares(e, personsById)
-    for (const [personId, cents] of shares) {
-      // Persona sin familia → se trata como "familia de uno" (§3.3).
-      const fid = personsById[personId]?.familyId ?? `solo:${personId}`
-      add(fid, -cents)
-    }
+    for (const [fid, cents] of expenseFamilyShares(e, personsById)) add(fid, -cents)
   }
 
   for (const s of settlements) {

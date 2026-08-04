@@ -115,6 +115,20 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
+- **Un gasto se apunta sin teclado y con la cuenta hecha** (SPECS §14.26,
+  `docs/diseño/gasto-nuevo.html` · A1·B3+B2·C1·D2·E2): la ficha medía 830,6 pt de 844 y
+  abría el alfabético sola, dejando 508 de ventana —el 61 %— y un scroll dentro del modal
+  para llegar a Guardar. Ahora son dos pantallas: la **rápida** (603,6 pt en Grande, 651 en
+  Enorme, sin scroll) con un **pad propio de 4 × 4 que suma y resta** —se teclea **como una
+  caja registradora**, `2·4·3·0` son 24,30, y por eso no hay coma sino `C`; toda la
+  aritmética en `lib/importe.js`, pura—, las cinco categorías **con su tono siempre puesto**
+  y los dos renglones «Paga · tu familia» y «Entre · todos», que dicen lo que se va a
+  guardar y se tocan; y **Detalles** en capa aparte con la descripción —ya **no obligatoria**:
+  la fila se llama por su categoría si no la hay—, la fecha, la moneda y el **reparto fino**.
+  Ese es el único que toca la base: `expenses.reparto` (`{modo:'partes'|'importes',
+  porFamilia}`, migración `0012`), **nulo = por pesos**, importes en **céntimos** y los tres
+  modos por `splitCents()`, así que no se pierde un céntimo y un cliente viejo sigue leyendo
+  el gasto. Los cinco tonos de categoría subieron de saturación al verlos juntos en rejilla.
 - **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.25,
   `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **4 pt** bajo la cabecera (a `z-index: 7`, o la cabecera le tapa medio sol)
   que se llena de amanecer a anochecer con el sol de tirador (`components/LineaDelHorizonte.jsx`);
@@ -401,7 +415,7 @@ portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de te
 retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
 binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
-entrar, la demostración arranca llena y no sube nunca. 375 tests en la PWA + 75 en la API,
+entrar, la demostración arranca llena y no sube nunca. 596 tests en la PWA + 143 en la API,
 todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su
