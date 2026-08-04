@@ -192,6 +192,19 @@ export const arreglarIngredientes = ({ plato, raciones, lineas }) =>
   }).then((r) => r.lineas || [])
 
 /**
+ * La misma idea, mejor contada (§14.24).
+ *
+ * Van el título, la descripción y el enlace de esa idea; vuelve la propuesta
+ * del modelo, que rellena el editor **sin guardar nada**: hay deshacer, y
+ * guardar sigue siendo el botón de siempre.
+ */
+export const mejorarIdea = ({ titulo, descripcion, enlace }) =>
+  peticion('/api/idea/mejorar', {
+    method: 'POST',
+    body: JSON.stringify({ titulo, descripcion, enlace }),
+  }).then((r) => r.idea || null)
+
+/**
  * Cinco platos que peguen con este, para ir adelante y atrás (§14.20-bis).
  *
  * Tanda de cinco, como los regalos de `garciadoral-ops`: lo caro es contarle el

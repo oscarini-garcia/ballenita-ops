@@ -203,11 +203,12 @@ function ModalMejora({ mejora, confirmando: confirmandoInicial, onClose }) {
   }
 
   return (
-    // Pegado arriba y sin robar el foco, como el editor de una idea: se abre a
-    // leer o a quitar tanto como a escribir, y el teclado no sale hasta que se
-    // toca el campo. Las dos hojas hermanas se comportan igual.
-    <div className="modal-bg arriba" onClick={onClose}>
-      <div className="modal fino arriba" onClick={(e) => e.stopPropagation()}>
+    // Centrado y sin robar el foco, como el editor de una idea: se abre a leer
+    // o a quitar tanto como a escribir, y el teclado no sale hasta que se toca
+    // el campo — sin teclado que lo pelee, centrado se lee mejor. Las dos
+    // hojas hermanas se comportan igual.
+    <div className="modal-bg center" onClick={onClose}>
+      <div className="modal fino center" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2>Mejora</h2>
 
