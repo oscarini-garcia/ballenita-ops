@@ -2493,6 +2493,119 @@ del viaje del anterior. Y `lib/tanda.js` trae el transporte con un `import()`
 **dentro** de la función: con el `import` de arriba, `db.js` acababa arrastrando
 `sync/api.js` —y con él la configuración y la sesión— a la capa de datos.
 
+### 14.26 Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha
+
+Decidido en `docs/diseño/gasto-nuevo.html` (**A1 · B3 con el subtítulo de B2 · C1 ·
+D2 · E2**), una hoja con cinco partes y veintiuna opciones.
+
+**El problema, medido.** La ficha de un gasto medía **830,6 pt** en un teléfono de
+844, salía como hoja desde abajo y abría el teclado alfabético sola (`autoFocus` en
+Descripción). Con el teclado puesto quedaban **508 pt** de ventana: se veía el
+**61 %** y había que hacer *scroll* dentro de un modal para llegar a Guardar. Y lo
+que se viene a hacer ahí —apuntar «24,30 de hielo y birras» con el carro en la
+mano— son **dos datos**: cuánto y de qué.
+
+**Los cinco arreglos que no se eligieron**, porque lo que está mal se arregla y se
+cuenta, no se somete a votación: se fue el `autoFocus`; la moneda y el tipo de
+cambio salieron del camino normal a Detalles —91,7 pt fijos y 76,4 más cuando
+difiere, para un caso que en un camping de Girona no pasa—; el pagador por defecto
+dejó de ser `families[0]` y pasa a ser **tu familia** (`lib/identidad.js`); el botón
+de guardar dejó de hacer `return` en silencio y **se apaga diciendo por qué**; y el
+«solo mayores 🍷» perdió la copa, que era un emoji del cromo de los que se fueron
+en §14.13 y que sobrevivió dentro de un `label`.
+
+**A1 · El importe se teclea en un pad propio, y suma.** Cuatro columnas de teclas
+de **76 × 48** con `+ − ⌫ =` en la de la derecha, la operación en curso en una
+cinta y el total **en vivo** en la cifra grande. Un pad de tres columnas (A2) da
+teclas de 104 y es mejor pad sin discusión, pero cuesta una fila de 48 más su hueco
+y esos **56 pt no existen**: la ficha se iría a 689,6 sobre un tope de 658, o sea a
+hacer *scroll* justo para llegar a Guardar, que es el defecto que se venía a
+arreglar. Con A1 la ficha real mide **603,6 pt** en Grande y **651 en Enorme**,
+medidas en el navegador contra `theme.css` — cabe sin *scroll* en las dos tallas
+porque **el alto de la tecla cuelga de `--escala`** como todo lo demás.
+
+Se descartó el teclado del sistema con una barra de operadores (A5), que era lo
+mínimo que había que hacer: el numérico de iOS son 260 pt y 336 si alguien toca
+Descripción, así que en cuanto tocas una categoría el teclado se va, la ficha salta
+260 pt y vuelve a saltar al volver al importe. Y los operadores irían en la barra
+accesoria que dibuja iOS, que no se puede tematizar ni medir.
+
+**Se teclea como una caja registradora**, y esto cambió respecto al dibujo: los
+dígitos entran por la derecha, `2·4·3·0` son 24,30 € y **el pad no lleva coma**,
+porque en registradora no significaría nada. Donde la hoja dibujaba la coma va
+**`C`**, que borra la operación entera — `⌫` borra un dígito, y con dos sumandos mal
+puestos eso eran ocho toques. Registradora es además lo que quita la duda de si
+«148» son ciento cuarenta y ocho euros o un euro con cuarenta y ocho. Toda la
+aritmética vive en `lib/importe.js`, pura y con su test: entra un estado, una tecla,
+sale un estado.
+
+**B3 + el subtítulo de B2 · Qué identifica una fila cuando no hay descripción.** La
+descripción si la hay, y si no la categoría —`e.description?.trim() || catOf(…).label`—.
+Debajo, quién pagó y, **cuando el reparto no fue el de todos, cuál**: «sin los
+niños», que es información que hoy no se veía en ningún sitio sin abrir el gasto.
+La hora solo cuando no hay descripción, que es cuando hace falta desempatar:
+«Pagó Solteros · sin los niños» ya son 238 pt de los 245 que caben. **No hay
+migración** — los gastos con nombre propio siguen exactamente igual, que es lo que
+se le perdió a B1 («la categoría manda siempre»).
+
+**C1 · «Paga» y «Entre», dos renglones con el valor puesto.** 98,5 pt frente a los
+205,3 que gastaban un `select` y seis pastillas, y cada uno se toca para abrir su
+hoja — la figura de `GrupoSection`, que ya está construida. Se descartó no enseñar
+nada (C4): un valor por defecto invisible **se lee como que no hay valor**, y el día
+que alguien pague con la tarjeta de otra familia el gasto se guarda mal y nadie lo
+ve hasta Saldos.
+
+**D2 · Detalles es una capa entera, no un acordeón.** Ahí viven la descripción, la
+fecha, la moneda y el reparto fino, y ahí **sí** sale el teclado del sistema, que es
+lo suyo cuando se escribe una palabra sentado. La ficha rápida **mide siempre lo
+mismo**, se abra o no Detalles, y eso es lo que permite aprender dónde cae cada
+tecla sin mirar; con acordeón (D1) pasaría de 603,6 a 1.229,7 pt y el pad se iría de
+la vista mientras escribes.
+
+**E2 · Un campo `reparto` con tres modos, y los importes en céntimos.** Es la única
+parte que toca la base: columna `reparto` en `expenses` (JSON, migración
+`0012_reparto_del_gasto.sql`, se aplica desde Ajustes → Actualizar, §14.23).
+
+```
+reparto: null                                                  ← por pesos, lo de siempre
+reparto: { modo: 'partes',   porFamilia: { garcia: 2, perez: 1 } }
+reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 350 } }
+```
+
+**Nulo es un valor con sentido**, no un hueco: significa «por pesos», así que los
+gastos ya apuntados no hay que tocarlos y un cliente viejo sigue leyéndolos y
+sacando la cuenta de antes. Los tres modos pasan por `splitCents()` —el mismo
+método del resto mayor que ya repartía por pesos—, así que **no se pierde ni se
+inventa un céntimo** y no hay código nuevo de aritmética; en modo `importes`,
+cuando los números guardados cuadran con el total, `splitCents` devuelve
+exactamente lo escrito, y cuando no —un gasto corregido después de repartirlo— la
+diferencia se reparte en proporción en vez de descuadrar los saldos. En la pantalla,
+**el último renglón lleva lo que falte** y ninguno de los otros puede pasarse del
+total: no hay forma de guardar un gasto descuadrado. Se descartaron los porcentajes
+(E3) porque **cuestan el céntimo**: 42,8 % de 24,30 € son 10,4004 €, hay que
+redondear en cada lectura y dos móviles con el mismo hecho podrían pintar saldos
+distintos, que es justo lo que la regla de oro prohíbe.
+
+**Los cinco tonos de categoría subieron de saturación.** No estaba en la hoja: se
+vio al dibujar la ficha, que es el primer sitio donde **se ven los cinco juntos en
+una rejilla**. Los de antes eran el mismo tono apagado con la temperatura movida
+—«varios» era gris de oficina— y en fila eso no se lee como una paleta sino como una
+avería. Ahora son cinco colores de verdad y uno es morado, que era el único hueco
+libre entre el azul del acento y el rojo y el verde de los saldos; el trazo contra su
+propio fondo va de **4,57 a 5,56 : 1** en la cara clara y de **5,89 a 8,49 : 1** en la
+oscura, medido. Y llevan su tono **siempre puesto**, no solo la casilla elegida:
+cinco casillas grises con una azul son un formulario, y esto es lo único de la app
+con color propio porque **informa** (§14.13).
+
+**Lo que arrastró la vuelta.** `ExpensesScreen.jsx` se quedó con la lista y salieron
+`screens/FichaDeGasto.jsx` (la ficha rápida, la hoja de «Entre» y Detalles),
+`components/PadDeImporte.jsx`, `lib/importe.js` y `lib/categorias.js` —las cinco
+categorías las miran cuatro sitios y ninguno debería importar una pantalla entera
+para saber cómo se llama «bebida»—. Y las familias de la ficha se ordenan ahora
+**por nombre**: Dexie las devolvía en el orden en que caen los ids, o sea al azar, y
+con el reparto por importes eso importa, porque la última es la que lleva lo que
+falte.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

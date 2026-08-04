@@ -1,0 +1,1142 @@
+<title>Ballena Ops — Apuntar un gasto en la puerta del súper: 830,6 pt de ficha, 508 de ventana y una descripción obligatoria</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256; --ab-linea-suave: #17384a;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea; --abc-linea-suave: #e9eff2;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* Los cinco tonos de categoría, cara oscura (theme.css, subidos en §14.26). */
+    --cat-bebida: #f5c542; --cat-compra: #4fd3a0; --cat-comida: #ff9d63;
+    --cat-restaurante: #5cc2f0; --cat-varios: #b49bf7;
+    --cat-bebida-bg: #3a2f14; --cat-compra-bg: #12362a; --cat-comida-bg: #3a2119;
+    --cat-restaurante-bg: #12303f; --cat-varios-bg: #262046;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px; --t-hero: 33.6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(27px, 5.2vw, 39px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 66ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 74ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code, .op-idea code, .coste code, .defectos code, td code
+    { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; position: relative; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+  /* Un iPhone 14 son 844 pt de alto. Se dibuja entero cuando la pregunta es si
+     algo cabe: media pantalla no contesta a eso. */
+  .tel.alto { height: 844px; }
+
+  /* El fondo de la app detrás del velo: la lista de gastos de verdad. */
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; flex: 1; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 10px; }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .fila { display: flex; align-items: center; gap: 11px; }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+  .fila .amt { font-size: var(--t-row); font-weight: 620; white-space: nowrap; }
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .ico[data-cat="bebida"] { color: var(--cat-bebida); background: rgba(201,167,104,.16); }
+  .ico[data-cat="compra"] { color: var(--cat-compra); background: rgba(127,192,160,.16); }
+  .ico[data-cat="varios"] { color: var(--cat-varios); background: rgba(159,179,191,.16); }
+
+  /* ── El velo y la ficha ───────────────────────────────────────────────── */
+  .velo { position: absolute; inset: 0; background: rgba(4,18,26,.68);
+    display: flex; align-items: center; justify-content: center; padding: 14px; }
+  .velo.abajo { align-items: flex-end; padding: 0; }
+  .velo.arriba { align-items: flex-start; padding: 14px; }
+
+  /* `.modal.center.formulario`: 100 % de los 390 menos los 14 pt de aire de cada
+     lado = 362 pt, y dentro 16 de relleno a cada lado = 330 de contenido. Es la
+     misma cuenta que hace theme.css, no una aproximación. */
+  .mod { width: 362px; border-radius: 12px; padding: 18px 16px 22px;
+    display: flex; flex-direction: column; gap: 0; }
+  .mod.hoja-abajo { width: 390px; border-radius: 12px 12px 0 0; padding: 16px 16px 26px; }
+  .oscuro .mod { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea);
+    box-shadow: 0 18px 44px rgba(4,18,26,.34); }
+  .claro .mod { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea);
+    box-shadow: 0 18px 44px rgba(16,42,55,.16); }
+  .mod h4 { margin: 4px 0 2px; font-size: var(--t-title); font-weight: 650; }
+  .mod .rot { font-size: var(--t-label); font-weight: 700; margin: 12px 2px 5px; }
+  .oscuro .mod .rot { color: var(--ab-soft); } .claro .mod .rot { color: var(--abc-soft); }
+  .mod .campo { border-radius: 7px; padding: 12px; font-size: var(--t-body); }
+  .oscuro .mod .campo { background: var(--ab-fondo); border: 1px solid var(--ab-linea); color: var(--ab-faint); }
+  .claro .mod .campo { background: var(--abc-fondo); border: 1px solid var(--abc-linea); color: var(--abc-faint); }
+  .mod .cab { display: flex; align-items: center; justify-content: space-between; }
+  .mod .cab .x { font-size: 26px; line-height: 1; opacity: .6; }
+  /* La cabecera de la ficha rápida: sin título, porque el título es la cifra.
+     A la izquierda el paso a Detalles, a la derecha el aspa. 30 pt en total. */
+  .mod .cab-fina { display: flex; align-items: center; justify-content: space-between;
+    height: 30px; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .mod .cab-fina .det { color: var(--ab-acento-txt); }
+  .claro .mod .cab-fina .det { color: var(--abc-acento-txt); }
+  .mod .nota-repar { font-size: var(--t-sub); line-height: 1.45; border-radius: 8px;
+    padding: 10px 12px; margin-top: 10px; }
+  .oscuro .mod .nota-repar { background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-fondo)); color: var(--ab-soft); }
+  .claro .mod .nota-repar { background: color-mix(in srgb, var(--abc-acento) 7%, var(--abc-fondo)); color: var(--abc-soft); }
+
+  .btn-block { border-radius: 8px; padding: 13px 16px; text-align: center;
+    font-weight: 600; font-size: var(--t-row); }
+  .oscuro .btn-block { background: var(--ab-acento); color: #04161f; }
+  .claro .btn-block { background: var(--abc-acento); color: #fff; }
+  .btn-fino { border-radius: 8px; padding: 11px 14px; text-align: center; font-weight: 600;
+    font-size: var(--t-sub); }
+  .oscuro .btn-fino { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .btn-fino { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+
+  /* ── La cifra y el pad ─────────────────────────────────────────────────── */
+  .cifra { display: flex; align-items: baseline; justify-content: flex-end; gap: 6px;
+    font-size: var(--t-hero); font-weight: 700; letter-spacing: -.02em; padding: 6px 4px 2px; }
+  .cifra .eur { font-size: var(--t-title); opacity: .6; }
+  .cinta { font-family: var(--mono); font-size: var(--t-sub); text-align: right; padding: 0 4px 6px;
+    min-height: 20px; }
+  .oscuro .cinta { color: var(--ab-faint); } .claro .cinta { color: var(--abc-faint); }
+  .cinta b { font-weight: 700; }
+  .oscuro .cinta b { color: var(--ab-acento-txt); } .claro .cinta b { color: var(--abc-acento-txt); }
+
+  .pad { display: grid; gap: 8px; }
+  .pad.c3 { grid-template-columns: repeat(3, 1fr); }
+  .pad.c4 { grid-template-columns: repeat(4, 1fr); }
+  .tec { height: 48px; border-radius: 9px; display: grid; place-items: center;
+    font-size: var(--t-title); font-weight: 600; }
+  .oscuro .tec { background: var(--ab-fondo); border: 1px solid var(--ab-linea); color: var(--ab-ink); }
+  .claro .tec { background: var(--abc-fondo); border: 1px solid var(--abc-linea); color: var(--abc-ink); }
+  .tec.op { font-weight: 700; }
+  .oscuro .tec.op { color: var(--ab-acento-txt); background: color-mix(in srgb, var(--ab-acento) 16%, var(--ab-fondo)); }
+  .claro .tec.op { color: var(--abc-acento-txt); background: color-mix(in srgb, var(--abc-acento) 10%, var(--abc-fondo)); }
+  .tec.igual { }
+  .oscuro .tec.igual { background: var(--ab-acento); color: #04161f; border-color: var(--ab-acento); }
+  .claro .tec.igual { background: var(--abc-acento); color: #fff; border-color: var(--abc-acento); }
+  .tec svg { width: 22px; height: 22px; }
+
+  /* Los dos renglones de «Paga» y «Entre» */
+  .reng { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 0; font-size: var(--t-row); }
+  .oscuro .reng + .reng { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .reng + .reng { border-top: 1px solid var(--abc-linea-suave); }
+  .reng .k { font-weight: 550; }
+  .oscuro .reng .k { color: var(--ab-soft); } .claro .reng .k { color: var(--abc-soft); }
+  .reng .v { font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .reng .fle { opacity: .5; }
+  .caja-reng { border-radius: 9px; padding: 2px 12px; }
+  .oscuro .caja-reng { background: var(--ab-fondo); border: 1px solid var(--ab-linea); }
+  .claro .caja-reng { background: var(--abc-fondo); border: 1px solid var(--abc-linea); }
+
+  /* Las cinco categorías en una fila de casillas */
+  .cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .cat { border-radius: 9px; padding: 7px 2px 6px; display: flex; flex-direction: column;
+    align-items: center; gap: 3px; font-size: var(--t-micro); font-weight: 550; text-align: center; }
+  .oscuro .cat { background: var(--ab-fondo); border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .cat { background: var(--abc-fondo); border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .cat svg { width: 21px; height: 21px; }
+  .cat[data-cat="bebida"]      { color: var(--cat-bebida); }
+  .cat[data-cat="compra"]      { color: var(--cat-compra); }
+  .cat[data-cat="comida"]      { color: var(--cat-comida); }
+  .cat[data-cat="restaurante"] { color: var(--cat-restaurante); }
+  .cat[data-cat="varios"]      { color: var(--cat-varios); }
+  .cat.on { border-width: 2px; padding: 6px 1px 5px; font-weight: 700; }
+  .cat.on[data-cat="bebida"]      { background: var(--cat-bebida-bg);      border-color: var(--cat-bebida); }
+  .cat.on[data-cat="compra"]      { background: var(--cat-compra-bg);      border-color: var(--cat-compra); }
+  .cat.on[data-cat="comida"]      { background: var(--cat-comida-bg);      border-color: var(--cat-comida); }
+  .cat.on[data-cat="restaurante"] { background: var(--cat-restaurante-bg); border-color: var(--cat-restaurante); }
+  .cat.on[data-cat="varios"]      { background: var(--cat-varios-bg);      border-color: var(--cat-varios); }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); color: var(--ab-soft); display: inline-flex; align-items: center; gap: 6px; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+
+  /* El teclado del sistema, dibujado a su medida real para poder decir cuánto tapa */
+  .teclado { position: absolute; left: 0; right: 0; bottom: 0; height: 336px;
+    background: #1c1c1e; border-top: 1px solid #3a3a3c; display: flex; flex-direction: column;
+    justify-content: flex-end; gap: 9px; padding: 44px 4px 34px; }
+  .claro .teclado { background: #d1d3d9; border-top-color: #b8bcc4; }
+  .teclado .kr { display: flex; gap: 6px; justify-content: center; }
+  .teclado .k { flex: 1; height: 42px; border-radius: 5px; background: #4a4a4e; }
+  .claro .teclado .k { background: #fdfdfd; }
+  .teclado .et { position: absolute; top: 12px; left: 0; right: 0; text-align: center;
+    font-family: var(--mono); font-size: 11px; color: #9aa0a6; }
+  .teclado.num { height: 260px; }
+
+  .regla-tapa { position: absolute; right: 6px; width: 3px; border-radius: 2px; background: var(--coral); }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 8px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+  .medida .mal { color: var(--coral); font-weight: 700; }
+  .medida .bien { color: var(--acento); font-weight: 700; }
+
+  /* La tabla se desborda ella sola y no la página: en un móvil de 390 las tres
+     columnas no caben, y sin esto el cuerpo entero se va de lado. */
+  .tabla-scroll { overflow-x: auto; }
+  table.comp { width: 100%; min-width: 480px; border-collapse: collapse; font-size: 14.5px; color: var(--tinta-suave); }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--linea); vertical-align: top; color: var(--tinta-suave); }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.si { color: var(--acento); font-weight: 600; }
+  table.comp td.no { color: var(--coral); font-weight: 600; }
+
+  pre.cod { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; margin: 0;
+    background: var(--papel); border: 1px solid var(--linea); border-radius: 9px;
+    padding: 12px 14px; overflow-x: auto; color: var(--tinta-suave); }
+  pre.cod b { color: var(--tinta); font-weight: 700; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; color: var(--tinta); }
+  .cierre p { margin: 0; color: var(--tinta-suave); font-size: 15px; max-width: 74ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre ol { margin: 0; padding-left: 20px; color: var(--tinta-suave); font-size: 15px; }
+  .cierre li { margin: 4px 0; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <!-- ══ CABECERA ══════════════════════════════════════════════════════════ -->
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · Dinero → Gastos · hoja de opciones</div>
+    <h1>Apuntar un gasto en la puerta del súper: 830,6&nbsp;pt de ficha, 508 de ventana y una descripción obligatoria</h1>
+    <p class="entradilla">La ficha de un gasto mide hoy <b>830,6&nbsp;pt</b> en un teléfono de 844, sale
+      como hoja desde abajo y abre el teclado alfabético sola (<code>autoFocus</code> en Descripción). Con el
+      teclado puesto quedan <b>508&nbsp;pt</b> de ventana: se ve el <b>61&nbsp;%</b> de la ficha y hay que hacer
+      scroll dentro de un modal para llegar al botón de guardar. Lo que se viene a hacer aquí —apuntar
+      «24,30 de hielo y birras» con el carro en la mano— son <b>dos datos</b>: cuánto y de qué.
+      Esta hoja parte el problema en cinco y da a elegir en cada uno.</p>
+    <div class="ficha">
+      <span><b>Ahora</b> = v0.18.1, <code>app/src/screens/ExpensesScreen.jsx</code></span>
+      <span><b>Medida</b> 390 × 844 pt (iPhone 14)</span>
+      <span><b>Texto</b> 17 px × 1,12 «Grande», que es lo de fábrica</span>
+      <span><b>Paleta</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Contenido</b> el del Demo: García · Pérez · Solteros</span>
+      <span><b>Las medidas</b> salen de renderizar el marcado contra <code>theme.css</code>, no de estimarlas</span>
+    </div>
+  </div>
+
+  <!-- ══ LO DECIDIDO ═══════════════════════════════════════════════════════ -->
+  <div class="cierre">
+    <h2>Decidido y hecho · A1 · B3 (con el subtítulo de B2) · C1 · D2 · E2</h2>
+    <p>La hoja se escribió para elegir y ya se eligió: esto es lo que hay puesto en la app desde
+      la <b>v0.19.0</b>, no una propuesta. Se implementaron las cinco partes de una vez, incluida
+      la quinta, que es la única que toca la base (columna <code>reparto</code>, migración
+      <code>0012</code>, y se aplica desde <b>Ajustes → Actualizar</b>).</p>
+    <p><b>Dos cosas cambiaron al construirlo</b>, y las dos se ven en los dibujos de abajo, ya
+      corregidos:</p>
+    <ol>
+      <li><b>La tecla de la coma es ahora <code>C</code>.</b> El recorrido que promete esta hoja
+        —«2·4·3·0 son 24,30»— solo funciona tecleando <b>como una caja registradora</b>, con los
+        dígitos entrando por la derecha; y en registradora una coma no significa nada. Con
+        <code>C</code> el pad gana lo que le faltaba: <code>⌫</code> borra un dígito, y con dos
+        sumandos mal puestos eso eran ocho toques. Registradora además quita la duda de si «148»
+        son ciento cuarenta y ocho euros o un euro con cuarenta y ocho.</li>
+      <li><b>Los cinco tonos de categoría subieron de saturación.</b> Los de antes eran el mismo
+        tono apagado con la temperatura movida —«varios» era gris de oficina— y aquí se ven por
+        primera vez <b>los cinco juntos en una rejilla</b>, donde eso no se lee como una paleta
+        sino como una avería. Ahora son cinco colores de verdad y uno es morado, que era el único
+        hueco libre entre el azul del acento y el rojo y el verde de los saldos. Siguen igualados
+        a mano: el trazo contra su propio fondo va de <b>4,57 a 5,56 : 1</b> en la cara clara y de
+        <b>5,89 a 8,49 : 1</b> en la oscura, medido. Y llevan su tono <b>siempre puesto</b>, no
+        solo la elegida: cinco casillas grises con una azul son un formulario.</li>
+    </ol>
+    <p>Lo demás salió como está dibujado. Los <b>cinco arreglos que no se eligen</b> están los
+      cinco hechos, y las familias de la ficha se ordenan ahora <b>por nombre</b> —Dexie las
+      devolvía en el orden en que caen los ids, o sea al azar, y con el reparto por importes eso
+      importa: la última es la que lleva lo que falte—.</p>
+  </div>
+
+  <!-- ══ LO QUE HAY HOY ════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Lo que hay puesto</div>
+    <p class="parte-intro">La misma ficha sirve para apuntar y para corregir, y por eso lo lleva todo.
+      Medida contra <code>theme.css</code>, campo a campo: <b>descripción 74,7</b> · <b>importe y moneda 91,7</b> ·
+      <b>categoría 144,2</b> (cinco pastillas que doblan a dos filas) · <b>quién paga 71,1</b> ·
+      <b>entre quién 134,2</b> · <b>guardar 50</b> · <b>la nota del reparto 69,5</b>.</p>
+
+    <div class="tira-tel">
+      <div class="tel oscuro alto" data-medir="hoy">
+        <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></div>
+            <div class="txt"><div class="n">Compra grande Mercadona</div><div class="s">Pagó Pérez</div></div>
+            <div class="amt">148,00 €</div>
+          </div></div>
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></div>
+            <div class="txt"><div class="n">Gasolina ida</div><div class="s">Pagó Solteros</div></div>
+            <div class="amt">60,00 €</div>
+          </div></div>
+        </div>
+
+        <div class="velo abajo">
+          <div class="mod hoja-abajo" data-medir="hoy-mod" style="overflow: hidden">
+            <div class="cab"><h4>Nuevo gasto</h4><div class="x">×</div></div>
+            <div class="rot">Descripción</div>
+            <div class="campo">Compra grande Mercadona</div>
+            <div style="display:flex; gap:10px">
+              <div style="flex:1"><div class="rot">Importe</div><div class="campo">0,00</div></div>
+              <div style="flex:1"><div class="rot">Moneda</div><div class="campo">€ EUR</div></div>
+            </div>
+            <div class="rot">Categoría</div>
+            <div class="chips">
+              <div class="chip">Compra general</div><div class="chip">Comida</div>
+              <div class="chip">Bebida</div><div class="chip">Restaurante</div><div class="chip">Varios</div>
+            </div>
+            <div class="rot">Quién paga</div>
+            <div class="campo">García</div>
+            <div class="rot" style="display:flex; justify-content:space-between; align-items:center">
+              Entre quién se divide
+              <span class="btn-fino" style="padding:8px 12px">solo mayores 🍷</span>
+            </div>
+            <div class="chips">
+              <div class="chip on">Curro</div><div class="chip on">Marta</div><div class="chip on">Fran</div>
+              <div class="chip on">Ana</div><div class="chip on">Luis</div><div class="chip on">Pablo</div>
+            </div>
+            <div class="btn-block" style="margin-top:16px">Guardar gasto</div>
+            <div class="nota-repar">Se reparte por el <b>peso</b> de cada persona y el saldo se suma a su familia (§3).</div>
+          </div>
+        </div>
+        <div class="teclado"><div class="et">teclado alfabético · 336 pt</div>
+          <div class="kr"><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span></div>
+          <div class="kr"><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span></div>
+          <div class="kr"><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span></div>
+          <div class="kr"><span class="k" style="flex:3"></span><span class="k" style="flex:6"></span><span class="k" style="flex:3"></span></div>
+        </div>
+      </div>
+    </div>
+    <p class="medida"><b>Ficha</b> 830,6 pt · <b>ventana sobre el teclado</b> 508 pt ·
+      <span class="mal">se ve el 61 %</span> · <b>toques hasta guardar</b> 1 descripción + 1 importe + 1 categoría + 1 pagador = 4 campos y un scroll</p>
+  </div>
+
+  <!-- ══ DEFECTOS ══════════════════════════════════════════════════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · cinco arreglos que no se eligen</h2>
+    <p><b>1 · El teclado se abre solo.</b> <code>autoFocus</code> en Descripción abre el alfabético al abrir
+      la ficha. Ya se decidió lo contrario para el editor de una idea y para la hoja de una mejora
+      (SPECS §14.24): <b>el teclado no sale hasta tocar un campo</b>. Aquí se quita igual, y con el pad
+      propio no vuelve nunca en el camino normal.</p>
+    <p class="linea-corte"><b>2 · La moneda y el tipo de cambio se van del camino normal.</b> Ocupan
+      91,7 pt fijos —y 76,4 más cuando difiere— para un caso que en un camping de Girona no pasa. El gasto
+      se sigue guardando con <code>currency</code> = la del evento y <code>rate: 1</code>, así que
+      <b>no hay migración</b> y la pastilla de divisa de los gastos ya apuntados en otra moneda se sigue
+      viendo en la lista. Los campos se van a «Detalles», no al vertedero.</p>
+    <p class="linea-corte"><b>3 · Paga el primero de la lista, no tú.</b> Hoy
+      <code>payerFamily</code> arranca en <code>families[0]</code> —García siempre, por orden alfabético—.
+      La app <b>ya sabe quién eres</b> (<code>lib/identidad.js</code>, el badge de la cabecera): el pagador
+      por defecto pasa a ser tu familia, y si no has dicho quién eres se queda como está.</p>
+    <p class="linea-corte"><b>4 · El botón de guardar no hace nada y no dice por qué.</b> Sin descripción,
+      <code>submit()</code> hace <code>return</code> en silencio. Al dejar de ser obligatoria el caso
+      desaparece; lo que quede sin rellenar —importe a cero— <b>apaga el botón y lo dice en el campo</b>,
+      que es la figura de <code>components/Campo.jsx</code> (SPECS §14.16-ter).</p>
+    <p class="linea-corte"><b>5 · «solo mayores 🍷» es un emoji del cromo.</b> Los emoji que elige el
+      usuario se quedan; los del cromo se fueron en §14.13 y ese quedó vivo dentro de un
+      <code>label</code>. Se queda el verbo, se va la copa.</p>
+  </div>
+
+  <!-- ══ PARTE UNO ═════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte uno · el importe sin teclado, y con la cuenta hecha antes de entrar</div>
+    <p class="parte-intro">Es lo que abre la ficha y lo que más se toca. El pedido tiene dos mitades:
+      <b>sin teclado del sistema</b> —que ocupa 336 pt y obliga a hacer scroll dentro del modal— y
+      <b>que sume y reste</b>, porque un gasto real son dos tickets: <code>18,40&nbsp;+&nbsp;5,90</code>.
+      El ancho útil es de <b>330 pt</b>, así que un pad de tres columnas da teclas de <b>104</b> y uno
+      de cuatro, de <b>76</b>. Un pulgar mide 44. <b>El alto es lo que decide</b>: el modal centrado tiene un
+      tope de <b>658 pt</b> (78 vh de 844) y todo lo demás de la ficha —cabecera, cifra, las cinco categorías,
+      los dos renglones y el botón— ocupa <b>417,6</b>. Al pad le quedan <b>240</b>.</p>
+
+    <div class="tira-tel">
+
+      <!-- A1 -->
+      <div>
+        <div class="tel oscuro" data-medir="A1">
+          <div class="velo" style="position:static; padding:14px">
+            <div class="mod" data-medir="A1-mod">
+              <div class="cinta"><b>18,40</b> + 5,90</div>
+              <div class="cifra">24,30 <span class="eur">€</span></div>
+              <div class="pad c4" style="margin-top:8px">
+                <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div><div class="tec op">⌫</div>
+                <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div><div class="tec op">+</div>
+                <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div><div class="tec op">−</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A1 · pad 4 × 4 = <b>216 pt</b>, teclas de 76 × 48</p>
+      </div>
+
+      <!-- A2 -->
+      <div>
+        <div class="tel oscuro" data-medir="A2">
+          <div class="velo" style="position:static; padding:14px">
+            <div class="mod" data-medir="A2-mod">
+              <div class="cinta"><b>18,40</b> + 5,90</div>
+              <div class="cifra">24,30 <span class="eur">€</span></div>
+              <div class="pad c3" style="margin-top:8px">
+                <div class="tec op">+</div><div class="tec op">−</div><div class="tec op">⌫</div>
+                <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
+                <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
+                <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A2 · pad 3 × 5 = <b>272 pt</b>, teclas de 104 × 48</p>
+      </div>
+
+      <!-- A3 -->
+      <div>
+        <div class="tel oscuro" data-medir="A3">
+          <div class="velo" style="position:static; padding:14px">
+            <div class="mod" data-medir="A3-mod">
+              <div class="caja-reng" style="margin-bottom:8px">
+                <div class="reng"><span class="k">Hielo</span><span class="v">18,40 €</span></div>
+                <div class="reng"><span class="k">Birras</span><span class="v">5,90 €</span></div>
+              </div>
+              <div class="cifra">24,30 <span class="eur">€</span></div>
+              <div class="pad c3" style="margin-top:8px">
+                <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
+                <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
+                <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec op">⌫</div>
+              </div>
+              <div class="btn-fino" style="margin-top:8px">＋ Otro ticket</div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A3 · pad de 4 filas = <b>216 pt</b> + 45,8 por ticket apilado</p>
+      </div>
+
+      <!-- A4 -->
+      <div>
+        <div class="tel oscuro" data-medir="A4">
+          <div class="velo" style="position:static; padding:14px">
+            <div class="mod" data-medir="A4-mod">
+              <div class="cinta"><b>18,40</b> + 5,90</div>
+              <div class="cifra">24,30 <span class="eur">€</span></div>
+              <div class="chips" style="margin:2px 0 8px">
+                <div class="chip">+5</div><div class="chip">+10</div>
+                <div class="chip">+20</div><div class="chip">+50</div>
+              </div>
+              <div class="pad c3">
+                <div class="tec op">+</div><div class="tec op">−</div><div class="tec op">⌫</div>
+                <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
+                <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
+                <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
+                <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A4 · A2 + una fila de chips = <b>272 + 54,3 pt</b></p>
+      </div>
+
+      <!-- A5 -->
+      <div>
+        <div class="tel oscuro alto" data-medir="A5">
+          <div class="velo arriba">
+            <div class="mod" data-medir="A5-mod">
+              <div class="cab"><h4>Nuevo gasto</h4><div class="x">×</div></div>
+              <div class="cinta" style="margin-top:10px"><b>18,40</b> + 5,90</div>
+              <div class="cifra">24,30 <span class="eur">€</span></div>
+              <div class="pad c4" style="margin-top:8px">
+                <div class="tec op">+</div><div class="tec op">−</div><div class="tec op">⌫</div><div class="tec igual">=</div>
+              </div>
+              <div class="rot">Categoría</div>
+              <div class="cats">
+                <div class="cat on" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
+                <div class="cat" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
+                <div class="cat" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
+                <div class="cat" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
+                <div class="cat" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
+              </div>
+              <div class="btn-block" style="margin-top:16px">Guardar gasto</div>
+            </div>
+          </div>
+          <div class="teclado num"><div class="et">teclado numérico del sistema · 260 pt</div>
+            <div class="kr"><span class="k"></span><span class="k"></span><span class="k"></span></div>
+            <div class="kr"><span class="k"></span><span class="k"></span><span class="k"></span></div>
+            <div class="kr"><span class="k"></span><span class="k"></span><span class="k"></span></div>
+            <div class="kr"><span class="k"></span><span class="k"></span><span class="k"></span></div>
+          </div>
+        </div>
+        <p class="pie-tel">A5 · teclado del sistema con una barra de operadores</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">Pad de cuatro columnas, la cuarta son los verbos</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">La calculadora de toda la vida: <code>+</code>, <code>−</code>, <code>⌫</code> y
+        <code>=</code> en la columna de la derecha, teclas de <b>76 × 48</b>. La cinta de arriba enseña la
+        operación en curso (<code>18,40 + 5,90</code>) y la cifra grande el resultado <b>en vivo</b>, así que
+        la tecla <code>=</code> confirma pero no revela nada: el total es siempre lo que se guardaría si
+        tocaras Guardar ahora.</p>
+      <p class="coste"><b>Cuesta</b> 28 pt de ancho por tecla frente a A2 y pone <code>⌫</code> pegado al
+        borde derecho. <b>Lo paga</b> quien sostiene el teléfono con la izquierda. <b>Compra lo único que no
+        se puede comprar de otra forma: los 56 pt que hacen que la ficha entera quepa.</b> Con A1 la ficha
+        mide <b>633,6</b> y el tope son 658; con A2, <b>689,6</b> y hay que hacer scroll dentro del modal
+        justo para llegar al botón de guardar, que es el defecto que se venía a arreglar.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">Pad de tres columnas, los operadores en la fila de arriba</span><span class="etq base">la mejor si sobrara sitio</span></div>
+      <p class="op-idea">Teclas de <b>104 × 48</b> —2,4 pulgares de ancho— y los verbos donde cae el pulgar al
+        empezar, no en una columna lateral. Mirando solo el pad, es mejor que A1 y no hay discusión.</p>
+      <p class="coste"><b>Cuesta 56 pt</b> (una fila de 48 y su hueco de 8) y esos 56 no existen: la ficha se
+        va a 689,6 sobre un tope de 658. <b>Vuelve a estar sobre la mesa</b> si se decide que las cinco
+        categorías caben en otro sitio (−59) o que los dos renglones de «Paga/Entre» son uno solo (−50,7,
+        que es C2, y con eso quedan 638,9). Es una opción de <b>presupuesto</b>, no de gusto.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">Sin operadores: los tickets se apilan y se suman solos</span></div>
+      <p class="op-idea">No hay aritmética, hay <b>una lista</b>. Tecleas 18,40 y «＋ Otro ticket»; tecleas 5,90 y
+        el total baja solo. Cada sumando se puede borrar deslizándolo, que es el gesto que ya tienen los gastos.
+        Es la lectura más honesta de «cálculos simples»: casi siempre son sumas de tickets, no restas.</p>
+      <p class="coste"><b>Cuesta</b> la resta libre —para quitar 3 € de un total hay que borrar el sumando y
+        volver a teclearlo— y <b>45,8 pt por cada ticket</b> apilado: con tres, la ficha se pasa del tope igual
+        que A2. <b>Compra</b> que el gasto guarde de dónde salió el número, que hoy se pierde en cuanto se
+        pulsa Guardar. <b>Se puede tener luego</b>: es A1 con la cinta convertida en lista, y la cinta ya está.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">A2 con las cifras redondas puestas</span><span class="etq base">complemento</span></div>
+      <p class="op-idea">Una fila de <code>+5 +10 +20 +50</code> sobre el pad, para los gastos que son un
+        billete. Se combina con A1 o con A2; no sustituye a ninguna.</p>
+      <p class="coste"><b>Cuesta 54,3 pt</b> fijos —y con cinco chips en vez de cuatro dobla a dos filas y son
+        <b>96,7</b>, medido: «+50» no cabe en la primera—. Sobre A1 la ficha se iría a 687,9, o sea que
+        <b>hoy tampoco cabe</b>. <b>Se decide después</b>: si algún día sobran 55 pt, esta es la primera de la
+        cola.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A5</span><span class="op-nombre">El teclado del sistema con una barra de operadores encima</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">Es lo mínimo que hay que hacer: <code>inputMode="decimal"</code> ya está puesto y solo
+        faltaría la barra de <code>+ − ⌫ =</code>.</p>
+      <p class="coste"><b>Cuesta</b> exactamente lo que se pidió evitar. El numérico de iOS son <b>260 pt</b>
+        —y 336 si alguien toca Descripción—, así que la ficha sin pad (417,6) todavía cabe en los 584 que
+        quedan… <b>mientras el teclado esté puesto</b>. En cuanto tocas una categoría o un renglón el teclado se
+        va, la ficha salta 260 pt, y vuelve a saltar al volver al importe. <b>Y los operadores no son nuestros:</b>
+        van en la barra accesoria que dibuja iOS encima del teclado, que no se puede tematizar ni medir —si el
+        sistema decide enseñar sugerencias, la cuenta cambia sin avisar—.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE DOS ═════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte dos · si la descripción se va al final, qué identifica la fila</div>
+    <p class="parte-intro">Hoy la fila de un gasto se llama por su descripción, y por eso es obligatoria.
+      Si deja de serlo, <b>la lista se queda sin títulos</b> —«Bebida», «Bebida», «Bebida»— salvo que algo
+      ocupe su sitio. Las cuatro opciones son cuatro respuestas a «¿qué distingue dos gastos de bebida del
+      mismo día?».</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro" data-medir="B1"><div class="t-body">
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Bebida</div><div class="s">Pagó García</div></div>
+            <div class="amt">24,30 €</div></div></div>
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Bebida</div><div class="s">Pagó Pérez</div></div>
+            <div class="amt">9,80 €</div></div></div>
+        </div></div>
+        <p class="pie-tel">B1 · la categoría manda</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro" data-medir="B2"><div class="t-body">
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Bebida · 19:40</div><div class="s">Pagó García · entre todos</div></div>
+            <div class="amt">24,30 €</div></div></div>
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Bebida · 22:15</div><div class="s">Pagó Pérez · sin los niños</div></div>
+            <div class="amt">9,80 €</div></div></div>
+        </div></div>
+        <p class="pie-tel">B2 · categoría + hora, y el reparto debajo</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro" data-medir="B3"><div class="t-body">
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Hielo y birras</div><div class="s">Bebida · pagó García</div></div>
+            <div class="amt">24,30 €</div></div></div>
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Bebida</div><div class="s">Pagó Pérez · 22:15</div></div>
+            <div class="amt">9,80 €</div></div></div>
+        </div></div>
+        <p class="pie-tel">B3 · la descripción si la hay; si no, la categoría</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro" data-medir="B4"><div class="t-body">
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Bebida de García</div><div class="s">24,30 € entre los 6 · 4,05 cada uno</div></div>
+            <div class="amt">24,30 €</div></div></div>
+          <div class="tarj"><div class="fila">
+            <div class="ico" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></div>
+            <div class="txt"><div class="n">Bebida de Pérez</div><div class="s">9,80 € entre los 5 mayores · 1,96</div></div>
+            <div class="amt">9,80 €</div></div></div>
+        </div></div>
+        <p class="pie-tel">B4 · el título es quién pagó, el sub es la cuenta</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">La descripción si la hay; si no, la categoría</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Una línea de código —<code>e.description?.trim() || catOf(e.category).label</code>— y
+        ninguna decisión que tomar al apuntar. Quien no escribe nada ve «Bebida»; quien escribe «Hielo y birras»
+        ve lo que escribió, y la categoría baja al subtítulo, donde ya está el icono con su color para
+        confirmarla. <b>No hay migración</b>: los 47 gastos con descripción siguen exactamente igual.</p>
+      <p class="coste"><b>Cuesta</b> que dos filas de la lista puedan no parecerse entre sí. <b>Compra</b> que
+        apuntar deje de exigir escribir, que es todo el encargo.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">La categoría manda siempre</span></div>
+      <p class="op-idea">La descripción, si la hay, baja al subtítulo. La lista queda perfectamente regular.</p>
+      <p class="coste"><b>Cuesta</b> los gastos que sí tienen nombre propio: «Compra grande Mercadona» pasaría
+        a leerse «Compra general», que es la etiqueta y no el hecho. <b>Lo paga</b> quien busca un gasto
+        concreto en la lista de agosto.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">Categoría y hora arriba, el reparto debajo</span><span class="etq base">complemento</span></div>
+      <p class="op-idea">La hora desempata dos gastos de la misma categoría y el subtítulo dice, además de quién
+        pagó, <b>si el reparto no fue el de todos</b> («sin los niños»). Es información que hoy no se ve en
+        ningún sitio sin abrir el gasto.</p>
+      <p class="coste"><b>Cuesta</b> un subtítulo que puede no caber: «Pagó Solteros · sin los niños» son
+        <b>238 pt</b> de los 245 que quedan en la fila. <b>Combina bien con B3</b>: título de B3, subtítulo de B2.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B4</span><span class="op-nombre">El título es quién pagó y el sub es la cuenta hecha</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">«Bebida de García», y debajo el reparto en euros por cabeza.</p>
+      <p class="coste"><b>Cuesta</b> repetir el importe dos veces en la misma fila y meter un cálculo
+        —4,05 cada uno— que <b>no es cierto</b>: el reparto va por peso y por familia, así que el número por
+        cabeza solo coincide cuando todos son adultos. Un número que miente en la lista se cree.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE TRES ════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte tres · quién paga y entre quiénes, cuando ya no hay que tocarlos</div>
+    <p class="parte-intro">Con los dos valores por defecto puestos —<b>paga tu familia</b>, <b>se divide entre
+      todos</b>— la pregunta cambia: ya no es «cómo se elige», es <b>cómo se ve lo que se va a guardar</b> sin
+      gastar los 205,3 pt que gastan hoy un <code>select</code> y seis pastillas. Lo que no se ve, no se
+      corrige.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro" data-medir="C1"><div class="velo" style="position:static; padding:14px">
+          <div class="mod" data-medir="C1-mod">
+            <div class="caja-reng">
+              <div class="reng"><span class="k">Paga</span><span class="v">García <span class="fle">›</span></span></div>
+              <div class="reng"><span class="k">Entre</span><span class="v">todos (6) <span class="fle">›</span></span></div>
+            </div>
+          </div>
+        </div></div>
+        <p class="pie-tel">C1 · dos renglones con el valor puesto</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro" data-medir="C2"><div class="velo" style="position:static; padding:14px">
+          <div class="mod" data-medir="C2-mod">
+            <div class="reng" style="justify-content:center"><span class="v" style="font-weight:550">Paga <b>García</b> · entre <b>todos</b> <span class="fle">›</span></span></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">C2 · una sola pastilla resumen</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro" data-medir="C3"><div class="velo" style="position:static; padding:14px">
+          <div class="mod" data-medir="C3-mod">
+            <div class="rot">Paga</div>
+            <div class="chips"><div class="chip on">García</div><div class="chip">Pérez</div><div class="chip">Solteros</div></div>
+            <div class="rot">Entre</div>
+            <div class="chips"><div class="chip on">Todos</div><div class="chip">Solo mayores</div><div class="chip">A dedo…</div></div>
+          </div>
+        </div></div>
+        <p class="pie-tel">C3 · las familias a la vista, el reparto en tres atajos</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro" data-medir="C4"><div class="velo" style="position:static; padding:14px">
+          <div class="mod" data-medir="C4-mod">
+            <div class="btn-block">Guardar gasto</div>
+            <div class="btn-fino" style="margin-top:10px">Detalles</div>
+          </div>
+        </div></div>
+        <p class="pie-tel">C4 · nada: paga tu familia entre todos, y punto</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">Dos renglones con el valor puesto, y se tocan</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">«Paga · García ›» y «Entre · todos (6) ›» en una caja de <b>2 renglones</b>. Dicen el
+        estado sin abrir nada, se tocan para cambiarlo —cada uno abre su hoja— y ocupan lo que ocupa una fila
+        de la app. Es la figura de la ficha de familia de <code>GrupoSection</code>: <b>se toca la fila y sube
+        una hoja desde abajo</b>, que ya está construida y ya se conoce.</p>
+      <p class="coste"><b>Cuesta</b> un toque más que C3 para cambiar de pagador. <b>Lo paga</b> el caso raro
+        —pagar por otra familia—, no el normal. <b>Compra</b> 98,5 pt frente a los 205,3 de hoy y, sobre todo,
+        que el reparto raro <b>se vea</b> en la ficha: «Entre · sin los niños (4)».</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">Las familias a la vista y el reparto en tres atajos</span></div>
+      <p class="op-idea">Con tres familias, las tres pastillas caben en una fila. «Todos · Solo mayores · A dedo…»
+        cubre los tres repartos que se usan de verdad.</p>
+      <p class="coste"><b>Cuesta 222,2 pt</b> —más que los 205,3 de hoy, y 123,7 más que C1— y deja de caber
+        en cuanto haya cinco familias. <b>Compra</b> el toque directo. Solo es la buena si de esos 262 salen
+        el pad y las categorías, es decir, si se renuncia a A1.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">Una sola pastilla resumen</span></div>
+      <p class="op-idea">Un renglón: «Paga <b>García</b> · entre <b>todos</b> ›», y se toca para abrir el reparto
+        entero. La ficha simple queda en lo mínimo.</p>
+      <p class="coste"><b>Ahorra 50,7 pt</b> sobre C1 —47,8 frente a 98,5—, y son casi justo los 56 que le
+        faltan a A2 para caber: <b>C2 + A2 son 638,9</b> y también entran. <b>Cuesta</b> la mitad del sitio
+        donde tocar: los dos
+        valores comparten un blanco de 45,8, así que cambiar de pagador y cambiar de reparto son el mismo gesto
+        y llevan a la misma pantalla. <b>Lo paga</b> quien solo quería cambiar el pagador.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">Nada en la ficha simple</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">Se guarda con los valores por defecto y quien quiera otra cosa entra en «Detalles».</p>
+      <p class="coste"><b>Cuesta</b> lo mismo que costaba la hoja de sincronización callada: un valor por
+        defecto invisible <b>se lee como que no hay valor</b>. El día que alguien pague con la tarjeta de otra
+        familia, el gasto se guardará mal y nadie lo verá hasta Saldos.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE CUATRO ══════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte cuatro · por dónde se entra en «Detalles»</div>
+    <p class="parte-intro">En Detalles viven <b>la descripción</b>, <b>la fecha</b>, <b>la moneda y el tipo de
+      cambio</b> y <b>el reparto fino</b> de la parte cinco. Son cuatro cosas que casi nunca se tocan y que, cuando
+      se tocan, se tocan con calma y sentado. La pregunta es si comparten pantalla con el pad o no.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro alto" data-medir="D1"><div class="velo">
+          <div class="mod" data-medir="D1-mod" style="max-height:658px; overflow:hidden">
+            <div class="cifra">24,30 <span class="eur">€</span></div>
+            <div class="pad c3" style="margin-top:6px">
+              <div class="tec op">+</div><div class="tec op">−</div><div class="tec op">⌫</div>
+              <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
+              <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
+            </div>
+            <div class="btn-fino" style="margin-top:12px">▾ Detalles</div>
+            <div class="rot">Descripción</div><div class="campo">Hielo y birras</div>
+            <div class="rot">Fecha</div><div class="campo">8 ago 2026</div>
+            <div class="rot">Moneda</div><div class="campo">€ EUR</div>
+          </div>
+        </div></div>
+        <p class="pie-tel">D1 · acordeón: el modal crece y hace scroll</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto" data-medir="D2"><div class="velo">
+          <div class="mod" data-medir="D2-mod">
+            <div class="cab"><h4>Detalles</h4><div class="x">×</div></div>
+            <div class="rot">Descripción <span style="font-weight:500; opacity:.7">(opcional)</span></div>
+            <div class="campo">Hielo y birras</div>
+            <div class="rot">Cuándo</div><div class="campo">8 ago 2026 · 19:40</div>
+            <div class="rot">Cómo se reparte</div>
+            <div class="chips"><div class="chip on">Peso</div><div class="chip">Partes</div><div class="chip">Importes</div></div>
+            <div class="caja-reng" style="margin-top:10px">
+              <div class="reng"><span class="k">García</span><span class="v">10,40 €</span></div>
+              <div class="reng"><span class="k">Pérez</span><span class="v">10,40 €</span></div>
+              <div class="reng"><span class="k">Solteros</span><span class="v">3,50 €</span></div>
+            </div>
+            <div class="rot">Moneda</div><div class="campo">€ EUR · cambio 1,0000</div>
+            <div class="btn-block" style="margin-top:16px">Hecho</div>
+          </div>
+        </div></div>
+        <p class="pie-tel">D2 · segunda capa entera, se vuelve con «Hecho»</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto" data-medir="D3"><div class="velo">
+          <div class="mod" data-medir="D3-mod">
+            <div class="chips" style="justify-content:center; margin-bottom:10px">
+              <div class="chip on">Rápido</div><div class="chip">Detalles</div>
+            </div>
+            <div class="cifra">24,30 <span class="eur">€</span></div>
+            <div class="pad c3" style="margin-top:6px">
+              <div class="tec op">+</div><div class="tec op">−</div><div class="tec op">⌫</div>
+              <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div>
+              <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div>
+              <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div>
+              <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div>
+            </div>
+            <div class="btn-block" style="margin-top:14px">Guardar gasto</div>
+          </div>
+        </div></div>
+        <p class="pie-tel">D3 · un mando arriba: Rápido ⇄ Detalles</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto" data-medir="D4"><div class="velo">
+          <div class="mod" data-medir="D4-mod">
+            <div class="caja-reng" style="margin-bottom:12px">
+              <div class="reng"><span class="k">Importe</span><span class="v" style="font-size:var(--t-title)">24,30 € <span class="fle">›</span></span></div>
+            </div>
+            <div class="rot">Descripción <span style="font-weight:500; opacity:.7">(opcional)</span></div>
+            <div class="campo">Hielo y birras</div>
+            <div class="rot">Cuándo</div><div class="campo">8 ago 2026 · 19:40</div>
+            <div class="rot">Cómo se reparte</div>
+            <div class="chips"><div class="chip on">Peso</div><div class="chip">Partes</div><div class="chip">Importes</div></div>
+            <div class="rot">Moneda</div><div class="campo">€ EUR · cambio 1,0000</div>
+            <div class="btn-block" style="margin-top:16px">Guardar gasto</div>
+          </div>
+        </div></div>
+        <p class="pie-tel">D4 · Detalles sustituye al pad; la cifra sube a un renglón</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">Segunda capa entera, y se vuelve con «Hecho»</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">«Detalles» abre <b>otra capa</b> sobre la ficha —<code>.modal.capa</code>, la que ya
+        existe desde <code>plan-voto.html</code>— con la ficha larga entera y su propio botón. La ficha rápida
+        <b>no cambia de tamaño nunca</b>: mide siempre lo mismo, se abra o no se abra Detalles. Y como es una
+        pantalla aparte, ahí sí puede haber teclado: la descripción se escribe con el alfabético del sistema,
+        que es lo suyo cuando se escribe una palabra.</p>
+      <p class="coste"><b>Cuesta</b> una capa sobre otra capa —dos velos—, volver es un toque más y la propia
+        pantalla de Detalles mide <b>678,5</b>, o sea que <b>hace scroll</b> (20,5 por encima del tope). Ahí sí
+        se acepta: es un formulario largo que se rellena sentado y con teclado. <b>Compra</b> que el camino
+        normal sea de altura fija y previsible, que es lo que permite aprender dónde cae cada tecla sin mirar.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">Acordeón dentro de la misma ficha</span></div>
+      <p class="op-idea">Lo que ya hace Ajustes: <code>&lt;details&gt;</code> nativo, todo plegado. Una sola
+        pantalla, sin capas.</p>
+      <p class="coste"><b>Cuesta</b> que la ficha pase de 633,6 a <b>1.229,7</b> al abrirlo —la ficha rápida
+        más los 596,1 de Detalles, las dos piezas medidas—, y como el tope es 658, el pad se va hacia arriba
+        y desaparece de la vista mientras
+        escribes. <b>Lo paga</b> quien abre Detalles para cambiar una coma y pierde de vista el importe.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">Un mando arriba: Rápido ⇄ Detalles</span></div>
+      <p class="op-idea">El mando de <code>SubNav</code>, que ya se usa en las cinco secciones. Dos caras de la
+        misma ficha, sin capas y sin crecer.</p>
+      <p class="coste"><b>Cuesta 54,3 pt</b> permanentes en la cara rápida —el mando se ve siempre, aunque no
+        se use nunca, y son los mismos 54 que le faltan a A4— y anuncia arriba del todo que hay dos modos, que
+        es justo lo que se quiere que no parezca. <b>Compra</b> simetría: ir y volver es el mismo gesto.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D4</span><span class="op-nombre">Detalles sustituye al pad en la misma ficha</span></div>
+      <p class="op-idea">El pad se va, la cifra sube a un renglón tocable y debajo aparece el formulario largo.
+        Ni capa ni acordeón: la misma ventana, otro contenido.</p>
+      <p class="coste"><b>Cuesta</b> que el importe deje de ser editable donde estaba —hay que volver a
+        Rápido— y que la ficha cambie de alto (de 633,6 a 553,3). <b>Compra</b> no tener dos velos y quedarse
+        <b>por debajo del tope</b>, que es lo único en lo que le gana a D2. Es D2 sin la capa; si dos velos
+        molestan al verlo en el móvil, esta es la de recambio.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE CINCO ═══════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte cinco · porcentajes e importes concretos: qué se guarda de verdad</div>
+    <p class="parte-intro">Esta es la única parte que <b>toca los datos</b>, y por eso va aparte. Hoy un gasto
+      guarda <code>participantIds</code> —una lista de personas— y el reparto sale de multiplicar por el
+      <b>peso</b> de cada una (1 el adulto, 0,6 el niño) en <code>lib/reparto.js</code>. Con eso se puede
+      decir <i>quién entra</i>, pero no <i>cuánto</i>: «la mitad Pérez y la otra mitad entre los demás» no
+      cabe. Las cuatro opciones son cuatro formas de que quepa, y no son equivalentes: dos pierden céntimos
+      y dos no.</p>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E1</span><span class="op-nombre">Lo que hay: personas y pesos</span><span class="etq base">hoy</span></div>
+      <pre class="cod">participantIds: ['p_curro','p_marta','p_fran','p_ana','p_luis','p_pablo']</pre>
+      <p class="coste"><b>No llega.</b> Todo lo que no sea «entra o no entra» es inexpresable. Se queda como
+        <b>el caso por defecto</b> de las tres de abajo, que es lo que tiene de bueno: el 95 % de los gastos
+        se seguirán guardando exactamente así.</p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">E2</span><span class="op-nombre">Un campo <code>reparto</code> con tres modos, y los importes en céntimos</span><span class="etq rec">recomendada</span></div>
+      <pre class="cod">reparto: { modo: 'pesos' }                                  <b>← lo de siempre, y lo que se guarda si no tocas nada</b>
+reparto: { modo: 'partes',   porFamilia: { garcia: 2, perez: 1, solteros: 1 } }
+reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 350 } }</pre>
+      <p class="op-idea">Un campo nuevo, tres modos, y <b>los tres reparten por familia</b> —que es donde
+        acaba el saldo de todas formas—. En <code>modo: 'importes'</code> los números son <b>céntimos enteros</b>
+        y se valida que sumen el total: el último renglón se autocompleta con lo que falte, así que nunca se
+        guarda un gasto descuadrado. En <code>modo: 'partes'</code> se reutiliza <code>splitCents()</code> tal
+        cual —el mismo método del resto mayor que ya reparte por pesos—, así que <b>no se pierde ni un
+        céntimo</b> y no hay código nuevo de aritmética.</p>
+      <p class="coste"><b>Cuesta</b> una columna en D1 (<code>reparto</code>, JSON, declarada en
+        <code>api/src/tablas.js</code>), una migración de las que ya se aplican desde Ajustes → Actualizar
+        (§14.23) y una rama en <code>expensePersonShares()</code>. <b>Compra</b> que
+        <code>participantIds</code> siga significando lo mismo y que un cliente viejo que no entienda
+        <code>reparto</code> siga leyendo el gasto —repartirá por pesos, que es el modo por defecto—.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E3</span><span class="op-nombre">Porcentajes guardados como porcentajes</span></div>
+      <pre class="cod">reparto: { modo: 'porcentaje', porFamilia: { garcia: 42.8, perez: 42.8, solteros: 14.4 } }</pre>
+      <p class="coste"><b>Cuesta el céntimo.</b> 42,8 % de 24,30 € son 10,4004 €, y hay que redondear en cada
+        lectura: dos móviles con el mismo hecho pueden pintar saldos distintos si alguien cambia el método de
+        redondeo, y eso rompe la regla de oro (los hechos se sincronizan, los saldos se calculan y
+        <b>tienen que salir iguales</b>). <b>La forma buena de tener porcentajes</b> es escribirlos en la
+        pantalla y guardarlos ya convertidos a céntimos: eso es E2 con un teclado de <code>%</code> delante.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E4</span><span class="op-nombre">Pesos por persona, editables en el gasto</span></div>
+      <pre class="cod">participantes: [{ id: 'p_curro', peso: 1 }, { id: 'p_fran', peso: 0.5 }, …]</pre>
+      <p class="op-idea">En vez de repartir por familia, se deja tocar el peso de cada persona <b>en ese gasto</b>.
+        Es la extensión mínima de lo que ya hay.</p>
+      <p class="coste"><b>Cuesta</b> seis renglones para tres familias y pide una decisión por persona cuando
+        la conversación real es «esta cena la pagamos a medias los Pérez». <b>Y no resuelve el encargo</b>:
+        «importes concretos» sigue sin caber, porque un peso no es un euro.</p>
+    </div>
+
+    <p class="coste" style="margin-top:4px"><b>Lo que arrastra E2, escrito para que no sorprenda:</b> Estadísticas
+      (<code>lib/stats.js</code>) reparte por persona para sacar el gasto por familia, así que en modo
+      <code>importes</code> tiene que leer el reparto guardado en vez de calcularlo; y la lista de la compra no
+      se toca, porque no mira gastos.</p>
+  </div>
+
+  <!-- ══ LA COMBINACIÓN ════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">La combinación · A1 con B3, C1, D2 y E2</div>
+    <p class="parte-intro">Así queda la ficha rápida entera, dibujada en las dos caras y a tamaño real. Sin
+      teclado del sistema, sin scroll y con los dos valores por defecto a la vista. <b>Siete toques y ninguna
+      letra</b> para el gasto de siempre: el «+ Gasto», 2 · 4 · 3 · 0, la categoría y guardar. Fíjate en que
+      <b>no hay título</b>: el título de esta ficha es la cifra, y quitarlo es lo que dejó sitio para que el
+      pad y el botón convivan. «Detalles» ocupa el hueco de la izquierda del aspa.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro alto" data-medir="FIN-o"><div class="velo">
+          <div class="mod" data-medir="FIN-mod">
+            <div class="cab-fina"><span class="det">Detalles ›</span><span class="x" style="font-size:26px; opacity:.6">×</span></div>
+            <div class="cinta"><b>18,40</b> + 5,90</div>
+            <div class="cifra">24,30 <span class="eur">€</span></div>
+            <div class="pad c4" style="margin-top:6px">
+              <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div><div class="tec op">⌫</div>
+              <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div><div class="tec op">+</div>
+              <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div><div class="tec op">−</div>
+              <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
+            </div>
+            <div class="cats" style="margin-top:14px">
+              <div class="cat" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
+              <div class="cat" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
+              <div class="cat on" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
+              <div class="cat" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
+              <div class="cat" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
+            </div>
+            <div class="caja-reng" style="margin-top:12px">
+              <div class="reng"><span class="k">Paga</span><span class="v">García <span class="fle">›</span></span></div>
+              <div class="reng"><span class="k">Entre</span><span class="v">todos (6) <span class="fle">›</span></span></div>
+            </div>
+            <div class="btn-block" style="margin-top:12px">Guardar gasto</div>
+          </div>
+        </div></div>
+        <p class="pie-tel">La ficha rápida · cara oscura</p>
+      </div>
+
+      <div>
+        <div class="tel claro alto" data-medir="FIN-c"><div class="velo" style="background:rgba(16,42,55,.42)">
+          <div class="mod" data-medir="FIN-mod-c">
+            <div class="cab-fina"><span class="det">Detalles ›</span><span class="x" style="font-size:26px; opacity:.6">×</span></div>
+            <div class="cinta"><b>18,40</b> + 5,90</div>
+            <div class="cifra">24,30 <span class="eur">€</span></div>
+            <div class="pad c4" style="margin-top:6px">
+              <div class="tec">1</div><div class="tec">2</div><div class="tec">3</div><div class="tec op">⌫</div>
+              <div class="tec">4</div><div class="tec">5</div><div class="tec">6</div><div class="tec op">+</div>
+              <div class="tec">7</div><div class="tec">8</div><div class="tec">9</div><div class="tec op">−</div>
+              <div class="tec op">C</div><div class="tec">0</div><div class="tec">00</div><div class="tec igual">=</div>
+            </div>
+            <div class="cats" style="margin-top:14px">
+              <div class="cat" data-cat="compra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>Compra</div>
+              <div class="cat" data-cat="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Comida</div>
+              <div class="cat on" data-cat="bebida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg>Bebida</div>
+              <div class="cat" data-cat="restaurante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg>Resta.</div>
+              <div class="cat" data-cat="varios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg>Varios</div>
+            </div>
+            <div class="caja-reng" style="margin-top:12px">
+              <div class="reng"><span class="k">Paga</span><span class="v">García <span class="fle">›</span></span></div>
+              <div class="reng"><span class="k">Entre</span><span class="v">todos (6) <span class="fle">›</span></span></div>
+            </div>
+            <div class="btn-block" style="margin-top:12px">Guardar gasto</div>
+          </div>
+        </div></div>
+        <p class="pie-tel">La ficha rápida · cara clara</p>
+      </div>
+    </div>
+
+    <p class="medida"><b>Ficha</b> 633,6 pt · <b>tope del modal centrado</b> 658 pt (78 vh) ·
+      <span class="bien">cabe con 24,4 pt de sobra, sin scroll y sin teclado</span> ·
+      <b>antes</b> 830,6 pt con 508 de ventana</p>
+    <p class="coste">Los 24,4 pt de margen son <b>poco</b>, y conviene decirlo antes de que muerda: en
+      «Enorme» (×1,26) el texto crece un 12,5 %, y si el pad se queda clavado en 216 la ficha se va a
+      <b>685,8</b> —los 417,6 de todo lo demás pasan a 469,8—. Dos salidas, y las dos valen:
+      que el <b>alto de la tecla cuelgue de <code>--escala</code></b> como todo lo demás —48 pt son 48 porque
+      el cuerpo va a 17×1,12, no porque sí—, o dejar que en «Enorme» la ficha haga scroll, que es la única
+      talla donde pasaría. Lo que <b>no</b> se puede es dejar el 48 clavado en píxeles: eso es exactamente lo
+      que <code>src/estilos.test.js</code> para en seco.</p>
+
+    <div class="tabla-scroll">
+    <table class="comp">
+      <tr><th>Lo que se hace</th><th>Hoy</th><th>Con la combinación</th></tr>
+      <tr><td>Apuntar 24,30 de bebida</td><td>escribir descripción · abrir teclado · teclear importe · elegir categoría · scroll · guardar</td><td class="si">2·4·3·0 · Bebida · Guardar</td></tr>
+      <tr><td>Dos tickets, 18,40 y 5,90</td><td class="no">sumarlos de cabeza o salir a la calculadora</td><td class="si">1·8·4·0 · + · 5·9·0</td></tr>
+      <tr><td>Que pague tu familia</td><td class="no">cambiar el <code>select</code>, que arranca en García</td><td class="si">ya está puesto</td></tr>
+      <tr><td>Dividir entre todos</td><td>ya está puesto, pero ocupa 134,2 pt de pastillas</td><td class="si">un renglón de 44</td></tr>
+      <tr><td>La mitad los Pérez</td><td class="no">no se puede</td><td class="si">Detalles → Importes</td></tr>
+      <tr><td>Escribir el porqué de un gasto</td><td>obligatorio</td><td>Detalles → Descripción</td></tr>
+    </table>
+    </div>
+  </div>
+
+  <!-- ══ CIERRE ════════════════════════════════════════════════════════════ -->
+  <div class="cierre">
+    <h2>Lo que hay que decidir, y en qué orden</h2>
+    <p>Las cinco partes son independientes salvo una atadura: <b>la parte cinco (E2) es la única que toca la
+      base de datos</b>, así que se puede dejar para una segunda vuelta sin bloquear nada. Si lo que se quiere
+      es tener la pantalla rápida este fin de semana, se hace A1 + B3 + C1 + D2 y «Detalles» abre sin el
+      reparto fino.</p>
+    <ol>
+      <li><b>Parte uno</b> — <b>A1</b> · A2 · A3 · A4 · A5 &nbsp;(A2 solo si además va C2, que es lo que le paga los 56 pt)</li>
+      <li><b>Parte dos</b> — B1 · B2 · <b>B3</b> · B4 &nbsp;(B3 + el subtítulo de B2 es la combinación buena)</li>
+      <li><b>Parte tres</b> — <b>C1</b> · C2 · C3 · C4</li>
+      <li><b>Parte cuatro</b> — D1 · <b>D2</b> · D3 · D4</li>
+      <li><b>Parte cinco</b> — E1 · <b>E2</b> · E3 · E4 &nbsp;(o «esta vuelta no»)</li>
+    </ol>
+    <p><b>Lo que arrastra la vuelta entera:</b> <code>ExpensesScreen.jsx</code> se parte en tres
+      (<code>FichaDeGasto</code>, <code>PadDeImporte</code>, <code>DetallesDeGasto</code>);
+      <code>lib/importe.js</code> nuevo y puro con la máquina de sumar y restar, con su test; el spec gana una
+      §14.26 y esta hoja se cita por nombre y código; y <code>ExpensesScreen.test.jsx</code> pasa de 84 líneas
+      a cubrir el pad, los valores por defecto y el reparto fino. Nada de esto viaja fuera de la PWA salvo E2,
+      que pide migración en D1 y sale por el camino de Ajustes → Actualizar.</p>
+  </div>
+
+</div>
+</div>

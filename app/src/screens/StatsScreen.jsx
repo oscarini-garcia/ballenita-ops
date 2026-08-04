@@ -5,7 +5,7 @@ import {
 } from '../db.js'
 import { computeStats } from '../lib/stats.js'
 import { formatCents } from '../lib/money.js'
-import { CATEGORIES } from './ExpensesScreen.jsx'
+import { CATEGORIES } from '../lib/categorias.js'
 
 const catLabel = (id) => CATEGORIES.find((c) => c.id === id)?.label ?? id
 

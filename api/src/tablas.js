@@ -47,11 +47,18 @@ export const TABLAS = {
     booleanos: ['comeConMayores', 'cuentaComoAdultoReparto'],
   },
   expenses: {
+    // `reparto` es cómo se divide el gasto cuando no basta con «quién entra»
+    // (§14.26): `{ modo: 'partes' | 'importes', porFamilia: {...} }`. Nulo —que
+    // es lo que llevan los gastos de siempre— significa reparto por pesos, así
+    // que un cliente que no lo entienda sigue leyendo el gasto y sacando la
+    // cuenta de antes. Los importes van en **céntimos enteros**, como todo el
+    // dinero de la casa: un porcentaje guardado obligaría a redondear en cada
+    // lectura y dos móviles con el mismo hecho podrían pintar saldos distintos.
     columnas: [
       'eventId', 'description', 'amountCents', 'currency', 'amountOriginal',
-      'rate', 'category', 'dateISO', 'payers', 'participantIds',
+      'rate', 'category', 'dateISO', 'payers', 'participantIds', 'reparto',
     ],
-    json: ['payers', 'participantIds'],
+    json: ['payers', 'participantIds', 'reparto'],
   },
   settlements: {
     columnas: ['eventId', 'dateISO', 'fromFamilyId', 'toFamilyId', 'amountCents'],
@@ -103,6 +110,16 @@ export const TABLAS = {
   },
 };
 
+/**
+ * Qué es «vacío» para cada campo JSON, que no siempre es una lista.
+ *
+ * Los votos de un plan vacíos son `{}` y no `[]`, y el `reparto` de un gasto
+ * vacío es **nulo**: null ahí significa «por pesos, como siempre», que es un
+ * valor con sentido y no la ausencia de uno. Devolver `[]` lo dejaría en un
+ * objeto sin `modo`, que funciona por accidente y no por diseño.
+ */
+const VACIO_JSON = { votos: {}, reparto: null };
+
 export const NOMBRES = Object.keys(TABLAS);
 
 export const existeTabla = (nombre) => Object.prototype.hasOwnProperty.call(TABLAS, nombre);
@@ -118,14 +135,15 @@ export function filaAObjeto(tabla, fila) {
   delete objeto.borrado;
 
   for (const campo of json) {
+    const vacio = campo in VACIO_JSON ? VACIO_JSON[campo] : [];
     if (objeto[campo] === null || objeto[campo] === undefined) {
-      objeto[campo] = campo === 'votos' ? {} : [];
+      objeto[campo] = vacio;
       continue;
     }
     try {
       objeto[campo] = JSON.parse(objeto[campo]);
     } catch {
-      objeto[campo] = campo === 'votos' ? {} : [];
+      objeto[campo] = vacio;
     }
   }
 

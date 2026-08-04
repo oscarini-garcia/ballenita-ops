@@ -3,6 +3,7 @@ import {
   splitCents,
   computeFamilyBalances,
   simplifyDebts,
+  expenseFamilyShares,
 } from './reparto.js'
 
 describe('splitCents — reparto del sobrante', () => {
@@ -109,5 +110,106 @@ describe('simplifyDebts', () => {
     expect(t).toHaveLength(2)
     expect(t.every((x) => x.toFamilyId === 'c')).toBe(true)
     expect(t.reduce((s, x) => s + x.amountCents, 0)).toBe(5000)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// El reparto fino de un gasto (SPECS §14.26 · `docs/diseño/gasto-nuevo.html` E2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GENTE = {
+  g1: { familyId: 'garcia', pesoReparto: 1 },
+  g2: { familyId: 'garcia', pesoReparto: 1 },
+  n1: { familyId: 'garcia', pesoReparto: 0.6 },
+  p1: { familyId: 'perez', pesoReparto: 1 },
+}
+const TODOS = ['g1', 'g2', 'n1', 'p1']
+
+describe('expenseFamilyShares — los tres modos', () => {
+  it('sin `reparto` reparte por pesos y suma por familia, como siempre', () => {
+    const s = expenseFamilyShares(
+      { amountCents: 3600, participantIds: TODOS },
+      GENTE,
+    )
+    // Pesos 1 + 1 + 0,6 + 1 = 3,6 → 10 € el peso.
+    expect(s.get('garcia')).toBe(2600)
+    expect(s.get('perez')).toBe(1000)
+  })
+
+  it('`pesos` explícito es exactamente lo mismo', () => {
+    const conModo = expenseFamilyShares(
+      { amountCents: 3600, participantIds: TODOS, reparto: { modo: 'pesos' } },
+      GENTE,
+    )
+    expect([...conModo]).toEqual([...expenseFamilyShares({ amountCents: 3600, participantIds: TODOS }, GENTE)])
+  })
+
+  it('`partes`: la mitad los Pérez, sin mirar quién viene', () => {
+    const s = expenseFamilyShares({
+      amountCents: 2430,
+      participantIds: TODOS,
+      reparto: { modo: 'partes', porFamilia: { garcia: 1, perez: 1 } },
+    }, GENTE)
+    expect(s.get('garcia') + s.get('perez')).toBe(2430)
+    expect([...s.values()].sort()).toEqual([1215, 1215])
+  })
+
+  it('`partes` no pierde ni inventa céntimos con un reparto imposible', () => {
+    const s = expenseFamilyShares({
+      amountCents: 1000,
+      reparto: { modo: 'partes', porFamilia: { a: 1, b: 1, c: 1 } },
+    }, {})
+    expect([...s.values()].reduce((x, y) => x + y, 0)).toBe(1000)
+  })
+
+  it('`importes` devuelve exactamente lo escrito cuando cuadra', () => {
+    const s = expenseFamilyShares({
+      amountCents: 2430,
+      reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 350 } },
+    }, {})
+    expect(s.get('garcia')).toBe(1040)
+    expect(s.get('perez')).toBe(1040)
+    expect(s.get('solteros')).toBe(350)
+  })
+
+  it('y si el importe del gasto se corrige después, reparte la diferencia sin perder céntimos', () => {
+    const s = expenseFamilyShares({
+      amountCents: 2640, // se corrigió de 24,30 a 26,40 y nadie tocó el reparto
+      reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 350 } },
+    }, {})
+    expect([...s.values()].reduce((x, y) => x + y, 0)).toBe(2640)
+    expect(s.get('garcia')).toBeGreaterThan(1040)
+  })
+
+  it('un reparto a medio escribir se cae al modo por defecto en vez de tragarse el gasto', () => {
+    const s = expenseFamilyShares({
+      amountCents: 3600,
+      participantIds: TODOS,
+      reparto: { modo: 'importes', porFamilia: { garcia: 0, perez: 0 } },
+    }, GENTE)
+    expect(s.get('garcia')).toBe(2600)
+    expect(s.get('perez')).toBe(1000)
+  })
+})
+
+describe('los saldos leen el reparto guardado', () => {
+  it('«la mitad los Pérez» cambia el saldo, aunque los Pérez sean uno de cuatro', () => {
+    const bal = computeFamilyBalances([{
+      amountCents: 2000,
+      payers: [{ familyId: 'garcia', amountCents: 2000 }],
+      participantIds: TODOS,
+      reparto: { modo: 'partes', porFamilia: { garcia: 1, perez: 1 } },
+    }], [], GENTE)
+    expect(bal.get('garcia')).toBe(1000)
+    expect(bal.get('perez')).toBe(-1000)
+  })
+
+  it('y cada gasto suma cero, que es la guardia de siempre', () => {
+    const bal = computeFamilyBalances([{
+      amountCents: 2430,
+      payers: [{ familyId: 'perez', amountCents: 2430 }],
+      reparto: { modo: 'importes', porFamilia: { garcia: 1040, perez: 1040, solteros: 350 } },
+    }], [], GENTE)
+    expect([...bal.values()].reduce((x, y) => x + y, 0)).toBe(0)
   })
 })

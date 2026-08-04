@@ -62,6 +62,32 @@ test('un campo JSON ausente vuelve con su forma vacía, no como null', () => {
 });
 
 // ---------------------------------------------------------------------------
+// El reparto fino de un gasto (§14.26 · docs/diseño/gasto-nuevo.html · E2)
+// ---------------------------------------------------------------------------
+
+test('el reparto de un gasto viaja como JSON y vuelve entero', () => {
+  const reparto = { modo: 'importes', porFamilia: { fam_garcia: 1040, fam_perez: 350 } };
+  const columnas = objetoAColumnas('expenses', { ...GASTO, reparto });
+  assert.equal(typeof columnas.reparto, 'string');
+  assert.deepEqual(filaAObjeto('expenses', { id: 'exp_1', ...columnas }).reparto, reparto);
+});
+
+test('sin reparto vuelve nulo, que significa «por pesos» y no «una lista vacía»', () => {
+  const gasto = filaAObjeto('expenses', { id: 'exp_1', reparto: null });
+  assert.equal(gasto.reparto, null, 'null ahí es un valor con sentido: el reparto de siempre');
+});
+
+test('un gasto con reparto sobrevive al viaje de ida y vuelta por D1', async () => {
+  const db = baseDePrueba();
+  const reparto = { modo: 'partes', porFamilia: { fam_garcia: 2, fam_perez: 1 } };
+  await aplicarCambio(db, upsert('expenses', 'exp_r', { ...GASTO, reparto }, '2026-08-09T10:00:00.000Z'));
+
+  const { tables } = await leerInstantanea(db);
+  const guardado = tables.expenses.find((e) => e.id === 'exp_r');
+  assert.deepEqual(guardado.reparto, reparto);
+});
+
+// ---------------------------------------------------------------------------
 // Escritura
 // ---------------------------------------------------------------------------
 

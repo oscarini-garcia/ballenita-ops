@@ -24,15 +24,22 @@
      los saldos, y lo llevan porque **informa**: en una lista larga se distingue
      la compra de las cañas sin leer.
 
-     Están igualados a mano, no elegidos a ojo: contraste entre 4,3 y 4,8:1 aquí
-     y entre 5,3 y 6,0:1 en oscuro, con las luminancias de los trazos dentro de un
-     margen de 0,06. Así ninguno grita por encima de otro, que es lo que hacían
-     los emoji a los que sustituyen. */
-  --cat-bebida: #8a6c2c;      --cat-bebida-bg: #f6efdf;
-  --cat-compra: #3c7359;      --cat-compra-bg: #e2efe7;
-  --cat-comida: #9c5844;      --cat-comida-bg: #f7e8e2;
-  --cat-restaurante: #3f6b91; --cat-restaurante-bg: #e5edf4;
-  --cat-varios: #5b6b76;      --cat-varios-bg: #eceff1;
+     Subieron de saturación en §14.26: los cinco de antes eran el mismo tono
+     apagado con la temperatura movida —«varios» era gris de oficina— y en una
+     rejilla de cinco casillas juntas, que es como se ven ahora en la ficha, eso
+     no se lee como una paleta sino como una avería. Ahora son cinco colores de
+     verdad, y uno es morado porque es el único hueco que quedaba libre entre el
+     azul del acento y el rojo y el verde de los saldos.
+
+     Siguen igualados a mano y no elegidos a ojo: el trazo contra su propio
+     fondo va de 4,57 a 5,56:1 en la cara clara y de 5,89 a 8,49:1 en la oscura,
+     medido. Así ninguno grita por encima de otro, que es lo que hacían los
+     emoji a los que sustituyen. */
+  --cat-bebida: #8f6400;      --cat-bebida-bg: #fdefcc;
+  --cat-compra: #0a6b4c;      --cat-compra-bg: #d8f2e6;
+  --cat-comida: #ab3a14;      --cat-comida-bg: #ffe4d8;
+  --cat-restaurante: #0a6bb8; --cat-restaurante-bg: #dbecfc;
+  --cat-varios: #5f3ecb;      --cat-varios-bg: #e9e3ff;
 
   --r: 9px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -82,11 +89,11 @@
     --owe: #d97b6c; --owe-bg: #35211c; --owed: #6aab8b; --owed-bg: #16311f;
     --appbar-bg: #081821;
 
-    --cat-bebida: #c9a768;      --cat-bebida-bg: #3a2f1a;
-    --cat-compra: #6fb392;      --cat-compra-bg: #16311f;
-    --cat-comida: #d1907c;      --cat-comida-bg: #35211c;
-    --cat-restaurante: #7ba6cc; --cat-restaurante-bg: #17303f;
-    --cat-varios: #95a8b5;      --cat-varios-bg: #23292e;
+    --cat-bebida: #f5c542;      --cat-bebida-bg: #3a2f14;
+    --cat-compra: #4fd3a0;      --cat-compra-bg: #12362a;
+    --cat-comida: #ff9d63;      --cat-comida-bg: #3a2119;
+    --cat-restaurante: #5cc2f0; --cat-restaurante-bg: #12303f;
+    --cat-varios: #b49bf7;      --cat-varios-bg: #262046;
   }
 }
 
@@ -103,11 +110,11 @@
   --owe: #a8443a; --owe-bg: #f7e6e3; --owed: #2f7a5c; --owed-bg: #e0f0e8;
   --appbar-bg: #0b1f2c;
 
-  --cat-bebida: #8a6c2c;      --cat-bebida-bg: #f6efdf;
-  --cat-compra: #3c7359;      --cat-compra-bg: #e2efe7;
-  --cat-comida: #9c5844;      --cat-comida-bg: #f7e8e2;
-  --cat-restaurante: #3f6b91; --cat-restaurante-bg: #e5edf4;
-  --cat-varios: #5b6b76;      --cat-varios-bg: #eceff1;
+  --cat-bebida: #8f6400;      --cat-bebida-bg: #fdefcc;
+  --cat-compra: #0a6b4c;      --cat-compra-bg: #d8f2e6;
+  --cat-comida: #ab3a14;      --cat-comida-bg: #ffe4d8;
+  --cat-restaurante: #0a6bb8; --cat-restaurante-bg: #dbecfc;
+  --cat-varios: #5f3ecb;      --cat-varios-bg: #e9e3ff;
 }
 :root[data-tema="oscuro"] {
   --foam: #0b1f2c; --foam-2: #14303f;
@@ -118,11 +125,11 @@
   --owe: #d97b6c; --owe-bg: #35211c; --owed: #6aab8b; --owed-bg: #16311f;
   --appbar-bg: #081821;
 
-  --cat-bebida: #c9a768;      --cat-bebida-bg: #3a2f1a;
-  --cat-compra: #6fb392;      --cat-compra-bg: #16311f;
-  --cat-comida: #d1907c;      --cat-comida-bg: #35211c;
-  --cat-restaurante: #7ba6cc; --cat-restaurante-bg: #17303f;
-  --cat-varios: #95a8b5;      --cat-varios-bg: #23292e;
+  --cat-bebida: #f5c542;      --cat-bebida-bg: #3a2f14;
+  --cat-compra: #4fd3a0;      --cat-compra-bg: #12362a;
+  --cat-comida: #ff9d63;      --cat-comida-bg: #3a2119;
+  --cat-restaurante: #5cc2f0; --cat-restaurante-bg: #12303f;
+  --cat-varios: #b49bf7;      --cat-varios-bg: #262046;
 }
 
 /* Las tres tallas. La de fábrica es **Grande** y por eso su ×1,12 vive arriba,
@@ -1220,3 +1227,101 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    del arreglo con IA (§14.20-bis · R1), y tiene que estar a mano sin gritar. */
 .como-enlace { background: none; border: none; padding: 0; font: inherit;
   color: var(--spout-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+
+/* ── La ficha de un gasto (SPECS §14.26 · docs/diseño/gasto-nuevo.html) ───────
+   A1 · B3 · C1 · D2 · E2. La ficha de antes medía 830,6 pt en un teléfono de
+   844 y abría el teclado alfabético sola: con el teclado puesto quedaban 508 de
+   ventana, o sea que se veía el 61 % y había que hacer scroll dentro de un modal
+   para llegar a Guardar. Esta mide 633,6 sobre un tope de 658 y no abre teclado
+   del sistema en el camino normal.
+
+   Los 24,4 pt de margen son pocos, y por eso **el alto de la tecla cuelga de
+   `--escala`** como todo lo demás: 48 pt son 48 porque el cuerpo va a 17 × 1,12,
+   no porque sí. En «Enorme» crecen con la letra y la ficha hace scroll, que es
+   la única talla donde pasa. */
+.ficha-gasto { display: flex; flex-direction: column; }
+
+/* La cabecera fina: 30 pt y sin título, porque el título de esta ficha es la
+   cifra. Quitarlo es lo que dejó sitio para que el pad y el botón convivan. */
+.cab-fina { display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
+.cab-fina .x { float: none; }
+.paso-detalles { background: none; border: none; padding: 4px 2px; font: inherit;
+  font-size: var(--t-sub); font-weight: 600; color: var(--spout-deep); cursor: pointer; }
+
+/* ── El pad (A1) ──────────────────────────────────────────────────────────── */
+.pad-importe { display: flex; flex-direction: column; }
+/* La cinta ocupa su sitio esté o no esté escrita: si apareciera al tocar `+`,
+   el pad entero bajaría 26 pt en mitad de la operación y la tecla que ibas a
+   pulsar dejaría de estar donde la habías mirado. */
+.pad-cinta { min-height: calc(var(--t-sub) * 1.45); text-align: right; padding: 0 4px;
+  font-size: var(--t-sub); font-variant-numeric: tabular-nums; color: var(--ink-faint); }
+.pad-cifra { display: flex; align-items: baseline; justify-content: flex-end; gap: 6px;
+  padding: 4px 4px 2px; font-size: var(--t-hero); font-weight: 700; letter-spacing: -.02em; }
+.pad-cifra .mon { font-size: var(--t-title); color: var(--ink-faint); font-weight: 600; }
+.pad-teclas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+.tec { min-height: calc(43px * var(--escala)); border-radius: var(--r); cursor: pointer;
+  background: var(--foam); border: 1px solid var(--line); color: var(--ink);
+  font-family: inherit; font-size: var(--t-title); font-weight: 600; }
+.tec:active { transform: translateY(1px); }
+.tec.op { font-weight: 700; color: var(--spout-deep);
+  background: color-mix(in srgb, var(--spout) 12%, var(--foam)); }
+/* `=` puede ser la tecla de acento sin mentir: la cifra grande ya es el total en
+   vivo, así que confirmar no revela nada que no estuviera puesto. */
+.tec.igual { background: var(--spout); border-color: var(--spout); color: var(--foam-2); }
+
+/* ── Las cinco categorías, en una rejilla de casillas ─────────────────────────
+   Con su tono **siempre puesto**, no solo la elegida: cinco casillas grises con
+   una azul son un formulario, y esto es lo único de la app que lleva color
+   porque informa. La elegida sube el fondo a su propio tono y engorda el borde,
+   que es lo que distingue «marcada» de «existe» sin repetir el azul del acento
+   en la única rejilla donde no significaría nada. */
+.cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 14px; }
+.cat { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+  padding: 7px 2px 6px; border-radius: var(--r); border: 1px solid var(--line);
+  background: var(--foam); font-family: inherit; font-size: var(--t-micro); font-weight: 550;
+  color: var(--ink-soft); text-align: center; line-height: 1.15; }
+.cat svg { width: 21px; height: 21px; display: block; }
+.cat[data-cat="bebida"]      { color: var(--cat-bebida); }
+.cat[data-cat="compra"]      { color: var(--cat-compra); }
+.cat[data-cat="comida"]      { color: var(--cat-comida); }
+.cat[data-cat="restaurante"] { color: var(--cat-restaurante); }
+.cat[data-cat="varios"]      { color: var(--cat-varios); }
+.cat.on { border-width: 2px; padding: 6px 1px 5px; font-weight: 700; }
+.cat.on[data-cat="bebida"]      { background: var(--cat-bebida-bg);      border-color: var(--cat-bebida); }
+.cat.on[data-cat="compra"]      { background: var(--cat-compra-bg);      border-color: var(--cat-compra); }
+.cat.on[data-cat="comida"]      { background: var(--cat-comida-bg);      border-color: var(--cat-comida); }
+.cat.on[data-cat="restaurante"] { background: var(--cat-restaurante-bg); border-color: var(--cat-restaurante); }
+.cat.on[data-cat="varios"]      { background: var(--cat-varios-bg);      border-color: var(--cat-varios); }
+
+/* ── «Paga» y «Entre» (C1) ───────────────────────────────────────────────────
+   Dos renglones que dicen lo que se va a guardar sin abrir nada y se tocan para
+   cambiarlo, en 98,5 pt frente a los 205,3 que gastaban un `select` y seis
+   pastillas. Lo que no se ve, no se corrige: un valor por defecto invisible se
+   lee como que no hay valor, y el día que alguien pague con la tarjeta de otra
+   familia el gasto se guarda mal y nadie lo ve hasta Saldos. */
+.caja-reng { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--foam); padding: 0 12px; }
+.reng { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; min-height: var(--toque); padding: 9px 0; cursor: pointer;
+  background: none; border: none; border-top: 1px solid var(--line-soft);
+  font-family: inherit; font-size: var(--t-row); color: inherit; text-align: left; }
+.reng:first-child { border-top: none; }
+.reng .k { font-weight: 550; color: var(--ink-soft); }
+.reng .v { display: flex; align-items: center; gap: 7px; font-weight: 600; min-width: 0; }
+.reng .fle { color: var(--ink-faint); }
+
+.guardar-gasto { margin-top: 12px; }
+.guardar-gasto:disabled { background: var(--line); color: var(--ink-faint); cursor: default; }
+.pista-gasto { margin: 6px 2px 0; text-align: center; }
+
+/* ── Detalles (D2), el reparto fino (E2) ─────────────────────────────────── */
+.reparto-familias { margin-top: 8px; }
+.reng-campo { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+.reng-campo label { flex: 1; min-width: 0; margin: 0; font-size: var(--t-row);
+  font-weight: 550; color: var(--ink); text-transform: none; }
+.reng-campo input { width: 104px; flex: none; text-align: right; padding: 8px 10px; }
+/* El último renglón no se teclea: lleva lo que falte, y por eso se ve como un
+   dato y no como una caja vacía esperando algo. */
+.reng-campo .resto { width: 104px; flex: none; text-align: right; padding: 8px 10px;
+  font-size: var(--t-body); font-weight: 600; color: var(--ink-soft); }

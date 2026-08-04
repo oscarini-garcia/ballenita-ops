@@ -463,4 +463,46 @@ CREATE TABLE IF NOT EXISTS mejoras (
 ALTER TABLE events ADD COLUMN cocina TEXT;
 `,
   },
+  {
+    id: '0012_reparto_del_gasto',
+    sql: `-- Cómo se reparte un gasto, cuando no basta con «quién entra».
+--
+-- Hasta ahora un gasto guardaba \`participantIds\` —una lista de personas— y el
+-- reparto salía de multiplicar por el **peso** de cada una (1 el mayor, 0,6 el
+-- niño) en \`app/src/lib/reparto.js\`. Con eso se puede decir *quién* entra, pero
+-- no *cuánto*: «la mitad los Pérez y la otra mitad entre los demás» no cabía en
+-- ningún sitio, y es una conversación que pasa cada agosto.
+--
+-- \`reparto\` es JSON y tiene tres formas:
+--
+--   NULL                                                    ← por pesos, lo de siempre
+--   {"modo":"partes",  "porFamilia":{"garcia":2,"perez":1}}
+--   {"modo":"importes","porFamilia":{"garcia":1040,"perez":350}}
+--
+-- **NULL es un valor con sentido**, no un hueco: significa «por pesos». Por eso
+-- la columna no lleva \`DEFAULT\` ni \`NOT NULL\`, y por eso los gastos ya apuntados
+-- no hay que tocarlos — siguen valiendo exactamente lo que valían. Un cliente
+-- viejo que no entienda la columna sigue leyendo el gasto y sacando la cuenta de
+-- antes; uno nuevo con un gasto viejo, también.
+--
+-- Los importes van en **céntimos enteros**, como todo el dinero de la casa.
+-- Guardar porcentajes habría sido más bonito de leer y habría costado el
+-- céntimo: 42,8 % de 24,30 € son 10,4004 €, y redondear en cada lectura rompe la
+-- regla de oro —los hechos se sincronizan, los saldos se calculan, y **tienen
+-- que salir iguales en todos los móviles**—.
+--
+-- Los tres modos pasan por \`splitCents()\`, que es el mismo método del resto
+-- mayor que ya repartía por pesos: no se pierde ni se inventa un céntimo, y no
+-- hay código nuevo de aritmética.
+--
+-- Ver SPECS §14.26 y \`docs/diseño/gasto-nuevo.html\` · E2.
+--
+-- Como las demás, no se toca \`0001_esquema.sql\`: aplicar todas las migraciones
+-- en orden tiene que reproducir producción (\`test/d1.js\`).
+--
+--   npm run migrar:remoto12
+
+ALTER TABLE expenses ADD COLUMN reparto TEXT;
+`,
+  },
 ];
