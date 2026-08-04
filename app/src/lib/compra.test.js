@@ -210,4 +210,39 @@ describe('los dos campos de la línea (§14.20-bis · U1)', () => {
       '1 kg de arroz', '30 mejillones', 'azafrán',
     ])
   })
+
+  it('la coma a medio escribir no es una unidad', () => {
+    // «1,2 kg» se teclea de izquierda a derecha, así que en algún momento lo
+    // escrito es «1,». Eso casaba con el hueco de la unidad —«1» y unidad «.»—,
+    // la caja se repintaba «1 .» y ahí se atascaba: **no se podía escribir un
+    // decimal**, ni en esta pantalla ni en ninguna que use la caja.
+    expect(partirCantidad('1,')).toEqual({ cantidad: 1, unidad: '', resto: '' })
+    expect(partirCantidad('1,2')).toEqual({ cantidad: 1.2, unidad: '', resto: '' })
+  })
+})
+
+/**
+ * Escribir por persona (§14.20-ter · C3).
+ *
+ * Lo guardado es **siempre el total de la receta**. Si se guardara la cantidad
+ * por cabeza, cambiar las raciones de un plato ya escrito cambiaría lo que hay
+ * que comprar sin que nadie hubiera tocado la receta.
+ */
+describe('para la receta o por persona', () => {
+  it('lo tecleado por cabeza se guarda multiplicado', () => {
+    expect(partirCantidad('0,1 kg', 12)).toEqual({ cantidad: 1.2, unidad: 'kg', resto: '' })
+    // Y sin decimales de más: 0,1 × 12 en coma flotante son 1,2000000000000002.
+    expect(partirCantidad('0,1', 12).cantidad).toBe(1.2)
+  })
+
+  it('y lo guardado se enseña dividido', () => {
+    expect(juntarCantidad({ cantidad: 1.2, unidad: 'kg' }, 12)).toBe('0,1 kg')
+    // 1,2 entre 12 son 0,09999999999999999 si no se redondea.
+    expect(juntarCantidad({ cantidad: 1.2, unidad: 'kg' }, 12)).not.toContain('0999')
+  })
+
+  it('sin repartir el número no se toca, ni para redondearlo', () => {
+    // Quien escribió 1,2345 tiene que seguir viendo 1,2345.
+    expect(juntarCantidad({ cantidad: 1.2345, unidad: 'kg' })).toBe('1,2345 kg')
+  })
 })

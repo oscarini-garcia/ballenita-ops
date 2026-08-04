@@ -1031,8 +1031,62 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    las cifras alineadas se comparan sin leerlas, que es lo que se hace al repasar
    la lista para ver si falta alguna. La columna son 92 pt medidos y al nombre le
    quedan 234, que es más de lo que ocupa cualquier ingrediente real. */
-.fila-ing { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; }
+/* **Sin cajas** (`docs/diseño/receta-fina.html` · F2): los bordes se van y se
+   escribe encima del texto. No es por sitio —quitarlos ahorra 2 pt por fila,
+   porque el alto lo pone el relleno del campo y no el borde— sino porque ocho
+   ingredientes se leen como una lista y no como ocho formularios. Lo que hacía
+   el borde sí hace falta: el campo enfocado se tiñe, y esa es la única señal de
+   dónde estás escribiendo. */
+.fila-ing { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
 .fila-ing + .fila-ing { border-top: 1px solid var(--line-soft); }
+.fila-ing input { border-color: transparent; background: none; }
+.fila-ing input:focus { border-color: transparent; background: var(--line-soft); }
+.fila-ing input::placeholder { color: var(--ink-faint); }
+
+/* El mando de C3: dice **qué cantidad se escribe** y hace de rótulo de la
+   columna, que es el renglón que si no llevaría una etiqueta muerta. */
+.cab-ing { margin: 6px 0 2px; }
+/* Un `.seg` de los de siempre, pero **encogido**: aquí es un rótulo de columna y
+   no un campo, así que ni ocupa el ancho ni pide los 40 pt de alto. Va con las
+   dos clases pegadas para ganarle a `.seg button`, que es lo que le metía el
+   `flex: 1` y lo estiraba de lado a lado. */
+.seg.mini { display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; }
+.seg.mini button { flex: 0 0 auto; min-height: 0; padding: 5px 11px; font-size: var(--t-label); }
+.seg.mini button:disabled { opacity: .45; }
+
+/* **El detalle, en un solo renglón al pie** (F4). Antes cada línea llevaba el
+   suyo debajo y eso casi doblaba la fila —105,9 pt frente a 60,6—, así que
+   escribir una cantidad alargaba la lista 45 pt bajo el dedo. Alto fijo: si
+   apareciera y desapareciera, la pantalla saltaría al tocar cada línea. */
+.pie-ing { font-size: var(--t-sub); color: var(--ink-faint); line-height: 1.35;
+  margin: 6px 2px 0; min-height: calc(var(--t-sub) * 1.35); }
+
+/* La propuesta, que se lee y no se escribe: mismas columnas, sin campos. */
+.fila-ing.leida { align-items: baseline; }
+.fila-ing.leida .ing-cant { text-align: right; color: var(--ink-faint); }
+.fila-ing.leida .ing-nombre { font-size: var(--t-row); }
+
+/* Los tres puntos que laten mientras el modelo piensa (P1). */
+.latido { display: inline-flex; gap: 4px; align-items: center; margin-right: 8px; }
+.latido i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: block;
+  animation: latir 1.1s ease-in-out infinite; }
+.latido i:nth-child(2) { animation-delay: .18s; }
+.latido i:nth-child(3) { animation-delay: .36s; }
+@keyframes latir { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
+
+/* Mientras se buscan platos parecidos: se dice que se está buscando, y con qué
+   forma va a llegar lo que llegue (M2). */
+.esqueletos { display: flex; flex-direction: column; gap: 9px; margin: 14px 0 4px; }
+.esqueleto { display: block; height: 13px; border-radius: 6px; background: var(--line-soft);
+  animation: latir 1.4s ease-in-out infinite; }
+.esqueleto.corta { width: 45%; } .esqueleto.media { width: 70%; } .esqueleto.larga { width: 90%; }
+.esqueleto:nth-child(2) { animation-delay: .2s; }
+.esqueleto:nth-child(3) { animation-delay: .4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .latido i, .esqueleto { animation: none; }
+  .latido i:nth-child(2) { opacity: .6 } .latido i:nth-child(3) { opacity: .3 }
+}
 /* **Dos campos y no tres** (§14.20-bis · U1): la unidad vive dentro del de la
    cantidad porque se escribe «1,2 kg» de un tirón, que es como se dice en voz
    alta. Tres cajas obligaban a decidir la unidad antes de haber escrito qué es. */
@@ -1041,6 +1095,11 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    así que su `width: 100%` ganaba y la caja de la cantidad se comía la fila
    entera dejando el nombre fuera de la pantalla. Se veía en el navegador. */
 .fila-ing .ing-cant { width: 92px; flex: none; padding: 8px 9px; text-align: right; }
+/* Escribiendo **por persona** las cifras se alargan: un pollo entre doce son
+   0,083 ud, y en 92 pt eso salía «0,083 u». La columna crece 16 pt mientras dure
+   la postura y al nombre le quedan 178, que siguen sobrando para «Pollo
+   troceado» (134,8) o «Costillas de cerdo» (169). */
+.lista-ing.repartiendo .ing-cant { width: 108px; }
 .ing-nombre { flex: 1; min-width: 0; }
 .ing-nombre input { padding: 8px 10px; }
 /* El aspa de B3: 26 pt y sin caja. Cuesta 34 pt de ancho al nombre —la caja de
@@ -1051,9 +1110,6 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
   border: none; background: none; border-radius: 6px; font-size: var(--t-sub);
   color: var(--ink-faint); padding: 0; }
 .aspa-ing.invisible { visibility: hidden; }
-/* Lo que hay que decir de esa línea, y solo cuando hay algo que decir: vacío no
-   ocupa nada, así que la fila corriente sigue midiendo lo que medía. */
-.ing-detalle:not(:empty) { font-size: var(--t-sub); color: var(--ink-faint); margin: 4px 2px 0; line-height: 1.35; }
 
 
 /* La compra: el total grande y, debajo, de dónde viene y qué ha cambiado. */

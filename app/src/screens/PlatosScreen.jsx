@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, listDishes, addDish, updateDish, removeDish, DISH_CATEGORIES } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
@@ -6,7 +6,9 @@ import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Fab from '../components/Fab.jsx'
 import Ingredientes from '../components/Ingredientes.jsx'
-import { normalizarIngredientes, sinCantidad } from '../lib/receta.js'
+import BotonIA from '../components/BotonIA.jsx'
+import { useIaDisponible } from '../lib/ia.js'
+import { normalizarIngredientes, sinCantidad, juntarCantidad } from '../lib/receta.js'
 import { arreglarIngredientes, platosParecidos } from '../sync/api.js'
 
 /**
@@ -82,6 +84,7 @@ export default function PlatosScreen({ event }) {
           // nacer con lo propuesto puesto en vez de conservar lo que hubiera.
           key={editando === 'nuevo' ? 'nuevo' : (editando.id ?? editando.name)}
           plato={editando === 'nuevo' ? null : editando}
+          event={event}
           usos={editando === 'nuevo' || !editando.id ? 0 : usosDe(editando.id)}
           catalogo={platos}
           onClose={() => setEditando(null)}
@@ -126,51 +129,125 @@ function FilaPlato({ plato, usos, onEditar }) {
 }
 
 /**
- * Las cinco propuestas, para ir adelante y atrás (§14.20-bis · P2 · Q2+Q3+Q4).
+ * Las cinco propuestas, **en un modal y una por pantalla** (§14.20-ter · M2).
  *
- * La figura es la del regalo de `garciadoral-ops`: **una tanda de cinco de una
+ * Decidido en [`docs/diseño/receta-fina.html`](../../../docs/diseño/receta-fina.html)
+ * · **M2 · A1 + A2**.
+ *
+ * La figura de la tanda es la del regalo de `garciadoral-ops`: **cinco de una
  * vez**, porque lo caro de la llamada no es el texto sino contarle el contexto
- * —una vez contado, pasar de una a otra no vuelve a pedir nada—. Cada una trae
- * **qué** y **por qué**, que es lo que deja decidir sin abrirla.
+ * —una vez contado, pasar de una a otra no vuelve a pedir nada—.
  *
- * Y al cogerla **no se guarda nada todavía**: se abre el editor con el nombre,
- * el tipo y los ingredientes ya puestos, para corregirlo antes de que exista.
+ * Lo que ha cambiado es dónde salen. Antes salían **inline**, en una tarjeta de
+ * 242,4 pt encajada entre los botones y «Para cuántas raciones», y ahí solo
+ * caben tres renglones: el nombre, el porqué y **los ingredientes como una
+ * ristra de nombres separados por puntos, sin sus cantidades**. Pero lo que
+ * llega del modelo es una receta entera, y una receta se decide mirándola. Ahora
+ * es un modal, se ve una a la vez con sus cantidades, y **dice desde el primer
+ * momento que está cargando** en vez de dejar la pantalla quieta.
+ *
+ * Y se puede hacer dos cosas con la que te gusta: **añadirla como plato nuevo**
+ * (A1), que deja el plato desde el que llamaste sin tocar, o **sustituir la
+ * receta abierta** (A2). La segunda avisa de en cuántas cenas está metido ese
+ * plato antes de hacerlo, con el mismo criterio con el que borrar ya lo dice:
+ * cambiar la receta cambia lo que se cena esas noches.
  */
-function Propuestas({ lista, i, onIr, onCerrar, onCoger }) {
-  const p = lista[i]
+function ModalParecidos({ cargando, lista, i, usos, onIr, onCerrar, onNuevo, onSustituir }) {
+  useBloqueoDeScroll()
+  const [confirmando, setConfirmando] = useState(false)
+  const p = lista?.[i]
+
   return (
-    <div className="propuesta" style={{ marginTop: 12 }}>
-      <div className="propuesta-texto">
-        <div className="propuesta-que">{p.que}</div>
-        {p.porque && <div className="propuesta-porque">{p.porque}</div>}
-        {p.ingredientes?.length > 0 && (
-          <div className="propuesta-porque">{p.ingredientes.map((x) => x.nombre).join(' · ')}</div>
+    <div className="modal-bg" onClick={onCerrar}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <button className="x" onClick={onCerrar} aria-label="Cerrar">×</button>
+
+        {cargando && (
+          <div role="status">
+            <h2>Buscando platos parecidos</h2>
+            <div className="pista">Con lo que lleva este plato y lo que ya hay en el catálogo.</div>
+            <div className="esqueletos" aria-hidden="true">
+              <span className="esqueleto corta" />
+              <span className="esqueleto larga" />
+              <span className="esqueleto media" />
+            </div>
+          </div>
         )}
-      </div>
-      <div className="propuesta-pie">
-        <button className="btn sm ghost" aria-label="La anterior" disabled={i === 0} onClick={() => { tap(); onIr(i - 1) }}>‹</button>
-        <span className="propuesta-cuenta tnum">{i + 1} de {lista.length}</span>
-        <button className="btn sm ghost" aria-label="La siguiente" disabled={i === lista.length - 1} onClick={() => { tap(); onIr(i + 1) }}>›</button>
-        <button className="btn sm" onClick={() => { tap(); onCoger(p) }}>Coger esta</button>
-        <button className="btn sm ghost" onClick={() => { tap(); onCerrar() }}>Dejarlo</button>
+
+        {p && (
+          <>
+            <h2>{p.que}</h2>
+            <div className="propuesta-cuenta tnum">{i + 1} de {lista.length}</div>
+            {p.porque && <div className="pista">{p.porque}</div>}
+            {/* Un renglón y no dos pastillas: esto se lee, no se toca, y un
+                `.chip` encendido se lee como algo que está elegido. */}
+            <div className="pista">{etiqueta(p.tipo)} · para 12 raciones</div>
+
+            {p.ingredientes?.length > 0 && (
+              <div className="card tight lista-ing" style={{ marginTop: 12 }}>
+                {p.ingredientes.map((x, j) => (
+                  <div className="fila-ing leida" key={`p-${j}`}>
+                    <span className="ing-cant tnum">{juntarCantidad(x) || '—'}</span>
+                    <span className="ing-nombre">{x.nombre}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="propuesta-pie" style={{ marginTop: 12 }}>
+              <button className="btn sm ghost" aria-label="La anterior" disabled={i === 0} onClick={() => { tap(); setConfirmando(false); onIr(i - 1) }}>‹</button>
+              <button className="btn sm ghost" aria-label="La siguiente" disabled={i === lista.length - 1} onClick={() => { tap(); setConfirmando(false); onIr(i + 1) }}>›</button>
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              <button className="btn block" onClick={() => { tap(); onNuevo(p) }}>Añadir como plato nuevo</button>
+            </div>
+
+            {confirmando ? (
+              <div style={{ marginTop: 10 }}>
+                <div className="note">
+                  Se escribe <b>encima de la receta abierta</b>
+                  {usos > 0 ? `, y ese plato está metido en ${usos} ${usos === 1 ? 'cena' : 'cenas'}: cambia lo que se cena esas noches` : ''}.
+                  {' '}Todavía no se guarda nada.
+                </div>
+                <div className="chips" style={{ marginTop: 8 }}>
+                  <button className="btn sm" onClick={() => { tap(); onSustituir(p) }}>Sí, sustituirla</button>
+                  <button className="btn sm ghost" onClick={() => { tap(); setConfirmando(false) }}>Dejarlo</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginTop: 10 }}>
+                <button className="btn sm ghost block" onClick={() => { tap(); setConfirmando(true) }}>Sustituir esta receta</button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )
 }
 
-function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
+function ModalPlato({ plato, event, usos, catalogo = [], onClose, onProponer }) {
   useBloqueoDeScroll()
   const [name, setName] = useState(plato?.name ?? '')
   const [cats, setCats] = useState(() => new Set(plato?.categorias ?? []))
   const [raciones, setRaciones] = useState(plato?.raciones ? String(plato.raciones) : '')
   const [ingredientes, setIngredientes] = useState(() => normalizarIngredientes(plato?.ingredientes))
   const [confirmando, setConfirmando] = useState(false)
-  // La IA: null en reposo · 'yendo' mientras pregunta · el motivo si falló.
-  const [ia, setIa] = useState(null)
+  // **Quién** está pensando, no «hay algo pensando» (§14.20-ter · P1): con una
+  // sola variable el texto colgaba del botón de «Arreglar» y pulsar «Parecidos»
+  // hacía hablar a su vecino.
+  const [pensando, setPensando] = useState(null) // 'arreglar' · 'parecidos' · null
+  const [fallo, setFallo] = useState(null)
   // Cómo estaba la lista antes de arreglarla, para poder deshacer (R1).
   const [antesDelArreglo, setAntes] = useState(null)
-  // Las cinco propuestas y por cuál vamos (P2).
-  const [propuestas, setPropuestas] = useState(null)
+  // Las cinco propuestas y por cuál vamos. `lista: null` es «todavía cargando»,
+  // que es lo que el modal enseña desde el primer momento (M2).
+  const [parecidos, setParecidos] = useState(null)
+  // Qué llamada es la que vale: cerrar el modal mientras carga tiene que dejar
+  // fuera la respuesta que venga después, no reabrirlo solo.
+  const vuelta = useRef(0)
+  const ia = useIaDisponible()
 
   const conNombre = ingredientes.filter((x) => x.nombre.trim())
 
@@ -184,7 +261,8 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
    */
   async function arreglar() {
     tap()
-    setIa('yendo')
+    setPensando('arreglar')
+    setFallo(null)
     try {
       const puestas = await arreglarIngredientes({
         plato: name.trim(),
@@ -192,7 +270,7 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
         lineas: conNombre.map((x) => ({ cantidad: x.cantidad, nombre: x.nombre })),
       })
       if (!puestas.length) {
-        setIa('No ha sabido ordenar ninguna línea.')
+        setFallo('No ha sabido ordenar ninguna línea.')
         return
       }
       setAntes(ingredientes)
@@ -201,32 +279,75 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
         const p = porIndice.get(i)
         return p ? { ...x, nombre: p.nombre, cantidad: p.cantidad, unidad: p.unidad, deIA: true } : x
       }))
-      setIa(null)
     } catch (e) {
-      setIa(String(e.message ?? e))
+      setFallo(String(e.message ?? e))
+    } finally {
+      setPensando(null)
     }
   }
 
-  /** Cinco platos que peguen con este, para ir adelante y atrás (P2). */
+  /** Cinco platos que peguen con este, en su modal y desde el primer momento (M2). */
   async function pedirParecidos() {
     tap()
-    setIa('yendo')
+    const mia = vuelta.current + 1
+    vuelta.current = mia
+    setPensando('parecidos')
+    setFallo(null)
+    setParecidos({ lista: null, i: 0 })
     try {
       const platos = await platosParecidos({
         plato: name.trim(),
         ingredientes: conNombre.map((x) => x.nombre),
         yaHay: catalogo.map((d) => d.name),
       })
-      setPropuestas(platos.length ? { lista: platos, i: 0 } : null)
-      setIa(platos.length ? null : 'No se le ha ocurrido ninguno.')
+      if (vuelta.current !== mia) return
+      if (!platos.length) {
+        setParecidos(null)
+        setFallo('No se le ha ocurrido ninguno.')
+        return
+      }
+      setParecidos({ lista: platos, i: 0 })
     } catch (e) {
-      setIa(String(e.message ?? e))
+      if (vuelta.current !== mia) return
+      setParecidos(null)
+      setFallo(String(e.message ?? e))
+    } finally {
+      if (vuelta.current === mia) setPensando(null)
     }
+  }
+
+  /** Cerrar el modal descarta la llamada que venga después (M2). */
+  function cerrarParecidos() {
+    vuelta.current += 1
+    setParecidos(null)
+    setPensando(null)
+  }
+
+  /**
+   * Sustituir la receta abierta por la propuesta (A2).
+   *
+   * No guarda: escribe encima de lo que hay en el editor y se sale del modal,
+   * para poder corregirlo antes de que exista. Y **borra el deshacer** de
+   * «Arreglar», que guarda una sola foto de la lista: dejarlo puesto ofrecería
+   * volver a una receta que ya no es la de este plato.
+   */
+  function sustituir(p) {
+    setName(p.que)
+    setCats(new Set([p.tipo]))
+    setRaciones('12')
+    setIngredientes(normalizarIngredientes(p.ingredientes))
+    setAntes(null)
+    cerrarParecidos()
   }
 
   function alternar(id) {
     const s = new Set(cats); s.has(id) ? s.delete(id) : s.add(id); setCats(s)
   }
+
+  // Una propuesta cogida (A1) llega **sin `id`**: tiene nombre y receta pero no
+  // existe todavía. Sin esto el editor decía «Editar plato», ofrecía borrarlo, y
+  // «Guardar» llamaba a `updateDish(undefined, …)`, así que no nacía nada.
+  const esNuevo = !plato?.id
 
   async function guardar() {
     const n = name.trim()
@@ -237,8 +358,8 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
       raciones: Number(raciones) > 0 ? Number(raciones) : null,
       ingredientes: normalizarIngredientes(ingredientes),
     }
-    if (plato) await updateDish(plato.id, campos)
-    else await addDish(campos, event)
+    if (esNuevo) await addDish(campos, event)
+    else await updateDish(plato.id, campos)
     onClose()
   }
 
@@ -249,10 +370,11 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
 
 
   return (
+    <>
     <div className="modal-bg" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
-        <h2>{plato ? 'Editar plato' : 'Plato nuevo'}</h2>
+        <h2>{esNuevo ? 'Plato nuevo' : 'Editar plato'}</h2>
 
         {/* El orden es el de lo que se toca: el nombre ya está bien casi
             siempre, la lista es a lo que se entra, las raciones se afinan
@@ -279,13 +401,20 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
         />
 
         <div className="editor-pie">
-          <button className="btn ghost" disabled={ia === 'yendo' || !conNombre.length} onClick={arreglar}>
-            {ia === 'yendo' ? 'Un momento…' : '🐳 Arreglar'}
-          </button>
-          <button className="btn ghost" disabled={ia === 'yendo' || (!name.trim() && !conNombre.length)} onClick={pedirParecidos}>
-            🐳 Parecidos
-          </button>
+          <BotonIA
+            pensando={pensando === 'arreglar'}
+            disabled={Boolean(pensando) || !ia.puede || !conNombre.length}
+            onClick={arreglar}
+          >🐳 Arreglar</BotonIA>
+          <BotonIA
+            pensando={pensando === 'parecidos'}
+            disabled={Boolean(pensando) || !ia.puede || (!name.trim() && !conNombre.length)}
+            onClick={pedirParecidos}
+          >🐳 Parecidos</BotonIA>
         </div>
+        {/* Por qué están apagados, dicho en palabras y no con el error del
+            transporte cuando ya es tarde (§14.20-ter, arreglo 1). */}
+        {ia.motivo && <div className="pista" style={{ marginTop: 8 }}>{ia.motivo}</div>}
         {antesDelArreglo && (
           <div className="pista" role="status" style={{ marginTop: 8 }}>
             Ordenada con la IA.{' '}
@@ -294,15 +423,7 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
             </button>
           </div>
         )}
-        {propuestas && (
-          <Propuestas
-            {...propuestas}
-            onIr={(i) => setPropuestas({ ...propuestas, i })}
-            onCerrar={() => setPropuestas(null)}
-            onCoger={(p) => { setPropuestas(null); onProponer(p) }}
-          />
-        )}
-        {ia && ia !== 'yendo' && <pre className="traza mal" role="status">{ia}</pre>}
+        {fallo && <pre className="traza mal" role="status">{fallo}</pre>}
 
         <label htmlFor="plato-raciones">Para cuántas raciones</label>
         <input
@@ -331,11 +452,11 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
 
         <div style={{ marginTop: 16 }}>
           <button className="btn block" onClick={guardar} disabled={!name.trim()}>
-            {plato ? 'Guardar' : 'Añadir al catálogo'}
+            {esNuevo ? 'Añadir al catálogo' : 'Guardar'}
           </button>
         </div>
 
-        {plato && (
+        {!esNuevo && (
           <div style={{ marginTop: 10 }}>
             {confirmando ? (
               <>
@@ -355,5 +476,22 @@ function ModalPlato({ plato, usos, catalogo = [], onClose, onProponer }) {
         )}
       </div>
     </div>
+
+    {parecidos && (
+      <ModalParecidos
+        cargando={parecidos.lista === null}
+        lista={parecidos.lista}
+        i={parecidos.i}
+        usos={usos}
+        onIr={(i) => setParecidos({ ...parecidos, i })}
+        onCerrar={cerrarParecidos}
+        // Añadir como plato nuevo **no guarda nada** (A1): reabre el editor con
+        // el nombre, el tipo y los ingredientes puestos y sin `id`, así que al
+        // guardar nace un plato y el que estabas mirando se queda como estaba.
+        onNuevo={(p) => { cerrarParecidos(); onProponer(p) }}
+        onSustituir={sustituir}
+      />
+    )}
+    </>
   )
 }
