@@ -17,6 +17,8 @@
  * decir qué se parece a una paella no hacen falta.
  */
 
+import { renglonDeCocina } from './cocina.js';
+
 const ANTHROPIC = 'https://api.anthropic.com/v1';
 const VERSION_API = '2023-06-01';
 
@@ -64,10 +66,14 @@ export function materialDeLaLista({ plato, raciones, lineas }) {
   ].join('\n');
 }
 
-/** El material de «parecidos»: el plato abierto y lo que ya hay. */
-export function materialDelPlatoParecido({ plato, ingredientes = [], yaHay = [] }) {
+/** El material de «parecidos»: el plato abierto, con qué se cocina y lo que ya hay. */
+export function materialDelPlatoParecido({ plato, ingredientes = [], yaHay = [], evento = null }) {
   const lineas = [`Plato: ${plato || 'sin nombre'}`];
   if (ingredientes.length) lineas.push(`Lleva: ${ingredientes.join(', ')}`);
+  // Sin esto se proponía a ciegas, y fallaba en las dos direcciones: cosas de
+  // horno, que no hay, y ninguna de barbacoa, que es donde se hace casi todo
+  // (§14.20-quater).
+  lineas.push(renglonDeCocina(evento));
   lineas.push(yaHay.length ? `Ya tienen en el catálogo: ${yaHay.join('; ')}` : 'El catálogo está vacío.');
   return lineas.join('\n');
 }

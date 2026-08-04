@@ -564,13 +564,20 @@ async function arreglarLaLista(peticion, env) {
 async function platosParecidos(peticion, env) {
   await cuentaAutenticada(peticion, env);
 
-  const { plato = '', ingredientes = [], yaHay = [] } = await peticion.json();
+  const { plato = '', ingredientes = [], yaHay = [], eventId = null } = await peticion.json();
   if (!plato && !ingredientes.length) return json({ error: 'hace falta al menos el nombre o los ingredientes' }, 400);
 
   const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
   if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
 
-  const material = materialDelPlatoParecido({ plato, ingredientes, yaHay });
+  // Con qué se cocina es del evento (§14.20-quater), así que se lee aquí y no
+  // llega del móvil: el material lo compone el Worker con lo que hay en la base.
+  // Sin `eventId` —una app vieja— vale el texto de origen, y se propone igual.
+  const evento = eventId
+    ? await env.DB.prepare('SELECT * FROM events WHERE id = ? AND borrado = 0').bind(eventId).first()
+    : null;
+
+  const material = materialDelPlatoParecido({ plato, ingredientes, yaHay, evento });
   try {
     const { resultado, cambiado } = await conModeloVigente({
       clave,

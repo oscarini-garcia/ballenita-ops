@@ -11,6 +11,7 @@ import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
 import { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
+import { COCINA_DE_ORIGEN } from '../lib/cocina.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
 import StatsScreen from './StatsScreen.jsx'
 import GrupoSection from './GrupoSection.jsx'
@@ -405,9 +406,10 @@ function fechasEnPalabras(event) {
  * Los gastos se cuentan y **no se tocan** — la compra grande es del día antes de
  * salir, y borrar dinero por mover una fecha cambiaría los saldos de todos.
  */
-function EditorEvento({ event, onCerrar }) {
+export function EditorEvento({ event, onCerrar }) {
   const [name, setName] = useState(event.name ?? '')
   const [lugar, setLugar] = useState(event.lugar ?? '')
+  const [cocina, setCocina] = useState(event.cocina ?? '')
   const [startDate, setStart] = useState(event.startDate ?? '')
   const [endDate, setEnd] = useState(event.endDate ?? '')
   const [fuera, setFuera] = useState(null)
@@ -429,7 +431,7 @@ function EditorEvento({ event, onCerrar }) {
     for (const c of cae.cenas) await removeDinner(c.id)
     for (const p of cae.planes) await removePlan(p.id)
     await updateEvent(event.id, {
-      name: name.trim(), lugar: lugar.trim(), startDate, endDate,
+      name: name.trim(), lugar: lugar.trim(), cocina: cocina.trim(), startDate, endDate,
     })
     onCerrar()
   }
@@ -442,6 +444,26 @@ function EditorEvento({ event, onCerrar }) {
       <input id="ev-nombre" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ballenita 2026" autoFocus />
       <label htmlFor="ev-lugar">Lugar</label>
       <input id="ev-lugar" type="text" value={lugar} onChange={(e) => setLugar(e.target.value)} placeholder="Camping La Ballena Alegre" />
+
+      {/* Qué se puede cocinar, para la IA y **solo** para la IA (§14.20-quater).
+          Texto libre y no una lista de casillas: lo que hay que contarle es la
+          frase entera —«en el bungaló se puede hacer algo en sartén, pero poco:
+          da mucho calor»—, y eso ninguna casilla lo dice. */}
+      <label htmlFor="ev-cocina">Qué se puede cocinar</label>
+      {/* Seis renglones y no tres: el texto en gris es lo que se va a mandar, y
+          medido en el navegador ocupa seis líneas a 390 pt. En tres se cortaba a
+          media palabra —«En el bungaló se pue…»—, que es no enseñarlo. */}
+      <textarea
+        id="ev-cocina"
+        rows={6}
+        value={cocina}
+        onChange={(e) => setCocina(e.target.value)}
+        placeholder={COCINA_DE_ORIGEN}
+      />
+      <div className="pista">
+        Solo lo lee la IA, para que lo que proponga se pueda cocinar. Vacío va lo
+        que pone en gris.
+      </div>
       {/* Una bajo la otra y no en dos columnas: el control de fecha nativo mide
           más que media pantalla y sacaba la hoja de lado en un móvil de verdad. */}
       <label htmlFor="ev-desde">Desde</label>
