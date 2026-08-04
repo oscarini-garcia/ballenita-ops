@@ -1581,6 +1581,31 @@ que salió en los tests: `normalizarIngredientes` recortaba el nombre en cada
 pintado, así que el espacio recién tecleado desaparecía y «Arroz bomba» se escribía
 «Arrozbomba» — ahora el recorte es solo al guardar.
 
+### 14.16-quinquies Cada encargo puede llevar su propio modelo
+
+La clave es de la instalación —una credencial de pago, §14.16— pero **el modelo
+no tiene por qué**. Ordenar una lista de ingredientes es traducción: sacar
+«tres» de una frase no pide el modelo grande, y es además el botón que más se va
+a pulsar. Proponer cinco platos que peguen con una paella, en cambio, sí.
+
+- `configuracion` gana una clave por encargo, `ia.modelo:<id>`, hermana de
+  `ia.encargo:<id>` y con el mismo filtro de nombres conocidos: sin él, un
+  «modelo» llamado `clave` machacaría la credencial.
+- El orden es **lo guardado → el de origen del encargo → el general**. Hoy solo
+  «Ordenar una lista de ingredientes» trae uno de origen (`claude-haiku-4-5`);
+  los demás usan el de arriba.
+- En Ajustes cada encargo lleva su desplegable con **«El de arriba»** como
+  primera opción, que es lo de fábrica salvo que el encargo traiga otro puesto.
+- La sustitución de un modelo retirado (§14.16-bis) se guarda **en la clave del
+  encargo** y no en la general: si no, arreglar una lista con un haiku retirado
+  cambiaría de paso el modelo de todo lo demás.
+
+**Y el arreglo deja de corregir la ortografía.** El encargo pedía el nombre «con
+la primera letra en mayúscula» y en singular o plural «según toque», así que
+«azafran» salía «Azafrán» — cómodo hasta que te cambia el nombre raro que habías
+escrito a propósito. Ahora se le dice que **no** corrija nada: saca la cantidad y
+deja el nombre tal como está.
+
 ### 14.18 Un plan es dos cosas: la idea que se repite y la propuesta de este año
 
 Decidido en [`docs/diseño/planes-catalogo.html`](diseño/planes-catalogo.html) ·
