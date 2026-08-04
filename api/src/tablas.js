@@ -26,7 +26,9 @@ export const COLUMNAS_COMUNES = ['updatedAt', 'creadoEn', 'borrado'];
 
 export const TABLAS = {
   events: {
-    columnas: ['name', 'lugar', 'currency', 'startDate', 'endDate', 'status', 'esDemo'],
+    // `cocina` es con qué se cocina en este viaje, y solo se lee al componer el
+    // material de la IA (§14.20-quater). Texto libre, y vacío vale el de origen.
+    columnas: ['name', 'lugar', 'currency', 'startDate', 'endDate', 'status', 'esDemo', 'cocina'],
     booleanos: ['esDemo'],
   },
   families: {
