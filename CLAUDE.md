@@ -112,7 +112,7 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
 - **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.24,
-  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **4 pt** bajo la cabecera
+  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **4 pt** bajo la cabecera (a `z-index: 7`, o la cabecera le tapa medio sol)
   que se llena de amanecer a anochecer con el sol de tirador (`components/LineaDelHorizonte.jsx`);
   la hora se **calcula** (`lib/sol.js`, sin red ni dependencias) porque dos constantes de verano
   mienten 3 h 28 en enero. Se descartó el arco que cruza la cabecera: el disco pasa **7 h 29 al

@@ -235,20 +235,25 @@ button, input, select, textarea { font: inherit; color: inherit; }
    radio**: a primera hora del amanecer, con el recorrido a cero, media luna se
    salía por el borde izquierdo. `--f` es la fracción del tramo (0 a 1) y la
    pone el componente; el resto es cuenta de CSS. */
-.horizonte { position: relative; flex: none; height: 4px; z-index: 4;
+/* `z-index` **por encima de la cabecera**, que va a 5. El disco sobresale hacia
+   arriba para quedar centrado en el surco, y con la franja por debajo la
+   cabecera le pintaba encima ese trozo: se veía medio sol asomando. Es un
+   solapamiento de pintura, no de sitio —la franja sigue siendo `flex: none` y no
+   tapa nada—, así que subirla no le quita espacio a nadie. */
+.horizonte { position: relative; flex: none; height: 4px; z-index: 7;
   background: rgba(230, 238, 243, .26); }
 .horizonte .recorrido { position: absolute; inset: 0 auto 0 0; display: block;
-  width: calc(5.5px + (100% - 11px) * var(--f, 0));
+  width: calc(7px + (100% - 14px) * var(--f, 0));
   background: linear-gradient(90deg, #e08b5a, #f7c34f); }
-.horizonte .astro { position: absolute; top: -3.5px; width: 11px; height: 11px;
-  left: calc(5.5px + (100% - 11px) * var(--f, 0)); margin-left: -5.5px;
+.horizonte .astro { position: absolute; top: -5px; width: 14px; height: 14px;
+  left: calc(7px + (100% - 14px) * var(--f, 0)); margin-left: -7px;
   border-radius: 50%; background: #f7c34f;
-  box-shadow: 0 0 0 2px var(--cielo, var(--appbar-bg)), 0 0 10px 2px rgba(247, 195, 79, .45); }
+  box-shadow: 0 0 0 2px var(--cielo, var(--appbar-bg)), 0 0 13px 3px rgba(247, 195, 79, .5); }
 /* De noche el mismo dibujo en frío: la luna recorre su tramo igual que el sol
    el suyo, y así la franja nunca está apagada del todo. */
 .horizonte[data-fase="noche"] .recorrido { background: linear-gradient(90deg, #2c5468, #8fa8c4); }
 .horizonte[data-fase="noche"] .astro { background: #d7e3ee;
-  box-shadow: 0 0 0 2px var(--cielo, var(--appbar-bg)), 0 0 8px 2px rgba(215, 227, 238, .35); }
+  box-shadow: 0 0 0 2px var(--cielo, var(--appbar-bg)), 0 0 11px 3px rgba(215, 227, 238, .4); }
 
 /* Punto de estado de la sincronización. Verde al día · amarillo con cola · rojo
    sin red · gris solo local. Vuelve a la cabecera, y ahora **es el botón de

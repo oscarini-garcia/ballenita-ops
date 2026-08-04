@@ -2029,9 +2029,15 @@ diciembre. La transición es de 1,2 s y entre un minuto y el siguiente el color
 cambia como mucho dos cifras de 255: no se ve cambiar, se ve que a media tarde ya
 no es el de por la mañana.
 
-De paso la franja engordó de 3 a **4 pt** y el disco de 9 a **11**, y el surco
+De paso la franja engordó de 3 a **4 pt** y el disco de 9 a **14**, y el surco
 dejó de ser el color de la cabecera aclarado —que con el cielo encima ya no valía—
 para ser un blanco al 26 %, que se lee sobre cualquiera de los siete tonos.
+
+Y la franja pasó a `z-index: 7`, **por encima de la cabecera**, que va a 5. El
+disco sobresale 5 pt hacia arriba para quedar centrado en el surco, y con la
+franja por debajo la cabecera le pintaba encima ese trozo: se veía medio sol
+asomando. Es un solapamiento de pintura y no de sitio —la franja sigue siendo
+`flex: none` y no tapa nada, §14.10—, así que subirla no le quita espacio a nadie.
 
 **B2 · La hora del sol se calcula** (`lib/sol.js`): día juliano, anomalía media,
 declinación y ángulo horario en unas cuarenta líneas puras, sin red y sin
