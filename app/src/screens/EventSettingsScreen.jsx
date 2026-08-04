@@ -30,7 +30,7 @@ import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/s
 import { tap } from '../lib/native.js'
 import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
-import { checkForOtaUpdate, isNative, versionInstalada } from '../lib/native.js'
+import { checkForOtaUpdate, estadoDelPaquete, isNative, versionInstalada } from '../lib/native.js'
 
 // Lo que la lista terminada se queda en pantalla antes de recargar, para poder
 // leerla. Cinco segundos es el rato en que se lee «instalada» sin que dé tiempo
@@ -62,10 +62,59 @@ export function motivoDelOta(ota = {}) {
   if (ota.status === 'no-manifest') {
     return 'No se ha podido leer el manifiesto (releases/latest/download/latest.json). O no hay red, o todavía no hay ningún release publicado.'
   }
+  if (ota.status === 'armed') {
+    return `El paquete v${ota.version} queda puesto para el próximo arranque.`
+  }
   if (ota.status === 'skip') {
     return 'Aquí no hay paquete que traer: los OTA son de la app de iOS.'
   }
   return `No se ha podido traer el paquete: ${ota.error || 'sin motivo'}`
+}
+
+/**
+ * Los paquetes OTA que hay en el móvil, tal como los ve el plugin.
+ *
+ * Es un dato para diagnosticar y por eso va crudo: versión, estado y nada más.
+ * Un paquete en **`error`** es el plugin **devolviéndolo** —hace rollback si el
+ * nuevo no llama a `notifyAppReady()` a tiempo—, y visto desde fuera eso es
+ * idéntico a «no se ha descargado»: el release publicado, el zip con sus
+ * descargas, y la pantalla con el número de siempre.
+ *
+ * Se toca para copiarlo, como el informe de sincronización (§14.9-bis): esto se
+ * lee para contarlo en otro sitio, no para arreglarlo aquí.
+ */
+function ListaDePaquetes({ paquetes }) {
+  const [aviso, setAviso] = useState(null)
+  if (!paquetes) return null
+
+  const linea = (b) => `v${b.version} · ${b.estado}`
+  const informe = [
+    `actual: ${paquetes.actual ? linea(paquetes.actual) : 'ninguno'}`,
+    `binario: v${paquetes.nativa || '?'}`,
+    ...(paquetes.bundles || []).map((b) => `bajado: ${linea(b)}`),
+    paquetes.error ? `error: ${paquetes.error}` : '',
+  ].filter(Boolean).join('\n')
+
+  async function copiar() {
+    tap()
+    try {
+      await navigator.clipboard.writeText(informe)
+      setAviso('Copiado')
+    } catch {
+      setAviso('No se ha podido copiar')
+    }
+  }
+
+  return (
+    <>
+      <div className="pista">Paquetes en este móvil (tócalo para copiarlo):</div>
+      <pre
+        className={`traza${paquetes.error || (paquetes.bundles || []).some((b) => b.estado === 'error') ? ' mal' : ' bien'}`}
+        onClick={copiar}
+      >{informe}</pre>
+      {aviso && <div className="note" role="status">{aviso}</div>}
+    </>
+  )
 }
 
 /**
@@ -633,7 +682,13 @@ function AppSection({ esAdmin = false }) {
   // La versión del **paquete que se está ejecutando**, que dentro de la app es la
   // que cuenta: la de `package.json` es la que se horneó en el binario.
   const [enCurso, setEnCurso] = useState(null)
-  useEffect(() => { versionInstalada().then(setEnCurso).catch(() => {}) }, [])
+  // Y lo que el plugin tiene de verdad, que es donde está la respuesta cuando la
+  // app se queda en la versión de antes.
+  const [paquetes, setPaquetes] = useState(null)
+  useEffect(() => {
+    versionInstalada().then(setEnCurso).catch(() => {})
+    estadoDelPaquete().then(setPaquetes).catch(() => {})
+  }, [])
   const caja = useRef(null)
   useEffect(() => {
     if (!recienActualizada) return
@@ -729,6 +784,14 @@ function AppSection({ esAdmin = false }) {
       )}
 
       {fallo && <pre className="traza mal" role="status">{fallo}</pre>}
+
+      {/* Los paquetes que hay bajados y en qué estado. Cuando la app se queda en
+          la versión de antes no había **nada** que mirar: el manifiesto decía
+          una cosa, el release estaba publicado, el zip constaba descargado, y la
+          pantalla seguía con el número viejo. Un paquete en `error` es el plugin
+          devolviéndolo —hace rollback si el nuevo no llama a `notifyAppReady()`
+          a tiempo—, y eso desde fuera se ve igual que «no se ha bajado». */}
+      {paquetes && <ListaDePaquetes paquetes={paquetes} />}
 
       {esAdmin && <MigracionesBloque />}
     </div>

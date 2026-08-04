@@ -415,7 +415,7 @@ portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de te
 retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
 binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
-entrar, la demostración arranca llena y no sube nunca. 596 tests en la PWA + 143 en la API,
+entrar, la demostración arranca llena y no sube nunca. 600 tests en la PWA + 143 en la API,
 todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su

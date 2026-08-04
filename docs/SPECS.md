@@ -1738,6 +1738,34 @@ puesto** cuando no coincide con el que se horneó en el binario: dentro de la ap
 hay dos números, y saber cuál se ha quedado atrás es la diferencia entre «no ha
 actualizado» y poder arreglarlo.
 
+### 14.20-sexies El OTA se aplicaba con la llamada que no era, y no había nada que mirar
+
+La app se quedaba en la versión de antes con el release publicado, el manifiesto
+correcto y **el `bundle.zip` constando descargado** (`download_count: 1`). Con
+eso no se puede decidir nada: no se sabe si el fallo está en bajarlo, en
+aplicarlo o en que el plugin lo ha devuelto.
+
+**`set()` no hace lo que este código creía.** Su documentación lo dice con esas
+palabras —*terminal operation*—: cambia el paquete y **recarga en el acto**,
+destruyendo el contexto de JavaScript. Se llamaba **siempre**, también en la
+comprobación de fondo de `initNative()`, así que abrir la app con versión nueva
+la reiniciaba sola nada más arrancar; y el `reload()` de la línea siguiente era
+código muerto, porque nunca llegaba a ejecutarse. El test ya decía la intención
+buena —«sin pedirlo, no recarga: se aplica al abrir la app la próxima vez»— y
+era el código el que no la cumplía.
+
+Ahora hay dos caminos, que es lo que el plugin ofrece: **`next()`** en segundo
+plano —deja el paquete puesto para el próximo arranque, sin interrumpir a
+nadie— y **`set()`** detrás del botón, porque quien lo toca ha venido a ver la
+versión nueva ahora.
+
+**Y se enseña qué paquetes hay** (`estadoDelPaquete`, `ListaDePaquetes`): el que
+está puesto, el del binario y todos los bajados con su estado. Un paquete en
+**`error`** es capgo **devolviéndolo** —hace rollback si el nuevo no llama a
+`notifyAppReady()` a tiempo— y desde fuera eso se ve igual que una descarga que
+nunca ocurrió. Va crudo y se toca para copiarlo, como el informe de
+sincronización (§14.9-bis): resumirlo es lo que nos tenía a ciegas.
+
 ### 14.16-quinquies Cada encargo puede llevar su propio modelo
 
 La clave es de la instalación —una credencial de pago, §14.16— pero **el modelo
