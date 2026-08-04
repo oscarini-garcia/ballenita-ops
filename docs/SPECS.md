@@ -1581,6 +1581,87 @@ que salió en los tests: `normalizarIngredientes` recortaba el nombre en cada
 pintado, así que el espacio recién tecleado desaparecía y «Arroz bomba» se escribía
 «Arrozbomba» — ahora el recorte es solo al guardar.
 
+### 14.20-ter La lista más fina, y una IA que dice que está pensando
+
+Decidido en [`docs/diseño/receta-fina.html`](diseño/receta-fina.html) ·
+**F2 + F4 · C3 · P1 · M2 · A1 + A2**.
+
+Cuatro ingredientes ocupaban **437,8 pt de los 844** que tiene la pantalla, y el
+motivo no era la caja sino **el detalle debajo de cada línea**: una fila con
+«0,1 kg/ración · paquete de 1 kg» mide **105,9 pt** y una sin él, **60,6**. O
+sea que escribir una cantidad **alargaba la lista 45 pt bajo el dedo** mientras
+la rellenabas.
+
+**Sin cajas** (F2). Los bordes se van y se escribe encima del texto. Medido, eso
+**no ahorra sitio** —2 pt por fila, porque el alto lo pone el relleno del campo—:
+es una decisión de aspecto, para que ocho ingredientes se lean como una lista y
+no como ocho formularios. Lo que hacía el borde sí hace falta, así que **el campo
+enfocado se tiñe**: esa es la única señal de dónde estás escribiendo.
+
+**El detalle, en un renglón al pie** (F4). Dice el de **la línea que estás
+tocando** —«0,1 kg/ración · paquete de 1 kg»— y, cuando no tocas ninguna, el
+resumen: para cuántas es, **cuántas van sin cantidad** y cuántas puso la IA. Ese
+recuento es lo que decide si hay que pulsar «Arreglar», y es justo lo que no se
+puede contar de un vistazo con ocho líneas delante. Alto fijo: si apareciera y
+desapareciera, la pantalla saltaría al tocar cada línea.
+
+**El mando dice qué cantidad se escribe** (C3): «Para 12» o «Por persona», y
+**hace de rótulo de la columna**, que es el renglón que si no llevaría una
+etiqueta muerta. **Lo guardado es siempre el total de la receta**: el mando solo
+cambia en qué unidades se teclea, y el renglón del pie enseña la otra. Si se
+guardara la cantidad por cabeza, cambiar las raciones de un plato ya escrito
+cambiaría lo que hay que comprar sin que nadie tocara la receta. Sin raciones no
+hay «por persona» que valga y el mando lo dice, en vez de mentir. Repartiendo,
+la columna crece a 108 pt: un pollo entre doce son 0,083 ud y en 92 salía
+«0,083 u».
+
+Medido en el navegador, la lista entera pasa de **437,8** a **377,3 pt** —mando
+36,1 · lista 320,0 · pie 21,2— y, sobre todo, **la fila mide siempre 60,6**.
+
+**Sin conexión la IA no se ofrece** (`lib/ia.js`). Los tres botones se podían
+pulsar sin red y lo que salía era el error del transporte contado con las
+palabras del transporte —«Load failed», «sin API configurada»—, que no dice ni
+qué ha pasado ni si es culpa tuya. Y en el navegador no van a funcionar nunca,
+porque la clave vive en el Worker (§14.9): un botón que no puede funcionar no
+debería poder pulsarse. Ahora van apagados **y dicen por qué**.
+
+**Dice quién está pensando** (P1, `components/BotonIA.jsx`). El «Un momento…»
+colgaba de una sola variable de estado y vivía en el botón de «Arreglar», así
+que pulsar «Parecidos» hacía hablar a su vecino. Ahora lo dice **el que has
+tocado**, con tres puntos que laten, y el otro se apaga —dos llamadas a la vez
+no se pueden pagar dos veces—. Cero altura: la respuesta está donde acabas de
+tocar.
+
+**«Parecidos» abre un modal** (M2). Salían inline, en una tarjeta de **242,4 pt**
+encajada entre los botones y «Para cuántas raciones», y ahí solo caben tres
+renglones: nombre, porqué y **los ingredientes como una ristra de nombres
+separados por puntos, sin cantidades**. Pero lo que llega es una receta entera, y
+una receta se decide mirándola. El modal **dice desde el primer momento que está
+cargando**, enseña una por pantalla con sus cantidades y se mueve con ‹ ›.
+
+**Dos cosas se pueden hacer con la que te gusta.** **Añadirla como plato nuevo**
+(A1) deja el plato desde el que llamaste sin tocar. **Sustituir la receta
+abierta** (A2) escribe encima del editor y **avisa de en cuántas cenas está
+metido ese plato** antes de hacerlo, con el mismo criterio con el que borrar ya
+lo dice: cambiar la receta cambia lo que se cena esas noches. Ninguna de las dos
+guarda nada; el modal solo rellena. Sustituir **borra el deshacer de
+«Arreglar»**, que guarda una sola foto de la lista: dejarlo puesto ofrecería
+volver a una receta que ya no es la de este plato.
+
+**Tres defectos que salieron al implementarlo**, y que estaban desde antes:
+
+- **No se podía escribir un decimal.** «1,2 kg» se teclea de izquierda a derecha,
+  así que en algún momento lo escrito es «1,»; el punto suelto casaba con el
+  hueco de la unidad —«1» y unidad «.»—, la caja se repintaba «1 .» y ahí se
+  atascaba. Ahora la coma final se cae antes de mirar nada, y la caja guarda
+  aparte lo que hay tecleado mientras todavía no es un número.
+- **Una propuesta cogida no nacía.** Llega sin `id`, pero el editor la trataba
+  como un plato existente: decía «Editar plato», ofrecía borrarlo y «Guardar»
+  llamaba a `updateDish(undefined, …)`.
+- **`event` no era un prop de `ModalPlato`.** `addDish(campos, event)` cogía el
+  `window.event` del navegador, así que en el evento Demo un plato nuevo se
+  escapaba al catálogo global (§14.9-quater).
+
 ### 14.16-quinquies Cada encargo puede llevar su propio modelo
 
 La clave es de la instalación —una credencial de pago, §14.16— pero **el modelo

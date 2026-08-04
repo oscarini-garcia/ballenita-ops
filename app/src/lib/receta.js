@@ -127,21 +127,35 @@ function pluralDe(palabra) {
  * Lo que no se entiende **no se inventa**: vuelve tal cual en `resto`, para que
  * la pantalla lo enseñe como está y el botón de arreglar sepa qué mirar.
  */
-export function partirCantidad(texto) {
-  const limpio = String(texto ?? '').trim().replace(',', '.')
+export function partirCantidad(texto, por = 1) {
+  // La coma final se cae antes de mirar nada. Se escribe «1,2 kg» de izquierda a
+  // derecha, así que en algún momento lo escrito es «1,»: sin esto, el punto
+  // suelto casaba con el hueco de la unidad —«1» y unidad «.»— y la caja se
+  // repintaba «1 .», que es donde se quedaba atascado escribir un decimal.
+  const limpio = String(texto ?? '').trim().replace(',', '.').replace(/\.$/, '')
   if (!limpio) return { cantidad: null, unidad: '', resto: '' }
   const m = limpio.match(/^(-?\d+(?:\.\d+)?)\s*([^\s\d]*)$/)
   if (!m) return { cantidad: null, unidad: '', resto: String(texto).trim() }
   const cantidad = Number(m[1])
   if (!Number.isFinite(cantidad)) return { cantidad: null, unidad: '', resto: String(texto).trim() }
-  return { cantidad, unidad: m[2].trim(), resto: '' }
+  // `por` es el número de raciones cuando se está escribiendo **por persona**
+  // (§14.20-ter · C3): lo que se guarda es siempre el total de la receta, y el
+  // mando solo cambia en qué unidades se teclea.
+  return { cantidad: por === 1 ? cantidad : util(cantidad * por), unidad: m[2].trim(), resto: '' }
 }
 
 /** Y de vuelta: lo que se enseña en la caja. */
-export function juntarCantidad(ing) {
+export function juntarCantidad(ing, entre = 1) {
   if (sinCantidad(ing)) return ''
-  return `${String(ing.cantidad).replace('.', ',')}${ing.unidad ? ` ${ing.unidad}` : ''}`
+  // Dividir saca decimales que no existen —1,2 entre 12 son 0,09999999999999999—
+  // así que al repartir se redondea a la milésima, que en kilos es el gramo. Sin
+  // dividir **no se toca el número**: quien escribió 1,25 tiene que ver 1,25.
+  const valor = entre === 1 ? ing.cantidad : util(ing.cantidad / entre)
+  return `${String(valor).replace('.', ',')}${ing.unidad ? ` ${ing.unidad}` : ''}`
 }
+
+/** A la milésima: en kilos es el gramo, y en unidades no se nota. */
+const util = (n) => Math.round(n * 1000) / 1000
 
 /**
  * Una receta pegada de golpe, línea a línea (§14.20-bis · L4).

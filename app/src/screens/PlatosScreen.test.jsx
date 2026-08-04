@@ -1,8 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PlatosScreen from './PlatosScreen.jsx'
 import { db, addDish, listDishes, addDinner, createEvent } from '../db.js'
+import { hayApi, platosParecidos } from '../sync/api.js'
+
+vi.mock('../sync/api.js', () => ({
+  hayApi: vi.fn(async () => true),
+  arreglarIngredientes: vi.fn(async () => []),
+  platosParecidos: vi.fn(async () => []),
+}))
 
 describe('PlatosScreen', () => {
   beforeEach(async () => {
@@ -101,5 +108,106 @@ describe('PlatosScreen', () => {
   it('el catálogo vacío se explica solo', async () => {
     render(<PlatosScreen />)
     expect(await screen.findByText(/El catálogo está vacío/)).toBeInTheDocument()
+  })
+})
+
+/**
+ * Los dos botones de IA del editor (§14.20-ter · P1 · M2 · A1 + A2).
+ */
+describe('preguntarle al modelo', () => {
+  beforeEach(async () => {
+    for (const t of ['events', 'dishes', 'dinners', 'outbox']) await db[t].clear()
+    hayApi.mockResolvedValue(true)
+    platosParecidos.mockResolvedValue([])
+  })
+
+  const PROPUESTA = {
+    que: 'Fideuá de sepia',
+    porque: 'Se hace en la misma paellera.',
+    tipo: 'principal',
+    ingredientes: [{ nombre: 'Fideos del 2', cantidad: 1, unidad: 'kg' }],
+  }
+
+  async function abrirEditor() {
+    await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    render(<PlatosScreen />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await screen.findByLabelText('Nombre')
+  }
+
+  it('el que has pulsado es el que dice que está pensando, no su vecino', async () => {
+    // El texto colgaba de una sola variable de estado y vivía en «Arreglar»:
+    // pulsabas «Parecidos» y contestaba el botón de al lado.
+    let soltar
+    platosParecidos.mockImplementation(() => new Promise((r) => { soltar = r }))
+    await abrirEditor()
+    await userEvent.click(screen.getByRole('button', { name: '🐳 Parecidos' }))
+
+    const pensando = await screen.findByRole('button', { name: /Pensando/ })
+    expect(pensando).toHaveAttribute('aria-busy', 'true')
+    // Y el otro sigue llamándose como se llama, apagado.
+    expect(screen.getByRole('button', { name: '🐳 Arreglar' })).toBeDisabled()
+
+    soltar([PROPUESTA])
+    await screen.findByRole('heading', { name: 'Fideuá de sepia' })
+  })
+
+  it('sin conexión no se ofrece, y dice por qué', async () => {
+    hayApi.mockResolvedValue(false)
+    await abrirEditor()
+
+    // Antes se podían pulsar y lo que salía era el error del transporte contado
+    // con las palabras del transporte, cuando ya era tarde.
+    await waitFor(() => expect(screen.getByRole('button', { name: '🐳 Parecidos' })).toBeDisabled())
+    expect(screen.getByRole('button', { name: '🐳 Arreglar' })).toBeDisabled()
+    expect(screen.getByText(/la IA vive en el servidor/)).toBeInTheDocument()
+  })
+
+  it('parecidos abre un modal que dice que está cargando', async () => {
+    let soltar
+    platosParecidos.mockImplementation(() => new Promise((r) => { soltar = r }))
+    await abrirEditor()
+    await userEvent.click(screen.getByRole('button', { name: '🐳 Parecidos' }))
+
+    expect(await screen.findByText('Buscando platos parecidos')).toBeInTheDocument()
+    soltar([PROPUESTA])
+
+    // Y luego la receta entera, con sus cantidades: antes los ingredientes eran
+    // una ristra de nombres separados por puntos.
+    await screen.findByRole('heading', { name: 'Fideuá de sepia' })
+    expect(screen.getByText('Fideos del 2')).toBeInTheDocument()
+    expect(screen.getByText('1 kg')).toBeInTheDocument()
+  })
+
+  it('sustituir la receta abierta avisa de en cuántas cenas está metida (A2)', async () => {
+    const eventId = await createEvent({ name: 'Ballenita 2026' })
+    const paella = await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    await addDinner(eventId, { dia: '2026-08-09', platoIds: [paella] })
+    platosParecidos.mockResolvedValue([PROPUESTA])
+    render(<PlatosScreen />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await userEvent.click(await screen.findByRole('button', { name: '🐳 Parecidos' }))
+    await screen.findByRole('heading', { name: 'Fideuá de sepia' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Sustituir esta receta' }))
+    expect(screen.getByText(/está metido en 1 cena/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Sí, sustituirla' }))
+    // Escribe encima del editor y **no guarda**: hasta que no se le dé a Guardar
+    // el plato del catálogo sigue siendo el de antes.
+    expect(screen.getByLabelText('Nombre')).toHaveValue('Fideuá de sepia')
+    expect((await listDishes())[0].name).toBe('Paella mixta')
+  })
+
+  it('añadirla como plato nuevo deja el que estabas mirando sin tocar (A1)', async () => {
+    platosParecidos.mockResolvedValue([PROPUESTA])
+    await abrirEditor()
+    await userEvent.click(screen.getByRole('button', { name: '🐳 Parecidos' }))
+    await screen.findByRole('heading', { name: 'Fideuá de sepia' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Añadir como plato nuevo' }))
+    expect(await screen.findByRole('heading', { name: 'Plato nuevo' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Nombre')).toHaveValue('Fideuá de sepia')
+    expect(await listDishes()).toHaveLength(1)
   })
 })
