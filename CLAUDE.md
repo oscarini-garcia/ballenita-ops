@@ -111,6 +111,19 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
+- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.22,
+  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **3 pt** bajo la cabecera
+  que se llena de amanecer a anochecer con el sol de tirador (`components/LineaDelHorizonte.jsx`);
+  la hora se **calcula** (`lib/sol.js`, sin red ni dependencias) porque dos constantes de verano
+  mienten 3 h 28 en enero. Se descartó el arco que cruza la cabecera: el disco pasa **7 h 29 al
+  día por detrás del título**. Abajo, un emoji y una frase **al final del scroll y en los
+  vacíos** —0 pt permanentes—, no en un renglón fijo sobre la barra, que costaba de 42,6 a 66,2 pt
+  y cobraba más caro al que peor ve. Las frases salen de **los datos del viaje** (`lib/recados.js`,
+  con su guarda cada una y **sin señalar a nadie**) y de una **tanda de doce de la IA**
+  (`api/src/recados.js`), mezcladas en una bolsa. **La ventana de dos horas se cumple dos veces**:
+  la del Worker ahorra la llamada de pago, la del móvil la petición — sin las dos, nueve
+  teléfonos son nueve llamadas y nueve bromas distintas a la vez. Salen unos **tres céntimos al
+  día** con haiku.
 - **Lo que cae fuera de las fechas se aparta, no se esconde** (SPECS §14.10-quater,
   `lib/evento.js` · `porDia`): Cenas y Planes se ordenan por día y lo que ya no pertenece al
   evento baja al final marcado. Esconderlo lo dejaría invisible pero contando en Estadísticas
@@ -238,8 +251,12 @@ api/
   (`.github/workflows/desplegar-api.yml`, secreto `CLOUDFLARE_API_TOKEN`), y a mano
   desde Actions → desplegar api → Run workflow, que es lo que se puede pulsar desde el
   móvil. `cd api && npm run desplegar` sigue valiendo como salida de emergencia.
-  **Las migraciones no las lanza nadie por ti**, a propósito: van antes del despliegue,
-  desde la consola de D1 o con `npm run migrar:remotoN`. Secretos del Worker:
+  **Las migraciones no se lanzan solas**, a propósito, pero ya no exigen portátil
+  (SPECS §14.23): si administras y la base va por detrás del código, **Ajustes →
+  Actualizar** lo dice y las aplica una a una contando el progreso — el SQL vive
+  **dentro del Worker** (`api/src/migraciones.js`, generado con
+  `npm run generar:migraciones`; el test avisa si se olvida regenerar). La consola
+  de D1 y `npm run migrar:remotoN` siguen valiendo. Secretos del Worker:
   `SESION_SECRETO` y `TOKEN_SERVICIO`, con `wrangler secret put`.
 - **Pruebas:** `.github/workflows/pruebas.yml` corre las dos suites en cada rama.
 - **OTA de iOS:** sin cambios (`ota.yml`); sube la versión en `app/package.json` y mergea.

@@ -34,7 +34,11 @@ export default function StatsScreen({ eventId, event, suelto = false }) {
   const cur = event.currency
 
   if (expenses.length === 0 && dinners.length === 0 && plans.length === 0) {
-    return <div className={suelto ? 'pila' : 'body'}><div className="empty"><span className="e">📊</span>Aún no hay nada que contar.<br />Añade gastos, cenas o planes.</div></div>
+    return <div className={suelto ? 'pila' : 'body'}><div className="empty">
+      <span className="e">📊</span>Aún no hay nada que contar.<br />
+      Añade gastos, cenas o planes.<br />
+      Un viaje sin datos es solo un viaje, que tampoco está mal.
+    </div></div>
   }
 
   return (

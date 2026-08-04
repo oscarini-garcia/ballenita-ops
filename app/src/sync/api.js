@@ -117,6 +117,17 @@ export const registrarPush = (token, avisos = true) =>
 /** Se manda un aviso a los aparatos de quien lo pide, y cuenta qué pasó. */
 export const probarPush = () => peticion('/api/push/prueba', { method: 'POST' })
 
+/**
+ * Qué migraciones conoce el código y cuáles le faltan a la base (solo para
+ * administradores, SPECS §14.23). El POST aplica **la siguiente** y devuelve lo
+ * que queda: se llama en bucle y así el progreso que se pinta es el de verdad.
+ * Del móvil no viaja ninguna sentencia: el SQL vive dentro del Worker.
+ */
+export const leerMigraciones = () => peticion('/api/migraciones')
+
+export const aplicarSiguienteMigracion = () =>
+  peticion('/api/migraciones', { method: 'POST' })
+
 /** Qué clave y qué modelo hay puestos. La clave nunca vuelve entera: solo sus
  *  cuatro últimos caracteres y cuándo se guardó. */
 export const leerIA = () => peticion('/api/ia')
@@ -199,6 +210,20 @@ export const sugerirPlanes = (eventId, descartadas = []) =>
     method: 'POST',
     body: JSON.stringify({ eventId, descartadas }),
   }).then((r) => r.propuestas || [])
+
+/**
+ * La tanda de recadillos del viaje (SPECS §14.22).
+ *
+ * Devuelve lo que el servidor tenga: la tanda guardada si sigue dentro de su
+ * ventana de dos horas, una nueva si no. Sin clave de IA contesta la lista
+ * vacía y **no es un error** — las frases que salen de los datos del viaje se
+ * calculan en el móvil y siguen apareciendo igual.
+ */
+export const traerRecados = (eventId, hoy) =>
+  peticion('/api/recados', {
+    method: 'POST',
+    body: JSON.stringify({ eventId, hoy }),
+  }).then((r) => ({ recados: r.recados || [], generadoEn: r.generadoEn || null }))
 
 export const eliminarMiCuenta = (codigoApple = null) =>
   peticion('/api/cuenta/baja', {

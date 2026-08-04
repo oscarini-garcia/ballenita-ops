@@ -203,8 +203,11 @@ function ModalMejora({ mejora, confirmando: confirmandoInicial, onClose }) {
   }
 
   return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal fino" onClick={(e) => e.stopPropagation()}>
+    // Pegado arriba y sin robar el foco, como el editor de una idea: se abre a
+    // leer o a quitar tanto como a escribir, y el teclado no sale hasta que se
+    // toca el campo. Las dos hojas hermanas se comportan igual.
+    <div className="modal-bg arriba" onClick={onClose}>
+      <div className="modal fino arriba" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2>Mejora</h2>
 
@@ -215,7 +218,6 @@ function ModalMejora({ mejora, confirmando: confirmandoInicial, onClose }) {
           maxLength={TOPE_DE_MEJORA}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          autoFocus={!confirmando}
         />
 
         <div style={{ marginTop: 16 }}>

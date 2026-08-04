@@ -9,6 +9,7 @@ import { tap } from '../lib/native.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { comoSeReparte } from '../lib/compra.js'
 import { cifra } from '../lib/receta.js'
+import Recado from '../components/Recado.jsx'
 
 const catOf = (id) => SHOP_CATEGORIES.find((c) => c.id === id) ?? SHOP_CATEGORIES.at(-1)
 
@@ -128,7 +129,11 @@ export default function CompraScreen({ eventId, event }) {
       </div>
 
       {items.length === 0 && (
-        <div className="empty"><span className="e">🛒</span>La lista está vacía.<br />Apunta lo que haga falta comprar arriba.</div>
+        <div className="empty">
+          <span className="e">🛒</span>La lista está vacía.<br />
+          Apunta lo que haga falta comprar arriba.<br />
+          El hielo se acaba solo, pero no se apunta solo.
+        </div>
       )}
 
       {grupos.map(({ cat, list }) => (
@@ -213,6 +218,9 @@ export default function CompraScreen({ eventId, event }) {
           </div>
         </>
       )}
+
+      {/* El recado del viaje, al final de la lista (SPECS §14.22). */}
+      <Recado evento={event} />
     </div>
   )
 }

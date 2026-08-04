@@ -6,6 +6,7 @@ import { now } from '../lib/ids.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import Deslizable from '../components/Deslizable.jsx'
 import Fab from '../components/Fab.jsx'
+import Recado from '../components/Recado.jsx'
 import Icono from '../components/Icono.jsx'
 
 // `icon` es el nombre de un dibujo de components/Icono.jsx y `tono` el que le
@@ -39,7 +40,11 @@ export default function ExpensesScreen({ eventId, event }) {
       </div>
 
       {expenses.length === 0 && (
-        <div className="empty"><span className="e">💸</span>Ningún gasto todavía.<br />Apunta el primero con «+ Gasto».</div>
+        <div className="empty">
+          <span className="e">💸</span>Ni un gasto todavía.<br />
+          Apunta el primero con «+ Gasto».<br />
+          O no habéis salido de la bunga, o alguien está pagando en secreto.
+        </div>
       )}
 
       {/* Una tarjeta por gasto y cada una con su gesto: se desliza a la izquierda
@@ -77,6 +82,9 @@ export default function ExpensesScreen({ eventId, event }) {
           )
         })}
       </div>
+
+      {/* El recado del viaje, al final del scroll (SPECS §14.22). */}
+      <Recado evento={event} />
 
       <Fab label="Gasto" onClick={() => setFicha('nuevo')} />
 

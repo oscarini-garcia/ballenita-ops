@@ -73,7 +73,8 @@ export default function IdeasScreen({ eventId, event }) {
       {ideas.length === 0 && (
         <div className="empty">
           <span className="e">🗺️</span>Todavía no hay ideas guardadas.<br />
-          Apunta la primera ahí arriba, o guarda un plan desde Planes.
+          Apunta la primera ahí arriba, o guarda un plan desde Planes.<br />
+          Las buenas se apuntan en la sobremesa y se olvidan al día siguiente.
         </div>
       )}
 
@@ -394,8 +395,12 @@ function ModalIdea({ idea, usos, onClose }) {
   }
 
   return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal fino" onClick={(e) => e.stopPropagation()}>
+    // Pegado arriba y sin robar el foco: se abre a **leer** —la firma, el
+    // contador, los verbos—, no a escribir. Con el foco puesto, el teclado
+    // salía solo y entre él y el modal abajo había que hacer scroll para
+    // llegar a los botones; ahora el teclado no sale hasta tocar un campo.
+    <div className="modal-bg arriba" onClick={onClose}>
+      <div className="modal fino arriba" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2>Editar idea</h2>
         {/* El contador de viajes vive aquí y ya no en la fila: en una línea de
@@ -408,7 +413,7 @@ function ModalIdea({ idea, usos, onClose }) {
         </div>
 
         <label htmlFor="idea-titulo">Qué es</label>
-        <input id="idea-titulo" type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Playa de la Cala" autoFocus />
+        <input id="idea-titulo" type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Playa de la Cala" />
 
         <label htmlFor="idea-desc">Descripción</label>
         <textarea id="idea-desc" rows="4" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Cala del sur. Llevar sombrilla: no hay chiringuito." />

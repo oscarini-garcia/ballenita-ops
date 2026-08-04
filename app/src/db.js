@@ -3,6 +3,7 @@ import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
 import { pesoDe } from './lib/personas.js'
 import { loQueHayQueComprar } from './lib/compra.js'
+import { olvidarTandas } from './lib/tanda.js'
 
 // IndexedDB desde el día 1 (§14). Cada tabla guarda registros con `id` de cliente
 // y `updatedAt`. Desde la migración a la API propia (Worker + D1), IndexedDB deja
@@ -188,6 +189,10 @@ export async function olvidarTodo() {
     for (const t of SYNC_TABLES) await db[t].clear()
     await db.outbox.clear()
   })
+  // Las tandas de recadillos no están en Dexie —son una copia de algo del
+  // servidor, no un hecho del grupo—, así que hay que llevárselas aparte. Si no,
+  // el que entre después en este móvil leería las bromas del viaje del anterior.
+  olvidarTandas()
 }
 
 // ── Eventos ──
