@@ -3,7 +3,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, listDishes, addDish, updateDish, removeDish, DISH_CATEGORIES } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
-import Icono from '../components/Icono.jsx'
 import Fab from '../components/Fab.jsx'
 import Recado from '../components/Recado.jsx'
 import Ingredientes from '../components/Ingredientes.jsx'
@@ -108,6 +107,16 @@ export default function PlatosScreen({ event }) {
   )
 }
 
+/**
+ * Un plato del catálogo: **se toca la fila y se abre**.
+ *
+ * El lápiz se retiró. Era un objetivo de 44 pt al final de una fila que ya se
+ * podía tocar entera, y decía «editar» cuando lo que se abre sirve igual para
+ * **mirar** la receta —que con cantidades es la mitad de las veces que se entra—.
+ * Es el idioma que ya usa El grupo (§14.14): se toca la fila y sube lo que hay
+ * dentro. La estrella se queda aparte porque hace otra cosa y se hace sin abrir
+ * nada.
+ */
 function FilaPlato({ plato, usos, onEditar }) {
   return (
     <div className="row fila-plato">
@@ -119,15 +128,22 @@ function FilaPlato({ plato, usos, onEditar }) {
       >
         {plato.esFavorito ? '⭐' : '☆'}
       </button>
-      <div className="main">
-        <div className="n">{plato.name}</div>
-        <div className="sub">
-          {plato.categorias?.map(etiqueta).join(' · ') || 'sin tipo'}
-          {usos > 0 ? ` · en ${usos} ${usos === 1 ? 'cena' : 'cenas'}` : ''}
-        </div>
-      </div>
-      <button className="verbo-fila" aria-label={`Editar ${plato.name}`} onClick={() => { tap(); onEditar() }}>
-        <Icono nombre="lapiz" />
+      {/* Con rótulo propio: la estrella de al lado también lleva el nombre del
+          plato, y sin esto quien lo oye tiene dos botones que dicen «Paella
+          mixta» y ninguno dice cuál abre la receta. */}
+      <button
+        type="button"
+        className="row-quien"
+        aria-label={`Abrir ${plato.name}`}
+        onClick={() => { tap(); onEditar() }}
+      >
+        <span className="main">
+          <span className="n">{plato.name}</span>
+          <span className="sub">
+            {plato.categorias?.map(etiqueta).join(' · ') || 'sin tipo'}
+            {usos > 0 ? ` · en ${usos} ${usos === 1 ? 'cena' : 'cenas'}` : ''}
+          </span>
+        </span>
       </button>
     </div>
   )

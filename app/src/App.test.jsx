@@ -66,7 +66,7 @@ describe('App — navegación', () => {
     // una cena y no se podía ni corregir.
     await userEvent.click(screen.getByRole('tab', { name: 'Platos' }))
     expect(await screen.findByText(/el mismo en todos los eventos/)).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Editar Paella mixta' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Abrir Paella mixta' })).toBeInTheDocument()
 
     // Y la compra sigue a un toque, con su barra de alta rápida.
     await userEvent.click(screen.getByRole('tab', { name: 'Compra' }))

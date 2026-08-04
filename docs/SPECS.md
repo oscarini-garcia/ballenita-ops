@@ -1717,6 +1717,15 @@ medida para un modal de 390— y a 104 mientras se escribe por persona, que es
 cuando las cifras se alargan. Con eso solo se corta un nombre de dieciocho
 letras, y el campo se desplaza al tocarlo.
 
+**Y el lápiz de la fila se retiró.** Era un objetivo de 44 pt al final de una
+fila que ya se podía tocar entera, y decía «editar» cuando lo que se abre sirve
+igual para **mirar** la receta —que desde que los platos llevan cantidades es la
+mitad de las veces que se entra—. Ahora se toca la fila y se abre, que es el
+idioma de El grupo (§14.14). La fila lleva **rótulo propio** («Abrir Paella
+mixta»): la estrella de al lado también dice el nombre del plato, y sin él quien
+lo oye tiene dos botones que dicen lo mismo y ninguno dice cuál abre la receta.
+La estrella se queda aparte porque hace otra cosa y se hace sin abrir nada.
+
 **Cuando el OTA no trae nada, se dice qué ha pasado** (§14.9-bis). El botón de
 Actualizar llamaba al paquete OTA y **tiraba la respuesta**: si no era
 «actualizado», seguía con el camino del service worker —que dentro de la app de

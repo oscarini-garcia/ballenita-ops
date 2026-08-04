@@ -42,7 +42,7 @@ describe('PlatosScreen', () => {
     await addDish({ name: 'Paela mista', categorias: ['principal'] })
     render(<PlatosScreen />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paela mista' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paela mista' }))
     const campo = await screen.findByLabelText('Nombre')
     await userEvent.clear(campo)
     await userEvent.type(campo, 'Paella mixta')
@@ -93,7 +93,7 @@ describe('PlatosScreen', () => {
     await addDinner(eventId, { dia: '2026-08-09', platoIds: [paella] })
     render(<PlatosScreen />)
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Borrar plato' }))
 
     expect(await screen.findByText(/de todos los eventos/)).toBeInTheDocument()
@@ -111,7 +111,7 @@ describe('PlatosScreen', () => {
     // mirar. Es la misma decisión que el editor de una idea (§14.19-ter).
     await addDish({ name: 'Paella mixta', categorias: ['principal'], ingredientes: [{ nombre: 'Arroz' }] })
     render(<PlatosScreen />)
-    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
     await screen.findByLabelText('Nombre')
 
     expect(document.activeElement).not.toBe(screen.getByLabelText('Nombre'))
@@ -122,11 +122,32 @@ describe('PlatosScreen', () => {
   it('el editor va estrecho y pegado arriba, que es donde no está el teclado', async () => {
     await addDish({ name: 'Paella mixta', categorias: ['principal'] })
     const { container } = render(<PlatosScreen />)
-    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
     await screen.findByLabelText('Nombre')
 
     expect(container.querySelector('.modal-bg.arriba')).toBeInTheDocument()
     expect(container.querySelector('.modal.arriba.formulario')).toBeInTheDocument()
+  })
+
+  it('la fila entera abre el plato, sin lápiz al final', async () => {
+    // El lápiz era un objetivo de 44 pt al final de una fila que ya se podía
+    // tocar entera, y decía «editar» cuando lo que se abre sirve igual para
+    // mirar la receta. Es el idioma de El grupo: se toca la fila y sube.
+    await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    render(<PlatosScreen />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
+    expect(await screen.findByRole('heading', { name: 'Editar plato' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Editar Paella/ })).not.toBeInTheDocument()
+  })
+
+  it('la estrella se queda aparte: marcar un favorito no abre nada', async () => {
+    await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    render(<PlatosScreen />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /Marcar Paella mixta como favorito/ }))
+    expect(screen.queryByRole('heading', { name: 'Editar plato' })).not.toBeInTheDocument()
+    expect((await listDishes())[0].esFavorito).toBe(true)
   })
 
   it('el catálogo vacío se explica solo', async () => {
@@ -155,7 +176,7 @@ describe('preguntarle al modelo', () => {
   async function abrirEditor() {
     await addDish({ name: 'Paella mixta', categorias: ['principal'] })
     render(<PlatosScreen />)
-    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
     await screen.findByLabelText('Nombre')
   }
 
@@ -209,7 +230,7 @@ describe('preguntarle al modelo', () => {
     await addDinner(eventId, { dia: '2026-08-09', platoIds: [paella] })
     platosParecidos.mockResolvedValue([PROPUESTA])
     render(<PlatosScreen />)
-    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
     await userEvent.click(await screen.findByRole('button', { name: '🐳 Parecidos' }))
     await screen.findByRole('heading', { name: 'Fideuá de sepia' })
 
