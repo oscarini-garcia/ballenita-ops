@@ -23,7 +23,7 @@ import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
-import { eliminarMiCuenta, gestionarCuenta, hayApi, listarCuentas } from '../sync/api.js'
+import { aplicarSiguienteMigracion, eliminarMiCuenta, gestionarCuenta, hayApi, leerMigraciones, listarCuentas } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
 import { tap } from '../lib/native.js'
@@ -491,7 +491,87 @@ function EditorEvento({ event, onCerrar }) {
  * código que le ha pasado el aspirante. Sin esto haría falta entrar en la base
  * de datos a mano para dejar entrar a nadie.
  */
-function AppSection() {
+/**
+ * La base de datos, al día desde el móvil (SPECS §14.23).
+ *
+ * Las migraciones siguen sin lanzarse solas, pero ya no exigen un portátil:
+ * si administras y la base va por detrás del código, aquí sale cuántas le
+ * faltan y un botón que las aplica **una a una**, contando el progreso en su
+ * sitio con la lista de pasos —la figura de Sincronización—. El SQL no viaja
+ * desde el móvil: vive dentro del Worker, y de aquí solo sale «aplica la
+ * siguiente».
+ *
+ * Si esta instalación no habla con la API, no hay sesión o no eres
+ * administrador, el bloque no existe: ofrecer un botón que va a fallar al
+ * pulsarlo es peor que no ofrecerlo.
+ */
+function MigracionesBloque() {
+  // null = todavía no se sabe (o no hay API): no se pinta nada.
+  const [pendientes, setPendientes] = useState(null)
+  const [pasos, setPasos] = useState(null)
+  const [ocupado, setOcupado] = useState(false)
+
+  useEffect(() => {
+    let vivo = true
+    leerMigraciones()
+      .then((r) => { if (vivo) setPendientes(r.migraciones.filter((m) => m.pendiente).map((m) => m.id)) })
+      .catch(() => {})
+    return () => { vivo = false }
+  }, [])
+
+  async function ponerAlDia() {
+    if (ocupado) return
+    tap()
+    setOcupado(true)
+    const lista = pendientes.map((id) => ({ texto: id, estado: 'pendiente' }))
+    const pinta = () => setPasos([...lista])
+    pinta()
+
+    for (let i = 0; i < lista.length; i += 1) {
+      lista[i].estado = 'curso'
+      pinta()
+      try {
+        const r = await aplicarSiguienteMigracion()
+        lista[i].estado = 'hecho'
+        // Media migración ya estaba (aplicada a mano, a medias): se dice, no se
+        // esconde — un «✓» que ejecutó cero cosas se leería como que las hizo.
+        if (r.aplicada?.saltadas) lista[i].texto = `${lista[i].texto} · ${r.aplicada.saltadas} ya estaban`
+      } catch (e) {
+        // El fallo con su estado HTTP, y el renglón se toca para copiarlo
+        // (§14.9-bis): un error de SQL no se transcribe a mano desde un móvil.
+        lista[i].estado = 'fallo'
+        lista[i].informe = String(e.message ?? e)
+        pinta()
+        setOcupado(false)
+        return
+      }
+      pinta()
+    }
+    setPendientes([])
+    setOcupado(false)
+  }
+
+  if (pendientes === null) return null
+  if (!pendientes.length && !pasos) return null
+
+  return (
+    <>
+      <div className="pista">
+        {pendientes.length
+          ? `La base de datos va ${pendientes.length === 1 ? '1 migración' : `${pendientes.length} migraciones`} por detrás del código (${pendientes.join(', ')}).`
+          : 'La base de datos está al día.'}
+      </div>
+      {pendientes.length > 0 && (
+        <button className="btn ghost block" disabled={ocupado} onClick={ponerAlDia}>
+          {ocupado ? 'Aplicando…' : 'Poner la base al día'}
+        </button>
+      )}
+      {pasos && <ListaDePasos pasos={pasos} />}
+    </>
+  )
+}
+
+function AppSection({ esAdmin = false }) {
   // null = en reposo · si no, la clave del paso actual (UPDATE_STEPS).
   const [paso, setPaso] = useState(null)
   const busy = paso !== null
@@ -581,6 +661,8 @@ function AppSection() {
           </div>
         </>
       )}
+
+      {esAdmin && <MigracionesBloque />}
     </div>
   )
 }
@@ -676,7 +758,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
       </Acordeon>
 
       <Acordeon titulo="Actualizar" icono="sincronizar" nota={`v${APP_VERSION}`}>
-        <AppSection />
+        <AppSection esAdmin={esAdmin} />
       </Acordeon>
 
     </div>

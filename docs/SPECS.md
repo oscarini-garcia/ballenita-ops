@@ -2281,6 +2281,47 @@ sesión de Claude que abre un encargo las lee al empezar —la regla está en
 hace. Lo hecho y lo del Demo no salen: lo uno ya no es trabajo, lo otro es
 arena.
 
+### 14.23 Poner la base al día desde Ajustes, cuando va por detrás del código
+
+**El problema.** La API se despliega sola al entrar en `main`, pero **las
+migraciones no las lanza nadie por ti**, a propósito — y el día que se mergea
+una tabla nueva con el móvil en la mano, el Worker nuevo llega antes que la
+migración y `/api/sync` falla hasta que alguien encuentra un portátil con
+`wrangler`. Pasó con la `0010` (las mejoras) el mismo día que se estrenó.
+
+**La solución.** Las migraciones siguen sin lanzarse solas —van cuando alguien
+las pide—, pero el camino cabe en el móvil: si administras y la base va por
+detrás, **Ajustes → Actualizar** dice cuántas migraciones le faltan y con qué
+nombre, y un botón —**«Poner la base al día»**— las aplica **una a una**,
+contando el progreso en su sitio con la lista de pasos (la figura de
+Sincronización). El fallo, si lo hay, se queda en su renglón con la sentencia y
+el estado HTTP, y **se toca para copiarlo** (§14.9-bis). Quien no administra, o
+una instalación sin API, no ve nada.
+
+**Cómo sabe qué falta.** No hay tabla de contabilidad de migraciones: la base
+ya existía con nueve aplicadas a mano y ninguna apuntada, y una contabilidad
+que nace mintiendo hay que sembrarla. En su lugar el Worker mira **el esquema
+de verdad**: todas las sentencias de `migraciones/` son de tres formas —`CREATE
+TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS` y `ALTER TABLE … ADD
+COLUMN`— y las tres declaran qué crean, así que «¿está aplicada?» es «¿existe
+su tabla, su índice o su columna?» (`api/src/migrador.js`). Aplicar también va
+sentencia a sentencia y **salta las que ya están**: una base a medio migrar se
+termina en vez de atascarse en el «duplicate column name». Un test convierte
+cualquier forma nueva de sentencia en un fallo de la suite: una migración con
+`UPDATE` no se puede decidir mirando el esquema, y ese día se decide en el
+código, no se descubre en producción.
+
+**Por dónde viaja el SQL.** Dentro del Worker: `api/src/migraciones.js` es una
+copia generada de `migraciones/*.sql` (`npm run generar:migraciones`), porque
+`wrangler` sabría empaquetar los `.sql` pero `node --test` no sabe importarlos.
+El riesgo de un fichero generado —quedarse viejo— lo vigila la suite, que lo
+compara con el directorio fichero a fichero. **Del móvil no llega ninguna
+sentencia**: llega «aplica la siguiente» (`POST /api/migraciones`), reservado a
+administradores como la IA, y el POST aplica **una** y devuelve lo que queda,
+para que el progreso que se pinta sea el de verdad y no un rótulo delante de
+una petición larga. Y las dos rutas funcionan con la base por detrás —no tocan
+las tablas del grupo—, que es exactamente cuándo hacen falta.
+
 ---
 
 ## 15. Registro de decisiones

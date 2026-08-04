@@ -251,8 +251,12 @@ api/
   (`.github/workflows/desplegar-api.yml`, secreto `CLOUDFLARE_API_TOKEN`), y a mano
   desde Actions → desplegar api → Run workflow, que es lo que se puede pulsar desde el
   móvil. `cd api && npm run desplegar` sigue valiendo como salida de emergencia.
-  **Las migraciones no las lanza nadie por ti**, a propósito: van antes del despliegue,
-  desde la consola de D1 o con `npm run migrar:remotoN`. Secretos del Worker:
+  **Las migraciones no se lanzan solas**, a propósito, pero ya no exigen portátil
+  (SPECS §14.23): si administras y la base va por detrás del código, **Ajustes →
+  Actualizar** lo dice y las aplica una a una contando el progreso — el SQL vive
+  **dentro del Worker** (`api/src/migraciones.js`, generado con
+  `npm run generar:migraciones`; el test avisa si se olvida regenerar). La consola
+  de D1 y `npm run migrar:remotoN` siguen valiendo. Secretos del Worker:
   `SESION_SECRETO` y `TOKEN_SERVICIO`, con `wrangler secret put`.
 - **Pruebas:** `.github/workflows/pruebas.yml` corre las dos suites en cada rama.
 - **OTA de iOS:** sin cambios (`ota.yml`); sube la versión en `app/package.json` y mergea.

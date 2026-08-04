@@ -77,6 +77,15 @@ idea (§14.19) y la `0008` el alias de familia y las dos fechas de una idea
 `0004`— van antes. Correr una sobre una base que ya la tiene falla con
 «duplicate column name», que es la señal de que no hacía falta.
 
+**Desde la v0.16.0 hay un camino sin portátil** (SPECS §14.23): si administras y
+la base va por detrás del código, **Ajustes → Actualizar** lo dice y un botón
+—«Poner la base al día»— aplica lo que falte una migración a una, enseñando el
+progreso. El SQL viaja dentro del Worker (`api/src/migraciones.js`, generado
+desde `migraciones/` con `npm run generar:migraciones`), así que del móvil no
+sale ninguna sentencia. Los comandos de arriba siguen valiendo como salida
+manual, y el botón sabe terminar una base a medio migrar: salta lo que ya está
+en vez de atascarse en el «duplicate column name».
+
 **Sin terminal a mano**, una migración de dos o tres `ALTER TABLE` se puede pegar
 en el panel de Cloudflare: **Workers & Pages → D1 → ballena-ops → Console**. Es
 el mismo SQL del fichero, y es lo que hace que esto se pueda desatascar desde un
