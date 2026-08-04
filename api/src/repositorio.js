@@ -13,7 +13,7 @@
  */
 
 import { NOMBRES, TABLAS, existeTabla, filaAObjeto, objetoAColumnas } from './tablas.js';
-import { encargosDe, encargosPublicos } from './encargos.js';
+import { encargosDe, encargosPublicos, modelosDe } from './encargos.js';
 
 const ahoraISO = () => new Date().toISOString();
 
@@ -342,6 +342,9 @@ export async function leerConfiguracionIA(db) {
     // Lo que se le pide a ese modelo, por encargo. Reescribible desde Ajustes;
     // sin nada guardado, el de origen (`encargos.js`).
     encargos: encargosDe(filas),
+    // Y **con qué modelo** se le pide cada cosa: la clave es de la instalación,
+    // el modelo no tiene por qué (§14.16-quinquies).
+    modelos: modelosDe(filas, filas.get('ia.modelo')?.valor || 'claude-sonnet-4-5'),
   };
 }
 
@@ -354,7 +357,7 @@ export function configuracionIAPublica(configuracion) {
     modelo: configuracion.modelo,
     // Los encargos no son secretos —son el texto que se va a poder editar—, así
     // que salen enteros, con su rótulo y su pista.
-    encargos: encargosPublicos(configuracion.encargos),
+    encargos: encargosPublicos(configuracion.encargos, configuracion.modelos, configuracion.modelo),
   };
 }
 

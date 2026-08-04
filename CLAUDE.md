@@ -75,8 +75,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   crear un plan dejaban planes sueltos sin idea detrás, que es media razón de ser del
   catálogo— y la pantalla dice por dónde se entra; el día se pone en **Agenda**; la lista son dos grupos —elegidos y disponibles por votos— con
   filas de 70,7 pt (antes tarjetas de 299,9 con siete botones y ocho colores); al abrir un
-  plan salen **los nombres** bajo su voto —con su avatar y el alias de su familia—, y
-  quién falta se dice en la fila cerrada y no dos veces. **La IA sugiere ideas**
+  plan salen **los nombres** bajo su voto —con su avatar y el alias de su familia— y
+  **cuántos son**, y quién falta se dice en la fila cerrada y no dos veces. Ese modal se
+  ve como capa (`docs/diseño/plan-voto.html` · P1·F1+F4·V2): antes tenía el papel del
+  color del fondo, 1,0 : 1. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
 - **Un día del viaje son cuatro renglones** (SPECS §14.21, `docs/diseño/agenda-dia.html` ·
@@ -142,6 +144,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   uno, las ideas de plan—. **Vacío devuelve el de origen**, la forma de la respuesta es parte
   del encargo (si le quitas el JSON deja de salir nada) y **solo se guardan los del catálogo**:
   sin ese filtro, un encargo llamado `clave` machacaría la credencial de pago.
+- **Cada encargo puede llevar su propio modelo** (SPECS §14.16-quinquies): la clave es de la
+  instalación, el modelo no. `ia.modelo:<id>` con el mismo filtro que los encargos, y el orden
+  es lo guardado → el de origen del encargo → el general. Hoy solo «Ordenar una lista de
+  ingredientes» trae uno puesto (haiku): es traducción y es el botón que más se pulsa.
 - **Un campo es su rótulo, el control y la pista debajo** (`components/Campo.jsx`, SPECS
   §14.16-ter, figura de `garciadoral-ops`): el estado vive **en el campo** —«Guardada, termina
   en ab12»— y no en una ficha con icono encima, y lo que contesta el servidor va en una

@@ -512,6 +512,26 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .modal.center { width: 90%; max-width: 460px; border-radius: 12px; padding: 18px 16px 22px;
   max-height: min(78vh, calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* ── La capa que se ve como capa (docs/diseño/plan-voto.html · P1·F1+F4·V2) ──
+   El papel de un modal era `--foam`, que es **el mismo color** que el fondo de
+   la app en las dos caras (#0b1f2c y #f1f5f7): contraste 1,0 : 1, y lo único
+   que separaba las dos capas era el velo. Peor todavía, las tarjetas de dentro
+   son `--foam-2`, más claras que el modal que las contiene, así que la
+   jerarquía se leía al revés.
+
+   `.capa` lo arregla por tres vías a la vez, porque ninguna aguanta sola las
+   dos caras: el papel sube al de las tarjetas (1,22 : 1 en oscuro, 1,1 : 1 en
+   claro), el borde y la sombra lo separan por elevación —que funciona igual en
+   las dos— y el velo de detrás baja un punto.
+
+   Lo que arrastra: dentro de `.capa`, lo que era `--foam-2` se fundiría con el
+   papel, así que baja un escalón. Es el mismo truco al revés. */
+.modal.capa { background: var(--foam-2); border: 1px solid var(--line);
+  box-shadow: 0 18px 44px rgba(4,18,26,.34); }
+.modal.capa .chip { background: var(--foam); }
+.modal.capa .note { background: color-mix(in srgb, var(--spout) 7%, var(--foam)); }
+.modal-bg.velo-fuerte { background: rgba(4,18,26,.68); }
+
 .modal h2 { margin: 4px 0 2px; font-size: var(--t-title); }
 .modal .x { float: right; background: none; border: none; font-size: 26px; line-height: 1;
   color: var(--ink-faint); cursor: pointer; padding: 0 4px; min-width: var(--toque); }
@@ -603,7 +623,13 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    La fila se alinea arriba porque los nombres doblan cuando son varios. */
 .votantes { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
 .votantes-fila { display: flex; align-items: flex-start; gap: 10px; min-height: 34px; padding: 4px 0; }
-.votantes-voto { width: 42px; flex: none; font-size: var(--t-row); }
+.votantes-voto { width: 26px; flex: none; font-size: var(--t-row); }
+/* El recuento, en su columna y con cifras tabulares: se compara de arriba abajo
+   sin leer los nombres, que es lo que se hace al abrir un plan. 22 pt bastan
+   para dos dígitos; con tres, el grupo tendría cien personas. */
+.votantes-cuenta { width: 22px; flex: none; text-align: right; font-size: var(--t-row);
+  font-weight: 620; font-variant-numeric: tabular-nums; }
+.votantes-cuenta.cero { color: var(--ink-faint); font-weight: 550; }
 .votantes-nombres { flex: 1; min-width: 0; font-size: var(--t-row); line-height: 1.4;
   display: flex; flex-wrap: wrap; gap: 2px 14px; }
 /* Avatar, nombre y alias van juntos y no se parten entre dos líneas: partidos,

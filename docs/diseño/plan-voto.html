@@ -1,0 +1,861 @@
+<title>Ballena Ops — El modal de votar se pinta del color del fondo, y sale pegado al borde de abajo</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256; --ab-linea-suave: #17384a;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea; --abc-linea-suave: #e9eff2;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code, .coste code, .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .ballena { width: 30px; height: 30px; flex: none; }
+  .t-cab .crece { flex: 1; min-width: 0; }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-cab .su { font-size: var(--t-micro); opacity: .78; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .tarj.junta { padding: 0 12px; }
+
+  /* 9 px arriba y abajo dejan la fila en ~70,7, que es lo que mide una `.row`
+     real medida contra theme.css. Con 11 se iba a 74 y el dibujo mentía. */
+  .fila { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  /* El título de un plan es lo único que identifica su fila, así que dobla a dos
+     líneas en vez de recortarse: «Noche de juegos de mesa» son 257,8 pt y en la
+     fila cerrada solo hay 245. Se mide y se dice, no se esconde con puntos. */
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .oscuro .pil { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .pil { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .pil.ok { background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .pil.ok { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); background: none; color: var(--ab-soft); font-family: inherit;
+    min-height: 40px; display: inline-flex; align-items: center; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+  .chip.rojo { color: #fff; background: var(--ab-owe); border-color: var(--ab-owe); }
+  .claro .chip.rojo { background: var(--abc-owe); border-color: var(--abc-owe); }
+  .chip.lleno { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .chip.lleno { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .plan-n { font-weight: 600; font-size: var(--t-row); }
+  .cifra-l { font-size: var(--t-label); }
+  .oscuro .cifra-l { color: var(--ab-faint); } .claro .cifra-l { color: var(--abc-faint); }
+  .fecha-nativa { border-radius: 7px; padding: 12px; font-size: var(--t-body);
+    display: flex; justify-content: space-between; align-items: center; }
+  .oscuro .fecha-nativa { border: 1px solid var(--ab-linea); color: var(--ab-ink); }
+  .claro .fecha-nativa { border: 1px solid var(--abc-linea); color: var(--abc-ink); }
+
+  .verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--ab-linea); border-radius: 9px; color: var(--ab-soft); background: none; }
+  .claro .verbo-fila { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .verbo-fila svg { width: 19px; height: 19px; }
+
+  /* Deslizamiento a medias, para enseñar los verbos de K3 */
+  .deslizada { position: relative; overflow: hidden; }
+  .verbos { position: absolute; inset: 0 0 0 auto; display: flex; }
+  .verbo { width: 76px; display: grid; place-items: center; gap: 4px; font-size: var(--t-micro);
+    font-weight: 700; color: #eaf6fb; }
+  .verbo.ed { background: #1f6f8f; } .verbo.bo { background: #a8322a; }
+  .verbo svg { width: 19px; height: 19px; }
+  .cara { position: relative; transform: translateX(-152px); }
+  .oscuro .cara { background: var(--ab-tarjeta); } .claro .cara { background: var(--abc-tarjeta); }
+
+  /* Los cuatro mandos de áreas de la parte cuatro */
+  .t-sub { padding: 12px 14px 0; }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 10px; }
+  .oscuro .seg { background: var(--ab-linea-suave); } .claro .seg { background: var(--abc-linea-suave); }
+  .seg button { flex: 1; padding: 10px 6px; border: none; background: none; border-radius: 7px;
+    font-weight: 600; font-size: var(--t-row); font-family: inherit; white-space: nowrap; }
+  .oscuro .seg button { color: var(--ab-soft); } .claro .seg button { color: var(--abc-soft); }
+  .oscuro .seg button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
+  .claro .seg button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); box-shadow: 0 1px 2px rgba(16,42,55,.12); }
+
+  .subr { display: flex; gap: 22px; padding: 0 4px; }
+  .subr button { border: none; background: none; padding: 10px 0 9px; font-family: inherit;
+    font-size: var(--t-row); font-weight: 600; border-bottom: 2px solid transparent; }
+  .oscuro .subr { border-bottom: 1px solid var(--ab-linea); } .claro .subr { border-bottom: 1px solid var(--abc-linea); }
+  .oscuro .subr button { color: var(--ab-faint); } .claro .subr button { color: var(--abc-faint); }
+  .oscuro .subr button.on { color: var(--ab-ink); border-bottom-color: var(--ab-acento); }
+  .claro .subr button.on { color: var(--abc-ink); border-bottom-color: var(--abc-acento); }
+
+  .past { display: flex; gap: 8px; }
+  .past button { border-radius: 999px; padding: 8px 15px; font-family: inherit;
+    font-size: var(--t-sub); font-weight: 600; background: none; }
+  .oscuro .past button { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .past button { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .oscuro .past button.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .past button.on { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .titmando { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px 0; }
+  .titmando .h { font-size: var(--t-title); font-weight: 700; letter-spacing: -.015em; }
+  .titmando .m { display: flex; gap: 2px; padding: 3px; border-radius: 8px; }
+  .oscuro .titmando .m { background: var(--ab-linea-suave); } .claro .titmando .m { background: var(--abc-linea-suave); }
+  .titmando .m button { border: none; background: none; border-radius: 6px; padding: 6px 11px;
+    font-family: inherit; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .titmando .m button { color: var(--ab-faint); } .claro .titmando .m button { color: var(--abc-faint); }
+  .oscuro .titmando .m button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); }
+  .claro .titmando .m button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); }
+
+  .t-barra { display: flex; justify-content: space-around; padding: 7px 0 10px; }
+  .oscuro .t-barra { background: var(--ab-cromo); border-top: 1px solid var(--ab-linea); }
+  .claro .t-barra { background: var(--abc-cromo); border-top: 1px solid var(--abc-linea); }
+  .t-barra .p { width: 76.4px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ab-faint); }
+  .claro .t-barra .p { color: var(--abc-faint); }
+  .t-barra .p.on { color: var(--ab-acento-txt); } .claro .t-barra .p.on { color: var(--abc-acento-txt); }
+  .t-barra .p svg { width: 23px; height: 23px; }
+  .t-barra .p span { font-size: var(--t-micro); font-weight: 550; }
+
+  .regla { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue);
+    display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+  .regla .barra { height: 6px; border-radius: 3px; background: var(--linea-fuerte); }
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  /* El color se pone a mano en la celda. Estas hojas no llevan doctype, así que
+     el navegador las lee en modo quirks y ahí **las tablas no heredan el color**:
+     el `td` se quedaba en negro y en la cara oscura no se leía una palabra. */
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<style>
+  /* ── Añadidos de esta hoja ─────────────────────────────────────────────
+     Todo lo de arriba viene de `planes-ideas.html`. Aquí solo hacen falta el
+     teléfono a 844 pt de alto, el velo y las variantes de papel. */
+
+  .tel844 { height: 844px; position: relative; }
+  .capa-fondo { position: absolute; inset: 0; display: flex; flex-direction: column; }
+
+  /* El velo. El de la app es rgba(4,18,26,.5) en las dos caras. */
+  .velo2 { position: absolute; inset: 0; display: flex; justify-content: center; }
+  .velo2.abajo { align-items: flex-end; }
+  .velo2.centro { align-items: center; padding: 14px; }
+  .velo-medio { background: rgba(4,18,26,.5); }
+  .velo-fuerte { background: rgba(4,18,26,.68); }
+  .velo-desenfoque { background: rgba(4,18,26,.38); backdrop-filter: blur(6px); }
+  .velo-marca { background: color-mix(in srgb, #0b1f2c 78%, transparent); }
+  .velo-nada { background: none; }
+
+  /* El papel del modal. `hoy` es el mismo color que el fondo de la app. */
+  .hojam { width: 100%; padding: 16px 16px 26px; display: flex; flex-direction: column; gap: 2px; }
+  .hojam.abajo { border-radius: 12px 12px 0 0; }
+  .hojam.centrada { border-radius: 12px; width: 90%; max-width: 360px; padding: 18px 16px 22px; }
+  .hojam.estrecha { width: 84%; max-width: 320px; }
+
+  .oscuro .p-hoy { background: #0b1f2c; }            .claro .p-hoy { background: #f1f5f7; }
+  .oscuro .p-tarjeta { background: #14303f; }        .claro .p-tarjeta { background: #ffffff; }
+  .oscuro .p-tinte { background: #173848; }          .claro .p-tinte { background: #edf4f6; }
+  .oscuro .p-cromo { background: #081821; }          .claro .p-cromo { background: #0b1f2c; color: #e6eef3; }
+  .p-borde { border: 1px solid var(--ab-linea); box-shadow: 0 18px 44px rgba(0,0,0,.45); }
+  .claro .p-borde { border-color: var(--abc-linea); box-shadow: 0 18px 44px rgba(16,42,55,.22); }
+
+  .hojam h4 { margin: 0; font-size: var(--t-title); font-weight: 650; letter-spacing: -.015em; }
+  .hojam .dia { font-size: var(--t-sub); }
+  .oscuro .hojam .dia { color: var(--ab-soft); } .claro .hojam .dia { color: var(--abc-soft); }
+  .hojam .rot2 { font-size: var(--t-label); font-weight: 600; margin: 12px 0 6px; }
+  .oscuro .hojam .rot2 { color: var(--ab-soft); } .claro .hojam .rot2 { color: var(--abc-soft); }
+  .p-cromo .rot2, .p-cromo .dia { color: #a4bcc9; }
+
+  .votos-chips { display: flex; gap: 8px; }
+  .votos-chips .chip { min-height: 44px; padding: 9px 16px; font-size: var(--t-row); }
+  .votante2 { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; font-size: var(--t-row); }
+  .fila-voto { display: flex; align-items: flex-start; gap: 10px; min-height: 34px; padding: 4px 0; }
+  .fila-voto .v { width: 42px; flex: none; font-size: var(--t-row); }
+  .fila-voto .quienes { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px 14px; }
+  .nadie { font-size: var(--t-sub); }
+  .oscuro .nadie { color: var(--ab-faint); } .claro .nadie { color: var(--abc-faint); }
+  .al2 { font-family: var(--mono); font-size: 11.5px; font-weight: 700; letter-spacing: .06em;
+    border-radius: 5px; padding: 1px 5px; line-height: 1.3; }
+  .al2.gar { background: rgba(229,84,75,.2); color: #f0938c; }
+  .claro .al2.gar { background: rgba(229,84,75,.12); color: #a8332b; }
+  .al2.per { background: rgba(46,158,107,.2); color: #6fc79c; }
+  .claro .al2.per { background: rgba(46,158,107,.12); color: #1f6d4b; }
+  .al2.sol { background: rgba(31,166,214,.2); color: #6dc4e5; }
+  .claro .al2.sol { background: rgba(31,166,214,.12); color: #14657f; }
+  .nota-pie { font-size: var(--t-sub); border-radius: 9px; padding: 10px 12px; margin-top: 12px; }
+  .oscuro .nota-pie { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .nota-pie { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .p-cromo .nota-pie { background: #14303f; color: #a4bcc9; }
+
+  /* La regla del pulgar: dónde caen los chips de voto en una pantalla de 844. */
+  .pulgar { position: absolute; left: 0; right: 0; height: 1px; background: #ff8f7d; z-index: 5; }
+  .pulgar span { position: absolute; right: 4px; top: -15px; font-family: var(--mono); font-size: 10px; color: #ff8f7d; }
+
+  .ficha-contraste { font-family: var(--mono); font-size: 11.5px; display: flex; flex-wrap: wrap;
+    gap: 4px 16px; color: var(--tinta-tenue); }
+  .ficha-contraste b { color: var(--tinta-suave); }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Planes · el plan abierto</div>
+    <h1>El modal de votar está pintado del mismo color que el fondo, y sale pegado al borde de abajo</h1>
+    <p class="entradilla">
+      El papel del modal es <code>--foam</code>, que es <b>exactamente</b> el color del fondo de la
+      app: <code>#0b1f2c</code> en la cara oscura y <code>#f1f5f7</code> en la clara. Contraste entre
+      la capa de arriba y la de abajo: <b>1,0 : 1</b>. Lo único que las separa es el velo. Y las
+      tarjetas de dentro son <code>--foam-2</code>, <b>más claras que el modal</b>, así que la capa
+      que está encima parece la de debajo.
+    </p>
+    <p class="entradilla">
+      Además se planta <b>abajo del todo</b>, con las esquinas redondeadas solo arriba —gramática de
+      hoja que sube— pero sin el asa que llevan las hojas de verdad (`components/Hoja.jsx`). Lo que
+      se decide aquí es <b>dónde se planta</b>, <b>de qué color es el papel</b> y <b>qué hay
+      detrás</b>.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.13.3 (<code>main</code>, d38495c)</span>
+      <span><b>Medida:</b> 390 × 844 pt</span>
+      <span><b>Modal de hoy:</b> 438,4 pt en la app · 461,6 en esta maqueta</span>
+      <span><b>Velo:</b> <code>rgba(4,18,26,.5)</code></span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Contenido real: el plan <b>Playa de la Cala</b> de la semilla, con sus tres votos y la firma de
+      cada votante como quedó en v0.13.3 —avatar, nombre y alias de familia—. Los contrastes están
+      calculados sobre los tokens de <code>theme.css</code>, no estimados a ojo. La maqueta mide
+      461,6 pt donde la app mide 438,4: la diferencia son los rellenos, que aquí van redondos; lo
+      que se compara —dónde cae cada cosa y cuánto se separa del fondo— no depende de esos 23 pt.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO QUE NO SE ELIGE ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · tres cosas que no se eligen</h2>
+    <p>
+      Son defectos medidos, no gustos. Se arreglan con cualquiera de las opciones de abajo, y se
+      cuentan aquí para que la decisión no se gaste en ellos.
+    </p>
+    <p class="linea-corte">
+      <b>1 · El papel del modal es el color del fondo.</b> <code>--foam</code> es a la vez
+      <code>--app-bg</code> y el fondo de <code>.modal</code>. En la cara oscura las dos capas son
+      <code>#0b1f2c</code>; en la clara, <code>#f1f5f7</code>. <b>1,0 : 1</b>.<br>
+      <b>2 · Las tarjetas de dentro son más claras que el modal que las contiene</b> —
+      <code>--foam-2</code> está a <b>1,22 : 1</b> del papel en oscuro y a <b>1,1 : 1</b> en claro—,
+      así que la jerarquía se lee al revés: parece que el modal está debajo de su propio contenido.<br>
+      <b>3 · Tiene la forma de una hoja pero no su asa.</b> Esquinas redondeadas solo arriba y
+      pegado al borde de abajo es la gramática de <code>Hoja.jsx</code>, que además trae el asa que
+      dice «esto se cierra hacia abajo». Este modal no la lleva: promete un gesto que no existe.
+    </p>
+  </div>
+
+  <!-- ══════════════ EL ANTES ══════════════ -->
+  <div class="parte">El punto de partida, a tamaño real</div>
+  <p class="parte-intro">
+    A la izquierda, lo que hay puesto. A la derecha, lo mismo en la cara clara. La línea roja marca
+    dónde caen los <b>chips de voto</b>, que es lo único que se viene a tocar aquí.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro tel844">
+      <div class="capa-fondo">
+        <div class="t-cab">
+          <div class="ballena" style="border-radius:50%;background:#14303f"></div>
+          <div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div>
+          <div class="punto"></div>
+        </div>
+        <div class="t-sub"><div class="seg"><button class="on">Planes</button><button>Ideas</button></div></div>
+        <div class="t-body">
+          <div class="sec-h"><span>Elegidos · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">3</span></div>
+            <div class="fila"><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago</div></div><span class="pil">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="velo2 abajo velo-medio">
+        <div class="hojam abajo p-hoy" data-m="modalHoy">
+          <h4>Playa de la Cala</h4>
+          <div class="dia">lun, 10 ago</div>
+          <div class="rot2">Tu voto</div>
+          <div class="votos-chips" data-m="chipsHoy"><button class="chip">👍</button><button class="chip on">🤷</button><button class="chip">👎</button></div>
+          <div class="rot2">Quién ha votado</div>
+          <div class="fila-voto"><span class="v">👍</span><span class="quienes">
+            <span class="votante2">🏖️ Curro <span class="al2 gar">GA</span></span>
+            <span class="votante2">🍷 Ana <span class="al2 per">PE</span></span>
+            <span class="votante2">🎉 Pablo <span class="al2 sol">SO</span></span>
+          </span></div>
+          <div class="fila-voto"><span class="v">🤷</span><span class="quienes"><span class="nadie">nadie</span></span></div>
+          <div class="fila-voto"><span class="v">👎</span><span class="quienes"><span class="nadie">nadie</span></span></div>
+          <div class="nota-pie">El día se pone en <b>Agenda</b>, tocando el día del viaje. Aquí solo se vota.</div>
+        </div>
+      </div>
+      <div class="pulgar" data-m="reglaHoy" style="top:560px"><span>chips de voto</span></div>
+    </div>
+
+    <div class="tel claro tel844">
+      <div class="capa-fondo">
+        <div class="t-cab">
+          <div class="ballena" style="border-radius:50%;background:#dde6ea"></div>
+          <div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div>
+          <div class="punto"></div>
+        </div>
+        <div class="t-sub"><div class="seg"><button class="on">Planes</button><button>Ideas</button></div></div>
+        <div class="t-body">
+          <div class="sec-h"><span>Elegidos · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">3</span></div>
+            <div class="fila"><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago</div></div><span class="pil">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="velo2 abajo velo-medio">
+        <div class="hojam abajo p-hoy">
+          <h4>Playa de la Cala</h4>
+          <div class="dia">lun, 10 ago</div>
+          <div class="rot2">Tu voto</div>
+          <div class="votos-chips"><button class="chip">👍</button><button class="chip on">🤷</button><button class="chip">👎</button></div>
+          <div class="rot2">Quién ha votado</div>
+          <div class="fila-voto"><span class="v">👍</span><span class="quienes">
+            <span class="votante2">🏖️ Curro <span class="al2 gar">GA</span></span>
+            <span class="votante2">🍷 Ana <span class="al2 per">PE</span></span>
+            <span class="votante2">🎉 Pablo <span class="al2 sol">SO</span></span>
+          </span></div>
+          <div class="fila-voto"><span class="v">🤷</span><span class="quienes"><span class="nadie">nadie</span></span></div>
+          <div class="fila-voto"><span class="v">👎</span><span class="quienes"><span class="nadie">nadie</span></span></div>
+          <div class="nota-pie">El día se pone en <b>Agenda</b>, tocando el día del viaje. Aquí solo se vota.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="ficha-contraste">
+    <span><b>Papel del modal ↔ fondo de la app:</b> 1,0 : 1 (el mismo color)</span>
+    <span><b>Papel ↔ tarjetas de dentro:</b> 1,22 : 1 en oscuro · 1,1 : 1 en claro, y al revés de lo que toca</span>
+  </p>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · dónde se planta</div>
+  <p class="parte-intro">
+    Pediste <b>centrado</b>. Eso ya decide lo principal; lo que queda es cuánto margen se le deja a
+    los lados y qué pasa cuando el plan tiene doce votantes y no cabe. Y hay un coste que conviene
+    mirar antes: centrar <b>aleja los chips de voto del pulgar</b>, y votar es lo único que se viene
+    a hacer aquí.
+  </p>
+
+  <div class="grupo">
+    <h3>Cuatro sitios</h3>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">P1</span><span class="op-nombre">Centrada, con margen a los lados</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La variante <code>.modal.center</code> que <b>ya existe</b> en <code>theme.css</code> y usa
+        la edición de perfil: 90 % de ancho, esquinas redondeadas por los cuatro lados, y el velo
+        con 14 pt de aire alrededor. Cero código nuevo de posición.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> los chips de voto suben de <span data-m="chipsAbajo">505,7</span> a
+        <span data-m="chipsCentro">305,4</span> pt desde arriba, o sea <b><span data-m="subenPt">200,3</span> pt
+        más lejos del pulgar</b>. <b>Lo paga:</b> se lee como una capa de verdad, con las cuatro
+        esquinas a la vista, y es la figura que la app ya tiene escrita.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P2</span><span class="op-nombre">Centrada y estrecha</span></div>
+      <p class="op-idea">
+        Lo mismo, más angosta: 84 % (<b>327 pt</b>) y tope de 320. Se parece más a un diálogo del
+        sistema y deja ver más de la lista alrededor.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> «Playa de la Cala» sigue cabiendo, pero <b>«Noche de juegos de mesa» dobla a
+        dos líneas</b>, y los tres votantes de un voto pasan de dos líneas a tres. <b>Lo paga:</b>
+        más contexto visible detrás, que ayuda a saber de dónde saliste.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P3</span><span class="op-nombre">Abajo, como ahora</span><span class="etq base">lo de hoy</span></div>
+      <p class="op-idea">
+        Pegada al borde inferior, esquinas redondeadas solo arriba. Si se queda, hay que ponerle
+        <b>el asa</b> de <code>Hoja.jsx</code>, que es lo que dice que se cierra hacia abajo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> es lo que has pedido cambiar, y sin asa promete un gesto que no existe.
+        <b>Lo paga:</b> los chips caen a <span data-m="chipsAbajo2">505,7</span> pt, en la zona del
+        pulgar, que en una pantalla de 844 no es poca cosa.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P4</span><span class="op-nombre">Centrada y alta, con scroll dentro</span></div>
+      <p class="op-idea">
+        Centrada, pero con tope de <b>78 vh</b> y desplazamiento interno, como hace la ficha de
+        perfil. Con tres votantes se ve igual que P1; con doce, el modal no se sale de la pantalla.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> con poco contenido la caja parece flotar sin razón si se fija el alto —hay que
+        dejar que encoja—, y aparece una barra de desplazamiento dentro de otra. <b>Lo paga:</b> es
+        la única que aguanta un grupo grande; hoy sois seis y el modal mide 438,4 de 844, así que
+        <b>todavía no hace falta</b>.
+      </p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel oscuro tel844">
+      <div class="capa-fondo">
+        <div class="t-cab"><div class="ballena" style="border-radius:50%;background:#14303f"></div><div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div><div class="punto"></div></div>
+        <div class="t-sub"><div class="seg"><button class="on">Planes</button><button>Ideas</button></div></div>
+        <div class="t-body">
+          <div class="sec-h"><span>Elegidos · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">3</span></div>
+            <div class="fila"><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago</div></div><span class="pil">1</span></div>
+          </div>
+          <div class="sec-h"><span>Disponibles · 1</span><span>por votos</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Noche de juegos de mesa</div><div class="s">faltan 5 por votar</div></div><span class="pil">0</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="velo2 centro velo-medio">
+        <div class="hojam centrada p-tarjeta p-borde" data-m="modalP1">
+          <h4>Playa de la Cala</h4>
+          <div class="dia">lun, 10 ago</div>
+          <div class="rot2">Tu voto</div>
+          <div class="votos-chips" data-m="chipsP1"><button class="chip">👍</button><button class="chip on">🤷</button><button class="chip">👎</button></div>
+          <div class="rot2">Quién ha votado</div>
+          <div class="fila-voto"><span class="v">👍</span><span class="quienes">
+            <span class="votante2">🏖️ Curro <span class="al2 gar">GA</span></span>
+            <span class="votante2">🍷 Ana <span class="al2 per">PE</span></span>
+            <span class="votante2">🎉 Pablo <span class="al2 sol">SO</span></span>
+          </span></div>
+          <div class="fila-voto"><span class="v">🤷</span><span class="quienes"><span class="nadie">nadie</span></span></div>
+          <div class="fila-voto"><span class="v">👎</span><span class="quienes"><span class="nadie">nadie</span></span></div>
+          <div class="nota-pie">El día se pone en <b>Agenda</b>, tocando el día del viaje. Aquí solo se vota.</div>
+        </div>
+      </div>
+      <p class="pie-tel" style="position:absolute;bottom:6px;left:14px;color:var(--ab-faint)">P1 · centrada, papel de tarjeta</p>
+    </div>
+
+    <div class="tel oscuro tel844">
+      <div class="capa-fondo">
+        <div class="t-cab"><div class="ballena" style="border-radius:50%;background:#14303f"></div><div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div><div class="punto"></div></div>
+        <div class="t-sub"><div class="seg"><button class="on">Planes</button><button>Ideas</button></div></div>
+        <div class="t-body">
+          <div class="sec-h"><span>Elegidos · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">3</span></div>
+            <div class="fila"><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago</div></div><span class="pil">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="velo2 centro velo-medio">
+        <div class="hojam centrada estrecha p-tarjeta p-borde" data-m="modalP2">
+          <h4>Noche de juegos de mesa</h4>
+          <div class="dia">sin día</div>
+          <div class="rot2">Tu voto</div>
+          <div class="votos-chips"><button class="chip">👍</button><button class="chip on">🤷</button><button class="chip">👎</button></div>
+          <div class="rot2">Quién ha votado</div>
+          <div class="fila-voto"><span class="v">👍</span><span class="quienes">
+            <span class="votante2">🏖️ Curro <span class="al2 gar">GA</span></span>
+            <span class="votante2">🍷 Ana <span class="al2 per">PE</span></span>
+            <span class="votante2">🎉 Pablo <span class="al2 sol">SO</span></span>
+          </span></div>
+          <div class="fila-voto"><span class="v">🤷</span><span class="quienes"><span class="nadie">nadie</span></span></div>
+          <div class="nota-pie">El día se pone en <b>Agenda</b>. Aquí solo se vota.</div>
+        </div>
+      </div>
+      <p class="pie-tel" style="position:absolute;bottom:6px;left:14px;color:var(--ab-faint)">P2 · estrecha · el título dobla</p>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Chips de voto, hoy (abajo):</b> <span data-m="chipsAbajo3">505,7</span> pt desde arriba</span>
+    <span><b>Centrada (P1):</b> <span data-m="chipsCentro2">305,4</span> pt</span>
+    <span><b>Ancho de P1:</b> <span data-m="anchoP1">325,8</span> pt · <b>P2:</b> <span data-m="anchoP2">304,1</span> pt</span>
+  </p>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · de qué color es el papel</div>
+  <p class="parte-intro">
+    «Un fondo diferente» tiene cinco respuestas razonables, y no todas funcionan en las dos caras del
+    tema. Los números son contrastes calculados sobre los tokens reales: <b>1,0 : 1 es lo que hay
+    hoy</b> —el mismo color— y a partir de <b>1,2 : 1</b> el borde de la capa se ve sin buscarlo.
+  </p>
+
+  <div class="grupo">
+    <h3>Cinco papeles</h3>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">El papel de las tarjetas</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        <code>--foam-2</code>: <code>#14303f</code> en oscuro, <code>#ffffff</code> en claro. Es el
+        escalón que la app ya usa para «esto está por encima del fondo», el mismo de cada tarjeta.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> <b>1,22 : 1</b> en oscuro y <b>1,1 : 1</b> en claro es poco por sí solo —de
+        ahí que venga con F4—, y obliga a un ajuste: las tarjetas de dentro del modal ya no pueden
+        ser <code>--foam-2</code> también, o se funden con él. <b>Lo paga:</b> ni un color nuevo en
+        la paleta, y la jerarquía queda en el orden correcto.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">Papel tintado con el acento</span></div>
+      <p class="op-idea">
+        El azul de la marca al 8 % sobre el papel de tarjeta: <code>#173848</code> en oscuro,
+        <code>#edf4f6</code> en claro. Es lo que ya hace la caja de propuestas de la IA.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> funciona en una cara y desaparece en la otra — <b>1,36 : 1</b> en oscuro pero
+        <b>1,01 : 1</b> en claro, o sea invisible. Habría que tintar distinto por cara, y eso son dos
+        decisiones donde debería haber una.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">Papel «cromo», el de la cabecera</span></div>
+      <p class="op-idea">
+        <code>--appbar-bg</code>: el azul casi negro de la barra de arriba. El modal se lee como
+        pieza de cromo, no como contenido.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> es el caso más asimétrico de los cinco — en claro es un tarjetón negro a
+        <b>15,36 : 1</b>, dramático y muy fuerte para votar; en oscuro se hunde a <b>1,07 : 1</b>,
+        <i>menos</i> separado que hoy. Justo al revés de lo que hace falta.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre">Borde y sombra en vez de color</span><span class="etq rec">va con F1</span></div>
+      <p class="op-idea">
+        La capa se separa por <b>elevación</b>: un borde de 1 pt con <code>--line</code> y una sombra
+        larga y suave debajo. Es lo que hace un modal en cualquier sistema, y no gasta ningún color.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> una sombra grande en un fondo casi negro se ve poco; el trabajo lo hace el
+        borde. <b>Lo paga:</b> se comporta <b>igual en las dos caras</b>, que es lo que F2 y F3 no
+        consiguen, y con F1 encima el resultado no depende solo del contraste de color.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F5</span><span class="op-nombre">Papel translúcido sobre desenfoque</span></div>
+      <p class="op-idea">
+        El papel a media opacidad y el velo con <code>backdrop-filter: blur</code>: la lista de
+        detrás se adivina desenfocada. Es la gramática nativa de iOS.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el desenfoque no es gratis en móviles viejos, y sobre todo <b>vuelve a hacer
+        depender el papel del fondo</b>, que es el defecto que veníamos a arreglar: encima de una
+        lista clara y de una oscura no se lee igual. <b>Lo paga:</b> es lo más bonito de los cinco.
+      </p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel oscuro tel844">
+      <div class="capa-fondo">
+        <div class="t-cab"><div class="ballena" style="border-radius:50%;background:#14303f"></div><div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="sec-h"><span>Elegidos · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">3</span></div>
+            <div class="fila"><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago</div></div><span class="pil">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="velo2 centro velo-medio">
+        <div class="hojam centrada p-tinte">
+          <h4>F2 · tintado</h4>
+          <div class="dia">#173848 · 1,36 : 1</div>
+          <div class="rot2">Tu voto</div>
+          <div class="votos-chips"><button class="chip">👍</button><button class="chip on">🤷</button><button class="chip">👎</button></div>
+          <div class="fila-voto"><span class="v">👍</span><span class="quienes"><span class="votante2">🏖️ Curro <span class="al2 gar">GA</span></span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tel oscuro tel844">
+      <div class="capa-fondo">
+        <div class="t-cab"><div class="ballena" style="border-radius:50%;background:#14303f"></div><div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="sec-h"><span>Elegidos · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">3</span></div>
+            <div class="fila"><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago</div></div><span class="pil">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="velo2 centro velo-medio">
+        <div class="hojam centrada p-cromo">
+          <h4>F3 · cromo</h4>
+          <div class="dia">#081821 · 1,07 : 1 en oscuro</div>
+          <div class="rot2">Tu voto</div>
+          <div class="votos-chips"><button class="chip">👍</button><button class="chip on">🤷</button><button class="chip">👎</button></div>
+          <div class="fila-voto"><span class="v">👍</span><span class="quienes"><span class="votante2">🏖️ Curro <span class="al2 gar">GA</span></span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tel claro tel844">
+      <div class="capa-fondo">
+        <div class="t-cab"><div class="ballena" style="border-radius:50%;background:#dde6ea"></div><div class="crece"><div class="ti">Demo</div><div class="su">Camping La Ballena Alegre</div></div><div class="punto"></div></div>
+        <div class="t-body">
+          <div class="sec-h"><span>Elegidos · 2</span></div>
+          <div class="tarj junta">
+            <div class="fila"><div class="txt"><div class="n">Playa de la Cala</div><div class="s">lun, 10 ago</div></div><span class="pil ok">3</span></div>
+            <div class="fila"><div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">mié, 12 ago</div></div><span class="pil">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="velo2 centro velo-medio">
+        <div class="hojam centrada p-cromo">
+          <h4>F3 · cromo, cara clara</h4>
+          <div class="dia">#0b1f2c · 15,36 : 1</div>
+          <div class="rot2">Tu voto</div>
+          <div class="votos-chips"><button class="chip">👍</button><button class="chip on">🤷</button><button class="chip">👎</button></div>
+          <div class="fila-voto"><span class="v">👍</span><span class="quienes"><span class="votante2">🏖️ Curro <span class="al2 gar">GA</span></span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · qué hay detrás</div>
+  <p class="parte-intro">
+    El papel separa la capa por dentro; el <b>velo</b> la separa por fuera, y hoy es el único que
+    trabaja. Cambiarlo cuesta una línea y cambia más de lo que parece.
+  </p>
+
+  <div class="grupo">
+    <h3>Cuatro velos</h3>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V1</span><span class="op-nombre">El de siempre</span><span class="etq base">lo de hoy</span></div>
+      <p class="op-idea"><code>rgba(4,18,26,.5)</code>. La lista de detrás se lee entera.</p>
+      <p class="coste"><b>Cuesta:</b> con el papel del mismo color que el fondo, ese medio velo es
+        <i>todo</i> lo que separa las dos capas.</p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">V2</span><span class="op-nombre">Un poco más oscuro</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        De <b>.5</b> a <b>.68</b>. Lo de detrás sigue reconociéndose —sabes de dónde saliste— pero
+        deja de competir por la mirada.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> nada medible; es un número. <b>Lo paga:</b> con F1+F4 delante, es lo que hace
+        que el modal se vea como una capa desde el primer vistazo y no tras buscar el borde.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V3</span><span class="op-nombre">Con desenfoque</span></div>
+      <p class="op-idea">Velo más suave (.38) y <code>backdrop-filter: blur(6px)</code>: lo de detrás
+        se adivina pero no se lee.</p>
+      <p class="coste">
+        <b>Cuesta:</b> pintar desenfoque cada cuadro no es gratis en un iPhone viejo, y en la app
+        no se usa en ningún otro sitio: sería el único. <b>Lo paga:</b> es lo que hace iOS, y se nota
+        que es del sistema.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V4</span><span class="op-nombre">Sin velo, solo sombra</span></div>
+      <p class="op-idea">Nada detrás; el modal se sostiene con su sombra y su borde.</p>
+      <p class="coste">
+        <b>Cuesta:</b> el fondo sigue vivo y tocable a la vista —y al tocarlo se cierra el modal, que
+        entonces es una sorpresa—. Con lista larga detrás, además, el ojo no sabe dónde posarse.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte cuatro · cómo se combinan</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>P1</span><span>F1</span><span>+F4</span><span>V2</span></div>
+    <p>
+      <b>Centrada con la variante que ya existe</b> (P1) —cero código nuevo de posición—, con
+      <b>el papel de las tarjetas</b> (F1) y <b>borde y sombra</b> (F4), y el <b>velo un punto más
+      oscuro</b> (V2). Las tres cosas juntas separan la capa por color, por elevación y por
+      contexto; ninguna de las tres sola lo consigue en las dos caras del tema.
+    </p>
+    <p>
+      <b>Lo que arrastra y hay que hacer:</b> las tarjetas de dentro del modal dejan de poder ser
+      <code>--foam-2</code>, porque se funden con el papel nuevo. Pasan a llevar el color del fondo
+      con su borde, que es el mismo truco al revés.
+    </p>
+    <p>
+      <b>Si quieres que se note más:</b>
+      <span class="receta" style="display:inline"><span>P1</span><span>F1+F4</span><span>V3</span></span>
+      — con desenfoque detrás. Es lo más iOS de todo esto; el precio es rendimiento en móviles
+      viejos y ser el único sitio de la app que lo usa.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Dos cosas que dejo escritas en vez de decidirlas yo.</b> Una: centrar aleja los chips de
+      voto del pulgar <span data-m="subenPt2">200,3</span> pt; si votar deprisa importa más que el
+      dibujo, <b>P3 con asa</b> sigue siendo defendible y te lo digo antes de que lo veas puesto.
+      Dos: esto cambia <code>.modal</code>, que lo usan también la ficha de una idea, la de un plato
+      y la de un día — si el papel nuevo es solo para el plan, hay que decirlo, y si es para todas,
+      es una vuelta más grande y conviene mirarlas juntas.
+    </p>
+    <p style="font-size:13.5px">
+      Esta hoja vive en <code>docs/diseño/plan-voto.html</code>. <b>No se ha escrito código:</b> lo
+      que sale de esta vuelta es la hoja.
+    </p>
+  </div>
+
+</div>
+</div>

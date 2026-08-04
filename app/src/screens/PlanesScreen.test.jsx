@@ -144,6 +144,37 @@ describe('el plan abierto', () => {
     expect(filas[2].querySelector('.votante').textContent).toBe('🍷AnaPE')
   })
 
+  it('cada voto dice cuántos son, y el cero se ve apagado', async () => {
+    const { eventId, event, curro, ana } = await viaje()
+    await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '👍' } })
+
+    render(<PlanesScreen eventId={eventId} event={event} />)
+    await abrir('Cuevas')
+
+    const cuentas = [...document.querySelectorAll('.votantes-cuenta')]
+    expect(cuentas.map((c) => c.textContent)).toEqual(['2', '0', '0'])
+    // El que nadie ha votado se apaga: el número que importa es el que no es cero.
+    expect(cuentas[0]).not.toHaveClass('cero')
+    expect(cuentas[1]).toHaveClass('cero')
+    // Y se dice en palabras para quien no ve la columna.
+    expect(cuentas[0]).toHaveAttribute('aria-label', '2 votos')
+  })
+
+  it('el plan abierto se ve como una capa: centrado, con papel propio', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Cuevas' })
+
+    render(<PlanesScreen eventId={eventId} event={event} />)
+    await abrir('Cuevas')
+
+    // El papel era el mismo color que el fondo de la app —1,0 : 1— y solo lo
+    // separaba el velo (docs/diseño/plan-voto.html · P1 · F1+F4 · V2).
+    const caja = document.querySelector('.modal')
+    expect(caja).toHaveClass('center')
+    expect(caja).toHaveClass('capa')
+    expect(caja.closest('.modal-bg')).toHaveClass('velo-fuerte')
+  })
+
   it('con varios en el mismo voto, los nombres van seguidos', async () => {
     const { eventId, event, curro, ana, luis } = await viaje()
     await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '👍', [luis]: '👍' } })

@@ -157,6 +157,18 @@ export default function PlanesScreen({ eventId, event }) {
  * El plan abierto: se vota, se ve quién ha votado qué, y quien administra puede
  * devolverlo al catálogo.
  *
+ * **Se ve como una capa** (`docs/diseño/plan-voto.html` · P1 · F1+F4 · V2):
+ * centrado, con el papel de las tarjetas, borde y sombra, y el velo un punto más
+ * oscuro. Antes se plantaba abajo y con el papel del color del fondo —1,0 : 1—,
+ * así que en la cara oscura no se veía dónde acababa la pantalla y empezaba el
+ * modal. Centrarlo cuesta 200,3 pt de distancia al pulgar para los chips de
+ * voto, que es el precio medido de que se lea como lo que es.
+ *
+ * **Cada voto dice cuántos son**, en columna y con cifras tabulares: el recuento
+ * se compara de arriba abajo sin leer un solo nombre, que es lo que se hace al
+ * abrir un plan —¿va ganando o no?—; los nombres contestan la segunda pregunta,
+ * que es quién.
+ *
  * Los votos se enseñan **con los nombres**, una línea por voto, y cada nombre
  * lleva delante **su avatar** y detrás **el alias de su familia** en pastilla de
  * su color (`components/Alias.jsx`). Los avatares solos no valían —seis emoji en
@@ -195,8 +207,8 @@ function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) 
   }
 
   return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal fino" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-bg center velo-fuerte" onClick={onClose}>
+      <div className="modal center capa" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2>{plan.titulo}</h2>
         {plan.dia && <div className="pista">{fmtDay(plan.dia)}</div>}
@@ -224,6 +236,12 @@ function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) 
           {VOTES.map((v) => (
             <div className="votantes-fila" key={v}>
               <span className="votantes-voto" aria-hidden>{v}</span>
+              <span
+                className={`votantes-cuenta tnum${conVoto(v).length === 0 ? ' cero' : ''}`}
+                aria-label={`${conVoto(v).length} ${conVoto(v).length === 1 ? 'voto' : 'votos'}`}
+              >
+                {conVoto(v).length}
+              </span>
               <span className="votantes-nombres">
                 {conVoto(v).length === 0
                   ? <span className="pista">nadie</span>
