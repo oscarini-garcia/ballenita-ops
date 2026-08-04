@@ -1,0 +1,1273 @@
+<title>Ballena Ops — Que se note que es verano: un sol que cruza la cabecera y alguien que habla desde abajo</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #0b1f2c;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --escala: 1.12;
+    --t-hero:  calc(30px * var(--escala));
+    --t-title: calc(21px * var(--escala));
+    --t-body:  calc(17px * var(--escala));
+    --t-row:   calc(16px * var(--escala));
+    --t-sub:   calc(14px * var(--escala));
+    --t-label: calc(13px * var(--escala));
+    --t-micro: calc(11.5px * var(--escala));
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { background: color-mix(in srgb, var(--oro) 14%, transparent);
+    border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .grupo > .pregunta b { color: var(--tinta); }
+
+  .tabla-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 14.5px; min-width: 640px; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--linea);
+    vertical-align: top; color: var(--tinta-suave); }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--tinta-tenue); border-bottom-color: var(--linea-fuerte); }
+  td b, td.si { color: var(--tinta); }
+  td.mal { color: var(--coral); }
+  td.bien { color: var(--acento); }
+  .num { font-family: var(--mono); font-size: 13px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390.
+     `line-height: 1.45` es el real del `body` de la app. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45; outline: 1px solid var(--ab-linea); outline-offset: -1px;
+    display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+  .tel.alto { height: 844px; }
+  .pie-tel { width: 390px; flex: none; font-family: var(--mono); font-size: 11px;
+    color: var(--tinta-tenue); padding-top: 7px; line-height: 1.4; }
+  .pie-tel b { color: var(--tinta-suave); }
+  .col-tel { display: flex; flex-direction: column; }
+
+  /* La cabecera real: 16 de margen, logo de 30, hueco de 11, punto de 44 y
+     14/12 de relleno vertical. Sale a 78,8 pt en Grande. */
+  .cab { position: relative; overflow: hidden; flex: none; display: flex; align-items: center;
+    gap: 11px; padding: 14px 16px 12px; background: var(--ab-cromo); color: #e6eef3; }
+  .claro .cab { background: var(--abc-cromo); }
+  .cab .marca { width: 30px; height: 30px; flex: none; color: #8fbdd1; display: grid; place-items: center;
+    position: relative; z-index: 2; }
+  .cab .marca svg { width: 100%; height: 100%; display: block; }
+  .cab .crece { flex: 1; min-width: 0; position: relative; z-index: 2; }
+  .cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cab .su { font-size: var(--t-micro); opacity: .78; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .cab .punto-caja { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    position: relative; z-index: 2; }
+  .cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; }
+
+  /* El cielo va **detrás** del texto: es una capa aparte y no un hueco de la
+     fila, así que no le quita ni un punto al título. */
+  .cielo { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .astro { position: absolute; width: 18px; height: 18px; border-radius: 50%; }
+  .astro.sol { background: #f7c34f; box-shadow: 0 0 22px 9px rgba(247,195,79,.22); }
+  .astro.luna { background: #d7e3ee; box-shadow: 0 0 18px 7px rgba(215,227,238,.16); }
+  .astro.luna::after { content: ""; position: absolute; right: -4px; top: -5px;
+    width: 16px; height: 16px; border-radius: 50%; background: var(--fondo-luna, #081821); }
+
+  /* A4: la línea del horizonte, 3 pt bajo la cabecera. */
+  .horizonte { position: relative; height: 3px; flex: none; background: rgba(230,238,243,.12); }
+  .claro .horizonte { background: rgba(255,255,255,.14); }
+  .horizonte i { position: absolute; left: 0; top: 0; bottom: 0; display: block;
+    background: linear-gradient(90deg, #e08b5a, #f7c34f); }
+  .horizonte b { position: absolute; top: -3px; width: 9px; height: 9px; border-radius: 50%;
+    background: #f7c34f; box-shadow: 0 0 0 2px rgba(8,24,33,.55); }
+  .horizonte.noche i { background: linear-gradient(90deg, #2c5468, #8fa8c4); }
+  .horizonte.noche b { background: #d7e3ee; }
+
+  /* A3: la casilla del astro, a la izquierda del punto. */
+  .casilla { width: 26px; flex: none; display: grid; place-items: center; font-size: 20px;
+    line-height: 1; position: relative; z-index: 2; }
+
+  .hora-rot { font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    color: var(--tinta-tenue); padding: 0 0 5px 2px; }
+  .hora-rot b { color: var(--tinta-suave); }
+
+  /* El cuerpo y la barra, para las opciones que cuestan alto. */
+  .cuerpo { flex: 1 1 auto; min-height: 0; overflow: hidden; padding: 14px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .titular { border-radius: 9px; padding: 14px; background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .titular { background: var(--abc-tarjeta); border-color: var(--abc-linea-suave); }
+  .titular .l { font-size: var(--t-micro); font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ab-acento-txt); }
+  .claro .titular .l { color: var(--abc-acento-txt); }
+  .titular .g { font-size: var(--t-body); font-weight: 650; letter-spacing: -.01em; margin-top: 4px; }
+  .titular .p { font-size: var(--t-sub); color: var(--ab-soft); margin-top: 3px; }
+  .claro .titular .p { color: var(--abc-soft); }
+  .titular .sello { display: flex; gap: 8px; align-items: baseline; margin-top: 9px;
+    padding-top: 9px; border-top: 1px dashed var(--ab-linea); font-size: var(--t-sub); color: var(--ab-soft); }
+  .claro .titular .sello { border-top-color: var(--abc-linea); color: var(--abc-soft); }
+  .titular .sello .e { font-size: var(--t-body); }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; color: var(--ab-faint); }
+  .claro .sec-h { color: var(--abc-faint); }
+  .tarj { border-radius: 9px; background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); padding: 0 12px; }
+  .claro .tarj { background: var(--abc-tarjeta); border-color: var(--abc-linea-suave); }
+  .fila { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none;
+    background: rgba(63,143,174,.20); color: var(--ab-acento-txt); }
+  .claro .ico { background: rgba(34,112,143,.12); color: var(--abc-acento-txt); }
+  .ico svg { width: 20px; height: 20px; }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: var(--t-row); font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .s { font-size: var(--t-sub); color: var(--ab-soft); }
+  .claro .fila .s { color: var(--abc-soft); }
+  .fila .imp { font-size: var(--t-row); font-weight: 650; flex: none; }
+
+  /* La barra: 6 arriba, 6 abajo, pestaña de 44 mínimo. 65,7 pt medidos. */
+  .barra { flex: none; display: flex; justify-content: space-around; padding: 6px 4px;
+    background: var(--ab-tarjeta); border-top: 1px solid var(--ab-linea-suave); }
+  .claro .barra { background: var(--abc-tarjeta); border-top-color: var(--abc-linea-suave); }
+  .barra .p { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; min-height: 44px; padding: 4px 2px; color: var(--ab-faint); position: relative; }
+  .claro .barra .p { color: var(--abc-faint); }
+  .barra .p.on { color: var(--ab-acento); }
+  .claro .barra .p.on { color: var(--abc-acento); }
+  .barra .p svg { width: 23px; height: 23px; }
+  .barra .p span { font-size: var(--t-micro); font-weight: 550; }
+  .barra .p .globo { position: absolute; top: -30px; font-size: 21px; line-height: 1; }
+
+  /* C1: el renglón fijo sobre la barra. */
+  .recado { flex: none; display: flex; align-items: center; gap: 9px; padding: 7px 14px;
+    font-size: var(--t-sub); color: var(--ab-soft); border-top: 1px solid var(--ab-linea-suave); }
+  .claro .recado { color: var(--abc-soft); border-top-color: var(--abc-linea-suave); }
+  .recado .e { font-size: var(--t-body); flex: none; }
+
+  /* C3: la burbuja. Va donde vive el botón de crear, 78 pt sobre la barra. */
+  .burbuja { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px;
+    background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); font-size: var(--t-sub);
+    color: var(--ab-ink); margin: 0 16px; box-shadow: 0 10px 24px -12px rgba(0,0,0,.6); }
+  .claro .burbuja { background: var(--abc-tarjeta); border-color: var(--abc-linea); color: var(--abc-ink); }
+  .burbuja .e { font-size: 22px; flex: none; }
+
+  /* C2 / C4: el pie de la lista y el vacío. */
+  .pie-lista { text-align: center; padding: 18px 16px 6px; font-size: var(--t-sub); color: var(--ab-faint); }
+  .claro .pie-lista { color: var(--abc-faint); }
+  .pie-lista .e { font-size: calc(var(--t-hero) * .95); display: block; margin-bottom: 6px; }
+  .vacio { text-align: center; color: var(--ab-faint); padding: 30px 16px; font-size: var(--t-row); }
+  .claro .vacio { color: var(--abc-faint); }
+  .vacio .e { font-size: 42px; display: block; margin-bottom: 8px; }
+
+  /* Una copia dibujada en «Enorme», para enseñar lo que pasa con el renglón.
+     Los siete rangos hay que **volver a declararlos**: `--t-sub` se sustituyó ya
+     en `:root` con la escala de allí, así que cambiar solo `--escala` aquí abajo
+     no lo recalcula y la copia sale idéntica a la otra con toda la pinta de
+     estar bien. Es exactamente la mordida de la que avisa CLAUDE.md. */
+  .enorme { --escala: 1.26;
+    --t-hero: calc(30px * var(--escala)); --t-title: calc(21px * var(--escala));
+    --t-body: calc(17px * var(--escala)); --t-row: calc(16px * var(--escala));
+    --t-sub: calc(14px * var(--escala)); --t-label: calc(13px * var(--escala));
+    --t-micro: calc(11.5px * var(--escala)); }
+
+  /* Los cuatro dibujos de A5 ampliados. A 30 pt no se distinguen —que es medio
+     argumento de la opción—, pero para elegirlos hay que poder verlos. */
+  .zoom { display: flex; gap: 26px; flex-wrap: wrap; }
+  .zoom figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .zoom .caja { width: 88px; height: 88px; display: grid; place-items: center;
+    background: var(--ab-cromo); border-radius: 12px; color: #8fbdd1; }
+  .zoom .caja svg { width: 64px; height: 64px; }
+  .zoom figcaption { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); }
+
+  .frases { display: flex; flex-wrap: wrap; gap: 8px; }
+  .frase { background: var(--papel); border: 1px solid var(--linea); border-radius: 999px;
+    padding: 7px 13px; font-size: 14px; color: var(--tinta-suave); }
+  .frase b { color: var(--tinta); font-weight: 600; }
+
+  .combi { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px; padding: 18px;
+    display: flex; flex-direction: column; gap: 9px; }
+  .combi h4 { margin: 0; font-size: 16px; font-weight: 700; }
+  .combi .codigos { font-family: var(--mono); font-size: 13px; color: var(--acento); font-weight: 700; letter-spacing: .04em; }
+  .combi p { margin: 0; font-size: 14.5px; color: var(--tinta-suave); max-width: 70ch; }
+
+  .cierre { border-top: 2px solid var(--linea-fuerte); padding-top: 22px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15.5px; }
+  .cierre b { color: var(--tinta); }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · cabecera y pie</div>
+    <h1>Que se note que es verano: un sol que cruza la cabecera y alguien que habla desde abajo</h1>
+    <p class="entradilla">
+      El encargo son dos cosas y las dos son de cariño, no de función: <b>un sol y una luna arriba</b>
+      que vayan contando la hora del día, y <b>abajo, emojis con frases</b> que aparezcan de vez en
+      cuando. Nada de esto arregla nada — y esa es exactamente la razón por la que hay que medir lo
+      que cuesta antes de ponerlo: una app que va a un camping con nueve personas dentro puede
+      permitirse ser simpática, pero no puede permitirse que la simpatía se coma la pantalla.
+    </p>
+    <p class="entradilla">
+      Lo que se decide, entonces, no es <i>si</i> —eso está dicho— sino <b>dónde vive cada cosa y qué
+      paga por estar ahí</b>. Arriba la cabecera son <b id="m-appbar">—</b> pt de los 844, de los que
+      el título ya ocupa <b id="m-titulo">—</b> y le sobran <b id="m-sobra">—</b>: caben un astro
+      quieto, un astro que se mueve por detrás o ninguno de los dos. Abajo «abajo» quiere decir tres
+      sitios distintos que cuestan de <b>0 pt para siempre</b> a <b id="m-renglon-pct-cab">—</b>% del
+      cuerpo. Y hay dos preguntas de fondo que no son de dibujo: <b>de dónde sale la hora a la que
+      se pone el sol</b> y <b>quién escribe las frases</b>. Cinco partes, y la última son las
+      combinaciones, que casi siempre es donde está la buena.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.14.2</span>
+      <span><b>Medida:</b> 390 × 844 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Escala:</b> Grande ×1,12, la de fábrica</span>
+      <span><b>Ficheros:</b> <code>App.jsx</code>, <code>theme.css</code>, <code>HoyScreen.jsx</code></span>
+      <span><b>Contenido:</b> el evento real; las horas de sol son las de Madrid el 4/8/2026 (07:15 y 21:29), calculadas, no supuestas</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ DEFECTOS ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · dos arreglos que no se eligen</h2>
+    <p>
+      Los dos salen de leer <code>theme.css</code> para dibujar esto, y los dos están justo debajo de
+      lo que el encargo quiere poner encima. No se votan: se arreglan y se cuentan.
+    </p>
+    <p class="linea-corte">
+      <b>1 · Los tres emoji que ya hay no crecen con el texto.</b> <code>.empty .e</code> va a
+      <code>42px</code>, <code>.avatar</code> a <code>28px</code> y la ballena de
+      <code>.progreso-modal</code> a <code>52px</code> (líneas 457, 542 y 569): tres tamaños en
+      píxeles a pelo, fuera de <code>--escala</code>. El cuerpo de la app va de <b>17,0 pt</b> en
+      Normal a <b>19,0</b> en Grande y <b>21,4</b> en Enorme, y esos tres se quedan clavados en los
+      tres sitios. <code>src/estilos.test.js</code> no los ve porque persigue los
+      <code>style={{…}}</code> del JSX, no el CSS. Se arregla con
+      <code>calc(var(--t-hero) * 1.25)</code> y hermanos. Va antes que nada porque la parte tres
+      añade emoji, y no tiene sentido colgarlos de una escala que no escala.
+    </p>
+    <p class="linea-corte">
+      <b>2 · <code>prefers-reduced-motion</code> es una lista de tres selectores, no una regla.</b>
+      Hoy son dos bloques (líneas 712 y 747) que apagan a mano la ballena del modal, la barra de
+      progreso y la flecha del acordeón. Todo lo de esta hoja se mueve — un sol que cruza, un emoji
+      que asoma, una burbuja que sube — y con esa forma hay que <b>acordarse</b> de apuntar cada cosa
+      nueva; el día que se olvide, alguien con el ajuste puesto se come la animación igual. Se
+      arregla con una regla de barrido (<code>*, ::before, ::after</code> a duración casi cero) y
+      dejando las tres excepciones que de verdad haya. De paso: el sol de A1 <b>no necesita
+      animarse</b> —salta al recolocarse cada minuto—, así que ni siquiera entra en el reparto.
+    </p>
+  </div>
+
+  <!-- ══════════════ AHORA ══════════════ -->
+  <div class="grupo">
+    <h3>Lo que hay puesto hoy</h3>
+    <p class="pregunta">
+      La cabecera son tres cosas y el reparto está medido: 16 de margen, la ballena de 30, un hueco
+      de 11, <b id="m-grow">—</b> pt para el texto, otro hueco y el punto de 44. «Ballenita 2026»
+      ocupa <b id="m-titulo-2">—</b> de esos, así que la primera línea tiene <b id="m-sobra-2">—</b> pt
+      libres y la segunda va en micro. El fondo, <code>--appbar-bg</code>, es <code>#0b1f2c</code> a
+      las siete de la mañana y a las once de la noche: <b>hoy la cabecera no sabe qué hora es</b>.
+      Y abajo, entre el final de la lista y la barra, no hay nada — ni una línea.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel">
+        <div class="hora-rot"><b>Ahora</b> · cara oscura · cualquier hora del día</div>
+        <div class="tel oscuro alto" id="tel-ahora">
+          <header class="cab" id="cab-ahora">
+            <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+            <div class="crece" id="grow-ahora">
+              <div class="ti"><span id="tit-ahora">Ballenita 2026</span></div>
+              <div class="su">Camping Los Pinos</div>
+            </div>
+            <span class="punto-caja"><i class="punto"></i></span>
+          </header>
+          <div class="cuerpo" id="cuerpo-ahora">
+            <div class="titular" id="titular-ahora">
+              <div class="l">Hoy · día 3 de 7</div>
+              <div class="g">Paella y sandía</div>
+              <div class="p">Mayores en Bunga 4 · niños en Bunga 2</div>
+            </div>
+            <div class="sec-h">Planes de hoy</div>
+            <div class="tarj">
+              <div class="fila">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <div class="txt"><div class="n">Ruta a la cala</div><div class="s">Confirmado · 10:30</div></div>
+              </div>
+              <div class="fila">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <div class="txt"><div class="n">Mercadillo de Torre</div><div class="s">A votación · faltan 3</div></div>
+              </div>
+            </div>
+          </div>
+          <nav class="barra">
+            <span class="p on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></span>
+          </nav>
+        </div>
+        <div class="pie-tel">
+          Cabecera <b id="p-appbar">—</b> pt · cuerpo <b id="p-cuerpo">—</b> pt · barra <b id="p-barra">—</b> pt.
+          El cromo se lleva <b id="p-cromo">—</b> de 844 y no cambia en todo el día.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · el cielo de la cabecera</div>
+  <p class="parte-intro">
+    Todas las opciones de abajo están dibujadas <b>a las mismas cuatro horas</b> —07:20 recién salido
+    el sol, 13:00, 20:50 a punto de ponerse y 23:40 de noche— y con el mismo contenido, para que lo
+    único que cambie sea el tratamiento. Antes de mirarlas, tres números que deciden más que el
+    dibujo:
+  </p>
+  <div class="tabla-scroll">
+    <table>
+      <tr><th>Dato</th><th>Valor</th><th>Qué implica</th></tr>
+      <tr>
+        <td><b>Recorrido de margen a margen</b></td>
+        <td class="num">358 pt</td>
+        <td>Es todo lo que da un iPhone de 390 con los 16 de margen.</td>
+      </tr>
+      <tr>
+        <td><b>Velocidad del sol</b></td>
+        <td class="num">25,2 pt/hora</td>
+        <td>358 pt repartidos en las 14 h 14 de luz del 4 de agosto. En diez minutos avanza
+          <b>4,2 pt</b>: quien abra la app dos veces seguidas <b>no lo verá moverse</b>. Quien la
+          abra en el desayuno y en la cena, sí.</td>
+      </tr>
+      <tr>
+        <td><b>Tiempo que el astro pasa por detrás del título</b></td>
+        <td class="num">7 h 29</td>
+        <td>El título ocupa de x 57 a x 245. De las 14 h 14 de luz, el sol está <b>más de la mitad
+          del día</b> detrás de «Ballenita 2026», así que el astro tiene que poder verse
+          <b>a través</b> del texto o no verse en absoluto.</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- A1 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">El arco de fondo</span></div>
+    <p class="op-idea">
+      El astro cruza la cabecera de izquierda a derecha, <b>en una capa detrás del texto</b>, subiendo
+      hacia el centro del día. Sol mientras hay luz, luna mientras no. La fila no cambia: el título
+      sigue teniendo sus <b id="m-sobra-3">—</b> pt de sobra, porque el cielo no ocupa sitio en la
+      fila, se pinta debajo.
+    </p>
+    <div class="tira-tel" id="tira-a1">
+      <div class="col-tel"><div class="hora-rot"><b>07:20</b> · acaba de salir</div>
+        <div class="tel oscuro"><header class="cab" id="cab-a1">
+          <div class="cielo"><i class="astro sol" style="left:18px; top:45px"></i></div>
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>13:00</b> · detrás del título</div>
+        <div class="tel oscuro"><header class="cab">
+          <div class="cielo"><i class="astro sol" style="left:153px; top:14px"></i></div>
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>20:50</b> · se pone</div>
+        <div class="tel oscuro"><header class="cab">
+          <div class="cielo"><i class="astro sol" style="left:340px; top:41px"></i></div>
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>23:40</b> · luna</div>
+        <div class="tel oscuro"><header class="cab">
+          <div class="cielo"><i class="astro luna" style="left:92px; top:24px"></i></div>
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> 0 pt de la fila y unas 30 líneas entre CSS y una posición
+      calculada. Lo paga la <b>legibilidad del título 7 h 29 al día</b>, que es cuando el disco le
+      pasa por detrás — se sostiene solo si el halo es suave y el disco no llega a competir; a las
+      13:00 de arriba ya se ve cuánto cuesta. Y lo paga <b>la sensación de que no pasa nada</b>: a
+      4,2 pt cada diez minutos, en una sesión normal el sol está quieto.
+    </p>
+  </div>
+
+  <!-- A2 -->
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">El cielo hondo</span><span class="etq rec">la que aguanta</span></div>
+    <p class="op-idea">
+      Sin astro: lo que cambia es <b>el color del cielo</b>. <code>--appbar-bg</code> deja de ser un
+      valor y pasa a ser siete, interpolados por la hora — noche marina, morado de amanecer, azul de
+      mañana, azul alto de mediodía, vino de tarde, ciruela de ocaso, noche otra vez. Son colores
+      <b>hondos</b> a propósito: el peor contraste de la serie contra la tinta de la cabecera es
+      <b>7,54 : 1</b>, por encima del 4,5 que exige el texto pequeño (hoy son 14,35 : 1). El cambio
+      es lento y total, y se nota sin que nadie sepa qué se ha movido.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>07:20</b> · <code>#2e2a44</code> · 11,69 : 1</div>
+        <div class="tel oscuro"><header class="cab" style="background:#2e2a44">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>13:00</b> · <code>#155066</code> · 7,54 : 1</div>
+        <div class="tel oscuro"><header class="cab" style="background:#155066">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>20:50</b> · <code>#4a2f3f</code> · 10,11 : 1</div>
+        <div class="tel oscuro"><header class="cab" style="background:#4a2f3f">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>23:40</b> · <code>#081821</code> · 15,38 : 1</div>
+        <div class="tel oscuro"><header class="cab" style="background:#081821">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> 0 pt, siete constantes y una interpolación. Lo paga
+      <b>el que quería ver un sol</b>: aquí no hay astro, hay ambiente, y a alguien le puede parecer
+      que no se ha puesto nada. Y ojo con una cosa que no se ve en el dibujo: <b>la barra de estado
+      de iOS</b> va encima de este color con la hora y la batería en blanco, así que el cielo tiene
+      que quedarse hondo también por eso, no solo por el título.
+    </p>
+  </div>
+
+  <!-- A3 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">El astro en su casilla</span></div>
+    <p class="op-idea">
+      Una casilla fija de 26 pt a la izquierda del punto, con el emoji del tramo:
+      🌅 al amanecer, ☀️ de día, 🌇 al ponerse, 🌙 de noche. No se mueve, no compite con nada y se
+      entiende de un vistazo — es la única opción de esta parte que <b>se lee</b> en vez de notarse.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>07:20</b></div>
+        <div class="tel oscuro"><header class="cab" id="cab-a3">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece" id="grow-a3"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="casilla">🌅</span>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>13:00</b></div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="casilla">☀️</span>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>20:50</b></div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="casilla">🌇</span>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>23:40</b></div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="casilla">🌙</span>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> <b id="m-a3-coste">—</b> pt del título, que baja de
+      <b id="m-grow-2">—</b> a <b id="m-grow-a3">—</b>. «Ballenita 2026» sigue cabiendo; un evento
+      llamado «Puente de mayo en Sierra de Gata» se recorta antes. Y lo paga la coherencia de
+      §14.13: <b>los emoji del cromo se retiraron a propósito</b> —traen su paleta puesta, miden
+      distinto en iOS que en el navegador y no se recolorean—; volver a meter uno en la cabecera es
+      reabrir esa decisión. Con dibujo de línea (<code>Icono</code>) sí encaja, pero un sol de trazo
+      monocolor se parece bastante a la rueda de Ajustes.
+    </p>
+  </div>
+
+  <!-- A4 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">La línea del horizonte</span></div>
+    <p class="op-idea">
+      Una franja de <b>3 pt</b> pegada bajo la cabecera que se llena de amanecer a anochecer, con el
+      astro de 9 pt como tirador. No es decoración con forma de sol: <b>es el día, dibujado como una
+      barra de progreso</b>. De un vistazo dice cuánto queda de luz, que en un camping es una
+      pregunta de verdad — si da tiempo a la piscina antes de cenar.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>07:20</b> · 1% del día</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header><div class="horizonte" id="horiz-a4"><i style="width:2%"></i><b style="left:calc(2% - 4px)"></b></div></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>13:00</b> · 40%</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header><div class="horizonte"><i style="width:40%"></i><b style="left:calc(40% - 4px)"></b></div></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>20:50</b> · 95%</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header><div class="horizonte"><i style="width:95%"></i><b style="left:calc(95% - 4px)"></b></div></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>23:40</b> · la noche, en frío</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header><div class="horizonte noche"><i style="width:22%"></i><b style="left:calc(22% - 4px)"></b></div></div></div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> <b>3 pt</b> del cuerpo, que son el 0,4%. Lo paga la
+      <b>sobriedad</b>: la app ya tiene una barra de progreso (la de sincronizar) y esta se le
+      parece; alguien puede leerla como «está cargando algo». Se cura con el disco de tirador, que
+      ninguna barra de progreso tiene. Y es la única de esta parte que <b>no</b> funciona sin saber
+      la hora del sol de verdad: sin ella la barra miente al 100% del tiempo, no al 20%.
+    </p>
+  </div>
+
+  <!-- A5 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A5</span><span class="op-nombre">La ballena que vive el día</span></div>
+    <p class="op-idea">
+      Los 30 pt de la ballena <b>ya están ahí</b>. Que sea ella la que cambie: chorro alto y ojo
+      abierto de día, gafas de sol al mediodía, ojo cerrado y una estrella de noche. Cero puntos
+      nuevos, cero colores nuevos — sigue siendo el mismo trazo de 1,8 en <code>--whale</code>.
+      Primero a su tamaño real, en la cabecera; debajo, ampliados, porque <b>a 30 pt cuesta
+      distinguirlos</b> — y eso, más que un defecto del dibujo, es el precio de la opción.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>07:20</b> · despertándose</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><path d="M6.4 11.7h1.8"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>13:00</b> · con gafas</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><rect x="5.1" y="10.2" width="4.6" height="3" rx="1.1" fill="currentColor" stroke="none"/><path d="M9.7 11.2h1.6"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>20:50</b> · chorro alto</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-2.1 1-3.6 2.6-4.4M9.6 7.4c-.4-1.6-.1-2.9.8-4"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>23:40</b> · dormida</div>
+        <div class="tel oscuro"><header class="cab">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M6.5 11.9c.5-.6 1.1-.6 1.6 0"/><path d="M10.4 6.4h2.6l-2.6 2.4h2.6"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+    </div>
+    <div class="zoom">
+      <figure><div class="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><path d="M6.4 11.7h1.8"/></svg></div><figcaption>amanecer</figcaption></figure>
+      <figure><div class="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><rect x="5.1" y="10.2" width="4.6" height="3" rx="1.1" fill="currentColor" stroke="none"/><path d="M9.7 11.2h1.6"/></svg></div><figcaption>mediodía</figcaption></figure>
+      <figure><div class="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-2.1 1-3.6 2.6-4.4M9.6 7.4c-.4-1.6-.1-2.9.8-4"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div><figcaption>tarde</figcaption></figure>
+      <figure><div class="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M6.5 11.9c.5-.6 1.1-.6 1.6 0"/><path d="M10.4 6.4h2.6l-2.6 2.4h2.6"/></svg></div><figcaption>noche</figcaption></figure>
+      <figure><div class="caja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div><figcaption>la de ahora</figcaption></figure>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> 0 pt y cuatro variantes de un <code>path</code>. Lo paga
+      <b>la marca</b>: hasta ahora la ballena era lo único que no cambiaba nunca, y a 30 pt la
+      diferencia entre el ojo abierto y el cerrado es <b>1,7 pt de trazo</b> — hay que acercarse
+      para verla. Es la opción más barata y también la que menos se nota, en ese orden.
+    </p>
+  </div>
+
+  <!-- A6 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A6</span><span class="op-nombre">El cielo de verdad</span><span class="etq no">se cae sola</span></div>
+    <p class="op-idea">
+      Va aquí porque es lo primero que se piensa al leer «veraniego», y conviene verla muerta en vez
+      de descubrirlo a medio implementar: los colores <b>literales</b> de un cielo de agosto —naranja
+      al amanecer, celeste al mediodía, sandía al ocaso—. La cabecera de la app tiene la tinta clara
+      fija (<code>#e6eef3</code>), y contra un cielo de verdad no hay tinta que valga.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>07:20</b> · 1,85 : 1</div>
+        <div class="tel oscuro"><header class="cab" style="background:#e8a06a">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>13:00</b> · <b>1,26 : 1</b></div>
+        <div class="tel oscuro"><header class="cab" style="background:#a9dcf2">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>20:50</b> · 3,97 : 1 y 3,35 : 1</div>
+        <div class="tel oscuro"><header class="cab" style="background:#b1596a">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>23:40</b> · aquí sí, 15,38 : 1</div>
+        <div class="tel oscuro"><header class="cab" style="background:#081821">
+          <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+          <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+          <span class="punto-caja"><i class="punto"></i></span>
+        </header></div></div>
+    </div>
+    <p class="coste">
+      <b>Por qué se cae:</b> a las 13:00 el título está en <b>1,26 : 1</b> — literalmente no se lee.
+      Cambiar a tinta oscura cuando el cielo aclara lo arregla en los extremos (10,57 : 1 al
+      mediodía), pero hay un rato al ocaso, sobre <code>#b1596a</code>, en el que <b>ninguna de las
+      dos tintas llega a 4,5</b>: la clara da 3,97 y la oscura 3,35. La única salida sería una capa
+      oscura encima del cielo, y una capa oscura encima del cielo <b>es A2</b>. Por eso A2 es la
+      versión sensata de esta idea, no una idea distinta.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · de dónde sale la hora a la que se pone el sol</div>
+  <p class="parte-intro">
+    Pregunta pequeña de la que dependen A1, A2 y A4 — y de la que <b>no</b> dependen A3 y A5, que se
+    apañan con tramos de reloj. Los números que la deciden: en Madrid el <b>4 de agosto</b> el sol
+    sale a las 07:15 y se pone a las 21:29 (14 h 14 de luz); el <b>4 de enero</b>, a las 08:39 y a
+    las 18:01 (9 h 22). Entre una fecha y otra hay <b>3 h 28 de diferencia en el ocaso</b>.
+  </p>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">Horas fijas de verano</span></div>
+    <p class="op-idea">
+      Dos constantes: sale a las 07:15, se pone a las 21:30. Cero cálculo, cero dependencias, cuatro
+      líneas.
+    </p>
+    <p class="coste"><b>Qué cuesta y quién lo paga:</b> lo paga <b>el finde de noviembre</b>. En un
+      puente de diciembre el dibujo diría que hay sol hasta las nueve y media cuando lleva tres horas
+      y media de noche — y eso no es un detalle bonito que falla, es la cabecera contando algo falso.
+      Aceptable solo si se asume que Ballena Ops es de julio y agosto, que hoy <b>no</b> es verdad:
+      un evento es cualquier plan con fecha.</p>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">Calculado, en <code>lib/sol.js</code></span><span class="etq rec">recomendada</span></div>
+    <p class="op-idea">
+      La fórmula de siempre —día juliano, anomalía media, declinación, ángulo horario— en unas
+      <b>45 líneas puras</b>, sin red y sin dependencias, del mismo corte que
+      <code>lib/reparto.js</code> o <code>lib/dias.js</code>: entra una fecha y una latitud, salen
+      dos horas. Testeable con tres fechas conocidas, que es exactamente como se comprueban las otras
+      cosas puras de la app.
+    </p>
+    <p class="coste"><b>Qué cuesta y quién lo paga:</b> 45 líneas y su test. La latitud puede ir
+      escrita a mano (40,4 N, que es de donde sale el grupo) y no se nota el error: <b>500 km al
+      norte o al sur mueven el ocaso unos 20 minutos en agosto</b>, o sea menos de un punto de la
+      franja de A4. Sacarla del <code>lugar</code> del evento pediría geocodificar, que es red y
+      cuenta, y no lo vale.</p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">Sin sol: cuatro tramos de reloj</span></div>
+    <p class="op-idea">
+      Nada de astronomía: madrugada (0–7), mañana (7–13), tarde (13–20), noche (20–24). Cuatro
+      estados y una comparación.
+    </p>
+    <p class="coste"><b>Qué cuesta y quién lo paga:</b> es gratis y es honesto —no promete precisión
+      que no tiene—, pero <b>mata A1 y A4</b>: un arco necesita un continuo, y una barra de progreso
+      con cuatro escalones se ve saltar. Encaja perfecto con A3 y A5, que son las dos opciones de
+      tramos. Si la parte uno acaba en A3 o A5, esta es la respuesta y B2 sobra.</p>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · quién habla desde abajo</div>
+  <p class="parte-intro">
+    «Abajo» quiere decir cinco sitios distintos, y lo que los separa no es el estilo: es
+    <b>cuánto ocupan para siempre</b> y <b>cada cuánto se leen</b>. El cuerpo de la app son
+    <b id="m-cuerpo">—</b> pt. Una frase fija sobre la barra se lleva <b id="m-renglon">—</b> de
+    ellos —<b id="m-renglon-pct">—</b>%— <b>si cabe en 37 caracteres</b>, que es lo que entra en los
+    <b>329,2 pt</b> útiles del renglón a 390. En cuanto pasa de ahí rompe a dos líneas y son
+    <b id="m-renglon-largo">—</b> (<b id="m-renglon-pct-l">—</b>%); en Enorme el límite baja a
+    <b>32 caracteres</b> y el renglón sube a <b id="m-renglon-e">—</b>. O sea: la broma tiene que
+    caber en 37 letras o cuesta la mitad más, y «Van tres chanclas perdidas y dos son del mismo pie»
+    son 50. Y hay un hecho que no se mide en puntos: <b>una broma fija se lee una vez</b>; a la
+    tercera es mobiliario, y el mobiliario que ocupa un 9% de la pantalla sale caro.
+  </p>
+
+  <!-- C1 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">El renglón fijo sobre la barra</span></div>
+    <p class="op-idea">
+      Una línea entre el cuerpo y la barra, siempre puesta, que rota de frase. Es lo que primero se
+      imagina uno al leer el encargo, y por eso va dibujado entero: para poder mirarlo con la
+      pantalla delante, no con la idea. Los tres dibujos son <b>el mismo renglón</b> con una frase
+      que cabe, una que no y la que no, en Enorme.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel">
+        <div class="hora-rot"><b>C1</b> · Grande ×1,12 · frase de 36 letras</div>
+        <div class="tel oscuro alto">
+          <header class="cab">
+            <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></span>
+            <div class="crece"><div class="ti">Ballenita 2026</div><div class="su">Camping Los Pinos</div></div>
+            <span class="punto-caja"><i class="punto"></i></span>
+          </header>
+          <div class="cuerpo" id="cuerpo-c1">
+            <div class="titular">
+              <div class="l">Hoy · día 3 de 7</div>
+              <div class="g">Paella y sandía</div>
+              <div class="p">Mayores en Bunga 4 · niños en Bunga 2</div>
+            </div>
+            <div class="sec-h">Planes de hoy</div>
+            <div class="tarj">
+              <div class="fila">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <div class="txt"><div class="n">Ruta a la cala</div><div class="s">Confirmado · 10:30</div></div>
+              </div>
+              <div class="fila">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <div class="txt"><div class="n">Mercadillo de Torre</div><div class="s">A votación · faltan 3</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="recado" id="recado-c1"><span class="e">🩴</span><span>Tres chanclas y ninguna hace pareja.</span></div>
+          <nav class="barra">
+            <span class="p on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></span>
+          </nav>
+        </div>
+        <div class="pie-tel">El renglón mide <b id="p-c1">—</b> pt y el cuerpo baja a <b id="p-c1-cuerpo">—</b>.</div>
+      </div>
+      <div class="col-tel">
+        <div class="hora-rot"><b>C1</b> · Grande · frase de 50 letras</div>
+        <div class="tel oscuro" style="height:170px">
+          <div class="cuerpo"></div>
+          <div class="recado" id="recado-c1l"><span class="e">🩴</span><span>Van tres chanclas perdidas y dos son del mismo pie.</span></div>
+          <nav class="barra">
+            <span class="p on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></span>
+          </nav>
+        </div>
+        <div class="pie-tel">Trece letras más y el renglón pasa de <b id="p-c1b">—</b> a <b id="p-c1l">—</b> pt: <b>dos líneas</b>.</div>
+      </div>
+      <div class="col-tel enorme">
+        <div class="hora-rot"><b>C1 en Enorme</b> ×1,26 · la de 50</div>
+        <div class="tel oscuro" style="height:300px">
+          <div class="cuerpo" style="justify-content:flex-end">
+            <div class="tarj">
+              <div class="fila">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <div class="txt"><div class="n">Mercadillo de Torre</div><div class="s">A votación · faltan 3</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="recado" id="recado-c1e"><span class="e">🩴</span><span>Van tres chanclas perdidas y dos son del mismo pie.</span></div>
+          <nav class="barra">
+            <span class="p on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></span>
+          </nav>
+        </div>
+        <div class="pie-tel">Aquí mide <b id="p-c1e">—</b> pt. En Enorme el límite baja a <b>32 letras</b>, así que casi cualquier frase de las que dan risa cae en las dos líneas.</div>
+      </div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> entre <b id="m-renglon-2">—</b> y
+      <b id="m-renglon-largo-2">—</b> pt del cuerpo según lo larga que sea la frase
+      (<b id="m-renglon-pct-2">—</b>% a <b id="m-renglon-pct-l2">—</b>%), y <b id="m-renglon-e2">—</b>
+      en Enorme (<b id="m-renglon-pct-e">—</b>%) — o sea que <b>quien peor ve paga más por la
+      broma</b>, que es exactamente al revés de como debería ser. Lo paga también <b>la barra</b>:
+      son dos renglones seguidos de cromo bajo el contenido, y la línea de arriba compite con las
+      cinco palabras de abajo. Y lo paga el <b>botón de crear</b>, que flota a 78 pt de la base y
+      quedaría justo encima de la frase.
+    </p>
+  </div>
+
+  <!-- C2 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">El pie de la lista</span></div>
+    <p class="op-idea">
+      Donde ya vive <code>PieDeVersion</code>: al final del <i>scroll</i>, después de todo. No ocupa
+      nada mientras se lee y aparece <b>como premio por llegar abajo</b>. Es el sitio clásico de la
+      broma de una app —el pie de página—, y aquí encima cae justo donde el ojo ya ha terminado.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>C2</b> · el final de la lista de Gastos</div>
+        <div class="tel oscuro">
+          <div class="cuerpo">
+            <div class="tarj">
+              <div class="fila"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><div class="txt"><div class="n">Cañas en el chiringuito</div><div class="s">Pagó Marta · 9 personas</div></div><span class="imp">38,40 €</span></div>
+              <div class="fila"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 9.6a2 2 0 0 0 2 1.4h7.2a2 2 0 0 0 2-1.5L20 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg></span><div class="txt"><div class="n">Compra del martes</div><div class="s">Pagó Javi · 9 personas</div></div><span class="imp">96,15 €</span></div>
+            </div>
+            <div class="pie-lista">
+              <span class="e">🍻</span>
+              47 cañas en tres días. Sois nueve.<br>
+              <span style="opacity:.7">Ballena Ops v0.14.2</span>
+            </div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>0 pt</b> permanentes: mientras se lee la lista, esto no existe.</div>
+      </div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> nada de pantalla y unas 15 líneas. Lo paga la
+      <b>frecuencia</b>: en una lista de dos gastos se ve siempre, en la de un viaje entero no lo ve
+      nadie — y es al revés de lo que interesa, porque el viaje entero es cuando hay algo gracioso
+      que decir. Es la opción de menor riesgo y de menor efecto.
+    </p>
+  </div>
+
+  <!-- C3 -->
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">La burbuja, después de hacer algo</span><span class="etq rec">la que se lee</span></div>
+    <p class="op-idea">
+      No sale sola: sale <b>cuando pasa algo</b>. Se apunta un gasto y la ballena comenta el gasto;
+      se vota un plan y comenta la votación; se marca la compra y comenta la compra. Sube desde
+      abajo, se está cuatro segundos y se va. Es la única opción de esta parte en la que la frase
+      <b>sabe de qué está hablando</b>, y por eso es la única que puede tener gracia dos semanas
+      seguidas.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>C3</b> · justo después de guardar un gasto</div>
+        <div class="tel oscuro" style="height:420px">
+          <div class="cuerpo" style="justify-content:flex-end; padding-bottom:0">
+            <div class="tarj">
+              <div class="fila"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 6.6h9.4v11.6A1.8 1.8 0 0 1 12.4 20H6.6a1.8 1.8 0 0 1-1.8-1.8z"/><path d="M14.2 9.4h2.4a2.5 2.5 0 0 1 0 5h-2.4"/><path d="M4.8 10.4h9.4"/></svg></span><div class="txt"><div class="n">Cañas en el chiringuito</div><div class="s">Pagó Marta · 9 personas</div></div><span class="imp">38,40 €</span></div>
+            </div>
+          </div>
+          <div style="padding:14px 0 18px"><div class="burbuja" id="burbuja-c3"><span class="e">🍻</span><span>Con esta van 47 cañas. La ballena no juzga, pero cuenta.</span></div></div>
+          <nav class="barra">
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></span>
+            <span class="p on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></span>
+          </nav>
+        </div>
+        <div class="pie-tel">La burbuja mide <b id="p-c3">—</b> pt mientras está, y <b>0 el resto del tiempo</b>.</div>
+      </div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> 0 pt permanentes, un componente nuevo (~60 líneas) y una
+      llamada en los tres o cuatro sitios donde se guarda algo. Lo paga <b>quien apunta doce gastos
+      seguidos</b> al volver de la compra: doce burbujas seguidas cansan, así que hace falta un
+      límite —una cada X minutos— y eso es lógica que hay que escribir y testear. Es la más cara de
+      las cinco y la única que se gana el sitio.
+    </p>
+  </div>
+
+  <!-- C4 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">El vacío que habla</span><span class="etq base">ya existe, solo hay que escribirlo</span></div>
+    <p class="op-idea">
+      No se añade <b>nada</b>: se reescribe lo que ya hay. <code>.empty</code> ya pone un emoji de 42
+      px y una frase en cada pantalla sin datos, y hoy esas frases son de manual de instrucciones.
+      Un camping tiene pantallas vacías todo el rato —el primer día no hay gastos, ni cenas, ni
+      planes—, así que es el sitio donde más se leen y donde una broma <b>consuela</b> en vez de
+      estorbar.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>Ahora</b></div>
+        <div class="tel oscuro" style="height:230px"><div class="cuerpo" style="justify-content:center">
+          <div class="vacio"><span class="e">💸</span>Todavía no hay gastos.<br>Toca «+ Gasto» para apuntar el primero.</div>
+        </div></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>C4</b> · la misma pantalla</div>
+        <div class="tel oscuro" style="height:230px"><div class="cuerpo" style="justify-content:center">
+          <div class="vacio"><span class="e">💸</span>Ni un gasto todavía.<br>O no habéis salido de la bunga, o alguien está pagando en secreto.</div>
+        </div></div></div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> cero código y cero puntos — son <b>ocho cadenas de texto</b>.
+      Lo paga la <b>pantalla vacía que además informa</b>: «Ponlas en Ajustes → Evento y aquí verás el
+      día a día» dice dónde ir, y una broma que sustituya a eso deja a alguien colgado. La regla que
+      lo salva: la broma va <b>además</b>, en la segunda línea, nunca en lugar de la instrucción.
+    </p>
+  </div>
+
+  <!-- C5 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C5</span><span class="op-nombre">El sello del día, en Hoy</span></div>
+    <p class="op-idea">
+      Una línea más al pie del titular de «Hoy», con su emoji: <b>una por día</b>, la misma para todo
+      el grupo, elegida por la fecha. No rota, no aparece y desaparece — es <b>el sello de ese día</b>,
+      y a la hora de la cena todos han visto el mismo. Eso, en un grupo de amigos, es la mitad de la
+      gracia: se comenta en la mesa.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>Ahora</b> · el titular mide <b id="p-tit-ahora">—</b> pt</div>
+        <div class="tel oscuro" style="height:200px"><div class="cuerpo">
+          <div class="titular" id="tit-ahora-med">
+            <div class="l">Hoy · día 3 de 7</div>
+            <div class="g">Paella y sandía</div>
+            <div class="p">Mayores en Bunga 4 · niños en Bunga 2</div>
+          </div>
+        </div></div></div>
+      <div class="col-tel"><div class="hora-rot"><b>C5</b> · con el sello: <b id="p-tit-c5">—</b> pt</div>
+        <div class="tel oscuro" style="height:200px"><div class="cuerpo">
+          <div class="titular" id="tit-c5">
+            <div class="l">Hoy · día 3 de 7</div>
+            <div class="g">Paella y sandía</div>
+            <div class="p">Mayores en Bunga 4 · niños en Bunga 2</div>
+            <div class="sello"><span class="e">🌡️</span><span>34°. La sombra ya está ocupada.</span></div>
+          </div>
+        </div></div></div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> <b id="m-sello">—</b> pt, pero <b>dentro de una tarjeta que
+      ya está</b> y en la pantalla con la que se abre la app. Lo paga el titular: §14.10 dice que es
+      lo único grande de «Hoy» y que <b>si compite con otra cosa deja de ser un titular</b> — por eso
+      va en tono apagado, tamaño <code>--t-sub</code> y detrás de una línea de puntos, no como una
+      cuarta frase de igual voz. Y lo paga la <b>repetición</b>: 7 días de viaje son 7 frases, y
+      tienen que ser buenas las siete.
+    </p>
+  </div>
+
+  <!-- C6 -->
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C6</span><span class="op-nombre">La barra que contesta</span></div>
+    <p class="op-idea">
+      Al tocar una pestaña, un emoji asoma <b>encima de ella</b> segundo y medio y se va: 🍻 en
+      Dinero, 🍉 en Comidas, 🩴 en Planes. Sin texto. Es lo más «de verano» de las cinco y lo menos
+      invasivo: ocupa cero, aparece cuando ya estás mirando ahí y se va antes de que estorbe.
+    </p>
+    <div class="tira-tel">
+      <div class="col-tel"><div class="hora-rot"><b>C6</b> · se acaba de tocar Comidas</div>
+        <div class="tel oscuro" style="height:150px">
+          <div class="cuerpo"></div>
+          <nav class="barra">
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></span>
+            <span class="p on"><span class="globo">🍉</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></span>
+            <span class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-2.77 1.15V21a2 2 0 1 1-4 0v-.11a1.6 1.6 0 0 0-2.77-1.09l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 3.11 14H3a2 2 0 1 1 0-4h.11a1.6 1.6 0 0 0 1.15-2.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 10 3.11V3a2 2 0 1 1 4 0v.11a1.6 1.6 0 0 0 2.77 1.15l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 20.89 10H21a2 2 0 1 1 0 4h-.11a1.6 1.6 0 0 0-1.49 1z"/></svg><span>Ajustes</span></span>
+          </nav>
+        </div>
+        <div class="pie-tel">El emoji vuela fuera de la barra (<code>position:absolute</code>): <b>0 pt</b> de coste.</div>
+      </div>
+    </div>
+    <p class="coste">
+      <b>Qué cuesta y quién lo paga:</b> 0 pt y unas 20 líneas. Lo paga el <b>encargo</b>: aquí no hay
+      frases, solo emoji, así que resuelve la mitad de lo que se pidió. Y lo paga quien cambia de
+      pestaña quince veces seguidas buscando algo: es la que más se dispara de todas, con diferencia,
+      y la que antes se gasta.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · quién escribe las frases</div>
+  <p class="parte-intro">
+    Da igual dónde caigan: alguien tiene que escribirlas, y de eso depende que sigan teniendo gracia
+    el día doce. Esta es la parte que más envejece: <b>una frase escrita hoy se lee bien tres veces</b>,
+    y en un viaje de siete días con nueve personas se abre la app cientos.
+  </p>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">A mano, en <code>lib/recados.js</code></span></div>
+    <p class="op-idea">
+      Una lista de unas cuarenta, elegida por fecha —determinista, así que <b>todo el grupo ve la
+      misma</b> el mismo día— y sin repetir hasta agotarlas.
+    </p>
+    <div class="frases">
+      <span class="frase">🩴 <b>Van tres chanclas perdidas y dos son del mismo pie.</b></span>
+      <span class="frase">🧊 <b>Se ha acabado el hielo. Otra vez.</b></span>
+      <span class="frase">🌡️ <b>34° a la sombra. La sombra está ocupada.</b></span>
+      <span class="frase">🧴 <b>El protector solar es el único gasto que nadie apunta.</b></span>
+      <span class="frase">🍉 <b>Sandía otra vez. Nadie se ha quejado.</b></span>
+    </div>
+    <p class="coste"><b>Qué cuesta y quién lo paga:</b> una tarde de escribir y un fichero. Lo paga
+      <b>el segundo viaje</b>: las cuarenta ya se han leído, y actualizar la lista es publicar una
+      versión nueva de la app. Gratis, inmediato y con fecha de caducidad.</p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">Por IA, con su encargo en Ajustes</span></div>
+    <p class="op-idea">
+      La tubería <b>ya está montada</b>: clave en el servidor, modelo por encargo, catálogo de
+      encargos editable desde Ajustes (§14.16-quater). Un encargo más —«escribe veinte frases de
+      camping para este viaje»— y una tanda por evento, guardada como cualquier otro dato.
+    </p>
+    <p class="coste"><b>Qué cuesta y quién lo paga:</b> lo paga <b>la credencial de pago</b>, aunque
+      poco: una tanda por viaje es <b>una llamada cada varios meses</b>, no una por frase — eso sería
+      absurdo y además haría que la broma dependiera de tener red. Y lo paga el <b>tono</b>: los
+      chistes genéricos de un modelo se reconocen a la legua, así que el encargo tendría que llevar
+      el contexto del grupo dentro, que es justo lo que §14.19-bis decidió que <b>no</b> viaja (los
+      nombres no salen del móvil).</p>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">Con los datos del evento</span><span class="etq rec">la que no caduca</span></div>
+    <p class="op-idea">
+      No son frases: son <b>plantillas con un número dentro</b>, sacadas de lo que ya calcula
+      <code>lib/stats.js</code> y <code>lib/reparto.js</code>. Nunca se repiten porque los datos
+      cambian, y no dan risa por ser ingeniosas sino <b>por ser verdad</b>.
+    </p>
+    <div class="frases">
+      <span class="frase">🍻 <b>47 cañas en tres días. Sois nueve.</b></span>
+      <span class="frase">💸 <b>Llevas cuatro días sin apuntar nada. O eres generoso o eres muy despistado.</b></span>
+      <span class="frase">🔥 <b>Los García llevan seis cenas cocinadas. La media es dos.</b></span>
+      <span class="frase">🛒 <b>Faltan tres cosas de la compra y la cena es hoy.</b></span>
+      <span class="frase">🐳 <b>Nadie ha votado el plan del jueves. Ni el que lo propuso.</b></span>
+    </div>
+    <p class="coste"><b>Qué cuesta y quién lo paga:</b> es la más cara de escribir —cada plantilla es
+      una regla con su condición y su test— y la única que <b>no caduca</b>. Lo paga el <b>caso
+      raro</b>: una regla que se dispara con datos absurdos dice tonterías («0 cañas en 0 días»), así
+      que cada una necesita su guarda. Y lo paga la <b>susceptibilidad</b>: «llevas cuatro días sin
+      apuntar nada» tiene gracia entre amigos y la pierde el día que alguien lo lea torcido, así que
+      las que señalan a una persona se quedan fuera y las que señalan a una <b>familia</b> se piensan
+      dos veces.</p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">D4</span><span class="op-nombre">Mixta: D1 de andamio, D3 encima</span></div>
+    <p class="op-idea">
+      Se escriben quince a mano (D1) para tener siempre algo que decir, y encima van cuatro o cinco
+      plantillas con datos (D3), que <b>ganan cuando se cumplen</b>. Si hoy hay un número que decir,
+      se dice; si no, sale una de las quince.
+    </p>
+    <p class="coste"><b>Qué cuesta y quién lo paga:</b> es el doble de superficie que D1 y la mitad
+      que D3 sola bien hecha. Lo paga la <b>previsibilidad</b>: hay dos fuentes y hay que decidir la
+      prioridad, o el día que coinciden salen las dos. Es la respuesta razonable si D3 parece mucho
+      trabajo para empezar.</p>
+  </div>
+
+  <!-- ══════════════ PARTE CINCO ══════════════ -->
+  <div class="parte">Parte cinco · las combinaciones</div>
+  <p class="parte-intro">
+    Como casi siempre, la buena no es ninguna de las de arriba sino dos de ellas. Cuatro paquetes
+    que se sostienen enteros, del más barato al más ambicioso.
+  </p>
+
+  <div class="combi">
+    <div class="codigos">A5 · B3 · C4 · D1</div>
+    <h4>El de una tarde</h4>
+    <p>
+      Cero puntos nuevos de pantalla y cero componentes: la ballena cambia por tramos del reloj, los
+      vacíos que ya existen se reescriben con gracia y las frases se escriben a mano. Todo lo que se
+      toca es <code>WhaleLogo.jsx</code>, ocho cadenas de texto y un fichero de frases. <b>Se nota
+      poco</b> — y ese es el trato.
+    </p>
+  </div>
+
+  <div class="combi">
+    <div class="codigos">A2 · A4 · B2 · C5 · D3</div>
+    <h4>El que yo pondría</h4>
+    <p>
+      Arriba, el cielo hondo (A2) con la línea del horizonte (A4) encima: <b>3 pt</b> de coste total,
+      el cielo da el ambiente y la franja da el dato —cuánta luz queda—, y las dos se apoyan en la
+      misma hora calculada (B2). Abajo, el sello del día (C5) dentro del titular que ya existe, con
+      frases sacadas de los datos del viaje (D3). Se nota todos los días, no ocupa casi nada, y lo
+      único genuinamente nuevo es <code>lib/sol.js</code> y las plantillas.
+    </p>
+  </div>
+
+  <div class="combi">
+    <div class="codigos">A1 · B2 · C3 · D4</div>
+    <h4>El vistoso</h4>
+    <p>
+      El sol cruzando la cabecera (A1) y la ballena comentando lo que acabas de hacer (C3). Es el que
+      más se parece a lo que pedía el encargo leído literalmente, y el que más código nuevo trae: un
+      componente de burbuja con su límite de frecuencia, y la vigilancia del contraste del título las
+      <b>7 h 29</b> diarias que el disco le pasa por detrás.
+    </p>
+  </div>
+
+  <div class="combi">
+    <div class="codigos">A6 · C1 · D2</div>
+    <h4>El que no</h4>
+    <p>
+      Está aquí para que se vea junto: el cielo literal que rompe el contraste, el renglón fijo que se
+      come el <b id="m-renglon-pct-3">—</b>% del cuerpo para siempre, y las frases delegadas en un
+      modelo que no conoce al grupo. Cada una se cae por su cuenta; juntas se caen antes.
+    </p>
+  </div>
+
+  <div class="cierre">
+    <h3>Lo que hace falta decidir</h3>
+    <p>
+      <b>Una letra por parte</b>: qué pasa arriba (A1–A6), de dónde sale la hora (B1–B3) —que se
+      contesta sola en cuanto esté A—, qué pasa abajo (C1–C6) y quién escribe (D1–D4). O el código de
+      un paquete entero de la parte cinco. Se pueden combinar varias de A y de C; solo una de B y de D.
+    </p>
+    <p>
+      Los <b>dos arreglos de arriba</b> —los emoji que no escalan y la regla de movimiento reducido—
+      van igualmente, se elija lo que se elija, y van <b>antes</b>: son la base sobre la que se apoya
+      todo lo demás de esta hoja.
+    </p>
+    <p>
+      Lo que <b>no</b> he tocado, y lo digo para que conste: no se ha propuesto nada que cambie el
+      modelo de datos, nada que necesite red para funcionar y nada en la pantalla de Acceso ni en el
+      modo demostración. Y no he tocado la <b>cara clara</b> del tema en la parte uno porque la
+      cabecera es la misma en las dos —<code>--appbar-bg</code> es oscuro en claro y en oscuro—, así
+      que todo lo de arriba se ve igual con el móvil en modo claro.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  /* Los números de la hoja se miden en el propio dibujo, no se estiman: si el
+     dibujo cambia, el texto cambia con él. `getBoundingClientRect()` da píxeles
+     CSS, que a 390 de ancho son puntos. */
+  (function () {
+    var px = function (n) { return (Math.round(n * 10) / 10).toString().replace('.', ','); }
+    var alto = function (sel) { var e = document.querySelector(sel); return e ? e.getBoundingClientRect().height : 0 }
+    var ancho = function (sel) { var e = document.querySelector(sel); return e ? e.getBoundingClientRect().width : 0 }
+    var pon = function (id, v) { var e = document.getElementById(id); if (e) e.textContent = v }
+    var pons = function (ids, v) { ids.forEach(function (i) { pon(i, v) }) }
+
+    /* El ancho del título es el del texto, no el de su caja: la caja se estira
+       hasta el hueco disponible y diría que ocupa 262 cuando ocupa 188. */
+    var textoAncho = function (sel) {
+      var e = document.querySelector(sel); if (!e) return 0
+      var r = document.createRange(); r.selectNodeContents(e)
+      return r.getBoundingClientRect().width
+    }
+
+    var appbar = alto('#cab-ahora')
+    var grow = ancho('#grow-ahora')
+    var titulo = textoAncho('#tit-ahora')
+    var growA3 = ancho('#grow-a3')
+    var cuerpo = alto('#cuerpo-ahora')
+    var barra = alto('#tel-ahora .barra')
+    var renglon = alto('#recado-c1')
+    var renglonL = alto('#recado-c1l')
+    var renglonE = alto('#recado-c1e')
+    var cuerpoC1 = alto('#cuerpo-c1')
+
+    pons(['m-appbar', 'p-appbar'], px(appbar))
+    pons(['m-grow', 'm-grow-2'], px(grow))
+    pons(['m-titulo', 'm-titulo-2'], px(titulo))
+    pons(['m-sobra', 'm-sobra-2', 'm-sobra-3'], px(grow - titulo))
+    pon('m-grow-a3', px(growA3))
+    pon('m-a3-coste', px(grow - growA3))
+
+    pons(['m-cuerpo', 'p-cuerpo'], px(cuerpo))
+    pon('p-barra', px(barra))
+    pon('p-cromo', px(appbar + barra))
+
+    pons(['m-renglon', 'm-renglon-2', 'p-c1', 'p-c1b'], px(renglon))
+    pons(['m-renglon-largo', 'm-renglon-largo-2', 'p-c1l'], px(renglonL))
+    pons(['m-renglon-e', 'm-renglon-e2', 'p-c1e'], px(renglonE))
+    pon('p-c1-cuerpo', px(cuerpoC1))
+    /* Los porcentajes se calculan contra el cuerpo **de ahora**, que es lo que
+       se pierde: contra el cuerpo ya recortado saldría un número más pequeño y
+       más favorable, que es justo la trampa. */
+    var pct = function (n) { return (Math.round(n / cuerpo * 1000) / 10).toString().replace('.', ',') }
+    pons(['m-renglon-pct', 'm-renglon-pct-2'], pct(renglon))
+    pons(['m-renglon-pct-l', 'm-renglon-pct-l2', 'm-renglon-pct-3', 'm-renglon-pct-cab'], pct(renglonL))
+    pon('m-renglon-pct-e', pct(renglonE))
+
+    pon('p-c3', px(alto('#burbuja-c3')))
+
+    var titAhora = alto('#tit-ahora-med'), titC5 = alto('#tit-c5')
+    pon('p-tit-ahora', px(titAhora))
+    pon('p-tit-c5', px(titC5))
+    pon('m-sello', px(titC5 - titAhora))
+  })()
+</script>
