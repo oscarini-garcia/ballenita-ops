@@ -2037,6 +2037,75 @@ de tener que recogerse en las etiquetas de privacidad de la ficha. El día que s
 quieran avisos, el camino corto es APNs directo desde el Worker —lo que hace
 `garciadoral-ops`— y no un intermediario.
 
+### 14.22 Mejoras: el roadmap de la app, apuntado desde el móvil
+
+**El problema.** «Que la compra se pueda marcar por pasillos del súper» se dice
+en una cena y a la semana no queda ni quién lo dijo. El roadmap de verdad vivía
+en el «Pendiente (ideas)» de `CLAUDE.md`, un fichero del repositorio que el
+grupo no lee ni puede tocar: el camino de una idea era el chat, la memoria o
+nada. La figura que lo resuelve es el bloque **«Mejoras»** de `garciadoral-ops`,
+y la decisión entera está en `docs/diseño/mejoras.html`
+(**A1 · B1 · C2 · D2 · E1 · F2**).
+
+**Qué es.** Ideas sobre la propia aplicación, que ven todos y cualquiera tacha.
+**No se llaman «ideas»** a propósito: una idea aquí es una idea de plan
+(`planIdeas`), y compartir el nombre obligaría a cada frase, cada test y cada
+consulta a decir de cuál habla — la misma colisión que `garciadoral-ops` tenía
+con las ideas de regalo. Y «roadmap» sería la única palabra inglesa de una
+interfaz que es solo en español.
+
+**Dónde vive (A1).** Un acordeón **«Mejoras»** en Ajustes, penúltimo y pegado a
+«Actualizar»: las dos hablan de la app y no del viaje, y una mejora se apunta
+menos veces que todo lo demás — Ajustes va «en el orden de lo que se toca». El
+rótulo lleva **las que faltan** («3 sin hacer»), que se calcula en la pantalla y
+no dentro del apartado: una mejora se marca sin cerrar la solapa y el número
+tiene que moverse con ella. No hay atajo desde otras pantallas (B4 descartada):
+un verbo de la herramienta entre los del viaje, y «+» en esta app significa un
+gasto, una cena o un plan.
+
+**Cómo se apunta (B1).** El renglón fijo de Ideas (§14.19-ter): un campo con su
+✓, siempre puesto, que al guardar **no se cierra** — se vacía y se queda
+enfocado, con la lista a la vista, que es lo que evita apuntar la que ya está.
+
+**La fila (C2 · D2).** El **visto delante** —dibujo de 28 pt, toque de 44—
+tacha; lo hecho **baja al final, tachado y legible**: una lista que se mira para
+saber qué queda no debe empezar por lo que ya no queda, y dentro de cada mitad
+mandan las más nuevas por `apuntadaEl`. **Deslizar** descubre Editar y Borrar
+(el gesto de Gastos, §14.10-bis) y tocar el texto abre la mejora, para quien no
+conoce el gesto. La firma es **la de Ideas**: nombre + alias de su familia en
+pastilla de su color (`components/Alias.jsx`) + cuándo en palabras
+(`lib/hace.js`). Cero piezas nuevas y las dos listas que dicen «quién apuntó
+esto» se leen igual.
+
+**Quién puede qué (E1).** Cualquiera todo, como con los gastos y las cenas. Lo
+único que protege el quitar es la pregunta, que dice a quién afecta —«Se va de
+la lista de todo el grupo»—, y **el verbo Borrar del deslizado no borra**: abre
+la misma hoja con la pregunta ya puesta, para que ningún camino se la salte.
+Quitar es `borrado = 1` en el servidor, no una destrucción. Y `hecho` va **sin
+quién ni cuándo**: eso sería un registro de trabajo y esto es una lista de la
+compra.
+
+**La fontanería.** Tabla `mejoras` sincronizada por la cola de siempre
+—`escribir()`, sin ruta propia de escritura—, con `texto`, `hecho`, `autorId`
+(persona, como `planIdeas.creadaPor`), `apuntadaEl` (la escribe el cliente,
+§14.19-ter) y `eventId` solo para el Demo (§14.9-quater): `meeting-ops-air` las
+hizo primero en `localStorage` y lo deshizo, porque sobre una idea de la app se
+actúa en otra máquina. **Tope de 2000 caracteres**, cortado en el móvil
+(`TOPE_DE_MEJORA` en `db.js`) y rechazado en el Worker (`repositorio.js`) con
+motivo que vuelve en la lista de pasos: sin él, un pegado largo entra en la
+instantánea del grupo entero para siempre. Migración `0010_mejoras.sql`
+(`npm run migrar:remoto10`), `version(7)` en Dexie.
+
+**Cómo llega a donde se actúa (F2).** La pregunta que `garciadoral-ops` dejó
+abierta —su transporte era una persona— aquí se cierra porque el Worker tiene la
+lista: **`GET /api/mejoras`**, autenticada con el `TOKEN_SERVICIO` que ya usa la
+siembra, devuelve las pendientes del grupo de verdad con el autor en palabras
+(el nombre se resuelve en el Worker: al otro lado no hay tabla de personas). La
+sesión de Claude que abre un encargo las lee al empezar —la regla está en
+`CLAUDE.md`— y lo apuntado en el camping aparece solo donde se decide qué se
+hace. Lo hecho y lo del Demo no salen: lo uno ya no es trabajo, lo otro es
+arena.
+
 ---
 
 ## 15. Registro de decisiones

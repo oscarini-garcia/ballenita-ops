@@ -88,6 +88,17 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   se eligen en otra —con los votos y quién falta—, «Qué se hace» y «Cantidades» se retiraron
   (las columnas siguen en D1) y «Plato nuevo al vuelo» volvió a Comidas → Platos. **Libre**
   incluye lo que se cayó fuera de las fechas, que antes desaparecía del modal.
+- **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
+  `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
+  `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,
+  con **las que faltan en el rótulo**. Renglón fijo para apuntar (no se cierra al guardar),
+  **visto delante** para tachar, lo hecho baja al final tachado, deslizar descubre Editar y
+  Borrar —que no borra: abre la hoja con la pregunta puesta, «se va de la lista de todo el
+  grupo»— y la firma es la de Ideas (nombre + alias + hace). Tabla sincronizada `mejoras`
+  con tope de 2000 (cortado en `db.js`, rechazado en el Worker), el Demo escribe con su
+  `eventId`. **Al empezar un encargo, lee las pendientes** —`GET /api/mejoras` con el
+  `TOKEN_SERVICIO`, si esta sesión tiene la URL y el token—: es la pregunta que
+  `garciadoral-ops` dejó abierta, y aquí el transporte ya no es una persona.
 - **La lista de ideas se parte en dos, y cada idea la firma alguien** (SPECS §14.19-ter,
   `docs/diseño/planes-ideas.html` · A1·B3·F2·C1+C3·D3): **Propuestas** —las que ya están a
   votación en este viaje— y **Posibles**; la firma es nombre + **alias de dos letras** de su
@@ -382,3 +393,6 @@ de iOS (`assets:ios`) **y** la web/PWA (`npm run iconos:web`, sharp sin guardar)
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
 `Dish.ingredientes`).
+**Las ideas nuevas ya no se apuntan aquí**: viven en **Ajustes → Mejoras** (§14.22) y se
+leen con `GET /api/mejoras`. Esta lista se queda para lo que ya estaba y para lo que no es
+una mejora de la app sino una obra.

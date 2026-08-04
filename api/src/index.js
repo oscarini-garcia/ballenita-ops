@@ -25,6 +25,7 @@
  *   GET  /api/ia        · qué clave y qué modelo hay puestos (administradores)
  *   POST /api/ia        · los cambia (administradores)
  *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
+ *   GET  /api/mejoras   · las mejoras pendientes, para quien hace el trabajo (servicio)
  */
 
 import { verificarTokenDeApple } from './apple.js';
@@ -34,7 +35,7 @@ import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
 import {
   administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
   cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta, enlazarCuentaConPersona,
-  hayAlgunaCuenta, importarInstantanea, leerInstantanea, listarCuentas,
+  hayAlgunaCuenta, importarInstantanea, leerInstantanea, leerMejorasPendientes, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
   guardarTokenPush, olvidarTokenPush, silenciarDispositivo, tokensDeAdministradores,
   tokensDeCuenta,
@@ -665,6 +666,23 @@ async function importar(peticion, env) {
   return json({ ok: true, importado: await importarInstantanea(env.DB, instantanea) });
 }
 
+/**
+ * Las mejoras pendientes, para quien hace el trabajo (SPECS §14.22, F2 de
+ * `docs/diseño/mejoras.html`).
+ *
+ * Va con el token de servicio y no con una sesión: quien la llama no es un
+ * móvil del grupo sino la sesión de Claude que abre un encargo, y así lo
+ * apuntado desde el camping aparece solo donde se decide qué se hace. Es la
+ * pregunta que `garciadoral-ops` dejó abierta —su transporte era una persona—
+ * y aquí se cierra porque el Worker tiene la lista.
+ */
+async function mejorasPendientes(peticion, env) {
+  if (!env.TOKEN_SERVICIO || !coincideEnTiempoConstante(credencial(peticion), env.TOKEN_SERVICIO)) {
+    return json({ error: 'no autorizado' }, 401);
+  }
+  return json({ mejoras: await leerMejorasPendientes(env.DB) });
+}
+
 // ---------------------------------------------------------------------------
 
 const RUTAS = [
@@ -686,6 +704,7 @@ const RUTAS = [
   ['POST', '/api/plato/arreglar', arreglarLaLista],
   ['POST', '/api/plato/parecidos', platosParecidos],
   ['POST', '/api/importar', importar],
+  ['GET', '/api/mejoras', mejorasPendientes],
 ];
 
 export default {

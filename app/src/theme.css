@@ -583,11 +583,30 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    La fila entera es el objetivo: en Planes abre el plan, en Ideas lo edita. Un
    `button` para que el teclado y el lector de pantalla lo vean como lo que es,
    pero sin nada de lo que un botón trae puesto. */
-.row.fila-plan, .fila-idea .main.destapa {
+.row.fila-plan, .fila-idea .main.destapa, .fila-mejora .main.destapa {
   width: 100%; background: none; border: none; font-family: inherit;
   text-align: left; color: inherit; padding: 0; }
 .row.fila-plan { display: flex; align-items: center; gap: 11px; padding: 10px 0; }
-.fila-idea .main.destapa { display: block; min-width: 0; flex: 1; }
+.fila-idea .main.destapa, .fila-mejora .main.destapa { display: block; min-width: 0; flex: 1; }
+
+/* ── Mejoras (SPECS §14.22, `docs/diseño/mejoras.html` · C2) ─────────────────
+   El visto delante de cada mejora: dibujo de 28, toque de 44 — la regla del
+   aspa del editor de receta, el dedo recibe más de lo que el ojo ve. El verde
+   del hecho es el de los saldos a favor, que ya significa «bien». */
+.mejora-visto { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  background: none; border: none; padding: 0; cursor: pointer; }
+.mejora-visto .aro { width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--line); display: grid; place-items: center; color: transparent; }
+.mejora-visto svg { width: 15px; height: 15px; display: block; }
+.mejora-visto[aria-pressed="true"] .aro { border-color: var(--owed); color: var(--owed);
+  background: color-mix(in srgb, var(--owed) 16%, transparent); }
+.mejora-visto:focus-visible { outline: 2px solid var(--spout); outline-offset: -2px; border-radius: 8px; }
+/* Lo hecho se tacha y se apaga, pero se queda legible: es la memoria de que la
+   idea ya es versión, no un residuo. El texto de una mejora dobla, como el
+   título de un plan: recortado no identifica nada. */
+.fila-mejora .main .n { white-space: normal; }
+.fila-mejora.hecha .main .n { text-decoration: line-through; color: var(--ink-faint); }
+.fila-mejora.hecha .main .sub { color: var(--ink-faint); }
 
 /* El título de un plan es lo único que lo identifica en su fila, así que **dobla
    a dos líneas** en vez de recortarse: «Noche de juegos de mesa» salía «Noche de

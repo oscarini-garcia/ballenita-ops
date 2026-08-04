@@ -65,6 +65,17 @@ db.version(6).stores({
   planIdeas: '&id',
 })
 
+// v7: las mejoras — el roadmap de la app, apuntado desde el móvil (SPECS §14.22,
+// `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2).
+//
+// La figura es el bloque «Mejoras» de `garciadoral-ops`: ideas sobre la propia
+// aplicación, que ven todos y cualquiera tacha. Tabla sincronizada y no una
+// nota del móvil, porque sobre una mejora se actúa en otra máquina. Sin índice:
+// es un cuaderno de decenas de filas.
+db.version(7).stores({
+  mejoras: '&id',
+})
+
 // ── Señal de cambios locales (para disparar la sync) ──
 let applyingRemote = false
 export function setApplyingRemote(v) { applyingRemote = v }
@@ -369,6 +380,67 @@ export async function listPlanIdeas(evento = null) {
 
 export const updatePlanIdea = (id, patch) => escribir('planIdeas', id, patch)
 export const removePlanIdea = (id) => removeRow('planIdeas', id)
+
+// ── Mejoras: el roadmap de la app, apuntado desde el móvil (§14.22) ──
+/**
+ * Lo que cabe en una mejora. El mismo número que rechaza el Worker
+ * (`TOPE_DE_MEJORA` en `api/src/repositorio.js`): aquí se corta antes de
+ * guardar y allí se rechaza, que es lo que hace que siga siendo verdad cuando
+ * el que escribe no es esta pantalla. Sin tope, un pegado largo entra en la
+ * instantánea del grupo entero y se descarga en cada sincronización, para
+ * siempre.
+ */
+export const TOPE_DE_MEJORA = 2000
+
+/**
+ * Una mejora es una idea sobre la propia aplicación, no sobre el viaje
+ * (figura del bloque «Mejoras» de `garciadoral-ops`). No se llama «idea»
+ * porque una idea aquí es una idea de plan, y compartir el nombre obligaría a
+ * cada frase a decir de cuál habla.
+ *
+ * Es global como los catálogos —una mejora no caduca con el evento— y comparte
+ * con ellos el trato del Demo: sin `eventId` es de todos; con él, solo de ese
+ * evento, que hoy es únicamente el cajón de arena (§14.9-quater).
+ *
+ * `hecho` va sin quién ni cuándo a propósito: eso sería un registro de trabajo
+ * y esto es una lista de la compra. `apuntadaEl` la escribe el cliente, como en
+ * las ideas (§14.19-ter): `creadoEn` es del servidor y no existe hasta
+ * sincronizar.
+ */
+export async function addMejora({ texto, autorId = null }, evento = null) {
+  const eventId = evento?.esDemo ? evento.id : null
+  return escribir('mejoras', uid('mej'), {
+    texto: String(texto).slice(0, TOPE_DE_MEJORA),
+    hecho: false,
+    autorId,
+    apuntadaEl: now(),
+    eventId,
+  })
+}
+
+/**
+ * Las de la casa: lo que falta arriba y lo hecho al final, tachado.
+ *
+ * Es el orden de una lista que se mira para saber qué queda —no debe empezar
+ * por lo que ya no queda—. Dentro de cada mitad, las más nuevas primero, sobre
+ * cuándo se tuvo la idea (`apuntadaEl`) y no sobre cuándo se le arregló una
+ * errata (`updatedAt`).
+ */
+export async function listMejoras(evento = null) {
+  const todas = await db.mejoras.toArray()
+  const suyas = evento?.esDemo
+    ? todas.filter((m) => m.eventId === evento.id)
+    : todas.filter((m) => !m.eventId)
+  return suyas.sort((a, b) => (Boolean(a.hecho) === Boolean(b.hecho)
+    ? (b.apuntadaEl || '').localeCompare(a.apuntadaEl || '')
+    : Boolean(a.hecho) - Boolean(b.hecho)))
+}
+
+export const updateMejora = (id, patch) => escribir('mejoras', id, {
+  ...patch,
+  ...(typeof patch.texto === 'string' ? { texto: patch.texto.slice(0, TOPE_DE_MEJORA) } : {}),
+})
+export const removeMejora = (id) => removeRow('mejoras', id)
 
 /**
  * Traer una idea al viaje: **se copia, no se enlaza**

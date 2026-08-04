@@ -3,7 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, bungasOf, personsOf, updatePerson, olvidarTodo, listEvents,
   updateEvent, dinnersOf, plansOf, expensesOf, removeDinner, removePlan,
+  listMejoras,
 } from '../db.js'
+import MejorasSection from './MejorasSection.jsx'
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
@@ -602,6 +604,11 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const { me } = useIdentidad(eventId, persons)
+  // Las mejoras se leen aquí y no dentro del apartado: el rótulo lleva las que
+  // faltan, y una mejora se marca sin cerrar la solapa — el número tiene que
+  // moverse con ella (figura de garciadoral-ops, `docs/diseño/mejoras.html` · A1).
+  const mejoras = useLiveQuery(() => listMejoras(event), [event?.id, event?.esDemo], [])
+  const mejorasQueFaltan = mejoras.filter((m) => !m.hecho).length
   // Las cuentas y sus avisos: los pinta «Notificaciones» y los cuenta el rótulo.
   const { esAdmin, cuentas } = useCuentas()
   const pendientes = avisosPara({ cuentas: cuentas ?? [], esAdmin }).length
@@ -654,6 +661,19 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
           <IASection />
         </Acordeon>
       )}
+
+      {/* Penúltimo y pegado a «Actualizar» a propósito: las dos hablan de la
+          app, no del viaje, y una mejora se apunta menos veces que todo lo
+          demás (`docs/diseño/mejoras.html` · A1). */}
+      <Acordeon titulo="Mejoras" icono="mejora" nota={mejorasQueFaltan ? `${mejorasQueFaltan} sin hacer` : null}>
+        <MejorasSection
+          evento={event}
+          mejoras={mejoras}
+          persons={persons}
+          families={families}
+          meId={me?.id ?? null}
+        />
+      </Acordeon>
 
       <Acordeon titulo="Actualizar" icono="sincronizar" nota={`v${APP_VERSION}`}>
         <AppSection />

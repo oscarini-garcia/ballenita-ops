@@ -90,6 +90,15 @@ export const TABLAS = {
     json: ['desglose', 'cambio'],
     booleanos: ['comprado'],
   },
+  mejoras: {
+    // El roadmap de la app, apuntado desde el móvil (§14.22, figura del bloque
+    // «Mejoras» de garciadoral-ops). `hecho` va sin quién ni cuándo: es una
+    // lista de la compra, no un registro de trabajo. `autorId` es una persona
+    // del grupo; `apuntadaEl` la escribe el cliente (§14.19-ter); `eventId`
+    // nulo = de todos, con valor = solo del Demo (§14.9-quater).
+    columnas: ['texto', 'hecho', 'autorId', 'apuntadaEl', 'eventId'],
+    booleanos: ['hecho'],
+  },
 };
 
 export const NOMBRES = Object.keys(TABLAS);

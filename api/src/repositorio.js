@@ -157,6 +157,35 @@ export async function anotarDispositivo(db, { id, cuentaId, plataforma }) {
 // Registro
 // ---------------------------------------------------------------------------
 
+/** Lo que cabe en una mejora. El mismo número que corta el móvil (`db.js`). */
+export const TOPE_DE_MEJORA = 2000;
+
+/**
+ * Las mejoras pendientes, con su autor en palabras, para la ruta de servicio
+ * (`GET /api/mejoras`, SPECS §14.22).
+ *
+ * Es la mitad que le faltaba a `garciadoral-ops`: allí quien hace las mejoras
+ * lee el repositorio y no la instantánea, así que el transporte era una
+ * persona. Aquí el Worker tiene la lista y la sirve; la sesión de Claude que
+ * abre un encargo la lee al empezar, y lo apuntado en el camping aparece solo
+ * donde se decide qué se hace.
+ *
+ * Salen solo las pendientes del grupo de verdad —lo hecho ya no es trabajo, y
+ * lo del Demo es arena—, con el nombre del autor resuelto aquí: al otro lado no
+ * hay tabla de personas contra la que cruzarlo.
+ */
+export async function leerMejorasPendientes(db) {
+  const lista = await filas(
+    db,
+    `SELECT m.id, m.texto, m.apuntadaEl, p.name AS autor
+       FROM mejoras m
+       LEFT JOIN persons p ON p.id = m.autorId
+      WHERE m.borrado = 0 AND m.hecho = 0 AND m.eventId IS NULL
+      ORDER BY m.apuntadaEl`,
+  );
+  return lista.map((m) => ({ ...m, autor: m.autor || null }));
+}
+
 /**
  * Instantánea completa de lo vivo, con la forma exacta que `importSnapshot`
  * espera en el cliente. Se lee entera y sin filtrar por lector: en Ballena Ops
@@ -189,6 +218,15 @@ export async function aplicarCambio(db, cambio) {
 
   if (!existeTabla(tabla)) return { aplicado: false, motivo: `tabla desconocida: ${tabla}` };
   if (!id || typeof id !== 'string') return { aplicado: false, motivo: 'cambio sin id' };
+
+  // Una mejora es un cuaderno, no un adjunto. Sin tope, un pegado largo entra
+  // en la instantánea del grupo entero y se descarga en cada sincronización,
+  // para siempre. El móvil corta antes de guardar (`db.js`) y aquí se rechaza,
+  // que es lo que hace que siga siendo verdad cuando el que escribe no es esa
+  // pantalla. El rechazo no interrumpe el lote y le llega al móvil con motivo.
+  if (tabla === 'mejoras' && typeof campos.texto === 'string' && campos.texto.length > TOPE_DE_MEJORA) {
+    return { aplicado: false, motivo: `una mejora son ${TOPE_DE_MEJORA} caracteres como mucho` };
+  }
 
   const marca = updatedAt || ahoraISO();
   const anterior = await db.prepare(`SELECT * FROM ${tabla} WHERE id = ?`).bind(id).first();
