@@ -177,7 +177,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .app { max-width: 520px; margin: 0 auto; height: 100dvh; display: flex; flex-direction: column;
   background: transparent; overflow: hidden; }
 
-/* El fondo es **el cielo de la hora** (SPECS §14.24, opción A2), con el azul de
+/* El fondo es **el cielo de la hora** (SPECS §14.25, opción A2), con el azul de
    siempre de reserva: sin JavaScript, o en la pantalla de eventos —donde la
    franja no se monta y nadie pone `--cielo`—, la cabecera es la de toda la vida.
    La transición es lenta a propósito: entre un minuto y el siguiente el color
@@ -219,7 +219,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ── La línea del horizonte ────────────────────────────────────────────────
    Tres puntos pegados bajo la cabecera que son el día: se llenan de amanecer a
-   anochecer y el disco de 9 pt es el sol. Ver `docs/diseño/verano.html`, A4 (SPECS §14.24).
+   anochecer y el disco de 9 pt es el sol. Ver `docs/diseño/verano.html`, A4 (SPECS §14.25).
 
    Cuesta 3 pt del cuerpo —el 0,4%— y es `flex: none` como las dos barras, así
    que no se solapa con nada ni obliga a tocar el esqueleto de §14.10.
@@ -582,16 +582,10 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .modal.capa .chip { background: var(--foam); }
 .modal.capa .note { background: color-mix(in srgb, var(--spout) 7%, var(--foam)); }
 .modal-bg.velo-fuerte { background: rgba(4,18,26,.68); }
-/* Variante pegada arriba, para los editores que se abren a **leer** (una idea,
-   una mejora). Abajo, el modal quedaba a medio tapar y había que desplazarlo
-   para llegar a los botones; arriba cabe entero, y si luego se toca un campo el
-   teclado sube por debajo sin taparlo. Va con no robar el foco al abrir: el
-   teclado no sale hasta que se pide, que es lo que deja al modal quieto. */
-.modal-bg.arriba { align-items: flex-start;
-  padding: calc(10px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom)); }
-.modal.arriba { width: 90%; max-width: 460px; border-radius: 12px; padding: 18px 16px 22px;
-  max-height: min(86vh, calc(100vh - 22px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
-  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* Los editores de una idea y de una mejora usan la variante `center` de arriba.
+   Vivieron una versión pegados al borde superior (`arriba`): era el remedio
+   para el teclado que salía solo al abrir, y al quitar el foco automático el
+   remedio sobró — sin teclado que lo pelee, centrado se lee mejor. */
 
 .modal h2 { margin: 4px 0 2px; font-size: var(--t-title); }
 .modal .x { float: right; background: none; border: none; font-size: 26px; line-height: 1;

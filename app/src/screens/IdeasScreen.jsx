@@ -9,8 +9,10 @@ import { useIdentidad } from '../lib/identidad.js'
 import Alias from '../components/Alias.jsx'
 import { formatearHace } from '../lib/hace.js'
 import { tap } from '../lib/native.js'
-import { sugerirPlanes, hayApi } from '../sync/api.js'
+import { sugerirPlanes, hayApi, mejorarIdea } from '../sync/api.js'
 import Icono from '../components/Icono.jsx'
+import BotonIA from '../components/BotonIA.jsx'
+import { useIaDisponible } from '../lib/ia.js'
 
 /**
  * «Ideas»: lo que se repite de un viaje a otro.
@@ -368,6 +370,12 @@ function Sugerencias({ eventId, evento, meId, abierto, onAbrir }) {
  * «llevar sombrilla, no hay chiringuito y aparcar arriba», que es lo que se
  * apunta de verdad. El «dónde» se fue —cabía en la descripción— y el coste
  * también, que no se usó nunca.
+ *
+ * **«Mejorarla»** (SPECS §14.24) es la figura de «Arreglar» del editor de
+ * receta: un botón de IA que devuelve el título y la descripción mejor
+ * contados, rellena los campos **sin guardar nada** y **se deshace**. Guardar
+ * sigue siendo el botón de siempre, y tocar un campo a mano retira el
+ * deshacer, porque lo escrito ya es tuyo y no del modelo.
  */
 function ModalIdea({ idea, usos, onClose }) {
   useBloqueoDeScroll()
@@ -375,6 +383,11 @@ function ModalIdea({ idea, usos, onClose }) {
   const [descripcion, setDescripcion] = useState(idea.descripcion ?? '')
   const [enlace, setEnlace] = useState(idea.enlace ?? '')
   const [confirmando, setConfirmando] = useState(false)
+  const [pensando, setPensando] = useState(false)
+  const [falloIA, setFalloIA] = useState(null)
+  // Cómo estaba antes de mejorarla, para poder deshacer (la R1 de la receta).
+  const [antes, setAntes] = useState(null)
+  const ia = useIaDisponible()
 
   async function guardar() {
     if (!titulo.trim()) return
@@ -394,13 +407,33 @@ function ModalIdea({ idea, usos, onClose }) {
     onClose()
   }
 
+  async function pulir() {
+    tap()
+    setPensando(true)
+    setFalloIA(null)
+    try {
+      const nueva = await mejorarIdea({ titulo, descripcion, enlace })
+      if (!nueva?.titulo) {
+        setFalloIA('No ha sabido mejorarla.')
+        return
+      }
+      setAntes({ titulo, descripcion })
+      setTitulo(nueva.titulo)
+      setDescripcion(nueva.descripcion ?? descripcion)
+    } catch (e) {
+      setFalloIA(String(e.message ?? e))
+    } finally {
+      setPensando(false)
+    }
+  }
+
   return (
-    // Pegado arriba y sin robar el foco: se abre a **leer** —la firma, el
-    // contador, los verbos—, no a escribir. Con el foco puesto, el teclado
-    // salía solo y entre él y el modal abajo había que hacer scroll para
-    // llegar a los botones; ahora el teclado no sale hasta tocar un campo.
-    <div className="modal-bg arriba" onClick={onClose}>
-      <div className="modal fino arriba" onClick={(e) => e.stopPropagation()}>
+    // Centrado y sin robar el foco: se abre a **leer** —la firma, el contador,
+    // los verbos—, no a escribir, así que el teclado no sale hasta tocar un
+    // campo. Y sin teclado que lo pelee, centrado se lee mejor que pegado a
+    // ningún borde.
+    <div className="modal-bg center" onClick={onClose}>
+      <div className="modal fino center" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2>Editar idea</h2>
         {/* El contador de viajes vive aquí y ya no en la fila: en una línea de
@@ -413,13 +446,33 @@ function ModalIdea({ idea, usos, onClose }) {
         </div>
 
         <label htmlFor="idea-titulo">Qué es</label>
-        <input id="idea-titulo" type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Playa de la Cala" />
+        <input id="idea-titulo" type="text" value={titulo} onChange={(e) => { setTitulo(e.target.value); setAntes(null) }} placeholder="Playa de la Cala" />
 
         <label htmlFor="idea-desc">Descripción</label>
-        <textarea id="idea-desc" rows="4" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Cala del sur. Llevar sombrilla: no hay chiringuito." />
+        <textarea id="idea-desc" rows="4" value={descripcion} onChange={(e) => { setDescripcion(e.target.value); setAntes(null) }} placeholder="Cala del sur. Llevar sombrilla: no hay chiringuito." />
 
         <label htmlFor="idea-enlace">Enlace</label>
         <input id="idea-enlace" type="url" value={enlace} onChange={(e) => setEnlace(e.target.value)} placeholder="https://…" />
+
+        {/* El botón no aparece donde nunca va a funcionar (web, sin clave); el
+            motivo se dice en palabras, como en el editor de receta. */}
+        <div style={{ marginTop: 12 }}>
+          <BotonIA
+            pensando={pensando}
+            disabled={pensando || !ia.puede || !titulo.trim()}
+            onClick={pulir}
+          >🐳 Mejorarla</BotonIA>
+        </div>
+        {ia.motivo && <div className="pista" style={{ marginTop: 8 }}>{ia.motivo}</div>}
+        {falloIA && <div className="note" role="alert" style={{ marginTop: 8 }}>{falloIA}</div>}
+        {antes && (
+          <div className="pista" role="status" style={{ marginTop: 8 }}>
+            Mejorada con la IA; no se guarda hasta que pulses Guardar.{' '}
+            <button className="como-enlace" onClick={() => { tap(); setTitulo(antes.titulo); setDescripcion(antes.descripcion); setAntes(null) }}>
+              deshacer
+            </button>
+          </div>
+        )}
 
         <div style={{ marginTop: 16 }}>
           <button className="btn block" onClick={guardar} disabled={!titulo.trim()}>Guardar</button>

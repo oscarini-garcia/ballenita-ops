@@ -83,21 +83,25 @@ test('sobre una base vacía las aplica todas en orden, y el esquema queda como e
 
 test('una base a medias se termina en vez de atascarse en el duplicate column', async () => {
   const db = baseVacia();
-  // Hasta la 0009, como estaba producción cuando se mergeó la tabla de mejoras.
+  // Todas menos la última: es la situación de siempre al mergear una migración,
+  // con la base como estaba y el código ya con la nueva. **Cuál es la última se
+  // pregunta al directorio** y no se escribe aquí: escrita, este test se rompe
+  // cada vez que se añade una, que es justo cuando más falta hace que pase.
   const ficheros = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
   for (const fichero of ficheros.slice(0, -1)) db.sqlite.exec(readFileSync(dir + fichero, 'utf8'));
+  const ultima = ficheros[ficheros.length - 1].replace(/\.sql$/, '');
 
   const antes = await estadoDeMigraciones(db);
-  assert.deepEqual(antes.filter((m) => m.pendiente).map((m) => m.id), ['0010_mejoras']);
+  assert.deepEqual(antes.filter((m) => m.pendiente).map((m) => m.id), [ultima]);
 
   // Y aunque una sentencia suelta ya estuviera —media migración aplicada a
   // mano—, aplicar salta lo hecho y ejecuta el resto.
-  const resultado = await aplicarMigracion(db, '0010_mejoras');
-  assert.equal(resultado.ejecutadas, 1);
+  const resultado = await aplicarMigracion(db, ultima);
+  assert.ok(resultado.ejecutadas > 0);
   const despues = await estadoDeMigraciones(db);
   assert.ok(despues.every((m) => !m.pendiente));
 
-  const otraVez = await aplicarMigracion(db, '0010_mejoras');
+  const otraVez = await aplicarMigracion(db, ultima);
   assert.equal(otraVez.ejecutadas, 0);
   assert.ok(otraVez.saltadas > 0);
 });

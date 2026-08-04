@@ -19,6 +19,8 @@
  *   no aporta y es lo único de aquí que identifica a alguien.
  */
 
+import { renglonDeCocina } from './cocina.js';
+
 const ANTHROPIC = 'https://api.anthropic.com/v1';
 const VERSION_API = '2023-06-01';
 const TOPE_DE_SALIDA = 1024;
@@ -52,6 +54,9 @@ export function materialDelViaje({ evento, personas, yaHay }) {
     `Sitio: ${evento?.lugar || 'sin decir'}`,
     `Fechas: ${evento?.startDate || '?'} a ${evento?.endDate || evento?.startDate || '?'}`,
     `Grupo: ${retratoDelGrupo(personas)}`,
+    // Media hora de barbacoa es un plan, y sin saber que hay barbacoa no se
+    // propone nunca (§14.20-quater).
+    renglonDeCocina(evento),
   ];
   lineas.push(yaHay.length ? `Ya tienen apuntados: ${yaHay.join('; ')}` : 'Todavía no tienen ningún plan apuntado.');
   return lineas.join('\n');

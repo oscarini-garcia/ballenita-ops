@@ -79,7 +79,7 @@ export default function PlatosScreen({ event }) {
         </div>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.24). */}
+      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
       <Recado evento={event} />
 
       <Fab label="Plato" onClick={() => setEditando('nuevo')} />
@@ -304,6 +304,9 @@ function ModalPlato({ plato, event, usos, catalogo = [], onClose, onProponer }) 
         plato: name.trim(),
         ingredientes: conNombre.map((x) => x.nombre),
         yaHay: catalogo.map((d) => d.name),
+        // Para que las propuestas se puedan cocinar con lo que hay en este
+        // viaje: barbacoa, plancha… (§14.20-quater).
+        eventId: event?.id ?? null,
       })
       if (vuelta.current !== mia) return
       if (!platos.length) {

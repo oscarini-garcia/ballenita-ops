@@ -88,7 +88,7 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   se eligen en otra —con los votos y quién falta—, «Qué se hace» y «Cantidades» se retiraron
   (las columnas siguen en D1) y «Plato nuevo al vuelo» volvió a Comidas → Platos. **Libre**
   incluye lo que se cayó fuera de las fechas, que antes desaparecía del modal.
-- **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.24,
+- **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,
   con **las que faltan en el rótulo**. Renglón fijo para apuntar (no se cierra al guardar),
@@ -107,11 +107,15 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   un **renglón fijo bajo el mando**, que no se cierra al guardar: el modal ocupaba 455,4 pt de
   los 508 que quedan sobre el teclado y se escribía sin ver el catálogo. Las dos fechas las
   escribe el cliente (`apuntadaEl`, `propuestoEl`), no `creadoEn`, que es del servidor.
+  **El editor de una idea abre centrado y sin robar el foco** (§14.24) —el teclado no sale
+  hasta tocar un campo; vale también para la hoja de una mejora— y lleva **«Mejorarla»**:
+  la figura de «Arreglar» de la receta, encargo `mejorarIdea` (`api/src/idea.js`,
+  `POST /api/idea/mejorar`) — rellena sin guardar, se deshace, y los nombres no viajan.
 - **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
-- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.24,
+- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.25,
   `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **4 pt** bajo la cabecera (a `z-index: 7`, o la cabecera le tapa medio sol)
   que se llena de amanecer a anochecer con el sol de tirador (`components/LineaDelHorizonte.jsx`);
   la hora se **calcula** (`lib/sol.js`, sin red ni dependencias) porque dos constantes de verano
@@ -413,6 +417,6 @@ de iOS (`assets:ios`) **y** la web/PWA (`npm run iconos:web`, sharp sin guardar)
 foto con el grupo (hoy son locales del móvil, `lib/avatares.js`; hacerlos comunes pide
 almacenamiento aparte, fuera de la sync) · lista de la compra agregada (usa
 `Dish.ingredientes`).
-**Las ideas nuevas ya no se apuntan aquí**: viven en **Ajustes → Mejoras** (§14.24) y se
+**Las ideas nuevas ya no se apuntan aquí**: viven en **Ajustes → Mejoras** (§14.22) y se
 leen con `GET /api/mejoras`. Esta lista se queda para lo que ya estaba y para lo que no es
 una mejora de la app sino una obra.

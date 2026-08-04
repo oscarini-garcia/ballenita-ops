@@ -196,8 +196,12 @@ export async function olvidarTodo() {
 }
 
 // ── Eventos ──
-export async function createEvent({ name, lugar = '', currency = 'EUR', startDate, endDate, esDemo = false }) {
-  return escribir('events', uid('ev'), { name, lugar, currency, startDate, endDate, status: 'activo', esDemo })
+// `cocina` es con qué se cocina en este viaje y **solo lo lee la IA** al
+// componer sus sugerencias (SPECS §14.20-quater). Nace vacío a propósito: vacío
+// vale el texto de origen que tiene el servidor, así que funciona sin que nadie
+// rellene nada.
+export async function createEvent({ name, lugar = '', currency = 'EUR', startDate, endDate, esDemo = false, cocina = '' }) {
+  return escribir('events', uid('ev'), { name, lugar, currency, startDate, endDate, status: 'activo', esDemo, cocina })
 }
 export const listEvents = () => db.events.orderBy('updatedAt').reverse().toArray()
 export const getEvent = (id) => db.events.get(id)

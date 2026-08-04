@@ -192,15 +192,30 @@ export const arreglarIngredientes = ({ plato, raciones, lineas }) =>
   }).then((r) => r.lineas || [])
 
 /**
+ * La misma idea, mejor contada (§14.24).
+ *
+ * Van el título, la descripción y el enlace de esa idea; vuelve la propuesta
+ * del modelo, que rellena el editor **sin guardar nada**: hay deshacer, y
+ * guardar sigue siendo el botón de siempre.
+ */
+export const mejorarIdea = ({ titulo, descripcion, enlace }) =>
+  peticion('/api/idea/mejorar', {
+    method: 'POST',
+    body: JSON.stringify({ titulo, descripcion, enlace }),
+  }).then((r) => r.idea || null)
+
+/**
  * Cinco platos que peguen con este, para ir adelante y atrás (§14.20-bis).
  *
  * Tanda de cinco, como los regalos de `garciadoral-ops`: lo caro es contarle el
  * contexto, y pasar de una propuesta a otra no vuelve a pedir nada.
  */
-export const platosParecidos = ({ plato, ingredientes, yaHay }) =>
+export const platosParecidos = ({ plato, ingredientes, yaHay, eventId }) =>
   peticion('/api/plato/parecidos', {
     method: 'POST',
-    body: JSON.stringify({ plato, ingredientes, yaHay }),
+    // Va el id del evento y no lo que se cocina en él: el material lo compone el
+    // Worker leyendo la base (§14.20-quater), como el resto.
+    body: JSON.stringify({ plato, ingredientes, yaHay, eventId }),
   }).then((r) => r.platos || [])
 
 export const sugerirPlanes = (eventId, descartadas = []) =>
@@ -210,7 +225,7 @@ export const sugerirPlanes = (eventId, descartadas = []) =>
   }).then((r) => r.propuestas || [])
 
 /**
- * La tanda de recadillos del viaje (SPECS §14.24).
+ * La tanda de recadillos del viaje (SPECS §14.25).
  *
  * Devuelve lo que el servidor tenga: la tanda guardada si sigue dentro de su
  * ventana de dos horas, una nueva si no. Sin clave de IA contesta la lista

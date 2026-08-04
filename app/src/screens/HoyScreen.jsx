@@ -90,7 +90,7 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
         ))}
       </div>
 
-      {/* El recado del día, encima de la versión (SPECS §14.24). */}
+      {/* El recado del día, encima de la versión (SPECS §14.25). */}
       <Recado evento={event} />
 
       <PieDeVersion />
