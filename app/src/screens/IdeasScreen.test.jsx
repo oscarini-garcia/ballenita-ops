@@ -177,6 +177,12 @@ describe('IdeasScreen', () => {
 
     expect(await screen.findByRole('heading', { name: 'Editar idea' })).toBeInTheDocument()
     expect(screen.getByText(/Propuesta en 1 viaje/)).toBeInTheDocument()
+
+    // Abre pegado arriba y **sin robar el foco**: se entra a leer, y con el
+    // foco puesto el teclado salía solo y había que hacer scroll hasta los
+    // botones. El teclado no sale hasta tocar un campo.
+    expect(document.querySelector('.modal-bg')?.className).toContain('arriba')
+    expect(document.activeElement).not.toBe(screen.getByLabelText('Qué es'))
   })
 
   it('borrar avisa de que se lleva la idea de todos los viajes', async () => {

@@ -531,6 +531,16 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .modal.capa .chip { background: var(--foam); }
 .modal.capa .note { background: color-mix(in srgb, var(--spout) 7%, var(--foam)); }
 .modal-bg.velo-fuerte { background: rgba(4,18,26,.68); }
+/* Variante pegada arriba, para los editores que se abren a **leer** (una idea,
+   una mejora). Abajo, el modal quedaba a medio tapar y había que desplazarlo
+   para llegar a los botones; arriba cabe entero, y si luego se toca un campo el
+   teclado sube por debajo sin taparlo. Va con no robar el foco al abrir: el
+   teclado no sale hasta que se pide, que es lo que deja al modal quieto. */
+.modal-bg.arriba { align-items: flex-start;
+  padding: calc(10px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom)); }
+.modal.arriba { width: 90%; max-width: 460px; border-radius: 12px; padding: 18px 16px 22px;
+  max-height: min(86vh, calc(100vh - 22px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
 .modal h2 { margin: 4px 0 2px; font-size: var(--t-title); }
 .modal .x { float: right; background: none; border: none; font-size: 26px; line-height: 1;
