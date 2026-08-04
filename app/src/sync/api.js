@@ -117,6 +117,17 @@ export const registrarPush = (token, avisos = true) =>
 /** Se manda un aviso a los aparatos de quien lo pide, y cuenta qué pasó. */
 export const probarPush = () => peticion('/api/push/prueba', { method: 'POST' })
 
+/**
+ * Qué migraciones conoce el código y cuáles le faltan a la base (solo para
+ * administradores, SPECS §14.23). El POST aplica **la siguiente** y devuelve lo
+ * que queda: se llama en bucle y así el progreso que se pinta es el de verdad.
+ * Del móvil no viaja ninguna sentencia: el SQL vive dentro del Worker.
+ */
+export const leerMigraciones = () => peticion('/api/migraciones')
+
+export const aplicarSiguienteMigracion = () =>
+  peticion('/api/migraciones', { method: 'POST' })
+
 /** Qué clave y qué modelo hay puestos. La clave nunca vuelve entera: solo sus
  *  cuatro últimos caracteres y cuándo se guardó. */
 export const leerIA = () => peticion('/api/ia')

@@ -26,6 +26,8 @@
  *   POST /api/ia        · los cambia (administradores)
  *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
  *   GET  /api/mejoras   · las mejoras pendientes, para quien hace el trabajo (servicio)
+ *   GET  /api/migraciones  · qué migraciones conoce el código y cuáles le faltan a la base (administradores)
+ *   POST /api/migraciones  · aplica la siguiente pendiente (administradores)
  */
 
 import { verificarTokenDeApple } from './apple.js';
@@ -46,6 +48,7 @@ import { claveDeEncargo, claveDeModelo, esEncargoConocido } from './encargos.js'
 import { materialDelPlato, pedirCantidades } from './cantidades.js';
 import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
+import { aplicarMigracion, estadoDeMigraciones } from './migrador.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
 
@@ -683,6 +686,34 @@ async function mejorasPendientes(peticion, env) {
   return json({ mejoras: await leerMejorasPendientes(env.DB) });
 }
 
+/**
+ * Poner la base al día desde Ajustes → Actualizar (SPECS §14.23).
+ *
+ * Reservado a administradores, como la IA. El SQL que se ejecuta es **solo el
+ * que viaja dentro del Worker** (`migraciones.js`): del móvil no llega ninguna
+ * sentencia, llega «aplica la siguiente». Y funciona con la base por detrás
+ * —no toca las tablas del grupo—, que es exactamente cuándo hace falta:
+ * `/api/sync` ya estaría fallando.
+ *
+ * El POST aplica **una** y devuelve lo que queda: el móvil lo llama en bucle y
+ * el progreso que pinta es el de verdad.
+ */
+async function migraciones(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+  if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
+
+  if (peticion.method === 'POST') {
+    const estado = await estadoDeMigraciones(env.DB);
+    const siguiente = estado.find((m) => m.pendiente);
+    if (!siguiente) return json({ aplicada: null, pendientes: [] });
+    const resultado = await aplicarMigracion(env.DB, siguiente.id);
+    const despues = await estadoDeMigraciones(env.DB);
+    return json({ aplicada: resultado, pendientes: despues.filter((m) => m.pendiente).map((m) => m.id) });
+  }
+
+  return json({ migraciones: await estadoDeMigraciones(env.DB) });
+}
+
 // ---------------------------------------------------------------------------
 
 const RUTAS = [
@@ -705,6 +736,8 @@ const RUTAS = [
   ['POST', '/api/plato/parecidos', platosParecidos],
   ['POST', '/api/importar', importar],
   ['GET', '/api/mejoras', mejorasPendientes],
+  ['GET', '/api/migraciones', migraciones],
+  ['POST', '/api/migraciones', migraciones],
 ];
 
 export default {
