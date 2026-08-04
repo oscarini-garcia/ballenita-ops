@@ -1710,9 +1710,11 @@ a pulsar. Proponer cinco platos que peguen con una paella, en cambio, sí.
 - `configuracion` gana una clave por encargo, `ia.modelo:<id>`, hermana de
   `ia.encargo:<id>` y con el mismo filtro de nombres conocidos: sin él, un
   «modelo» llamado `clave` machacaría la credencial.
-- El orden es **lo guardado → el de origen del encargo → el general**. Hoy solo
-  «Ordenar una lista de ingredientes» trae uno de origen (`claude-haiku-4-5`);
-  los demás usan el de arriba.
+- El orden es **lo guardado → el de origen del encargo → el general**. Traen uno
+  de origen «Ordenar una lista de ingredientes» y «Los recadillos del viaje»
+  (`claude-haiku-4-5`: traducción y frases cortas) y «Mejorar la redacción de
+  una idea» (`claude-sonnet-4-5`, fijado a propósito: contar con gracia sí pide
+  criterio); los demás usan el de arriba.
 - En Ajustes cada encargo lleva su desplegable con **«El de arriba»** como
   primera opción, que es lo de fábrica salvo que el encargo traiga otro puesto.
 - La sustitución de un modelo retirado (§14.16-bis) se guarda **en la clave del
@@ -2283,8 +2285,13 @@ para el teclado, y al quitar el foco automático el remedio sobró.
 **«Mejorarla» (IA).** La figura de «Arreglar» del editor de receta
 (§14.20-bis), aplicada a una idea: un botón que manda el título, la
 descripción y el enlace **tal como están** y recibe la misma idea mejor
-contada — título corto y concreto, descripción de una a tres frases con lo
-práctico, **sin inventar datos que no estén**. Lo que vuelve **no se guarda**:
+contada **y con gracia** — título corto y concreto, descripción de una a tres
+frases con lo práctico rematada con **una coña ligera**, de las de sobremesa.
+El humor va en la forma, nunca en los datos: **sin inventar sitios, precios ni
+horarios que no estén**, una sola coña y que salga del propio plan — una que no
+aterriza es peor que ninguna, y por eso el encargo trae **Sonnet fijado**
+(§14.16-quinquies): contar con gracia sí pide criterio, y este botón se pulsa
+poco. Lo que vuelve **no se guarda**:
 rellena los campos, hay «deshacer» mientras no se guarde, y tocar un campo a
 mano retira el deshacer, porque lo escrito ya es tuyo y no del modelo. El
 encargo es `mejorarIdea` (`api/src/idea.js`, reescribible desde Ajustes →
