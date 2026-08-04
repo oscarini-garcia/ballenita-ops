@@ -1,0 +1,998 @@
+<title>Ballena Ops — Las ideas sobre la propia app no tienen dónde apuntarse desde el móvil</title>
+
+<style>
+  /* Base compartida con `planes-ideas.html` y `planes-votar.html`, para que las
+     hojas se comparen: mismos colores, misma escala, mismo marco de 390 pt. */
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #1e4256; --ab-linea-suave: #17384a;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #dde6ea; --abc-linea-suave: #e9eff2;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code, .op-idea code, .coste code, .parte-intro code, .defectos code {
+    font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { background: color-mix(in srgb, var(--oro) 14%, transparent);
+    border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .t-sub { padding: 12px 14px 0; }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 10px; }
+  .oscuro .seg { background: var(--ab-linea-suave); } .claro .seg { background: var(--abc-linea-suave); }
+  .seg button { flex: 1; padding: 10px 6px; border: none; background: none; border-radius: 7px;
+    font-weight: 600; font-size: var(--t-row); font-family: inherit; white-space: nowrap; }
+  .oscuro .seg button { color: var(--ab-soft); } .claro .seg button { color: var(--abc-soft); }
+  .oscuro .seg button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
+  .claro .seg button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); box-shadow: 0 1px 2px rgba(16,42,55,.12); }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+  .tarj.junta { padding: 0 12px; }
+
+  .fila { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n2 { font-size: var(--t-row); font-weight: 550; }
+  .fila .s2 { font-size: var(--t-sub); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .oscuro .fila .s2 { color: var(--ab-soft); } .claro .fila .s2 { color: var(--abc-soft); }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; flex: none; }
+  .oscuro .pil { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .pil { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  /* «si», no «ok»: la clase `.ok` es el botón del renglón (44×44, acento) y
+     compartir nombre vestía la pastilla de botón. */
+  .pil.si { background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .pil.si { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  /* El alias de familia, en pastilla de dos letras (la figura de planes-ideas · B3). */
+  .al { font-family: var(--mono); font-size: 11.5px; font-weight: 700; letter-spacing: .06em;
+    border-radius: 5px; padding: 2px 5px; display: inline-block; line-height: 1.3; }
+  .al.gar { background: rgba(229,84,75,.18); color: #f0938c; }
+  .claro .al.gar { background: rgba(229,84,75,.12); color: #a8332b; }
+  .al.per { background: rgba(46,158,107,.18); color: #6fc79c; }
+  .claro .al.per { background: rgba(46,158,107,.12); color: #1f6d4b; }
+  .al.sol { background: rgba(31,166,214,.18); color: #6dc4e5; }
+  .claro .al.sol { background: rgba(31,166,214,.12); color: #14657f; }
+
+  /* ── El acordeón de Ajustes, medido contra theme.css ────────────────────
+     `.acordeon` real: borde, radio 9, relleno lateral 13; el rótulo es un
+     `summary` de `min-height: 44` (border-box) con 9 arriba y abajo y la
+     moneda de 30 dentro → 50 pt de fila plegada, medidos en esta hoja. */
+  .ac { border-radius: 9px; padding: 0 13px; }
+  .oscuro .ac { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .ac { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+  .ac-sum { display: flex; align-items: center; gap: 11px; min-height: 44px; padding: 9px 0;
+    font-size: var(--t-body); font-weight: 600; }
+  .ac-sum .tit { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ac-nota { margin-left: auto; padding-left: 10px; font-size: var(--t-label); font-weight: 500;
+    white-space: nowrap; }
+  .oscuro .ac-nota { color: var(--ab-faint); } .claro .ac-nota { color: var(--abc-faint); }
+  .ac-flecha { flex: none; width: 9px; height: 9px; border-right: 2px solid var(--ab-faint);
+    border-bottom: 2px solid var(--ab-faint); transform: rotate(45deg) translate(-2px,-2px); }
+  .claro .ac-flecha { border-color: var(--abc-faint); }
+  .ac.abierto .ac-flecha { transform: rotate(-135deg) translate(-2px,-2px); }
+  .ac.abierto .ac-sum { border-bottom: 1px solid var(--ab-linea-suave); }
+  .claro .ac.abierto .ac-sum { border-bottom-color: var(--abc-linea-suave); }
+  .ac-cuerpo { display: flex; flex-direction: column; gap: 11px; padding: 13px 0 15px; }
+  .moneda { flex: none; display: grid; place-items: center; width: 30px; height: 30px;
+    border-radius: 8px; }
+  .oscuro .moneda { background: color-mix(in srgb, var(--ab-acento) 16%, transparent); color: var(--ab-acento-txt); }
+  .claro .moneda { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .moneda svg { width: 18px; height: 18px; }
+
+  /* ── La fila de una mejora ────────────────────────────────────────────── */
+  /* El visto delante: dibujo de 28, toque de 44 (la regla del aspa de 26 del
+     editor de receta: el dedo recibe más de lo que el ojo ve). */
+  .visto { flex: none; width: 44px; height: 44px; display: grid; place-items: center; }
+  .visto .aro { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ab-linea);
+    display: grid; place-items: center; }
+  .claro .visto .aro { border-color: var(--abc-linea); }
+  .visto.si .aro { border-color: #35b37e; background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .visto.si .aro { background: rgba(31,124,88,.12); color: #1f7c58; }
+  .visto svg { width: 15px; height: 15px; }
+  .hecha-f .n2 { text-decoration: line-through; }
+  .oscuro .hecha-f .n2 { color: var(--ab-faint); } .claro .hecha-f .n2 { color: var(--abc-faint); }
+  .oscuro .hecha-f .s2 { color: var(--ab-faint); } .claro .hecha-f .s2 { color: var(--abc-faint); }
+
+  /* Deslizamiento a medias, para enseñar los verbos de C2. */
+  .deslizada { position: relative; overflow: hidden; }
+  .verbos { position: absolute; inset: 0 0 0 auto; display: flex; }
+  .verbo { width: 76px; display: grid; place-items: center; gap: 4px; font-size: var(--t-micro);
+    font-weight: 700; color: #eaf6fb; }
+  .verbo.ed { background: #1f6f8f; } .verbo.bo { background: #a8322a; }
+  .verbo svg { width: 19px; height: 19px; }
+  .cara { position: relative; transform: translateX(-152px); }
+  .oscuro .cara { background: var(--ab-tarjeta); } .claro .cara { background: var(--abc-tarjeta); }
+
+  /* ── El renglón de apuntar y la hoja ──────────────────────────────────── */
+  .form { border-radius: 9px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .oscuro .form { background: var(--ab-fondo); border: 1px solid var(--ab-linea); }
+  .claro .form { background: var(--abc-fondo); border: 1px solid var(--abc-linea); }
+  .form .linea { display: flex; gap: 8px; align-items: center; }
+  .campo { flex: 1; min-width: 0; border-radius: 7px; padding: 11px 12px; font-size: var(--t-body);
+    font-family: inherit; }
+  .oscuro .campo { border: 1px solid var(--ab-linea); background: var(--ab-fondo); color: var(--ab-ink); }
+  .claro .campo { border: 1px solid var(--abc-linea); background: var(--abc-fondo); color: var(--abc-ink); }
+  .campo.vacio { color: var(--ab-faint); } .claro .campo.vacio { color: var(--abc-faint); }
+  .campo.foco { outline: 2px solid var(--ab-acento); outline-offset: -1px; }
+  .claro .campo.foco { outline-color: var(--abc-acento); }
+  .campo.alto { min-height: 76px; }
+  .ok { width: 44px; height: 44px; flex: none; border-radius: 8px; display: grid; place-items: center;
+    font-size: 18px; font-weight: 700; }
+  .oscuro .ok { background: var(--ab-acento); color: #04161f; }
+  .claro .ok { background: var(--abc-acento); color: #fff; }
+  .rot { font-size: var(--t-label); font-weight: 600; padding: 2px 2px 0; }
+  .oscuro .rot { color: var(--ab-soft); } .claro .rot { color: var(--abc-soft); }
+  .btn-blq { border-radius: 9px; padding: 13px; text-align: center; font-weight: 650;
+    font-size: var(--t-body); font-family: inherit; }
+  .oscuro .btn-blq { background: var(--ab-acento); color: #04161f; }
+  .claro .btn-blq { background: var(--abc-acento); color: #fff; }
+  .btn-linea { border-radius: 9px; padding: 12px; text-align: center; font-weight: 600;
+    font-size: var(--t-row); font-family: inherit; }
+  .oscuro .btn-linea { border: 1px solid var(--ab-linea); color: var(--ab-acento-txt); background: none; }
+  .claro .btn-linea { border: 1px solid var(--abc-linea); color: var(--abc-acento-txt); background: none; }
+
+  .teclado { height: 336px; flex: none; display: grid; place-items: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .oscuro .teclado { background: #1b2b33; color: #6d8590; border-top: 1px solid #2a3f4a; }
+  .claro .teclado { background: #d1d5db; color: #6b7280; border-top: 1px solid #b9bfc7; }
+
+  .velo { position: relative; flex: 1; display: flex; align-items: flex-end; }
+  .oscuro .velo { background: rgba(4,12,18,.66); } .claro .velo { background: rgba(16,42,55,.34); }
+  .hoja-b { width: 100%; border-radius: 14px 14px 0 0; padding: 16px 16px 20px;
+    display: flex; flex-direction: column; gap: 8px; }
+  .oscuro .hoja-b { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); border-bottom: none; }
+  .claro .hoja-b { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); border-bottom: none; }
+  .hoja-b h4 { margin: 0 0 2px; font-size: var(--t-title); font-weight: 650; }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+  .pista { font-size: var(--t-label); }
+  .oscuro .pista { color: var(--ab-faint); } .claro .pista { color: var(--abc-faint); }
+  .nota-t { font-size: var(--t-sub); border-radius: 9px; padding: 10px 12px;
+    background: var(--papel-2); border: 1px solid var(--linea); color: var(--tinta-suave); }
+  .oscuro .nota-t { background: var(--ab-linea-suave); color: var(--ab-soft); border: none; }
+  .claro .nota-t { background: var(--abc-linea-suave); color: var(--abc-soft); border: none; }
+
+  /* El trozo de repositorio del punto de partida. */
+  .repo { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 16px 18px; font-family: var(--mono); font-size: 12.5px; line-height: 1.8;
+    color: var(--tinta-suave); overflow-x: auto; }
+  .repo b { color: var(--tinta); font-weight: 600; }
+  .repo .ruta { color: var(--tinta-tenue); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; display: block; margin-bottom: 6px; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  /* El color se pone a mano en la celda: estas hojas van sin doctype y en modo
+     quirks las tablas no heredan el color. */
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Mejoras (el roadmap de la app)</div>
+    <h1>Las ideas sobre la propia app se cuentan en el camping y se pierden, porque no hay dónde apuntarlas</h1>
+    <p class="entradilla">
+      «Que la compra se pueda marcar por pasillos del súper» se dice en una cena y a la semana no
+      queda ni quién lo dijo. El roadmap de verdad vive hoy en <b>el repositorio</b> —el «Pendiente
+      (ideas)» de <code>CLAUDE.md</code>— que el grupo <b>no lee ni puede tocar</b>, y el camino de
+      una idea es el chat, la memoria o nada.
+    </p>
+    <p class="entradilla">
+      <code>garciadoral-ops</code> resolvió esto con <b>«Mejoras»</b>: un bloque en Ajustes, una
+      tabla sincronizada que ven todos, una casilla para darlas por hechas y una firma. Su
+      comparación entera está en su <code>specs/propuesta-mejoras.html</code>, y dejó <b>una
+      pregunta abierta</b> —cómo llega una mejora a donde se actúa— que aquí sí se puede cerrar.
+      Lo que queda por decidir es dónde vive, cómo se apunta, qué fila tiene, qué dice la firma,
+      quién la cierra y ese transporte.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado sobre:</b> v0.14.0 (<code>main</code>, 805d052)</span>
+      <span><b>Referencia:</b> garciadoral-ops · bloque «Mejoras»</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Escala:</b> 17 px × 1,12</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      El contenido de las maquetas es el de la semilla de <code>db.js</code>: familias
+      <b>García</b>, <b>Pérez</b> y <b>Solteros</b>; gente Curro, Marta, Fran, Ana, Luis y Pablo.
+      Las cuatro mejoras de ejemplo están escritas para la hoja —la lista nace vacía—, y todas las
+      medidas están tomadas en el navegador sobre esta misma hoja, con la escala real.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO QUE NO SE ELIGE ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · cinco cosas que no se eligen</h2>
+    <p>
+      Tres son decisiones ya tomadas en este proyecto o en <code>garciadoral-ops</code> por razones
+      que siguen valiendo, y dos son fontanería. No están sobre la mesa: se hacen y se cuentan.
+    </p>
+    <p class="linea-corte">
+      <b>1 · Se llaman «Mejoras», no «Ideas» ni «Roadmap».</b> «Ideas» ya es un área de Planes
+      —una idea aquí es una idea de plan— y compartir el nombre obligaría a cada frase, cada test y
+      cada consulta a decir de cuál habla. Es la misma colisión que <code>garciadoral-ops</code>
+      tenía con las ideas de regalo, y la resolvió igual. «Roadmap» sería además la única palabra
+      inglesa de una interfaz que es solo en español.<br>
+      <b>2 · Es una tabla sincronizada, no una nota del móvil.</b> <code>meeting-ops-air</code> las
+      hizo primero en <code>localStorage</code> y lo deshizo: sobre una idea de la aplicación
+      <b>se actúa en otra máquina</b>, y una nota que esa máquina no lee se atiende cuando alguien
+      se acuerda de copiarla. Viajan por el contrato que ya hay —<code>escribir()</code>, la cola y
+      la instantánea—, sin ruta propia. Fontanería: <code>mejoras</code> en
+      <code>api/src/tablas.js</code>, migración <code>0010_*.sql</code>
+      (<code>npm run migrar:remoto10</code>), <code>version(7)</code> en Dexie y la tabla en
+      <code>sync/tables.js</code>. Campos: <code>texto</code>, <code>hecho</code>,
+      <code>autorId</code>, <code>apuntadaEl</code> y <code>eventId</code> solo para el Demo.<br>
+      <b>3 · Tope de 2000 caracteres, cortado en el móvil y rechazado en el Worker.</b> Sin él, un
+      pegado largo entra en la instantánea del grupo entero y se descarga en cada sincronización,
+      para siempre. Es la cifra de <code>garciadoral-ops</code> y no hay motivo para otra.<br>
+      <b>4 · Son de la app, no del viaje — y el Demo escribe con su <code>eventId</code>.</b> Una
+      mejora no caduca con el evento, así que la lista es global como el catálogo de platos. Pero
+      el cajón de arena no puede ensuciar la lista de verdad: el mecanismo ya existe
+      (<code>dishes</code>, SPECS §14.9-quater) — sin <code>eventId</code> es de todos, el Demo
+      pone el suyo.<br>
+      <b>5 · La fecha la escribe el móvil (<code>apuntadaEl</code>) y lo hecho va sin quién ni
+      cuándo.</b> <code>creadoEn</code> es del servidor y en local no existe hasta sincronizar
+      —la regla ya decidida en <code>planes-ideas.html</code>—. Y marcar quién y cuándo la dio por
+      hecha sería un registro de trabajo: esto es una lista de la compra.
+    </p>
+  </div>
+
+  <!-- ══════════════ EL ANTES ══════════════ -->
+  <div class="parte">El punto de partida, para tener contra qué comparar</div>
+  <p class="parte-intro">
+    No hay pantalla que enseñar: el módulo no existe. Lo que hay es <b>Ajustes tal cual está</b>
+    —donde las opciones de la parte uno colocan el bloque— y el sitio donde el roadmap vive hoy,
+    que es un fichero del repositorio.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="t-body">
+        <div class="ac" data-m="acFila"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg></span><span class="tit">Aspecto</span><span class="ac-nota">Grande · Automático</span><span class="ac-flecha"></span></div></div>
+        <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8 3.5v4M16 3.5v4"/></svg></span><span class="tit">Evento</span><span class="ac-nota">Camping 2026</span><span class="ac-flecha"></span></div></div>
+        <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9.5" r="3"/><circle cx="16" cy="10.5" r="2.4"/><path d="M4.5 19c.8-3 2.6-4.5 5.5-4.5 1.6 0 2.9.5 3.9 1.4M13.5 19c.5-1.9 1.5-3 3.5-3 1.7 0 2.8.9 3.3 3"/></svg></span><span class="tit">El grupo</span><span class="ac-nota">3 · 3 · 12</span><span class="ac-flecha"></span></div></div>
+        <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="3.4"/><path d="M5.5 19.5c1-3.6 3.4-5.2 6.5-5.2s5.5 1.6 6.5 5.2"/></svg></span><span class="tit">Quién eres</span><span class="ac-nota">Curro</span><span class="ac-flecha"></span></div></div>
+        <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V11M10.5 19V6M16 19v-8M21 19H3.5"/></svg></span><span class="tit">Estadísticas</span><span class="ac-flecha"></span></div></div>
+        <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 0 1-14.5 4.6M4 12a8 8 0 0 1 14.5-4.6M4 12l-1.8 3.2M4 12l3.6.4M20 12l1.8-3.2M20 12l-3.6-.4"/></svg></span><span class="tit">Sincronización</span><span class="ac-flecha"></span></div></div>
+        <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4a5.5 5.5 0 0 1 5.5 5.5c0 4 1.5 5.5 1.5 5.5H5s1.5-1.5 1.5-5.5A5.5 5.5 0 0 1 12 4zM10 18.8a2.1 2.1 0 0 0 4 0"/></svg></span><span class="tit">Notificaciones</span><span class="ac-flecha"></span></div></div>
+        <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 13.5c2-4.5 5-7 9-7 4.5 0 7.5 2.5 8 6.5-1 .8-2.2 1-3.5.7-1.5 2.3-4.5 3.3-7.5 2.3-2.5-.8-5-1.5-6-2.5z"/><path d="M17 9.5c1-.8 2-.9 3-.3M8 18c-.5 1-1.4 1.6-2.7 1.7"/></svg></span><span class="tit">La app</span><span class="ac-nota">v0.14.0</span><span class="ac-flecha"></span></div></div>
+        <p class="pie-tel" style="color:var(--ab-faint)">Ajustes hoy · ocho apartados, todos plegados</p>
+      </div>
+    </div>
+
+    <div style="width:390px; flex:none; display:flex; flex-direction:column; gap:10px">
+      <div class="repo">
+        <span class="ruta">CLAUDE.md · «Estado y pendientes» · solo lo ve quien lee el repo</span>
+        <b>Pendiente (ideas):</b> el camino del fallo de sincronización
+        sin ver contra una API real · compartir los avatares con foto
+        con el grupo · lista de la compra agregada…
+      </div>
+      <p class="coste">
+        Este fichero es hoy el único roadmap. <b>Nadie del grupo puede leerlo ni añadir a él</b>, y
+        lo que se me dice en persona compite con la memoria de todos. La pieza que falta no es el
+        fichero: es <b>el buzón</b>.
+      </p>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Fila de acordeón plegado:</b> <span data-m="acFilaAlto">50</span> pt</span>
+    <span><b>Ajustes plegado entero:</b> <span data-m="ajustesAlto">484</span> pt de los 633,6 útiles</span>
+  </p>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · dónde vive el bloque</div>
+  <p class="parte-intro">
+    <code>garciadoral-ops</code> decidió «solo desde Ajustes» y su razón vale aquí entera: un
+    atajo desde la pantalla que te molesta metería <b>un verbo de la herramienta entre los del
+    viaje</b>, y «+» en esta app significa un gasto, una cena o un plan. La pregunta es en qué
+    sitio de Ajustes, o si merece área propia.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">Acordeón propio, penúltimo, encima de «La app»</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Un apartado <b>«Mejoras»</b> con las que faltan en la nota del rótulo —el
+        <code>Acordeon</code> ya acepta nodo en <code>nota</code>—. Va al final porque Ajustes está
+        «en el orden de lo que se toca» y una mejora se apunta menos veces que todo lo demás; y
+        pegado a «La app» porque <b>las dos hablan de la app</b>, no del viaje.
+      </p>
+      <div class="tira-tel">
+        <div class="tel oscuro">
+          <div class="t-body">
+            <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V11M10.5 19V6M16 19v-8M21 19H3.5"/></svg></span><span class="tit">Estadísticas</span><span class="ac-flecha"></span></div></div>
+            <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 0 1-14.5 4.6M4 12a8 8 0 0 1 14.5-4.6M4 12l-1.8 3.2M4 12l3.6.4M20 12l1.8-3.2M20 12l-3.6-.4"/></svg></span><span class="tit">Sincronización</span><span class="ac-flecha"></span></div></div>
+            <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4a5.5 5.5 0 0 1 5.5 5.5c0 4 1.5 5.5 1.5 5.5H5s1.5-1.5 1.5-5.5A5.5 5.5 0 0 1 12 4zM10 18.8a2.1 2.1 0 0 0 4 0"/></svg></span><span class="tit">Notificaciones</span><span class="ac-flecha"></span></div></div>
+            <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 21h4M12 3.5a5.5 5.5 0 0 1 3.2 10 3.5 3.5 0 0 0-1.2 2H10a3.5 3.5 0 0 0-1.2-2A5.5 5.5 0 0 1 12 3.5z"/></svg></span><span class="tit">Mejoras</span><span class="ac-nota">3 sin hacer</span><span class="ac-flecha"></span></div></div>
+            <div class="ac"><div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 13.5c2-4.5 5-7 9-7 4.5 0 7.5 2.5 8 6.5-1 .8-2.2 1-3.5.7-1.5 2.3-4.5 3.3-7.5 2.3-2.5-.8-5-1.5-6-2.5z"/><path d="M17 9.5c1-.8 2-.9 3-.3M8 18c-.5 1-1.4 1.6-2.7 1.7"/></svg></span><span class="tit">La app</span><span class="ac-nota">v0.14.0</span><span class="ac-flecha"></span></div></div>
+            <p class="pie-tel" style="color:var(--ab-faint)">A1 · el final de Ajustes · la nota dice lo que queda</p>
+          </div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Qué cuesta:</b> una fila más en Ajustes (50 pt, 62 con su hueco) y nada nuevo que aprender. Quien no
+        despliega Ajustes hasta abajo tarda en descubrirla — lo paga el primer mes, y la nota con
+        número lo compensa en cuanto alguien la estrena.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">Dentro de «La app», con la versión y el actualizar</span></div>
+      <p class="op-idea">
+        Sin apartado nuevo: el bloque va dentro del acordeón que ya habla de la app. El argumento
+        es de orden —una mejora es de la app, la versión es de la app— y la lista de Ajustes no
+        crece.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> el rótulo de «La app» ya lleva la versión en la nota, así que <b>el
+        contador de mejoras no tiene dónde ir</b> —«v0.14.0 · 3 sin hacer» son dos datos peleando
+        por 130 pt—; y el apartado pasa a ser dos cosas sin relación de uso: se entra a mirar la
+        versión y se encuentra un cuaderno. Apuntar una idea queda a un despliegue + un desplace
+        de todo lo de actualizar.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">Área nueva en Planes: Planes · Ideas · Mejoras</span><span class="etq no">no la recomiendo</span></div>
+      <p class="op-idea">
+        La tercera solapa del mando de Planes. A favor: es donde el grupo ya «propone cosas», y el
+        bloque se ve sin abrir Ajustes.
+      </p>
+      <div class="tira-tel">
+        <div class="tel oscuro">
+          <div class="t-sub"><div class="seg"><button>Planes</button><button>Ideas</button><button class="on">Mejoras</button></div></div>
+          <div class="t-body">
+            <p class="pie-tel" style="color:var(--ab-faint)">A3 · cada botón del mando baja de 175 a 115,3 pt</p>
+          </div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Qué cuesta:</b> mete un verbo de la herramienta entre los del viaje —justo lo que
+        <code>garciadoral-ops</code> descartó con razones que siguen en pie—, y pone «Ideas» y
+        «Mejoras» <b>pegadas en el mismo mando</b>, que es la confusión del punto 1 servida en
+        bandeja: dos palabras casi sinónimas para dos cosas que no se parecen en nada.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">Acordeón propio, pero arriba, entre Aspecto y Evento</span></div>
+      <p class="op-idea">
+        El mismo apartado de A1, colocado donde se ve nada más abrir Ajustes, para que el primer
+        mes no haya que descubrirlo.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> rompe el «orden de lo que se toca» que Ajustes ya tiene decidido: lo que
+        se usa cada semana (Aspecto, Evento, El grupo) baja un puesto para siempre por un cuaderno
+        que se abre de tarde en tarde. La visibilidad del primer mes se paga todos los días
+        después.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · cómo se apunta una</div>
+  <p class="parte-intro">
+    <code>garciadoral-ops</code> abre una hoja con un campo. Aquí ya hay otra figura decidida para
+    exactamente este gesto —el renglón fijo de Ideas (<code>planes-ideas.html</code> · C1+C3)— y la
+    pregunta es cuál de las dos vale para un bloque que vive dentro de un acordeón.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">El renglón fijo de Ideas, arriba del bloque</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Un campo de una línea con su OK, <b>siempre puesto</b> al abrir el acordeón, que crece
+        hacia abajo al escribir y <b>no se cierra al guardar</b>: dos mejoras seguidas sin abrir ni
+        cerrar nada, y la lista a la vista mientras se escribe — que es lo que evita apuntar la que
+        ya está.
+      </p>
+      <div class="tira-tel">
+        <div class="tel oscuro">
+          <div class="t-body">
+            <div class="ac abierto">
+              <div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 21h4M12 3.5a5.5 5.5 0 0 1 3.2 10 3.5 3.5 0 0 0-1.2 2H10a3.5 3.5 0 0 0-1.2-2A5.5 5.5 0 0 1 12 3.5z"/></svg></span><span class="tit">Mejoras</span><span class="ac-nota">3 sin hacer</span><span class="ac-flecha"></span></div>
+              <div class="ac-cuerpo">
+                <div class="form" data-m="formB1">
+                  <div class="linea"><div class="campo vacio">Se te ha ocurrido algo…</div><div class="ok">↑</div></div>
+                </div>
+                <div class="tarj junta">
+                  <div class="fila" data-m="filaMej">
+                    <div class="visto"><span class="aro"></span></div>
+                    <div class="txt"><div class="n2">Poder marcar la compra por pasillos del súper</div><div class="s2">Marta <span class="al gar">GA</span> · hace 2 h</div></div>
+                  </div>
+                  <div class="fila">
+                    <div class="visto"><span class="aro"></span></div>
+                    <div class="txt"><div class="n2">Un aviso el día antes de que te toque cena</div><div class="s2">Ana <span class="al per">PE</span> · ayer</div></div>
+                  </div>
+                  <div class="fila">
+                    <div class="visto"><span class="aro"></span></div>
+                    <div class="txt"><div class="n2">Exportar los saldos a PDF al cerrar el viaje</div><div class="s2">Pablo <span class="al sol">SO</span> · hace 3 días</div></div>
+                  </div>
+                  <div class="fila hecha-f">
+                    <div class="visto si"><span class="aro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+                    <div class="txt"><div class="n2">Buscar platos también por ingrediente</div><div class="s2">Curro <span class="al gar">GA</span> · hace 2 semanas</div></div>
+                  </div>
+                </div>
+                <p class="pista">3 sin hacer. Las ve todo el grupo.</p>
+              </div>
+            </div>
+            <p class="pie-tel" style="color:var(--ab-faint)">B1 · el bloque entero, con la fila C1/D2 dibujada</p>
+          </div>
+        </div>
+
+        <div class="tel claro">
+          <div class="t-body">
+            <div class="ac abierto">
+              <div class="ac-sum"><span class="moneda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 21h4M12 3.5a5.5 5.5 0 0 1 3.2 10 3.5 3.5 0 0 0-1.2 2H10a3.5 3.5 0 0 0-1.2-2A5.5 5.5 0 0 1 12 3.5z"/></svg></span><span class="tit">Mejoras</span><span class="ac-nota">3 sin hacer</span><span class="ac-flecha"></span></div>
+              <div class="ac-cuerpo">
+                <div class="form">
+                  <div class="linea"><div class="campo vacio">Se te ha ocurrido algo…</div><div class="ok">↑</div></div>
+                </div>
+                <div class="tarj junta">
+                  <div class="fila">
+                    <div class="visto"><span class="aro"></span></div>
+                    <div class="txt"><div class="n2">Poder marcar la compra por pasillos del súper</div><div class="s2">Marta <span class="al gar">GA</span> · hace 2 h</div></div>
+                  </div>
+                  <div class="fila">
+                    <div class="visto"><span class="aro"></span></div>
+                    <div class="txt"><div class="n2">Un aviso el día antes de que te toque cena</div><div class="s2">Ana <span class="al per">PE</span> · ayer</div></div>
+                  </div>
+                  <div class="fila hecha-f">
+                    <div class="visto si"><span class="aro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+                    <div class="txt"><div class="n2">Buscar platos también por ingrediente</div><div class="s2">Curro <span class="al gar">GA</span> · hace 2 semanas</div></div>
+                  </div>
+                </div>
+                <p class="pista">3 sin hacer. Las ve todo el grupo.</p>
+              </div>
+            </div>
+            <p class="pie-tel" style="color:var(--abc-faint)">B1 · la cara clara, mismas piezas</p>
+          </div>
+        </div>
+      </div>
+      <p class="medida">
+        <span><b>Renglón de apuntar:</b> <span data-m="formB1Alto">75,4</span> pt</span>
+        <span><b>Fila de mejora (título a dos líneas):</b> <span data-m="filaMejAlto">97,8</span> pt</span>
+        <span><b>Pastilla del alias:</b> 19 pt de alto en la línea de 15,7</span>
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> 75,4 pt fijos dentro del acordeón, se vaya a escribir o no — y el
+        acordeón se pliega, así que solo los paga quien lo tiene abierto. Lo largo (2000
+        caracteres) se escribe igual: el campo crece, como el de Ideas.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">La Hoja de siempre, desde un botón «+ Mejora»</span></div>
+      <p class="op-idea">
+        La figura de <code>garciadoral-ops</code> y del resto de esta app: el botón abre la
+        <code>Hoja</code> desde abajo con un campo grande y «Apuntar». Editar una mejora ya va a
+        abrir esa hoja de todos modos, así que apuntar y editar serían la misma pantalla.
+      </p>
+      <div class="tira-tel">
+        <div class="tel oscuro" style="height:560px">
+          <div class="velo">
+            <div class="hoja-b" data-m="hojaB2">
+              <h4>Apuntar una mejora</h4>
+              <div class="rot">Qué se te ha ocurrido</div>
+              <div class="campo alto foco vacio">Poder marcar la compra por pasillos del súper</div>
+              <div class="btn-blq" style="margin-top:6px">Apuntar</div>
+            </div>
+          </div>
+          <div class="teclado">teclado · 336 pt</div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Qué cuesta:</b> la hoja mide <span data-m="hojaB2Alto">268,3</span> pt y con el teclado
+        (336) tapa la lista entera: se escribe sin ver lo que ya hay, que es como se apuntan
+        duplicados. Y apuntar dos seguidas son cuatro toques más que con B1.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">El renglón aparece al pedirlo</span></div>
+      <p class="op-idea">
+        Un botón de línea «Apuntar una mejora» donde B1 pone el campo; al tocarlo se convierte en
+        el renglón con el foco puesto. Los 75,4 pt fijos se quedan en <span data-m="btnB3Alto">53,8</span>
+        y el acordeón abre más corto.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> un toque más en cada mejora, para ahorrar 21,6 pt en un cuerpo que ya va
+        dentro de un acordeón plegable — el sitio ahorrado no se nota y el toque sí. Es la B2 de
+        <code>planes-ideas.html</code>, que ya perdió allí contra el renglón fijo.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B4</span><span class="op-nombre">Además, un atajo desde la pantalla que te molesta</span><span class="etq no">no la recomiendo</span></div>
+      <p class="op-idea">
+        Mantener pulsada la cabecera —o un verbo extra en algún menú— apunta una mejora desde
+        cualquier pantalla, con la pantalla de origen apuntada sola.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> es la opción que <code>garciadoral-ops</code> descartó con la frase que
+        vale aquí letra por letra: quitaría roce, pero <b>mete un verbo de la herramienta entre los
+        del trabajo</b>, y los gestos escondidos los encuentra quien ya sabía que estaban. Se puede
+        añadir el día que el bloque se use de verdad; empezar por aquí es empezar por el tejado.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · la fila y sus verbos</div>
+  <p class="parte-intro">
+    Una mejora tiene cuatro verbos: <b>darla por hecha</b> (el más frecuente), deshacerlo,
+    <b>editarla</b> y <b>quitarla</b>. La pregunta es cuáles viven en la fila y cuáles detrás de
+    ella. En todas las opciones lo hecho <b>se tacha y baja al final</b> —el orden de una lista que
+    se mira para saber qué queda— y tocar el texto abre la mejora.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">El visto delante; editar y quitar, dentro</span><span class="etq base">la figura de garciadoral</span></div>
+      <p class="op-idea">
+        La casilla de 28 pt con toque de 44 delante de cada fila —la figura del «Llevar» de su
+        lista de la compra—. Editar, copiar y quitar viven en la hoja que abre el texto. Es
+        exactamente lo dibujado en B1.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> editar y quitar quedan a dos toques. Para un cuaderno que se edita poco
+        es un precio pequeño; el verbo de cada día —tachar— queda a uno.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">El visto delante, y deslizar descubre Editar y Borrar</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Lo mismo que C1, más el gesto que esta app ya enseñó en Gastos (<code>Deslizable</code>,
+        SPECS §14.10-bis): deslizar la fila descubre los dos verbos. Tocar el texto sigue abriendo
+        la mejora, para quien no conoce el gesto.
+      </p>
+      <div class="tira-tel">
+        <div class="tel oscuro">
+          <div class="t-body">
+            <div class="tarj junta">
+              <div class="fila">
+                <div class="visto"><span class="aro"></span></div>
+                <div class="txt"><div class="n2">Poder marcar la compra por pasillos del súper</div><div class="s2">Marta <span class="al gar">GA</span> · hace 2 h</div></div>
+              </div>
+              <div class="deslizada">
+                <div class="verbos"><div class="verbo ed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l4.5-1L20 7.5 16.5 4 5 15.5 4 20z"/></svg>Editar</div><div class="verbo bo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/></svg>Borrar</div></div>
+                <div class="cara"><div class="fila">
+                  <div class="visto"><span class="aro"></span></div>
+                  <div class="txt"><div class="n2">Un aviso el día antes de que te toque cena</div><div class="s2">Ana <span class="al per">PE</span> · ayer</div></div>
+                </div></div>
+              </div>
+              <div class="fila hecha-f">
+                <div class="visto si"><span class="aro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+                <div class="txt"><div class="n2">Buscar platos también por ingrediente</div><div class="s2">Curro <span class="al gar">GA</span> · hace 2 semanas</div></div>
+              </div>
+            </div>
+            <p class="pie-tel" style="color:var(--ab-faint)">C2 · la del medio, deslizada a medias · verbos de 76 pt</p>
+          </div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Qué cuesta:</b> nada nuevo — <code>Deslizable</code> existe y Gastos ya lo enseñó. Dos
+        caminos a editar (deslizar y abrir), que aquí es virtud: el gesto rápido para quien lo
+        conoce, el toque para quien no.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">Sin casilla: una pastilla de estado a la derecha</span></div>
+      <p class="op-idea">
+        La fila lleva una pastilla «hecha» / nada, y el estado se cambia tocándola. La izquierda
+        queda para el texto, que gana <span data-m="anchoC3">55</span> pt de ancho por fila
+        (el visto de 44 y su hueco de 11).
+      </p>
+      <div class="tira-tel">
+        <div class="tel oscuro">
+          <div class="t-body">
+            <div class="tarj junta">
+              <div class="fila">
+                <div class="txt"><div class="n2">Poder marcar la compra por pasillos del súper</div><div class="s2">Marta <span class="al gar">GA</span> · hace 2 h</div></div>
+                <span class="pil">pendiente</span>
+              </div>
+              <div class="fila hecha-f">
+                <div class="txt"><div class="n2">Buscar platos también por ingrediente</div><div class="s2">Curro <span class="al gar">GA</span> · hace 2 semanas</div></div>
+                <span class="pil si">hecha</span>
+              </div>
+            </div>
+            <p class="pie-tel" style="color:var(--ab-faint)">C3 · el estado como pastilla, no como casilla</p>
+          </div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Qué cuesta:</b> una pastilla no parece tocable —es el error que Planes acaba de
+        deshacer— y «pendiente» escrito en cada fila es ruido: en una lista donde casi todo está
+        pendiente, la palabra no informa. La casilla vacía dice lo mismo sin decirlo.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">La fila limpia: todos los verbos dentro</span></div>
+      <p class="op-idea">
+        Solo texto y firma; hecho, editar y quitar viven en la hoja de la mejora. La fila más
+        estrecha posible y ningún control que explicar.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> el verbo más frecuente a dos toques y, peor, <b>la lista deja de
+        contestar «qué queda» de un vistazo</b>: sin casilla, lo hecho solo se distingue por el
+        tachado, y para tachar hay que haber entrado una a una. Es guardar la herramienta en el
+        cajón de la herramienta.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · qué dice la firma</div>
+  <p class="parte-intro">
+    En <code>garciadoral-ops</code> son cuatro en una casa y la firma es «la puso Marga». Aquí son
+    <b>doce personas de tres familias</b>, y ya hay una firma decidida para exactamente esto: la de
+    las ideas de plan (<code>planes-ideas.html</code> · B3), nombre + alias de la familia en
+    pastilla de su color + cuándo en palabras.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">La de garciadoral: nombre, y el cuándo solo si no es de hoy</span><span class="etq base">la figura de garciadoral</span></div>
+      <p class="op-idea">
+        «La apuntó Marta» hoy; «la apuntó Pablo · el sábado» después. Texto plano, cero piezas, y
+        la regla de que el «cuándo» de hoy no se dice porque no informa.
+      </p>
+      <div class="tira-tel">
+        <div class="tel oscuro">
+          <div class="t-body">
+            <div class="tarj junta">
+              <div class="fila"><div class="visto"><span class="aro"></span></div><div class="txt"><div class="n2">Poder marcar la compra por pasillos del súper</div><div class="s2">la apuntó Marta</div></div></div>
+              <div class="fila"><div class="visto"><span class="aro"></span></div><div class="txt"><div class="n2">Exportar los saldos a PDF al cerrar el viaje</div><div class="s2">la apuntó Pablo · hace 3 días</div></div></div>
+            </div>
+            <p class="pie-tel" style="color:var(--ab-faint)">D1 · texto plano, sin familia</p>
+          </div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Qué cuesta:</b> con doce personas, «Marta» a secas obliga a saberse el grupo entero; la
+        familia es el apellido de esta app y aquí no sale. Y sería la única firma distinta de la de
+        Ideas, dos listas hermanas leyéndose diferente.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">La firma de Ideas: nombre + alias en pastilla + hace</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        «Marta <b>GA</b> · hace 2 h», con la pastilla del color de la familia. Es la firma ya
+        decidida y construida para las ideas de plan: <b>cero piezas nuevas</b>
+        (<code>lib/alias.js</code>, <code>lib/hace.js</code>), y las dos listas del proyecto que
+        dicen «quién apuntó esto» se leen igual. Es la dibujada en B1 y C2.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> nada que no exista ya. La línea de firma mide lo mismo que en D1 —la
+        pastilla de 19 pt de alto no estira la línea—.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">Solo la pastilla, sin nombre</span></div>
+      <p class="op-idea">
+        «<b>GA</b> · hace 2 h»: la familia basta para el contexto y la línea queda mínima.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> en la familia García hay cuatro personas; «GA» no contesta quién, y para
+        una mejora el quién importa — es a quien se le pregunta «¿qué querías decir con esto?». El
+        ancho ahorrado (<span data-m="anchoD3">45,4</span> pt, lo que mide «Marta ») no compra
+        nada: la línea de firma no es la que se queda corta.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D4</span><span class="op-nombre">Sin firma</span></div>
+      <p class="op-idea">
+        Solo el texto y el cuándo. La mejora es del grupo desde que se apunta, como en una pizarra.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> se pierde el hilo de vuelta —a quién preguntar por una mejora ambigua— y
+        la protección social del quitar: borrar «la mejora de Ana» se piensa dos veces; borrar una
+        línea anónima, ninguna. <code>garciadoral-ops</code> la lleva incluso siendo cuatro.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CINCO ══════════════ -->
+  <div class="parte">Parte cinco · quién la da por hecha y quién la quita</div>
+  <p class="parte-intro">
+    En <code>garciadoral-ops</code> cualquiera hace las dos cosas, y la pregunta de quitar dice a
+    quién afecta. Aquí hay una figura que allí no existe: <b>el administrador</b>, que es además
+    quien de hecho despliega lo que convierte una mejora en versión.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E1</span><span class="op-nombre">Cualquiera puede todo, y quitar avisa a quién afecta</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Tachar, destachar, editar y quitar son de todos, como todo lo demás en esta app —los gastos
+        y las cenas tampoco tienen dueño—. Lo único que protege es la pregunta:
+      </p>
+      <div class="nota-t" style="max-width:390px">¿Quitar esta mejora? Se va de la lista de todo el grupo.</div>
+      <p class="coste">
+        <b>Qué cuesta:</b> alguien puede tachar lo que no está hecho o quitar lo de otro. En un
+        grupo de amigos el coste real es cero y el remedio es social; cualquier permiso sería la
+        primera regla de permisos de toda la app, estrenada en la pantalla menos importante.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E2</span><span class="op-nombre">Quitar, solo quien la apuntó o el administrador</span></div>
+      <p class="op-idea">
+        Tachar es de todos; quitar —que destruye— se limita al autor y a <code>lib/admin.js</code>.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> el primer permiso por-fila del proyecto: comprobación en el móvil
+        <b>y</b> en el Worker (la del móvil sola es decorativa), y el caso raro se vuelve
+        irresoluble — el duplicado de quien está de viaje sin cobertura no lo puede quitar nadie
+        más. Quitar no destruye tanto: es <code>borrado = 1</code>.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E3</span><span class="op-nombre">Darla por hecha, solo el administrador</span></div>
+      <p class="op-idea">
+        El argumento honesto: una mejora está hecha cuando <b>hay versión que la lleva</b>, y eso
+        lo sabe quien despliega. Los demás apuntan y miran.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> convierte la lista de la compra en un tablón de anuncios del
+        administrador —el grupo pierde el gesto de tachar, que es la mitad de la gracia— y el visto
+        de la fila tendría que dibujarse apagado para once de doce personas, que es una pantalla
+        explicando permisos. Si el administrador tacha mal, E1 ya lo deja corregir.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E4</span><span class="op-nombre">No se quita nunca: solo pendiente y hecha</span></div>
+      <p class="op-idea">
+        Sin verbo de quitar: lo que no va a hacerse se tacha igual, y la lista es también memoria
+        de lo descartado.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> las erratas y los duplicados se quedan <b>para siempre en la instantánea
+        de todos</b> —cada uno hasta 2000 caracteres—, y «hecha» pasa a mentir: tachado significaría
+        «hecho o descartado o repetido», tres cosas con una casilla. Quitar existe para que tachar
+        siga diciendo la verdad.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE SEIS ══════════════ -->
+  <div class="parte">Parte seis · cómo llega una mejora a donde se actúa</div>
+  <p class="parte-intro">
+    La pregunta que <code>garciadoral-ops</code> dejó abierta: quien hace las mejoras lee el
+    repositorio, no la instantánea, así que <b>el transporte es una persona</b>. Aquí la diferencia
+    es que el Worker existe y las tiene todas — hay «Mac que lee la misma base», que es justo lo
+    que allí faltaba.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">El transporte sigue siendo una persona, pero con copiar</span><span class="etq base">lo que hace garciadoral</span></div>
+      <p class="op-idea">
+        Un renglón al pie del bloque —«Copiar las pendientes»— pone la lista en el portapapeles,
+        con autor y fecha, para pegarla en el encargo. Es la figura del informe de sincronización,
+        que ya se copia tocándolo.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> cero fontanería, pero el eslabón sigue siendo acordarse. Una mejora
+        apuntada en julio se atiende cuando alguien la pega, y esta hoja existe porque ese
+        transporte ya falló una vez.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">El Worker las sirve, y el encargo empieza leyéndolas</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Una ruta de servicio —<code>GET /api/mejoras</code>, autenticada con el
+        <code>TOKEN_SERVICIO</code> que ya existe para sembrar— devuelve las pendientes con autor y
+        fecha. La sesión de Claude que abre un encargo <b>las lee al empezar</b> (una línea en
+        <code>CLAUDE.md</code> lo pide) y así lo apuntado en el camping aparece solo donde se
+        decide qué se hace.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> una ruta de lectura en el Worker (~30 líneas con su test) y una regla en
+        <code>CLAUDE.md</code>. No toca la app: F2 es F1 con el eslabón humano quitado, y las dos
+        pueden convivir.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">Un volcado periódico al repositorio</span></div>
+      <p class="op-idea">
+        Una action con cron pide las mejoras al Worker y las escribe en <code>docs/MEJORAS.md</code>:
+        el roadmap vuelve a vivir en el repo, pero alimentado desde el móvil.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> un workflow, un secreto más en GitHub y un token con permiso de
+        escritura al repo — la pieza más cara de las cuatro para llegar al mismo sitio que F2, con
+        commits de cuaderno ensuciando la historia y una copia que siempre va por detrás de la
+        verdad.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre">Nada por ahora: se decide cuando haya volumen</span></div>
+      <p class="op-idea">
+        El bloque se construye y el transporte se deja para cuando la lista tenga veinte mejoras y
+        se sepa cómo se usa de verdad.
+      </p>
+      <p class="coste">
+        <b>Qué cuesta:</b> repetir esta pregunta dentro de tres meses con la lista ya llena y
+        alguna mejora ya perdida por el camino — que es exactamente la historia que
+        <code>garciadoral-ops</code> dejó escrita para que no nos pasara.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ CÓMO SE COMBINAN ══════════════ -->
+  <div class="parte">Parte siete · cómo se combinan</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>A1</span><span>B1</span><span>C2</span><span>D2</span><span>E1</span><span>F2</span></div>
+    <p>
+      <b>El acordeón al final de Ajustes</b> (A1), pegado a «La app», con las que faltan en el
+      rótulo. <b>El renglón fijo de Ideas</b> (B1): la lista a la vista mientras se escribe y dos
+      mejoras seguidas sin abrir nada. <b>El visto delante y deslizar para editar y borrar</b>
+      (C2), que son las dos figuras que la app ya enseñó. <b>La firma de Ideas</b> (D2), con lo
+      que ya existe —<code>alias.js</code>, <code>hace.js</code>— y las dos listas hermanas
+      leyéndose igual. <b>Sin permisos</b> (E1), con la pregunta de quitar diciendo a quién
+      afecta. Y <b>el Worker sirviendo las pendientes</b> (F2), que cierra la pregunta que
+      garciadoral dejó abierta: lo apuntado en el camping aparece solo donde se decide el trabajo.
+    </p>
+    <p>
+      <b>Si quieres gastar menos:</b>
+      <span class="receta" style="display:inline"><span>A1</span><span>B2</span><span>C1</span><span>D1</span><span>E1</span><span>F1</span></span>
+      — el porte literal de garciadoral, hoja incluida. Funciona, está probado en su casa, y todo
+      lo de la receta de arriba se le puede añadir después sin deshacer nada.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Una cosa que dejo escrita en vez de decidirla yo:</b> si F2 sale, el mismo mecanismo vale
+      al revés — que al mergear una vuelta la mejora se marque hecha sola (el Worker ya recibe
+      escrituras de servicio). No lo he puesto como opción porque pide decidir antes E: con E3
+      sería natural, con E1 es un actor más tachando. Se decide cuando el bloque exista.
+    </p>
+    <p style="font-size:13.5px">
+      Esta hoja vive en <code>docs/diseño/mejoras.html</code>. <b>No se ha escrito código de la
+      app:</b> lo que sale de esta vuelta es la hoja.
+    </p>
+  </div>
+
+</div>
+</div>
