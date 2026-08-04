@@ -8,6 +8,20 @@ import LineaDelHorizonte from './LineaDelHorizonte.jsx'
 const pct = (el) => Number.parseFloat(el.style.getPropertyValue('--f')) * 100
 
 describe('LineaDelHorizonte', () => {
+  // El cielo (A2) sale del mismo dato que la franja, así que se comprueba aquí.
+  it('pinta el cielo de la hora en la raíz, y lo quita al desmontarse', () => {
+    const { unmount } = render(<LineaDelHorizonte ahora={new Date('2026-08-04T12:22:00Z')} />)
+    const mediodia = document.documentElement.style.getPropertyValue('--cielo')
+    expect(mediodia).toMatch(/^#[0-9a-f]{6}$/)
+    unmount()
+    expect(document.documentElement.style.getPropertyValue('--cielo')).toBe('')
+
+    render(<LineaDelHorizonte ahora={new Date('2026-08-05T02:15:00Z')} />)
+    // De madrugada no puede ser el mismo color que a mediodía: si lo fuera, el
+    // cielo no estaría haciendo nada y volveríamos a lo de «no lo veo».
+    expect(document.documentElement.style.getPropertyValue('--cielo')).not.toBe(mediodia)
+  })
+
   it('a mediodía es de día y va por la mitad', () => {
     const { container } = render(<LineaDelHorizonte ahora={new Date('2026-08-04T12:22:00Z')} />)
     const franja = container.querySelector('.horizonte')

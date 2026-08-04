@@ -112,9 +112,9 @@ describe('MejorasSection', () => {
     const hoja = await screen.findByRole('heading', { name: 'Mejora' })
     expect(hoja).toBeInTheDocument()
 
-    // Como el editor de una idea: pegado arriba y sin robar el foco — el
-    // teclado no sale hasta que se toca el campo.
-    expect(document.querySelector('.modal-bg')?.className).toContain('arriba')
+    // Como el editor de una idea: centrado y sin robar el foco — el teclado
+    // no sale hasta que se toca el campo.
+    expect(document.querySelector('.modal-bg')?.className).toContain('center')
     expect(document.activeElement).not.toBe(screen.getByLabelText('Qué se te ha ocurrido'))
 
     const campo = screen.getByLabelText('Qué se te ha ocurrido')

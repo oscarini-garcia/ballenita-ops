@@ -107,12 +107,16 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   un **renglón fijo bajo el mando**, que no se cierra al guardar: el modal ocupaba 455,4 pt de
   los 508 que quedan sobre el teclado y se escribía sin ver el catálogo. Las dos fechas las
   escribe el cliente (`apuntadaEl`, `propuestoEl`), no `creadoEn`, que es del servidor.
+  **El editor de una idea abre centrado y sin robar el foco** (§14.24) —el teclado no sale
+  hasta tocar un campo; vale también para la hoja de una mejora— y lleva **«Mejorarla»**:
+  la figura de «Arreglar» de la receta, encargo `mejorarIdea` (`api/src/idea.js`,
+  `POST /api/idea/mejorar`) — rellena sin guardar, se deshace, y los nombres no viajan.
 - **Un plan es dos cosas** (SPECS §14.18, `docs/diseño/planes-catalogo.html` · A3·B3·C1): la
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
-- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.22,
-  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **3 pt** bajo la cabecera
+- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.25,
+  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **4 pt** bajo la cabecera (a `z-index: 7`, o la cabecera le tapa medio sol)
   que se llena de amanecer a anochecer con el sol de tirador (`components/LineaDelHorizonte.jsx`);
   la hora se **calcula** (`lib/sol.js`, sin red ni dependencias) porque dos constantes de verano
   mienten 3 h 28 en enero. Se descartó el arco que cruza la cabecera: el disco pasa **7 h 29 al
@@ -123,7 +127,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   (`api/src/recados.js`), mezcladas en una bolsa. **La ventana de dos horas se cumple dos veces**:
   la del Worker ahorra la llamada de pago, la del móvil la petición — sin las dos, nueve
   teléfonos son nueve llamadas y nueve bromas distintas a la vez. Salen unos **tres céntimos al
-  día** con haiku.
+  día** con haiku. **La cabecera cambia además de color con la hora** (A2, `lib/cielo.js`): la
+  franja sola no bastaba porque se llena desde el amanecer, y a las 08:07 son 27,3 pt de 390 —a
+  la hora a la que se abre la app no se veía nada—. Siete tonos hondos, peor contraste **7,54 : 1**,
+  comprobado minuto a minuto de las 24 horas.
 - **Lo que cae fuera de las fechas se aparta, no se esconde** (SPECS §14.10-quater,
   `lib/evento.js` · `porDia`): Cenas y Planes se ordenan por día y lo que ya no pertenece al
   evento baja al final marcado. Esconderlo lo dejaría invisible pero contando en Estadísticas
@@ -159,8 +166,9 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   sin ese filtro, un encargo llamado `clave` machacaría la credencial de pago.
 - **Cada encargo puede llevar su propio modelo** (SPECS §14.16-quinquies): la clave es de la
   instalación, el modelo no. `ia.modelo:<id>` con el mismo filtro que los encargos, y el orden
-  es lo guardado → el de origen del encargo → el general. Hoy solo «Ordenar una lista de
-  ingredientes» trae uno puesto (haiku): es traducción y es el botón que más se pulsa.
+  es lo guardado → el de origen del encargo → el general. Traen uno puesto «Ordenar una
+  lista de ingredientes» y los recadillos (haiku: traducción y frases cortas) y «Mejorar
+  la redacción de una idea» (Sonnet fijado: la coña que no aterriza es peor que ninguna).
 - **Un campo es su rótulo, el control y la pista debajo** (`components/Campo.jsx`, SPECS
   §14.16-ter, figura de `garciadoral-ops`): el estado vive **en el campo** —«Guardada, termina
   en ab12»— y no en una ficha con icono encima, y lo que contesta el servidor va en una

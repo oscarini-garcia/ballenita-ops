@@ -119,14 +119,14 @@ describe('PlatosScreen', () => {
     expect(document.activeElement?.tagName).not.toBe('INPUT')
   })
 
-  it('el editor va estrecho y pegado arriba, que es donde no está el teclado', async () => {
+  it('el editor va estrecho y centrado, que es donde no está el teclado', async () => {
     await addDish({ name: 'Paella mixta', categorias: ['principal'] })
     const { container } = render(<PlatosScreen />)
     await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
     await screen.findByLabelText('Nombre')
 
-    expect(container.querySelector('.modal-bg.arriba')).toBeInTheDocument()
-    expect(container.querySelector('.modal.arriba.formulario')).toBeInTheDocument()
+    expect(container.querySelector('.modal-bg.center')).toBeInTheDocument()
+    expect(container.querySelector('.modal.center.formulario')).toBeInTheDocument()
   })
 
   it('la fila entera abre el plato, sin lápiz al final', async () => {
