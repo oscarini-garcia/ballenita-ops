@@ -197,10 +197,12 @@ export const arreglarIngredientes = ({ plato, raciones, lineas }) =>
  * Tanda de cinco, como los regalos de `garciadoral-ops`: lo caro es contarle el
  * contexto, y pasar de una propuesta a otra no vuelve a pedir nada.
  */
-export const platosParecidos = ({ plato, ingredientes, yaHay }) =>
+export const platosParecidos = ({ plato, ingredientes, yaHay, eventId }) =>
   peticion('/api/plato/parecidos', {
     method: 'POST',
-    body: JSON.stringify({ plato, ingredientes, yaHay }),
+    // Va el id del evento y no lo que se cocina en él: el material lo compone el
+    // Worker leyendo la base (§14.20-quater), como el resto.
+    body: JSON.stringify({ plato, ingredientes, yaHay, eventId }),
   }).then((r) => r.platos || [])
 
 export const sugerirPlanes = (eventId, descartadas = []) =>

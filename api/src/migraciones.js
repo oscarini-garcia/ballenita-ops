@@ -434,4 +434,33 @@ CREATE TABLE IF NOT EXISTS mejoras (
 );
 `,
   },
+  {
+    id: '0011_cocina_del_evento',
+    sql: `-- Con qué se cocina en este viaje, para que la IA lo tenga en cuenta.
+--
+-- Proponer platos «de camping» a ciegas sale mal en las dos direcciones: sugiere
+-- cosas de horno, que no hay, y no sugiere las de barbacoa, que es donde se hace
+-- casi todo. El dato es del **evento** y no de la app, porque cambia con el
+-- sitio: otro año, otro camping y otros cacharros.
+--
+-- Es texto libre a propósito. Una lista de cacharros con casillas obligaría a
+-- decidir de antemano cuáles existen, y lo que de verdad hace falta contarle al
+-- modelo es la frase entera —«en el bungaló se puede hacer algo en sartén, pero
+-- poco: da mucho calor»—, que ninguna casilla dice.
+--
+-- **Vacío no es vacío**: vale el texto de origen (\`api/src/cocina.js\`), igual
+-- que con los encargos (§14.16-quater). Así funciona sin que nadie rellene nada
+-- y se puede corregir sin publicar una versión.
+--
+-- Solo se lee al componer el material de la IA (§14.20-quater). No toca la
+-- compra, ni las cenas, ni los saldos.
+--
+-- Como las demás, no se toca \`0001_esquema.sql\`: aplicar todas las migraciones
+-- en orden tiene que reproducir producción (\`test/d1.js\`).
+--
+--   npm run migrar:remoto11
+
+ALTER TABLE events ADD COLUMN cocina TEXT;
+`,
+  },
 ];

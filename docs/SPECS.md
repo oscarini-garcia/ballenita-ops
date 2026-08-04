@@ -1662,6 +1662,44 @@ volver a una receta que ya no es la de este plato.
   `window.event` del navegador, así que en el evento Demo un plato nuevo se
   escapaba al catálogo global (§14.9-quater).
 
+### 14.20-quater Con qué se cocina, para que la IA lo tenga en cuenta
+
+Decidido sobre la marcha: pedirle platos al modelo sin decirle **con qué se
+cocinan** es pedírselos a ciegas, y falla en las dos direcciones —propone cosas
+de horno, que no hay, y no propone las de barbacoa, que es donde se hace casi
+todo—.
+
+**Es un dato del evento** (`events.cocina`, migración `0011`, que se aplica
+desde Ajustes → Actualizar como las demás, §14.23) y no de la app,
+porque cambia con el sitio: otro año, otro camping y otros cacharros. Se escribe
+en **Ajustes → Evento → Editar**, en un campo que dice lo único que hace:
+«Solo lo lee la IA, para que lo que proponga se pueda cocinar».
+
+**Texto libre y no una lista de casillas.** Una lista obligaría a decidir de
+antemano qué cacharros existen, y lo que de verdad hay que contarle es la frase
+entera —«en el bungaló se puede hacer algo sencillo en sartén, pero poco: da
+mucho calor»—, que ninguna casilla dice.
+
+**Vacío no es vacío**, como los encargos (§14.16-quater): vale el texto de
+origen, que vive en el servidor (`api/src/cocina.js`) porque es el servidor
+quien compone el material. La pantalla lo enseña **en gris**, porque si no esa
+regla es invisible y el campo parece que no hace nada — y por eso el campo tiene
+**seis renglones**: medido a 390 pt, el texto de origen ocupa seis líneas y en
+tres se cortaba a media palabra. La app guarda una copia del texto solo para esa
+pista, y `lib/cocina.test.js` lee el fichero del Worker y las compara: dos copias
+que se separan enseñarían una cosa y mandarían otra.
+
+**Dónde entra.** En el material de **platos parecidos** (§14.20-bis), que es
+quien más lo necesita, y en el de las **ideas de plan** (§14.19-bis), porque
+media hora de barbacoa es un plan y sin saber que hay barbacoa no se propone
+nunca. Como todo el material, **lo compone el Worker leyendo la base**: del móvil
+sale el `eventId` y nada más. Sin `eventId` —una app vieja— se propone igual, con
+el texto de origen.
+
+**No toca nada más**: ni la compra, ni las cenas, ni los saldos. Es un dato que
+solo existe para que las cinco propuestas sean cinco propuestas que se pueden
+cocinar.
+
 ### 14.16-quinquies Cada encargo puede llevar su propio modelo
 
 La clave es de la instalación —una credencial de pago, §14.16— pero **el modelo
