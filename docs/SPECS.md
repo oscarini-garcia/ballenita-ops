@@ -1639,6 +1639,23 @@ una casa entera está a favor. Los tres van pegados y sin partirse entre líneas
 partidos, el alias de uno queda junto al nombre del siguiente y el voto cambia de
 dueño de un vistazo.
 
+**El plan abierto se ve como una capa** ([`docs/diseño/plan-voto.html`](diseño/plan-voto.html)
+· **P1 · F1+F4 · V2**). El papel de un modal era `--foam`, que es **el mismo
+color** que el fondo de la app en las dos caras —`#0b1f2c` y `#f1f5f7`—:
+contraste **1,0 : 1**, y lo único que separaba las dos capas era el velo. Peor:
+las tarjetas de dentro son `--foam-2`, más claras que el modal que las contiene,
+así que la jerarquía se leía al revés. Se arregla por tres vías a la vez, porque
+ninguna aguanta sola las dos caras: **centrado** (la variante `.center` que ya
+existía), **papel de tarjeta con borde y sombra** (`.modal.capa`) y **velo de
+`.5` a `.68`**. Lo que arrastra: dentro de `.capa`, lo que era `--foam-2` baja
+un escalón o se funde con el papel. Y lo que cuesta, medido: centrar sube los
+chips de voto de 505,7 a 305,4 pt, **200,3 pt más lejos del pulgar**.
+
+**Cada voto dice cuántos son**, en columna propia y con cifras tabulares. Es la
+primera pregunta al abrir un plan —¿va ganando?— y se contesta de arriba abajo
+sin leer un nombre; los nombres contestan la segunda, que es quién. El cero va
+apagado: el número que importa es el que no lo es.
+
 **Y ahí dentro no se listan los que faltan por votar.** Esa pregunta la contesta
 la **fila cerrada**, en su subtítulo —«falta por votar Luis»—, que es donde
 sirve: es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
