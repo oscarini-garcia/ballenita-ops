@@ -50,7 +50,7 @@ export default function CenasScreen({ eventId, event }) {
       )}
 
       <Fab label="Cena" onClick={() => setOpen(true)} />
-      {open && <AddDinnerModal eventId={eventId} bungas={bungas} dishes={dishes} onClose={() => setOpen(false)} />}
+      {open && <AddDinnerModal eventId={eventId} evento={event} bungas={bungas} dishes={dishes} onClose={() => setOpen(false)} />}
     </div>
   )
 }
@@ -95,13 +95,18 @@ function FichaDeCena({ cena: c, bungaName, dishById, fuera = false }) {
           {c.platoIdsNinos.map((id) => dishById[id]?.name).filter(Boolean).join(' · ') || 'nada apuntado'}
         </div>
       )}
-      {c.cantidades && <div className="note" style={{ marginTop: 8 }}><b>Cantidades:</b> {c.cantidades}</div>}
-      {c.queSeHace && <div className="note" style={{ marginTop: 8 }}><b>Qué se hace:</b> {c.queSeHace}</div>}
     </div>
   )
 }
 
-function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
+/**
+ * `evento` entero y no solo su `id`: `addDish` necesita saber si es el Demo para
+ * colgarle el plato (§14.9-quater). Antes esto llamaba a `addDish({…}, event)`
+ * con un `event` que **no existe en este ámbito**: en el navegador resolvía al
+ * `window.event` global —el objeto del clic—, así que el plato se guardaba sin
+ * `eventId`, es decir en el catálogo compartido, también desde el Demo.
+ */
+function AddDinnerModal({ eventId, evento, bungas, dishes, onClose }) {
   useBloqueoDeScroll()
   const [dia, setDia] = useState('')
   const [bungaMayoresId, setMayores] = useState(bungas[0]?.id ?? '')
@@ -110,8 +115,6 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
   // `null` = los niños comen lo mismo. Es la noche normal, así que es lo de
   // fábrica: separar las dos listas cuesta un toque, y no separarlas, ninguno.
   const [platosNinos, setPlatosNinos] = useState(null)
-  const [queSeHace, setQueSeHace] = useState('')
-  const [cantidades, setCantidades] = useState('')
 
   // Alta rápida de plato
   const [newName, setNewName] = useState('')
@@ -128,7 +131,7 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
   }
   async function createDish() {
     if (!newName.trim() || newCats.size === 0) return
-    const id = await addDish({ name: newName.trim(), categorias: [...newCats] }, event)
+    const id = await addDish({ name: newName.trim(), categorias: [...newCats] }, evento)
     setPlatoIds(new Set([...platoIds, id]))
     setNewName(''); setNewCats(new Set())
   }
@@ -138,8 +141,6 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
       dia, bungaMayoresId, bungaNinosId,
       platoIds: [...platoIds],
       platoIdsNinos: platosNinos ? [...platosNinos] : null,
-      queSeHace: queSeHace.trim(),
-      cantidades: cantidades.trim(),
     })
     onClose()
   }
@@ -214,11 +215,6 @@ function AddDinnerModal({ eventId, bungas, dishes, onClose }) {
           </div>
           <button className="btn sm ghost" style={{ marginTop: 8 }} onClick={createDish}>+ añadir al catálogo</button>
         </div>
-
-        <label>Qué se hace</label>
-        <textarea rows={2} value={queSeHace} onChange={(e) => setQueSeHace(e.target.value)} placeholder="Quién cocina, preparación…" />
-        <label>Cantidades</label>
-        <textarea rows={2} value={cantidades} onChange={(e) => setCantidades(e.target.value)} placeholder="2 kg arroz · 30 mejillones…" />
 
         <div style={{ marginTop: 16 }}><button className="btn block" onClick={submit}>Guardar cena</button></div>
       </div>

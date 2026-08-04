@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ENCARGOS, claveDeEncargo, encargosDe, encargosPublicos, esEncargoConocido } from '../src/encargos.js';
+import {
+  ENCARGOS, claveDeEncargo, claveDeModelo, encargosDe, encargosPublicos, esEncargoConocido, modelosDe,
+} from '../src/encargos.js';
 import { INSTRUCCION, pedirPropuestas } from '../src/sugerencias.js';
 
 /**
@@ -60,4 +62,51 @@ test('la llamada usa el encargo que se le pase, y el de origen si no hay ninguno
   await pedirPropuestas({ clave: 'k', modelo: 'm', material: 'x', buscar });
 
   assert.deepEqual(vistos, ['el mío', INSTRUCCION]);
+});
+
+// ---------------------------------------------------------------------------
+// Con qué modelo se le pide cada cosa (§14.16-quinquies)
+// ---------------------------------------------------------------------------
+
+test('cada encargo puede llevar su modelo, y «arreglar» viene con haiku puesto', () => {
+  // Ordenar una lista de ingredientes es traducción y le sobra el modelo
+  // grande; es además el botón que más se va a pulsar.
+  const m = modelosDe(new Map(), 'claude-sonnet-4-5');
+  assert.equal(m.arreglar, 'claude-haiku-4-5');
+  // Los que no traen ninguno usan el general.
+  assert.equal(m.ideas, 'claude-sonnet-4-5');
+  assert.equal(m.parecidos, 'claude-sonnet-4-5');
+});
+
+test('lo guardado gana al de origen y al general', () => {
+  const filas = new Map([['ia.modelo:arreglar', { valor: 'claude-opus-5' }]]);
+  assert.equal(modelosDe(filas, 'claude-sonnet-4-5').arreglar, 'claude-opus-5');
+});
+
+test('vacío vuelve a lo de siempre, que es como se deshace', () => {
+  const filas = new Map([['ia.modelo:arreglar', { valor: '' }]]);
+  assert.equal(modelosDe(filas, 'claude-sonnet-4-5').arreglar, 'claude-haiku-4-5');
+  const filas2 = new Map([['ia.modelo:ideas', { valor: '' }]]);
+  assert.equal(modelosDe(filas2, 'claude-sonnet-4-5').ideas, 'claude-sonnet-4-5');
+});
+
+test('la pantalla sabe cuál usa y si es suyo o el de arriba', () => {
+  const publicos = encargosPublicos({}, modelosDe(new Map(), 'claude-sonnet-4-5'), 'claude-sonnet-4-5');
+  const arreglar = publicos.find((e) => e.id === 'arreglar');
+  assert.equal(arreglar.modelo, 'claude-haiku-4-5');
+  assert.equal(arreglar.modeloPropio, true);
+  assert.equal(publicos.find((e) => e.id === 'ideas').modeloPropio, false);
+});
+
+test('la clave del modelo de un encargo no choca con la del encargo', () => {
+  assert.equal(claveDeModelo('arreglar'), 'modelo:arreglar');
+  assert.equal(claveDeEncargo('arreglar'), 'encargo:arreglar');
+});
+
+test('el arreglo no corrige la ortografía, y lo dice', () => {
+  // «azafran» → «Azafrán» es cómodo hasta que te cambia el nombre raro que
+  // habías escrito a propósito.
+  const arreglar = ENCARGOS.find((e) => e.id === 'arreglar');
+  assert.match(arreglar.origen, /NO corrijas faltas de ortografía/);
+  assert.match(arreglar.pista, /como lo escribiste/);
 });

@@ -1,0 +1,1411 @@
+<title>Ballena Ops — Un día del viaje: el lápiz que sobra, los dos campos que nadie escribe y nueve chips para poner un plan</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c; --abc-gold: #8a6c2c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code, .op-idea code, .coste code, .parte-intro code, .defectos code, .cierre code {
+    font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { background: color-mix(in srgb, var(--oro) 14%, transparent);
+    border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .grupo > .pregunta { margin: -8px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  /* 1,45 es el interlineado real del `body` de la app (theme.css). La hoja va a
+     1,55 y con ese heredado la fila de un día se dibujaba en 75,1 pt en vez de
+     70,7: el dibujo decía que no cabe algo que sí cabe. */
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45;
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+  .tel-pie { width: 390px; flex: none; }
+
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .crece { flex: 1; min-width: 0; }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .oscuro .t-cab .ti, .oscuro .t-cab .su { color: #e6eef3; }
+  .claro .t-cab .ti, .claro .t-cab .su { color: var(--abc-ink); }
+  .t-cab .su { font-size: var(--t-micro); opacity: .78; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .titmando { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px 0; }
+  .titmando .h { font-size: var(--t-title); font-weight: 700; letter-spacing: -.015em; }
+  .titmando .m { display: flex; gap: 2px; padding: 3px; border-radius: 8px; }
+  .oscuro .titmando .m { background: var(--ab-linea-suave); } .claro .titmando .m { background: var(--abc-linea-suave); }
+  .titmando .m button { border: none; background: none; border-radius: 6px; padding: 6px 11px;
+    font-family: inherit; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .titmando .m button { color: var(--ab-faint); } .claro .titmando .m button { color: var(--abc-faint); }
+  .oscuro .titmando .m button.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); }
+  .claro .titmando .m button.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+  .tarj.junta { padding: 0 12px; }
+  .tarj.suelta { padding: 12px; }
+
+  /* ── La fila de un día, tal como la monta `.fila-dia` ─────────────────────
+     `.fila-dia` va a `padding:0; gap:0` y quien mete el relleno es `.dia-abre`,
+     con 11 arriba y 11 abajo. Eso deja la fila en 70,7 pt medidos. */
+  .fila { display: flex; align-items: center; gap: 0; padding: 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .abre { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
+    background: none; border: none; text-align: left; padding: 11px 0; color: inherit; font: inherit; }
+  .abre .txt { flex: 1; min-width: 0; }
+  .abre .n { display: block; font-size: var(--t-row); font-weight: 550;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .abre .s { display: block; font-size: var(--t-sub); }
+  .oscuro .abre .s { color: var(--ab-soft); } .claro .abre .s { color: var(--abc-soft); }
+  /* `.row .main .n` es `nowrap` + puntos suspensivos en la app, así que aquí
+     también: una fila que en el dibujo dobla y en el móvil se recorta miente. */
+  .fila .txt > .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+
+  .dia-num { width: 36px; flex: none; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; line-height: 1.05; border-radius: 8px; padding: 4px 0; }
+  .oscuro .dia-num { background: rgba(230,238,243,.06); color: var(--ab-soft); }
+  .claro .dia-num { background: rgba(18,38,47,.06); color: var(--abc-soft); }
+  .dia-num b { font-size: var(--t-row); font-weight: 650; }
+  .dia-num span { font-size: var(--t-micro); opacity: .8; }
+  .es-hoy .dia-num { background: rgba(106,171,139,.18); color: var(--ab-owed); }
+  .claro .es-hoy .dia-num { background: rgba(47,122,92,.18); color: var(--abc-owed); }
+  .es-hoy .abre .n { font-weight: 650; }
+
+  .verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--ab-linea); border-radius: 9px; color: var(--ab-soft);
+    background: none; margin-left: 8px; }
+  .claro .verbo-fila { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .verbo-fila svg { width: 19px; height: 19px; }
+
+  .galon { width: 24px; flex: none; display: grid; place-items: center; margin-left: 8px; }
+  .oscuro .galon { color: var(--ab-faint); } .claro .galon { color: var(--abc-faint); }
+  .galon svg { width: 17px; height: 17px; }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: rgba(63,143,174,.20); color: var(--ab-acento-txt); }
+  .claro .ico { background: rgba(34,112,143,.12); color: var(--abc-acento-txt); }
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; margin-left: 8px; }
+  .oscuro .pil { background: rgba(63,143,174,.20); color: var(--ab-acento-txt); }
+  .claro .pil { background: rgba(34,112,143,.14); color: var(--abc-acento-txt); }
+  .pil.mudo { background: none; }
+  .oscuro .pil.mudo { color: var(--ab-faint); } .claro .pil.mudo { color: var(--abc-faint); }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); background: none; color: var(--ab-soft); font-family: inherit;
+    min-height: 38px; display: inline-flex; align-items: center; gap: 6px; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+
+  /* ── El modal del día, a la anchura real: 390 − 16 − 16 = 358 pt ──────── */
+  .md { padding: 16px 16px 26px; display: flex; flex-direction: column; }
+  .oscuro .md { background: var(--ab-fondo); } .claro .md { background: var(--abc-fondo); }
+  .md .h2 { font-size: var(--t-title); font-weight: 650; margin: 4px 0 2px; }
+  .md .x { float: right; font-size: 26px; line-height: 1; }
+  .oscuro .md .x { color: var(--ab-faint); } .claro .md .x { color: var(--abc-faint); }
+  .lbl { font-size: var(--t-label); font-weight: 700; margin: 12px 2px 5px; }
+  .oscuro .lbl { color: var(--ab-soft); } .claro .lbl { color: var(--abc-soft); }
+  .lbl .ap { font-weight: 500; font-size: var(--t-label); }
+  .oscuro .lbl .ap { color: var(--ab-faint); } .claro .lbl .ap { color: var(--abc-faint); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ctrl { width: 100%; border-radius: 7px; padding: 12px; font-size: var(--t-body);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .oscuro .ctrl { border: 1px solid var(--ab-linea); background: var(--ab-tarjeta); color: var(--ab-ink); }
+  .claro .ctrl { border: 1px solid var(--abc-linea); background: var(--abc-tarjeta); color: var(--abc-ink); }
+  .ctrl .v { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .oscuro .ctrl.vacio .v { color: var(--ab-faint); } .claro .ctrl.vacio .v { color: var(--abc-faint); }
+  .ctrl .fl { flex: none; font-size: 13px; opacity: .7; }
+  /* Un textarea de `rows=2`: 12 + 12 de relleno, 1 de borde arriba y abajo y dos
+     líneas de 19 px a interlineado normal. */
+  .ta { min-height: 0; align-items: flex-start; line-height: 1.2; display: block; }
+  .ta .v { white-space: normal; overflow: visible; }
+  .btn-b { border-radius: 8px; padding: 12px 16px; font-weight: 600; font-size: var(--t-row);
+    min-height: 44px; width: 100%; text-align: center; border: none; margin-top: 16px; }
+  .oscuro .btn-b { background: var(--ab-acento); color: #04161f; }
+  .claro .btn-b { background: var(--abc-acento); color: #fff; }
+  .btn-g { border-radius: 7px; padding: 8px 12px; font-weight: 550; font-size: var(--t-sub);
+    min-height: 38px; width: 100%; text-align: center; background: none; margin-top: 10px; }
+  .oscuro .btn-g { border: 1px solid var(--ab-linea); color: var(--ab-owe); }
+  .claro .btn-g { border: 1px solid var(--abc-linea); color: var(--abc-owe); }
+  .btn-mini { border-radius: 7px; padding: 8px 12px; font-size: var(--t-sub); font-weight: 550;
+    min-height: 38px; background: none; }
+  .oscuro .btn-mini { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .btn-mini { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .apunte { font-size: var(--t-label); font-weight: 500; }
+  .oscuro .apunte { color: var(--ab-faint); } .claro .apunte { color: var(--abc-faint); }
+
+  /* La marca de lo que se va: se tacha en el dibujo del «ahora». */
+  .fuera { position: relative; }
+  .fuera::after { content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(135deg, transparent 0 7px, rgba(217,123,108,.16) 7px 14px);
+    border: 1px dashed rgba(217,123,108,.7); border-radius: 7px; }
+
+  /* La hoja que sube desde abajo, para C2 */
+  .hoja-abajo { border-radius: 12px 12px 0 0; padding: 8px 16px 26px; margin-top: 90px; }
+  .oscuro .hoja-abajo { background: var(--ab-tarjeta); border-top: 1px solid var(--ab-linea); }
+  .claro .hoja-abajo { background: var(--abc-tarjeta); border-top: 1px solid var(--abc-linea); }
+  .asa { width: 38px; height: 4px; border-radius: 2px; margin: 4px auto 10px; display: block; }
+  .oscuro .asa { background: var(--ab-linea); } .claro .asa { background: var(--abc-linea); }
+
+  .regla { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue);
+    display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  /* El color se pone a mano en la celda. Estas hojas no llevan doctype, así que
+     el navegador las lee en modo quirks y ahí **las tablas no heredan el color**:
+     el `td` se quedaba en negro y en la cara oscura no se leía una palabra. */
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Agenda → Días</div>
+    <h1>Un día del viaje: el lápiz que sobra, los dos campos que nadie escribe y nueve chips para poner un plan</h1>
+    <p class="entradilla">
+      El encargo trae cuatro cosas y todas son quitar o simplificar: <b>fuera el lápiz</b> de la
+      fila de un día, <b>fuera «Qué se hace» y «Cantidades»</b>, que los planes del día se pongan
+      con <b>un selector de los planes que quedan libres</b> en vez de con la alfombra de chips que
+      hay ahora, y <b>lo mismo para la cena</b>. El final está dicho con todas las letras: en un día
+      se elige <b>qué bungas, qué se cena y qué plan</b>. Cuatro renglones y nada más.
+    </p>
+    <p class="entradilla">
+      Lo que hay que decidir no es si se quitan —eso está dicho—, es <b>qué queda en su sitio</b>.
+      El lápiz es hoy lo único que anuncia que la fila se toca; los dos campos se editan en
+      <b>dos pantallas</b> y se leen en una tercera, así que «quitarlos» puede querer decir cuatro
+      alcances distintos; «selector» admite cinco figuras que ya existen en la app; y con la cena
+      hay además una pregunta de fondo —<b>qué es exactamente lo que se elige</b>: los platos, un
+      menú guardado o una cena ya montada en Comidas—, que es la única de la hoja que toca el
+      modelo de datos. Una por parte.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.11.6 (<code>main</code>, 86f1665)</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Ficheros:</b> <code>screens/DiasScreen.jsx</code>, <code>lib/dias.js</code></span>
+      <span><b>Contenido:</b> la cena y los platos son los de la semilla de <code>db.js</code>; los dos planes del día y los nueve libres están puestos a mano para dibujar el caso lleno, que es el que decide</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ DEFECTOS ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · dos defectos que no se eligen</h2>
+    <p>
+      Salen de leer <code>DiasScreen.jsx</code> para dibujarlo. No están en la lista de abajo porque
+      lo que está roto se arregla y se cuenta; votar no le toca.
+    </p>
+    <p class="linea-corte">
+      <b>1 · El plato al vuelo se guarda en el catálogo equivocado.</b> <code>crearPlato()</code>
+      llama a <code>addDish({…}, event)</code> y en <code>ModalDia</code> <b>no existe</b>
+      <code>event</code>: no se le pasa como prop. En un navegador eso no revienta —resuelve al
+      <code>window.event</code> global, el objeto del clic—, así que <code>evento?.esDemo</code> es
+      <code>undefined</code> y el plato se guarda <b>sin <code>eventId</code></b>, o sea en el
+      catálogo de todos. En el evento Demo hace las dos cosas mal a la vez: escribe en el catálogo
+      compartido —la fuga que cerró §14.9-quater— y encima <b>el plato no aparece</b>, porque la
+      lista de arriba se pinta con <code>listDishes(event)</code> y ahí el Demo solo enseña los
+      suyos. Un renglón: pasar <code>event</code> a <code>ModalDia</code>.
+    </p>
+    <p class="linea-corte">
+      <b>2 · Un plan cuyo día se cayó fuera de las fechas desaparece del modal.</b> El modal parte
+      los planes en dos: <code>delDia</code> (los de este día) y <code>sinDia</code> (los que no
+      tienen ninguno). Un plan que quedó en un día que el viaje ya no tiene —al acortar las
+      fechas— no es ni uno ni otro, así que <b>no sale en ninguna parte de la pantalla de Agenda</b>.
+      En Planes sí sale, apartado al final y marcado (§14.10-quater). Aquí se esconde, que es justo
+      lo que ese spec dice que no se haga. La parte cuatro lo recoge como pregunta <code>D</code>,
+      porque el arreglo cambia qué entra en el selector.
+    </p>
+  </div>
+
+  <!-- ══════════════ AHORA ══════════════ -->
+  <div class="grupo">
+    <h3>Lo que hay puesto hoy</h3>
+    <p class="pregunta">
+      A la izquierda la lista de días, con su lápiz. A la derecha el modal que abre, entero: mide
+      <b id="m-modal-ahora">—</b> pt de alto y la pantalla de un iPhone de 844 le deja 776
+      (<code>max-height: 92vh</code>), así que hay que <b>recorrerlo dos veces y pico</b>. El
+      rótulo «Los planes de este día» cae a <b id="m-planes-ahora">—</b> pt del principio: para
+      poner un plan en un día hay que <b>pasar por toda la cena</b> primero. Rayado, lo que el
+      encargo se lleva.
+    </p>
+    <div class="tira-tel">
+
+      <div>
+        <div class="tel claro" id="tel-dias">
+          <div class="t-cab">
+            <div class="crece">
+              <div class="ti">Camping 2026</div>
+              <div class="su">8 – 15 de agosto · Ballena Ops</div>
+            </div>
+            <span class="punto"></span>
+          </div>
+          <div class="t-body">
+            <div class="titmando">
+              <div class="h">Agenda</div>
+              <div class="m"><button type="button">Hoy</button><button type="button" class="on">Días</button></div>
+            </div>
+            <div class="tarj junta">
+              <div class="fila">
+                <span class="abre"><span class="dia-num"><b>8</b><span>sáb</span></span>
+                  <span class="txt"><span class="n">Llegada</span><span class="s">nada apuntado</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+              <div class="fila es-hoy" id="fila-medida">
+                <span class="abre" id="abre-medida"><span class="dia-num"><b>9</b><span>dom</span></span>
+                  <span class="txt"><span class="n">Paella mixta</span><span class="s">6 platos · 2 planes</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+              <div class="fila">
+                <span class="abre"><span class="dia-num"><b>10</b><span>lun</span></span>
+                  <span class="txt"><span class="n">Día libre</span><span class="s">nada apuntado</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+              <div class="fila">
+                <span class="abre"><span class="dia-num"><b>11</b><span>mar</span></span>
+                  <span class="txt"><span class="n">Kayak en el río</span><span class="s">sin cena · 1 plan</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+              <div class="fila">
+                <span class="abre"><span class="dia-num"><b>12</b><span>mié</span></span>
+                  <span class="txt"><span class="n">Cena en El del ruido</span><span class="s">cena sin platos · sin planes</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+              <div class="fila">
+                <span class="abre"><span class="dia-num"><b>13</b><span>jue</span></span>
+                  <span class="txt"><span class="n">Cine de verano en la plaza</span><span class="s">sin cena · 1 plan</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+              <div class="fila">
+                <span class="abre"><span class="dia-num"><b>14</b><span>vie</span></span>
+                  <span class="txt"><span class="n">Día libre</span><span class="s">nada apuntado</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+              <div class="fila">
+                <span class="abre"><span class="dia-num"><b>15</b><span>sáb</span></span>
+                  <span class="txt"><span class="n">Vuelta a casa</span><span class="s">nada apuntado</span></span></span>
+                <span class="verbo-fila fuera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 6 18 9.5"/></svg></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">Ahora · Agenda → Días. Fila de <b id="m-fila">—</b> pt; el titular tiene <b id="m-titular">—</b> pt de ancho.</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro">
+          <div class="md" id="md-ahora">
+            <div><span class="x">×</span><div class="h2">Domingo, 9 de agosto</div></div>
+            <div class="sec-h" style="margin-top:14px">La cena</div>
+            <div class="grid2" style="margin-top:6px">
+              <div><div class="lbl">Bunga mayores</div><div class="ctrl"><span class="v">El del ruido</span><span class="fl">▾</span></div></div>
+              <div><div class="lbl">Bunga niños</div><div class="ctrl"><span class="v">El del fondo</span><span class="fl">▾</span></div></div>
+            </div>
+            <div id="ah-cena-compone">
+            <div class="lbl">Platos <span class="ap">(varios por tipo)</span></div>
+            <div class="chips">
+              <span class="chip on">Aceitunas y altramuces</span>
+              <span class="chip on">Ensaladilla rusa</span>
+              <span class="chip on">Paella mixta ⭐</span>
+              <span class="chip on">Pan con tomate</span>
+              <span class="chip on">Ensalada verde</span>
+              <span class="chip on">Sandía</span>
+            </div>
+            <div class="tarj junta" style="margin-top:10px;padding:8px 12px" id="md-nuevo">
+              <div class="lbl" style="margin-top:8px">Plato nuevo al vuelo</div>
+              <div class="ctrl vacio"><span class="v">Tortilla de patata</span></div>
+              <div class="chips" style="margin-top:8px">
+                <span class="chip">Aperitivo</span><span class="chip">Entrante</span><span class="chip">Principal</span>
+                <span class="chip">Acompañamiento</span><span class="chip">Postre</span>
+              </div>
+              <div style="margin:8px 0 12px"><span class="btn-mini">+ añadir al catálogo</span></div>
+            </div>
+            </div>
+            <div class="fuera" style="padding:2px 4px;margin:0 -4px" id="md-textos">
+              <div class="lbl">Qué se hace</div>
+              <div class="ctrl ta"><span class="v">Curro enciende la paellera a las 20:00. Que nadie toque el socarrat.</span></div>
+              <div class="lbl">Cantidades</div>
+              <div class="ctrl ta"><span class="v">2 kg arroz · 30 mejillones · 1 pollo · 6 barras · 4 botellas tinto</span></div>
+            </div>
+            <div class="sec-h" style="margin-top:18px" id="ah-planes">Los planes de este día</div>
+            <div style="margin-top:4px">
+              <div class="fila" style="padding:11px 0">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Playa de la Cala</span></span>
+                <span class="btn-mini">quitar del día</span>
+              </div>
+              <div class="fila" style="padding:11px 0">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Excursión a las cuevas</span></span>
+                <span class="btn-mini">quitar del día</span>
+              </div>
+            </div>
+            <div class="lbl">Planes sin día</div>
+            <div class="chips" id="md-chips">
+              <span class="chip">+ Noche de juegos de mesa</span>
+              <span class="chip">+ Mercadillo del pueblo</span>
+              <span class="chip">+ Torneo de pádel</span>
+              <span class="chip">+ Ruta de tapas</span>
+              <span class="chip">+ Piscina toda la tarde</span>
+              <span class="chip">+ Karaoke en la bunga</span>
+              <span class="chip">+ Castillo y mirador</span>
+              <span class="chip">+ Feria de Ronda</span>
+              <span class="chip">+ Barbacoa en la bunga</span>
+            </div>
+            <div class="btn-b">Guardar la cena</div>
+            <div class="btn-g">Quitar la cena de este día</div>
+          </div>
+        </div>
+        <p class="pie-tel">Ahora · el modal de un día, entero. Las nueve chips ocupan <b id="m-chips">—</b> pt en <b id="m-chips-l">—</b> renglones.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · la fila de un día cuando ya no lleva lápiz</div>
+  <p class="parte-intro">
+    El lápiz se lleva <b>52 pt</b> de la fila —44 del botón y 8 de margen— y el titular pasa de
+    <b id="m-titular-2">—</b> a <b id="m-titular-a1">—</b> pt. Ese no es el problema. El problema es
+    que hoy <b>es lo único que dice que la fila se toca</b>: la fila entera ya abre el modal, pero
+    eso no se ve. Y hay un segundo motivo para quitarlo que no es de sitio: un día <b>no se
+    edita</b> —no es una fila de la base, existe porque el evento tiene esas fechas—, así que el
+    lápiz promete una cosa que no pasa.
+  </p>
+
+  <div class="tira-tel">
+    <div>
+      <div class="tel claro">
+        <div class="t-body" style="padding-top:14px">
+          <div class="sec-h">A1 · nada</div>
+          <div class="tarj junta">
+            <div class="fila"><span class="abre" id="abre-a1"><span class="dia-num"><b>8</b><span>sáb</span></span><span class="txt"><span class="n">Llegada</span><span class="s">nada apuntado</span></span></span></div>
+            <div class="fila es-hoy"><span class="abre"><span class="dia-num"><b>9</b><span>dom</span></span><span class="txt"><span class="n">Paella mixta</span><span class="s">6 platos · 2 planes</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>10</b><span>lun</span></span><span class="txt"><span class="n">Día libre</span><span class="s">nada apuntado</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>11</b><span>mar</span></span><span class="txt"><span class="n">Kayak en el río</span><span class="s">sin cena · 1 plan</span></span></span></div>
+          </div>
+          <div class="sec-h" style="margin-top:16px">A2 · un galón apagado</div>
+          <div class="tarj junta">
+            <div class="fila"><span class="abre" id="abre-a2"><span class="dia-num"><b>8</b><span>sáb</span></span><span class="txt"><span class="n">Llegada</span><span class="s">nada apuntado</span></span></span><span class="galon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></div>
+            <div class="fila es-hoy"><span class="abre"><span class="dia-num"><b>9</b><span>dom</span></span><span class="txt"><span class="n">Paella mixta</span><span class="s">6 platos · 2 planes</span></span></span><span class="galon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>10</b><span>lun</span></span><span class="txt"><span class="n">Día libre</span><span class="s">nada apuntado</span></span></span><span class="galon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>11</b><span>mar</span></span><span class="txt"><span class="n">Kayak en el río</span><span class="s">sin cena · 1 plan</span></span></span><span class="galon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel">A1 y A2, cara clara.</p>
+    </div>
+
+    <div>
+      <div class="tel oscuro">
+        <div class="t-body" style="padding-top:14px">
+          <div class="sec-h">A3 · una pastilla con lo que hay</div>
+          <div class="tarj junta">
+            <div class="fila"><span class="abre" id="abre-a3"><span class="dia-num"><b>8</b><span>sáb</span></span><span class="txt"><span class="n">Llegada</span><span class="s">nada apuntado</span></span></span><span class="pil mudo">libre</span></div>
+            <div class="fila es-hoy"><span class="abre"><span class="dia-num"><b>9</b><span>dom</span></span><span class="txt"><span class="n">Paella mixta</span><span class="s">6 platos</span></span></span><span class="pil">2 planes</span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>10</b><span>lun</span></span><span class="txt"><span class="n">Día libre</span><span class="s">nada apuntado</span></span></span><span class="pil mudo">libre</span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>11</b><span>mar</span></span><span class="txt"><span class="n">Kayak en el río</span><span class="s">sin cena</span></span></span><span class="pil">1 plan</span></div>
+          </div>
+          <div class="sec-h" style="margin-top:16px">A4 · un «+» en el sitio del lápiz</div>
+          <div class="tarj junta">
+            <div class="fila"><span class="abre" id="abre-a4"><span class="dia-num"><b>8</b><span>sáb</span></span><span class="txt"><span class="n">Llegada</span><span class="s">nada apuntado</span></span></span><span class="verbo-fila"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span></div>
+            <div class="fila es-hoy"><span class="abre"><span class="dia-num"><b>9</b><span>dom</span></span><span class="txt"><span class="n">Paella mixta</span><span class="s">6 platos · 2 planes</span></span></span><span class="verbo-fila"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>10</b><span>lun</span></span><span class="txt"><span class="n">Día libre</span><span class="s">nada apuntado</span></span></span><span class="verbo-fila"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span></div>
+            <div class="fila"><span class="abre"><span class="dia-num"><b>11</b><span>mar</span></span><span class="txt"><span class="n">Kayak en el río</span><span class="s">sin cena · 1 plan</span></span></span><span class="verbo-fila"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel">A3 y A4, cara oscura.</p>
+    </div>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">La fila y nada más</span><span class="etq rec">la que propongo</span></div>
+    <p class="op-idea">
+      Se va el lápiz y no entra nada en su sitio. La fila entera sigue abriendo el modal, como hoy.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> la fila deja de anunciar que se toca. <b>Quién lo paga:</b> nadie nuevo —en
+      Planes las filas también son botones enteros sin galón, y ahí funciona—. Y a cambio el titular
+      gana <b id="m-gana">—</b> pt, que es lo que hace falta para que «Cine de verano en la plaza»
+      no se recorte. Es además lo que dice el encargo, sin añadir nada que no se ha pedido.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">Un galón apagado a la derecha</span></div>
+    <p class="op-idea">
+      El <code>›</code> de siempre, en <code>--ink-faint</code>, 24 pt de ancho y <b>no tocable</b>:
+      no es un botón, es una señal de que la fila lleva a algún sitio.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> 24 pt del titular y un dibujo más en una pantalla que se está quedando
+      limpia. <b>Quién lo paga:</b> nadie, es barato. <b>A favor:</b> es la convención de iOS y no
+      promete «editar», que era el problema del lápiz. <b>En contra:</b> ninguna otra lista de la
+      app lo lleva; ponerlo aquí abre la pregunta de por qué no está en Gastos.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">Una pastilla con lo que hay ese día</span></div>
+    <p class="op-idea">
+      A la derecha, el recuento de planes en una pastilla —«2 planes», «1 plan»— y «libre» apagado
+      cuando no hay nada. La línea de debajo se queda solo con lo de la cena. Es la figura de
+      Planes, donde la fila lleva el número de votos a la derecha.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> parte en dos una información que hoy va junta y bien —«6 platos · 2
+      planes»— y gasta <b>~78 pt</b> a la derecha, más que el lápiz. <b>Quién lo paga:</b> el
+      titular, que se queda peor que ahora. <b>A favor:</b> el recuento de planes se lee sin leer,
+      y de paso la fila vuelve a parecer un botón.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">Un «+» donde estaba el lápiz</span></div>
+    <p class="op-idea">
+      El mismo botón de 44 × 44, con el verbo cambiado: no «editar este día» sino <b>«añadir a este
+      día»</b>, que es lo que de verdad se hace. Abre el mismo modal.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> los mismos 52 pt que el lápiz, así que no arregla el sitio. <b>Quién lo
+      paga:</b> el titular otra vez. <b>A favor:</b> es el único que dice la verdad sobre lo que
+      pasa al tocar. <b>En contra:</b> el encargo dice «quitar el editar», y esto es un botón que
+      sigue ahí con otra cara; además la app ya tiene un «+» con significado propio (el FAB de
+      crear), y este no crea nada, abre.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · «Qué se hace» y «Cantidades»: hasta dónde llega el quitarlos</div>
+  <p class="parte-intro">
+    Los dos campos miden <b id="m-textos">—</b> pt en el modal del día, y ese es el motivo por el
+    que los planes caen en el segundo pantallazo. Pero <b>no viven solo aquí</b>: se escriben
+    también en el formulario de <code>CenasScreen</code> (Comidas → Cenas) y se <b>leen</b> en la
+    ficha de cada cena, en esa misma pantalla. «Quitarlos» tiene entonces cuatro alcances, y la
+    diferencia entre ellos es qué pasa con <b>lo que ya está escrito</b>.
+  </p>
+  <p class="parte-intro">
+    Lo que no cambia en ninguna: <b>la columna en D1 se queda</b>. Quitarla no gana nada —no ocupa,
+    no se sincroniza de más— y rompería a un móvil que todavía no se haya actualizado y siga
+    mandando el campo. El dato se queda dormido, que es lo barato y lo reversible.
+  </p>
+
+  <div class="tabla-scroll">
+    <table class="comp">
+      <tr>
+        <th>Opción</th><th>Modal del día</th><th>Formulario de Cenas</th><th>Ficha de una cena</th><th>Lo ya escrito</th>
+      </tr>
+      <tr>
+        <td><b>B1</b> solo aquí</td>
+        <td>fuera</td><td>sigue</td><td>sigue</td>
+        <td>se ve y se edita en Comidas</td>
+      </tr>
+      <tr>
+        <td><b>B2</b> no se escribe, se lee</td>
+        <td>fuera</td><td>fuera</td><td>sigue</td>
+        <td>se ve, ya no se toca</td>
+      </tr>
+      <tr>
+        <td><b>B3</b> fuera del cliente</td>
+        <td>fuera</td><td>fuera</td><td>fuera</td>
+        <td>invisible, guardado</td>
+      </tr>
+      <tr>
+        <td><b>B4</b> fuera y contado</td>
+        <td>fuera</td><td>fuera</td><td>fuera</td>
+        <td>invisible, guardado, y fuera de la semilla del Demo y del spec</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">Fuera solo del modal del día</span></div>
+    <p class="op-idea">Se quitan las dos cajas de aquí y se dejan donde estaban en Comidas → Cenas.</p>
+    <p class="coste">
+      <b>Qué cuesta:</b> dos pantallas que editan <b>la misma cena</b> y enseñan campos distintos.
+      <b>Quién lo paga:</b> quien escriba algo en Comidas y luego no lo encuentre en Agenda.
+      <b>A favor:</b> es el cambio más pequeño posible y no toca nada que funcione.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">Se dejan de escribir, se siguen leyendo</span></div>
+    <p class="op-idea">
+      Fuera de los dos formularios; la ficha de la cena sigue enseñando el texto <b>si lo tiene</b>
+      (dos líneas que ya son condicionales en <code>CenasScreen</code>).
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> un texto que se ve y no se puede corregir es peor que uno que no se ve.
+      <b>Quién lo paga:</b> quien lea «2 kg arroz» del año pasado y no pueda cambiarlo.
+      <b>A favor:</b> nada escrito se pierde de vista de golpe.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">Fuera de todo el cliente</span></div>
+    <p class="op-idea">Formularios y ficha. En la app dejan de existir; en la base siguen.</p>
+    <p class="coste">
+      <b>Qué cuesta:</b> lo escrito desaparece de la vista sin avisar. <b>Quién lo paga:</b> el
+      Demo, que sigue sembrando los dos textos y ahora no los enseña —queda un dato fantasma que
+      viaja en cada sincronización y nadie ve—.
+    </p>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">B4</span><span class="op-nombre">Fuera de todo, y contado</span><span class="etq rec">la que propongo</span></div>
+    <p class="op-idea">
+      B3 más las dos cosas que se caen siempre: quitar los dos textos de la <b>semilla del Demo</b>
+      (<code>db.js</code>, la cena de la paella) y tacharlos del spec (§6 y §14), que es donde
+      alguien los volverá a leer dentro de un año y los dará por vivos.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> un rato más de trabajo y tocar el spec. <b>Quién lo paga:</b> nadie.
+      <b>A favor:</b> es la única que deja la app y el papel diciendo lo mismo, que es la regla de
+      la casa. La columna de D1 y <code>tablas.js</code> se quedan tal cual.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · el selector de los planes que quedan libres</div>
+  <p class="parte-intro">
+    Hoy son <b>chips</b>, una por plan sin día, con un «+» delante: con nueve libres son
+    <b id="m-chips-2">—</b> pt en <b id="m-chips-l2">—</b> renglones, están en el <b>orden en que se
+    crearon</b> —que no dice nada— y no llevan ni los votos ni quién falta. Además tienen un efecto
+    que no se ve: tocar una chip <b>escribe en el acto</b> (<code>updatePlan(p.id, {dia})</code>),
+    mientras que los platos de arriba, en el mismo modal, se marcan y se guardan con el botón. Dos
+    reglas distintas en una pantalla.
+  </p>
+  <p class="parte-intro">
+    Y un detalle que se ve en el dibujo de arriba: el botón «quitar del día» mide 130 pt y deja al
+    título del plan <b>183</b>, así que «Excursión a las cuevas» se recorta. En los cinco dibujos de
+    abajo el verbo es <b>«quitar»</b> a secas —el «del día» lo dice el rótulo de la sección—, y el
+    título entra entero. No es una opción, es lo mismo dicho más corto.
+  </p>
+  <p class="parte-intro">
+    Las cinco figuras usan los mismos nueve planes libres y los mismos dos ya puestos. Lo único que
+    cambia es el tratamiento.
+  </p>
+
+  <div class="tira-tel">
+
+    <div>
+      <div class="tel oscuro">
+        <div class="md">
+          <div class="sec-h">Los planes de este día</div>
+          <div style="margin-top:4px">
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Playa de la Cala</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Excursión a las cuevas</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+          </div>
+          <div id="c1-add">
+            <div class="lbl">Añadir un plan <span class="ap">(9 libres)</span></div>
+            <div class="ctrl vacio"><span class="v">— elige un plan —</span><span class="fl">▾</span></div>
+          </div>
+          <div class="btn-b">Guardar la cena</div>
+        </div>
+      </div>
+      <p class="pie-tel">C1 · un selector nativo. Lo que sustituye a las chips mide <b id="m-c1">—</b> pt.</p>
+    </div>
+
+    <div>
+      <div class="tel oscuro">
+        <div class="md">
+          <div class="sec-h">Los planes de este día</div>
+          <div style="margin-top:4px">
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Playa de la Cala</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Excursión a las cuevas</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+          </div>
+          <div style="margin-top:12px"><span class="btn-mini" style="display:block;text-align:center">+ Añadir un plan</span></div>
+          <div class="hoja-abajo">
+            <span class="asa"></span>
+            <div class="h2" style="font-size:var(--t-title);font-weight:650">Planes libres</div>
+            <div style="margin-top:8px">
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Ruta de tapas</span><span class="s">falta por votar Luis</span></span></span><span class="pil">4</span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Mercadillo del pueblo</span><span class="s">han votado todos</span></span></span><span class="pil">3</span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Torneo de pádel</span><span class="s">faltan 3 por votar</span></span></span><span class="pil">2</span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Noche de juegos de mesa</span><span class="s">sin votos todavía</span></span></span><span class="pil">0</span></div>
+            </div>
+            <div class="apunte" style="margin-top:8px">…y cinco más</div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel">C2 · la hoja de elección, la misma de los bungas libres (<code>Hoja.jsx</code>).</p>
+    </div>
+
+    <div>
+      <div class="tel claro">
+        <div class="md">
+          <div class="sec-h">Los planes de este día</div>
+          <div style="margin-top:4px">
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Playa de la Cala</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Excursión a las cuevas</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+          </div>
+          <div class="lbl">Libres, por votos</div>
+          <div class="chips" id="c3-chips">
+            <span class="chip">+ Ruta de tapas <b>4</b></span>
+            <span class="chip">+ Mercadillo del pueblo <b>3</b></span>
+            <span class="chip">+ Torneo de pádel <b>2</b></span>
+            <span class="chip">+ Piscina toda la tarde <b>2</b></span>
+            <span class="chip">+ Karaoke en la bunga <b>1</b></span>
+            <span class="chip">+ Castillo y mirador <b>1</b></span>
+            <span class="chip">+ Feria de Ronda <b>1</b></span>
+            <span class="chip">+ Barbacoa en la bunga <b>0</b></span>
+            <span class="chip">+ Noche de juegos de mesa <b>0</b></span>
+          </div>
+          <div class="btn-b">Guardar la cena</div>
+        </div>
+      </div>
+      <p class="pie-tel">C3 · las chips de ahora, ordenadas y con el número. <b id="m-c3">—</b> pt.</p>
+    </div>
+
+    <div>
+      <div class="tel claro">
+        <div class="md">
+          <div class="sec-h">Los planes de este día</div>
+          <div class="lbl" style="margin-top:8px">Marca los que caen este día</div>
+          <div class="tarj junta">
+            <div class="fila"><span class="abre"><span class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span><span class="txt"><span class="n">Playa de la Cala</span><span class="s">puesto en este día</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span><span class="txt"><span class="n">Excursión a las cuevas</span><span class="s">puesto en este día</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></span><span class="txt"><span class="n">Ruta de tapas</span><span class="s">libre · 4 votos</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></span><span class="txt"><span class="n">Mercadillo del pueblo</span><span class="s">libre · 3 votos</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></span><span class="txt"><span class="n">Torneo de pádel</span><span class="s">libre · 2 votos</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></span><span class="txt"><span class="n">Piscina toda la tarde</span><span class="s">libre · 2 votos</span></span></span></div>
+          </div>
+          <div class="apunte" style="margin-top:8px">…y cinco más</div>
+          <div class="btn-b">Guardar el día</div>
+        </div>
+      </div>
+      <p class="pie-tel">C4 · la misma regla que los platos: se marca y se guarda con el botón.</p>
+    </div>
+
+    <div>
+      <div class="tel oscuro">
+        <div class="md">
+          <div class="sec-h">Los planes de este día</div>
+          <div style="margin-top:4px">
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Playa de la Cala</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Excursión a las cuevas</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+          </div>
+          <div class="lbl">Los más votados</div>
+          <div class="chips">
+            <span class="chip">+ Ruta de tapas <b>4</b></span>
+            <span class="chip">+ Mercadillo del pueblo <b>3</b></span>
+            <span class="chip">+ Torneo de pádel <b>2</b></span>
+          </div>
+          <div class="lbl">O de la lista entera <span class="ap">(9 libres)</span></div>
+          <div class="ctrl vacio"><span class="v">— elige un plan —</span><span class="fl">▾</span></div>
+          <div class="btn-b">Guardar la cena</div>
+        </div>
+      </div>
+      <p class="pie-tel">C5 · los tres más votados a mano, y el resto en el selector.</p>
+    </div>
+
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">Un selector nativo, «— elige un plan —»</span></div>
+    <p class="op-idea">
+      Un <code>&lt;select&gt;</code> con los libres dentro. Al elegir uno, se le pone el día, baja a
+      la lista de arriba y el selector vuelve a «— elige un plan —». El rótulo lleva cuántos quedan.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> una línea de 44 pt frente a los <b id="m-chips-3">—</b> de las chips, y es
+      la misma figura que los dos selectores de bunga que están tres dedos más arriba, en este mismo
+      modal. <b>Quién lo paga:</b> quien quiera ver los votos antes de decidir —no salen—; y en iOS
+      abre la rueda del sistema, un gesto más que tocar una chip. <b>A favor:</b> es literalmente lo
+      pedido, no crece con el número de planes y deja los planes del día por fin en el primer
+      pantallazo.
+    </p>
+    <p class="coste">
+      <b>Era la que proponía</b> mientras el selector de planes fuese lo único nuevo del modal. La
+      parte cuatro le da la vuelta: si la cena también pasa a elegirse, dos renglones pegados con
+      dos figuras distintas —una rueda del sistema y una hoja— se notan. C1 sigue siendo la buena
+      <b>si eliges F4</b>, donde todo son selectores nativos y no hay ninguna hoja.
+    </p>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">Un botón que sube la hoja de elección</span><span class="etq rec">la que propongo</span></div>
+    <p class="op-idea">
+      «+ Añadir un plan» abre la <b>misma hoja desde abajo</b> que ya elige bunga en El grupo
+      (<code>Hoja.jsx</code>, <code>gente-editar.html · A3</code> y <code>N4</code>): una fila de
+      70,7 pt por plan, con los votos a la derecha y quién falta por votar debajo.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> un toque más para abrirla, y es la figura más grande de las cinco.
+      <b>Quién lo paga:</b> nadie, se cierra sola al elegir. <b>A favor:</b> es la única donde se
+      elige <b>sabiendo</b> —«Ruta de tapas, 4 votos, falta Luis»—, y el componente ya está escrito
+      y probado. <b>En contra:</b> el encargo pedía un selector; esto es un selector con más ropa.
+    </p>
+    <p class="coste">
+      <b>Y es la que empareja con F1:</b> el mismo renglón que abre los platos abre los planes, así
+      que el modal acaba siendo <b>cuatro renglones que se tocan y una hoja detrás de cada uno</b>.
+      Una figura para el mismo gesto, en vez de dos.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">Las chips de ahora, ordenadas por votos</span></div>
+    <p class="op-idea">Se queda la figura y se arregla lo que falla: orden por votos y el número dentro.</p>
+    <p class="coste">
+      <b>Qué cuesta:</b> sigue creciendo con el número de planes —nueve son
+      <b id="m-c3-2">—</b> pt— y sigue escribiendo en el acto. <b>Quién lo paga:</b> el modal, que
+      no adelgaza. <b>A favor:</b> es un toque, sin ruedas ni hojas, y con el número decidir es más
+      fácil que hoy. <b>En contra:</b> no es lo pedido.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">Una lista que se marca, y se guarda con el botón</span></div>
+    <p class="op-idea">
+      Todos los planes en una lista —los del día marcados arriba, los libres debajo—, se tocan para
+      marcar y <b>nada se escribe hasta darle a Guardar</b>, como los platos.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> es la más alta de las cinco y hay que decidir qué pasa si cierras sin
+      guardar. <b>Quién lo paga:</b> quien marque tres planes, cierre y los pierda. <b>A favor:</b>
+      arregla de verdad las dos reglas distintas del modal: una sola pantalla, un solo Guardar.
+      <b>En contra:</b> un plan no es de la cena, y meterlo bajo «Guardar la cena» los ata.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">C5</span><span class="op-nombre">Los tres más votados, y el resto en el selector</span></div>
+    <p class="op-idea">C1 con un atajo: las tres chips que se van a tocar el 90 % de las veces, delante.</p>
+    <p class="coste">
+      <b>Qué cuesta:</b> dos figuras para una cosa, y hay que explicar por qué tres y no cinco.
+      <b>Quién lo paga:</b> el modal, con un rótulo más. <b>A favor:</b> lo probable a un toque y lo
+      raro a dos, que suele ser el reparto bueno.
+    </p>
+  </div>
+
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · la cena, también un selector</div>
+  <p class="parte-intro">
+    Hoy la cena de un día se <b>compone</b> aquí dentro: seis chips de platos marcadas, más una
+    tarjeta para inventarse un plato al vuelo que mide <b id="m-nuevo-2">—</b> pt. Entre las dos
+    cosas se llevan <b id="m-cena-ahora">—</b> pt del modal —más de la mitad—, y son también la
+    razón de que los planes queden tan abajo.
+  </p>
+  <p class="parte-intro">
+    Convertirlo en un selector es fácil de dibujar y trae una pregunta que las otras partes no
+    tienen: <b>¿qué se elige exactamente?</b> Hoy una cena <b>no existe fuera de su día</b>
+    —<code>dinners</code> lleva <code>eventId</code> y <code>dia</code>, y los platos son el
+    catálogo compartido—, así que «elegir una cena» solo tiene sentido si hay algo que elegir. Las
+    cuatro opciones se distinguen justo por eso, y solo dos de ellas tocan el modelo.
+  </p>
+  <p class="parte-intro">
+    En los dibujos, <b><code>▾</code> es un selector nativo</b> —la rueda del sistema, una opción de
+    una lista— y <b><code>›</code> es un renglón que abre una hoja</b>. Los dos son «selectores»;
+    lo que cambia es si se elige <b>una</b> cosa o <b>varias</b>.
+  </p>
+
+  <div class="tira-tel">
+
+    <div>
+      <div class="tel oscuro">
+        <div class="md">
+          <div class="sec-h">La cena</div>
+          <div class="grid2" style="margin-top:6px">
+            <div><div class="lbl">Bunga mayores</div><div class="ctrl"><span class="v">El del ruido</span><span class="fl">▾</span></div></div>
+            <div><div class="lbl">Bunga niños</div><div class="ctrl"><span class="v">El del fondo</span><span class="fl">▾</span></div></div>
+          </div>
+          <div id="f1-cena">
+            <div class="lbl">Qué se cena</div>
+            <div class="ctrl"><span class="v">Paella mixta y cinco cosas más</span><span class="fl">›</span></div>
+          </div>
+          <div class="hoja-abajo" style="margin-top:40px">
+            <span class="asa"></span>
+            <div class="h2" style="font-size:var(--t-title);font-weight:650">Los platos de esta cena</div>
+            <div style="margin-top:8px">
+              <div class="fila"><span class="abre"><span class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span><span class="txt"><span class="n">Paella mixta ⭐</span><span class="s">principal</span></span></span></div>
+              <div class="fila"><span class="abre"><span class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span><span class="txt"><span class="n">Ensaladilla rusa</span><span class="s">entrante</span></span></span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></span><span class="txt"><span class="n">Pan con tomate</span><span class="s">acompañamiento</span></span></span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></span><span class="txt"><span class="n">Sandía</span><span class="s">postre</span></span></span></div>
+            </div>
+            <div class="apunte" style="margin-top:8px">…y los demás del catálogo</div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel">F1 · un renglón que abre la hoja de platos. La cena entera son <b id="m-f1">—</b> pt.</p>
+    </div>
+
+    <div>
+      <div class="tel claro">
+        <div class="md">
+          <div class="sec-h">La cena</div>
+          <div class="grid2" style="margin-top:6px">
+            <div><div class="lbl">Bunga mayores</div><div class="ctrl"><span class="v">El del ruido</span><span class="fl">▾</span></div></div>
+            <div><div class="lbl">Bunga niños</div><div class="ctrl"><span class="v">El del fondo</span><span class="fl">▾</span></div></div>
+          </div>
+          <div id="f2-cena">
+            <div class="lbl">Qué se cena <span class="ap">(del recetario)</span></div>
+            <div class="ctrl"><span class="v">La paella de Curro</span><span class="fl">▾</span></div>
+            <div class="apunte" style="margin-top:6px">Paella mixta · Ensaladilla · Pan con tomate · Sandía · 2 más</div>
+          </div>
+          <div class="lbl">En el recetario</div>
+          <div class="tarj junta">
+            <div class="fila"><span class="abre"><span class="txt"><span class="n">La paella de Curro</span><span class="s">6 platos · puesta 3 veranos</span></span></span><span class="pil">usada</span></div>
+            <div class="fila"><span class="abre"><span class="txt"><span class="n">Barbacoa</span><span class="s">4 platos</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="txt"><span class="n">Noche de tapas</span><span class="s">7 platos</span></span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel">F2 · un recetario de menús, como las Ideas de Planes. Tabla nueva.</p>
+    </div>
+
+    <div>
+      <div class="tel claro">
+        <div class="md">
+          <div class="sec-h">La cena</div>
+          <div class="grid2" style="margin-top:6px">
+            <div><div class="lbl">Bunga mayores</div><div class="ctrl"><span class="v">El del ruido</span><span class="fl">▾</span></div></div>
+            <div><div class="lbl">Bunga niños</div><div class="ctrl"><span class="v">El del fondo</span><span class="fl">▾</span></div></div>
+          </div>
+          <div class="lbl">Qué se cena <span class="ap">(3 cenas sin día)</span></div>
+          <div class="ctrl"><span class="v">Paella mixta y cinco cosas más</span><span class="fl">▾</span></div>
+          <div class="apunte" style="margin-top:8px">Las cenas se montan en Comidas → Cenas. Aquí solo se colocan.</div>
+          <div class="sec-h" style="margin-top:20px">Comidas → Cenas</div>
+          <div class="tarj junta">
+            <div class="fila"><span class="abre"><span class="txt"><span class="n">Paella mixta y cinco cosas más</span><span class="s">puesta el domingo 9</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="txt"><span class="n">Barbacoa y tres cosas más</span><span class="s">sin día</span></span></span></div>
+            <div class="fila"><span class="abre"><span class="txt"><span class="n">Cena de sobras</span><span class="s">sin día</span></span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel">F3 · la cena se monta en Comidas y el día la coloca, como los planes.</p>
+    </div>
+
+    <div>
+      <div class="tel oscuro">
+        <div class="md">
+          <div class="sec-h">La cena</div>
+          <div class="grid2" style="margin-top:6px">
+            <div><div class="lbl">Bunga mayores</div><div class="ctrl"><span class="v">El del ruido</span><span class="fl">▾</span></div></div>
+            <div><div class="lbl">Bunga niños</div><div class="ctrl"><span class="v">El del fondo</span><span class="fl">▾</span></div></div>
+          </div>
+          <div class="lbl">Qué se cena <span class="ap">(el plato que manda)</span></div>
+          <div class="ctrl"><span class="v">Paella mixta</span><span class="fl">▾</span></div>
+          <div class="apunte" style="margin-top:8px">Los aperitivos, el acompañamiento y el postre, en Comidas → Cenas.</div>
+          <div class="sec-h" style="margin-top:20px">Los planes de este día</div>
+          <div style="margin-top:4px">
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Playa de la Cala</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+          </div>
+          <div class="lbl">Añadir un plan <span class="ap">(9 libres)</span></div>
+          <div class="ctrl vacio"><span class="v">— elige un plan —</span><span class="fl">▾</span></div>
+          <div class="btn-b">Guardar el día</div>
+        </div>
+      </div>
+      <p class="pie-tel">F4 · solo el plato que manda. Tres selectores nativos y ya está.</p>
+    </div>
+
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">Un renglón que abre la hoja de platos</span><span class="etq rec">la que propongo</span></div>
+    <p class="op-idea">
+      «Qué se cena» pasa a ser <b>un renglón que dice lo que hay</b> —«Paella mixta y cinco cosas
+      más», la frase que ya escribe <code>titularDeCena()</code> en <code>lib/dias.js</code>— y que
+      al tocarlo sube la hoja con el catálogo entero, marcando los que entran.
+      <b>Nada cambia por debajo:</b> la cena sigue siendo sus <code>platoIds</code>.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> un toque más para tocar los platos, y hay que decidir si la hoja escribe al
+      cerrarse o espera al Guardar. <b>Quién lo paga:</b> quien cambie un plato cada dos por tres —y
+      ése es el caso raro; lo normal es montarla una vez—. <b>A favor:</b> cero migración, cero
+      tabla nueva, y el modal pasa de <b id="m-cena-ahora-2">—</b> pt de cena a
+      <b id="m-f1-2">—</b>. Es la misma figura que la hoja de bungas libres, ya escrita y probada.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">Un recetario de menús, y el día elige uno</span></div>
+    <p class="op-idea">
+      Lo que Planes hizo con las Ideas (§14.18), aplicado a la cena: un catálogo de <b>menús</b>
+      —«La paella de Curro», «Barbacoa»— que se repiten de verano en verano. Elegir uno
+      <b>copia sus platos</b> al día; no enlaza, igual que traer una idea.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> una tabla nueva, su sincronización, su descriptor en
+      <code>tablas.js</code>, una migración y una pantalla para mantenerla. <b>Quién lo paga:</b>
+      esta vuelta, que pasa de tres cambios de pantalla a un cambio de modelo. <b>A favor:</b> es la
+      única que contesta «lo de siempre» sin volver a marcar seis chips, y encaja con una figura que
+      el grupo ya conoce. <b>Se puede hacer después</b> sobre F1 sin deshacer nada.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">La cena se monta en Comidas; el día solo la coloca</span></div>
+    <p class="op-idea">
+      El reparto exacto que ya tienen Planes y Agenda: <b>en Comidas se compone</b> —platos,
+      bungas—, <b>en Agenda se pone el día</b>. El selector enseña las cenas que aún no tienen día.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> hoy una cena <b>nace con día</b> (<code>addDinner(eventId, {dia, …})</code>
+      y la regla de «una por día»); habría que permitir cenas sin día y decidir qué pasa si eliges
+      una que ya está puesta en otro. <b>Quién lo paga:</b> el spec §6, que dice «1 por día».
+      <b>A favor:</b> es la más coherente con cómo funciona todo lo demás, y deja el modal del día
+      en cuatro renglones sin inventar tabla ninguna.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre">Solo el plato que manda</span></div>
+    <p class="op-idea">
+      Un selector nativo con <b>un</b> plato: el principal, que es el que da nombre a la cena en
+      toda la app. El resto —aperitivo, acompañamiento, postre— se monta en Comidas si a alguien le
+      apetece, y si no, no.
+    </p>
+    <p class="coste">
+      <b>Qué cuesta:</b> desde Agenda no se puede montar una cena entera, y la lista de la compra
+      —que cuelga de los platos— se queda coja. <b>Quién lo paga:</b> quien monte la cena el día de
+      antes desde el calendario. <b>A favor:</b> es la lectura más literal de «qué bungas, qué cenas
+      y qué plan»: tres renglones nativos, cero hojas, el modal más corto de los cuatro.
+    </p>
+  </div>
+
+  <div class="grupo">
+    <h3>G · dónde va «Plato nuevo al vuelo»</h3>
+    <p class="pregunta">
+      La tarjeta mide <b id="m-nuevo-3">—</b> pt y está <b>en medio del camino</b> entre la cena y
+      los planes. Con cualquiera de las F de arriba hay que decidir dónde cae — y de paso se arregla
+      el defecto 1, que es suyo.
+    </p>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">G1</span><span class="op-nombre">Fuera: los platos se crean en Comidas → Platos</span><span class="etq rec">la que propongo</span></div>
+    <p class="op-idea">Esa pantalla existe desde §14.10-ter y el catálogo ya es editable ahí.</p>
+    <p class="coste"><b>Qué cuesta:</b> un viaje a Comidas la primera vez que se cocina algo nuevo. <b>Quién lo paga:</b> quien invente un plato con el modal abierto. <b>A favor:</b> quita <b id="m-nuevo-4">—</b> pt de en medio y borra de raíz el defecto 1.</p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">G2</span><span class="op-nombre">Dentro de la hoja de platos, al final</span></div>
+    <p class="op-idea">Sigue existiendo el atajo, pero donde se están mirando los platos y no antes de llegar a ellos.</p>
+    <p class="coste"><b>Qué cuesta:</b> solo tiene sentido con F1 —las otras tres no tienen hoja—. <b>A favor:</b> no se pierde nada y el modal adelgaza igual.</p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">G3</span><span class="op-nombre">Se queda donde está</span><span class="etq base">lo de hoy</span></div>
+    <p class="coste"><b>Qué cuesta:</b> <b id="m-nuevo-5">—</b> pt entre la cena y los planes, que es justo lo que este encargo viene a quitar. <b>Quién lo paga:</b> los planes, que siguen abajo.</p>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cinco · dos preguntas pequeñas que van dentro del selector de planes</div>
+  <p class="parte-intro">
+    Las dos valen para cualquiera de las cinco figuras de arriba.
+  </p>
+
+  <div class="grupo">
+    <h3>D · qué es «un plan que queda libre»</h3>
+    <p class="pregunta">
+      Es el defecto 2 convertido en decisión: hoy «libre» es <b>sin día</b> y punto, y por eso un
+      plan que se quedó fuera de las fechas no aparece en ninguna lista de Agenda.
+    </p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">Sin día, como ahora</span><span class="etq base">lo de hoy</span></div>
+    <p class="coste"><b>Qué cuesta:</b> el plan huérfano sigue invisible aquí. <b>Quién lo paga:</b> quien acorte las fechas del viaje.</p>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">Sin día, más los que cayeron fuera de las fechas</span><span class="etq rec">la que propongo</span></div>
+    <p class="op-idea">
+      Los huérfanos entran en el selector, marcados —«era el 17, ya no está en el viaje»—. Es lo
+      que dice §14.10-quater: lo que cae fuera <b>se aparta, no se esconde</b>.
+    </p>
+    <p class="coste"><b>Qué cuesta:</b> una marca más en la lista. <b>Quién lo paga:</b> nadie, y arregla el defecto 2 en el sitio donde se nota.</p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">Todos los que no son de este día, con su fecha al lado</span></div>
+    <p class="op-idea">El selector deja además <b>mover</b> un plan del jueves al viernes sin salir del día.</p>
+    <p class="coste">
+      <b>Qué cuesta:</b> «libre» deja de significar libre, y elegir mal <b>quita el plan de otro
+      día</b> sin decirlo. <b>Quién lo paga:</b> quien lo mueva sin querer. <b>A favor:</b> mover de
+      día hoy son tres toques y dos pantallas.
+    </p>
+  </div>
+
+  <div class="grupo">
+    <h3>E · ¿se puede crear un plan desde el día?</h3>
+    <p class="pregunta">
+      Hoy no: si el plan no existe, hay que ir a Planes, crearlo, votarlo y volver.
+    </p>
+  </div>
+
+  <div class="opcion" data-marca="recomendada">
+    <div class="op-cab"><span class="op-letra">E1</span><span class="op-nombre">No: los planes nacen en Planes</span><span class="etq rec">la que propongo</span></div>
+    <p class="op-idea">
+      El día <b>coloca</b>, no inventa. Es la misma línea que separó las dos pantallas en §14.19: en
+      Planes se vota, en Agenda se pone el día.
+    </p>
+    <p class="coste"><b>Qué cuesta:</b> un viaje a Planes cuando se te ocurre algo mirando el calendario. <b>Quién lo paga:</b> quien tenga la idea en el sitio equivocado.</p>
+  </div>
+
+  <div class="opcion">
+    <div class="op-cab"><span class="op-letra">E2</span><span class="op-nombre">Sí, una línea al final del selector</span></div>
+    <p class="op-idea">«+ Plan nuevo…» al final de la lista, como el «Plato nuevo al vuelo» que ya existe en este mismo modal.</p>
+    <p class="coste">
+      <b>Qué cuesta:</b> un plan creado así <b>nace con día y sin votos</b>, que es justo lo que
+      §14.19 evita —el día se pone después de votar—. <b>Quién lo paga:</b> la votación, que se
+      salta. <b>A favor:</b> simetría con los platos, y el camino corto cuando la idea sale mirando
+      el calendario.
+    </p>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte seis · las combinaciones</div>
+
+  <p class="parte-intro" style="margin-top:0">
+    Así queda el día con la receta de abajo: <b>qué bungas, qué se cena y qué plan</b>. Dos
+    selectores nativos y dos renglones que abren su hoja. Al lado, lo mismo en la cara clara con la
+    hoja de planes subida.
+  </p>
+
+  <div class="tira-tel">
+    <div>
+      <div class="tel oscuro">
+        <div class="md" id="md-despues">
+          <div><span class="x">×</span><div class="h2">Domingo, 9 de agosto</div></div>
+          <div class="sec-h" style="margin-top:14px">La cena</div>
+          <div class="grid2" style="margin-top:6px">
+            <div><div class="lbl">Bunga mayores</div><div class="ctrl"><span class="v">El del ruido</span><span class="fl">▾</span></div></div>
+            <div><div class="lbl">Bunga niños</div><div class="ctrl"><span class="v">El del fondo</span><span class="fl">▾</span></div></div>
+          </div>
+          <div class="lbl">Qué se cena</div>
+          <div class="ctrl"><span class="v">Paella mixta y cinco cosas más</span><span class="fl">›</span></div>
+          <div class="sec-h" style="margin-top:18px" id="de-planes">Los planes de este día</div>
+          <div style="margin-top:4px">
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Playa de la Cala</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+            <div class="fila" style="padding:11px 0">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+              <span class="txt" style="flex:1;min-width:0;margin-left:11px"><span class="n" style="font-size:var(--t-row);font-weight:550">Excursión a las cuevas</span></span>
+              <span class="btn-mini">quitar</span>
+            </div>
+          </div>
+          <div class="lbl">Añadir un plan <span class="ap">(9 libres)</span></div>
+          <div class="ctrl vacio"><span class="v">Elegir de los 9 libres</span><span class="fl">›</span></div>
+          <div class="btn-b">Guardar el día</div>
+          <div class="btn-g">Quitar la cena de este día</div>
+        </div>
+      </div>
+      <p class="pie-tel">A1 + B4 + F1 + G1 + C2 · el modal entero, <b id="m-despues-pie">—</b> pt.</p>
+    </div>
+
+    <div>
+      <div class="tel claro">
+        <div class="md">
+          <div><span class="x">×</span><div class="h2">Domingo, 9 de agosto</div></div>
+          <div class="sec-h" style="margin-top:14px">La cena</div>
+          <div class="grid2" style="margin-top:6px">
+            <div><div class="lbl">Bunga mayores</div><div class="ctrl"><span class="v">El del ruido</span><span class="fl">▾</span></div></div>
+            <div><div class="lbl">Bunga niños</div><div class="ctrl"><span class="v">El del fondo</span><span class="fl">▾</span></div></div>
+          </div>
+          <div class="lbl">Qué se cena</div>
+          <div class="ctrl"><span class="v">Paella mixta y cinco cosas más</span><span class="fl">›</span></div>
+          <div class="hoja-abajo" style="margin-top:24px">
+            <span class="asa"></span>
+            <div class="h2" style="font-size:var(--t-title);font-weight:650">Planes libres</div>
+            <div style="margin-top:8px">
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Ruta de tapas</span><span class="s">falta por votar Luis</span></span></span><span class="pil">4</span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Mercadillo del pueblo</span><span class="s">han votado todos</span></span></span><span class="pil">3</span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Torneo de pádel</span><span class="s">faltan 3 por votar</span></span></span><span class="pil">2</span></div>
+              <div class="fila"><span class="abre"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="txt"><span class="n">Feria de Ronda</span><span class="s">era el 17, ya no está en el viaje</span></span></span><span class="pil">1</span></div>
+            </div>
+            <div class="apunte" style="margin-top:8px">…y cinco más</div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel">La hoja de planes, con un huérfano marcado (D2).</p>
+    </div>
+  </div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>A1</span><span>B4</span><span>F1</span><span>+G1</span><span>C2</span><span>+D2</span><span>E1</span></div>
+    <p>
+      <b>La fila y nada más</b> (A1): la línea de debajo ya dice lo que diría una pastilla, la fila
+      ya abre, y el titular gana <b id="m-gana-2">—</b> pt. <b>Los dos textos fuera de todo y
+      contado</b> (B4), con la columna de D1 intacta. <b>La cena en un renglón</b> que abre la hoja
+      de platos (F1) y el «plato nuevo al vuelo» de vuelta a Comidas → Platos (G1). <b>Y los planes
+      igual</b> (C2), con los huérfanos dentro y marcados (D2) para que el defecto 2 no siga
+      escondiendo planes.
+    </p>
+    <p>
+      La razón de elegir dos hojas y no dos ruedas del sistema es que <b>acaban siendo el mismo
+      gesto</b>: cuatro renglones, dos que abren la rueda de iOS porque se elige una bunga de tres,
+      y dos que abren una hoja porque hay que ver votos, categorías y quién falta. Con F1+C2 el
+      modal se lee entero de una vez: <b id="m-antes">—</b> pt antes,
+      <b id="m-despues">—</b> después —un <b id="m-recorte">—</b> % menos—, <b>dentro de los 776</b>
+      que deja la pantalla. Nada de dos pantallazos: se abre y está todo.
+    </p>
+    <p>
+      <b>La otra combinación coherente</b> es la literal:
+      <span class="receta" style="display:inline"><span>A1</span><span>B4</span><span>F4</span><span>C1</span></span>
+      — todo selectores nativos, el plato que manda y un plan, sin ninguna hoja. Es el modal más
+      corto posible y el que menos código pide; a cambio la cena entera y los votos se miran en
+      otra pantalla. Si te vale con eso, es menos trabajo que lo de arriba.
+    </p>
+    <p>
+      <b>Y la que dejaría para después, no para ahora:</b> <span class="receta" style="display:inline"><span>F2</span></span>,
+      el recetario de menús. Es la única de la hoja que pide tabla nueva, migración y sincronización,
+      y encaja sobre F1 sin deshacer nada: primero el renglón, y cuando se note que «la paella de
+      Curro» se vuelve a marcar cada verano, el recetario.
+    </p>
+    <p style="font-size:13.5px">
+      Dos dudas que dejo escritas en vez de resolverlas yo. Una: al quitar «Qué se hace» y
+      «Cantidades», la <b>ficha de una cena</b> en Comidas → Cenas se queda con los platos y las dos
+      bungas — B1–B4 se distinguen justo por ahí y es lo que hay que contestar primero. Y dos: si
+      las hojas <b>escriben al cerrarse</b>, el botón «Guardar el día» solo guarda las dos bungas;
+      si esperan al Guardar, hay que decidir qué pasa al cerrar sin guardar. Lo he dibujado con el
+      botón puesto, que es lo que hay hoy.
+    </p>
+    <p style="font-size:13.5px">
+      Esta hoja vive en <code>docs/diseño/agenda-dia.html</code>, al lado de
+      <code>navegacion.html</code>, que es donde se decidió Agenda → Días (G1, H1).
+      <b>No se ha escrito código:</b> lo que sale de esta vuelta es la hoja.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  /* Los números de la hoja se miden en el propio dibujo, no se estiman: si el
+     dibujo cambia, el texto cambia con él. `getBoundingClientRect()` da píxeles
+     CSS, que a 390 de ancho son puntos. */
+  (function () {
+    var px = function (n) { return (Math.round(n * 10) / 10).toString().replace('.', ','); }
+    var alto = function (sel) { var e = document.querySelector(sel); return e ? e.getBoundingClientRect().height : 0 }
+    var ancho = function (sel) { var e = document.querySelector(sel); return e ? e.getBoundingClientRect().width : 0 }
+    var pon = function (id, v) { var e = document.getElementById(id); if (e) e.textContent = v }
+
+    var filaAlto = alto('#fila-medida')
+    var titAhora = ancho('#abre-medida .txt')
+    var titA1 = ancho('#abre-a1 .txt')
+    var textos = alto('#md-textos')
+    var chips = alto('#md-chips')
+    var modalAhora = alto('#md-ahora')
+
+    pon('m-fila', px(alto('#abre-medida')))
+    pon('m-titular', px(titAhora)); pon('m-titular-2', px(titAhora))
+    pon('m-titular-a1', px(titA1))
+    pon('m-gana', px(titA1 - titAhora)); pon('m-gana-2', px(titA1 - titAhora))
+    pon('m-textos', px(textos))
+    pon('m-chips', px(chips)); pon('m-chips-2', px(chips)); pon('m-chips-3', px(chips))
+    var modalDespues = alto('#md-despues')
+    pon('m-modal-ahora', px(modalAhora))
+    pon('m-antes', px(modalAhora))
+    pon('m-despues', px(modalDespues)); pon('m-despues-pie', px(modalDespues))
+
+    var renglones = function (sel) {
+      var c = document.querySelector(sel); if (!c) return 0
+      var tops = {}, n = 0
+      Array.prototype.forEach.call(c.children, function (h) {
+        var t = Math.round(h.getBoundingClientRect().top)
+        if (!tops[t]) { tops[t] = 1; n++ }
+      })
+      return n
+    }
+    pon('m-chips-l', renglones('#md-chips')); pon('m-chips-l2', renglones('#md-chips'))
+    pon('m-c3', px(alto('#c3-chips'))); pon('m-c3-2', px(alto('#c3-chips')))
+    pon('m-c1', px(alto('#c1-add')))
+
+    /* A qué altura del modal cae el rótulo de los planes: lo que decide si se
+       ven al abrir o hay que buscarlos. */
+    var desde = function (padre, hijo) {
+      var a = document.querySelector(padre), b = document.querySelector(hijo)
+      if (!a || !b) return 0
+      return b.getBoundingClientRect().top - a.getBoundingClientRect().top
+    }
+    pon('m-planes-ahora', px(desde('#md-ahora', '#ah-planes')))
+    pon('m-planes-despues', px(desde('#md-despues', '#de-planes')))
+    pon('m-recorte', Math.round((1 - modalDespues / modalAhora) * 100).toString())
+    pon('m-nuevo', px(alto('#md-nuevo')))
+    pon('m-fuera-pantalla', px(desde('#md-ahora', '#ah-planes') - 776))
+
+    /* La cena de ahora: las chips de platos más la tarjeta del plato al vuelo. */
+    var cenaAhora = alto('#ah-cena-compone'), f1 = alto('#f1-cena'), nuevoAlVuelo = alto('#md-nuevo')
+    pon('m-cena-ahora', px(cenaAhora)); pon('m-cena-ahora-2', px(cenaAhora))
+    pon('m-f1', px(f1)); pon('m-f1-2', px(f1))
+    pon('m-nuevo-2', px(nuevoAlVuelo)); pon('m-nuevo-3', px(nuevoAlVuelo))
+    pon('m-nuevo-4', px(nuevoAlVuelo)); pon('m-nuevo-5', px(nuevoAlVuelo))
+  })()
+</script>

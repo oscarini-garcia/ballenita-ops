@@ -850,10 +850,6 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .fila-boton { width: 100%; background: none; border: none; text-align: left; cursor: pointer;
   color: inherit; font: inherit; }
 
-/* Para quien no ve: la fila dice la fecha entera, que en la pantalla es un
-   número y tres letras. */
-.sr-solo { position: absolute; width: 1px; height: 1px; overflow: hidden;
-  clip-path: inset(50%); white-space: nowrap; }
 
  /* Solo la primera letra: `capitalize` a secas escribe «Domingo, 9 De Agosto». */
 .modal-dia-t::first-letter { text-transform: uppercase; }
@@ -908,6 +904,12 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .eleccion-op .tic { margin-left: auto; color: var(--spout-deep); display: grid; place-items: center; }
 .eleccion-op .tic svg { width: 20px; height: 20px; display: block; }
 .eleccion-op .no + .tic { margin-left: 8px; }
+/* La nota en su propio renglón, para cuando es una frase: «Noche de juegos de
+   mesa» con «0 👍 · faltan 5 por votar» al lado deja 92 pt al título y lo parte
+   en dos. Debajo, cada uno tiene su línea entera. */
+.eleccion.nota-debajo .eleccion-op { flex-wrap: wrap; row-gap: 2px; padding: 10px 14px; }
+.eleccion.nota-debajo .eleccion-op .et { flex: 1 0 100%; font-weight: 550; }
+.eleccion.nota-debajo .eleccion-op .no { margin-left: 0; text-align: left; flex: 1; }
 
 /* La ficha de una familia. */
 .ficha-fam { background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r);
@@ -1011,21 +1013,29 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    la lista para ver si falta alguna. La columna son 92 pt medidos y al nombre le
    quedan 234, que es más de lo que ocupa cualquier ingrediente real. */
 .fila-ing { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; }
-.lista-ing .deslizable + .deslizable .fila-ing { border-top: 1px solid var(--line-soft); }
-/* La cifra y su unidad **en la misma línea**: apiladas, cada ingrediente medía
-   129 pt en vez de 66 y en pantalla cabían dos. La unidad es la coletilla del
-   número, no un dato aparte. */
-.ing-cifra { width: 92px; flex: none; display: flex; gap: 3px; }
-.ing-cifra input { padding: 8px 6px; text-align: right; min-width: 0; }
-.ing-cifra .ing-unidad { width: 34px; flex: none; font-size: var(--t-sub); padding: 8px 4px; text-align: center; }
+.fila-ing + .fila-ing { border-top: 1px solid var(--line-soft); }
+/* **Dos campos y no tres** (§14.20-bis · U1): la unidad vive dentro del de la
+   cantidad porque se escribe «1,2 kg» de un tirón, que es como se dice en voz
+   alta. Tres cajas obligaban a decidir la unidad antes de haber escrito qué es. */
+/* `.fila-ing .ing-cant` y no `.ing-cant` a secas: la regla general de los
+   campos es `input[type=text]`, que tiene más especificidad que una clase sola,
+   así que su `width: 100%` ganaba y la caja de la cantidad se comía la fila
+   entera dejando el nombre fuera de la pantalla. Se veía en el navegador. */
+.fila-ing .ing-cant { width: 92px; flex: none; padding: 8px 9px; text-align: right; }
 .ing-nombre { flex: 1; min-width: 0; }
 .ing-nombre input { padding: 8px 10px; }
+/* El aspa de B3: 26 pt y sin caja. Cuesta 34 pt de ancho al nombre —la caja de
+   34 costaba 42 y la de 44, 52— y es lo que pone a la vista lo que más se hace
+   escribiendo una receta. La fila fantasma del final no tiene qué borrar, así
+   que la suya reserva el hueco y no se ve. */
+.aspa-ing { flex: none; width: 26px; height: 26px; display: grid; place-items: center;
+  border: none; background: none; border-radius: 6px; font-size: var(--t-sub);
+  color: var(--ink-faint); padding: 0; }
+.aspa-ing.invisible { visibility: hidden; }
 /* Lo que hay que decir de esa línea, y solo cuando hay algo que decir: vacío no
    ocupa nada, así que la fila corriente sigue midiendo lo que medía. */
 .ing-detalle:not(:empty) { font-size: var(--t-sub); color: var(--ink-faint); margin: 4px 2px 0; line-height: 1.35; }
-.anadir-ing { display: flex; gap: 8px; margin-top: 8px; }
-.anadir-ing input { flex: 1; min-width: 0; }
-.anadir-ing .btn { flex: none; }
+
 
 /* La compra: el total grande y, debajo, de dónde viene y qué ha cambiado. */
 .compra-sub { font-size: var(--t-sub); color: var(--ink-faint); line-height: 1.35; margin-top: 2px; }
@@ -1035,3 +1045,8 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .compra-cant { font-size: var(--t-row); font-weight: 600; font-variant-numeric: tabular-nums;
   white-space: nowrap; flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
 .compra-cant.falta { font-weight: 500; font-style: italic; color: var(--ink-faint); }
+
+/* Un verbo dentro de una frase —«deshacer»— sin vestirlo de botón: es la salida
+   del arreglo con IA (§14.20-bis · R1), y tiene que estar a mano sin gritar. */
+.como-enlace { background: none; border: none; padding: 0; font: inherit;
+  color: var(--spout-deep); text-decoration: underline; text-underline-offset: 3px; }

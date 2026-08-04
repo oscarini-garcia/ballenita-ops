@@ -65,6 +65,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   niños hereda los platos mientras `platoIdsNinos` sea `null`. La compra enseña el total
   redondeado al envase y el reparto al abrir la línea; al cambiar una cena se rehace y **lo
   dice**, pero **nunca toca lo escrito a mano ni lo ya comprado**.
+- **El editor de receta: dos campos y dos botones** (SPECS §14.20-bis,
+  `docs/diseño/receta-ingredientes.html` · U1·B3·R1·L2+L4·P2·Q): la unidad va dentro de la
+  cantidad («1,2 kg» de un tirón), aspa de 26 pt, fila vacía siempre al final y pegar reparte
+  líneas. **Arreglar** ordena lo escrito a saco y **se deshace**; **Parecidos** propone cinco
+  platos enteros y coger uno **no guarda nada**: reabre el editor con todo puesto.
 - **En Planes solo se vota, y un plan solo nace de una idea** (SPECS §14.19,
   `docs/diseño/planes-votar.html` · V3·V5·S2): el «+ Plan» se retiró —dos caminos para
   crear un plan dejaban planes sueltos sin idea detrás, que es media razón de ser del
@@ -76,6 +81,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   color del fondo, 1,0 : 1. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
+- **Un día del viaje son cuatro renglones** (SPECS §14.21, `docs/diseño/agenda-dia.html` ·
+  A1·B4·F1·G1·C2·D2·E1): qué bungas, **qué se cena** y **qué plan**. La fila de un día ya no
+  lleva lápiz —un día no se edita, existe porque el evento tiene esas fechas— y el modal pasó
+  de 1.773,8 pt a 679,8: los platos se marcan en una hoja (`HojaDeMarcar`), los planes libres
+  se eligen en otra —con los votos y quién falta—, «Qué se hace» y «Cantidades» se retiraron
+  (las columnas siguen en D1) y «Plato nuevo al vuelo» volvió a Comidas → Platos. **Libre**
+  incluye lo que se cayó fuera de las fechas, que antes desaparecía del modal.
 - **La lista de ideas se parte en dos, y cada idea la firma alguien** (SPECS §14.19-ter,
   `docs/diseño/planes-ideas.html` · A1·B3·F2·C1+C3·D3): **Propuestas** —las que ya están a
   votación en este viaje— y **Posibles**; la firma es nombre + **alias de dos letras** de su
@@ -121,6 +133,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   uno, las ideas de plan—. **Vacío devuelve el de origen**, la forma de la respuesta es parte
   del encargo (si le quitas el JSON deja de salir nada) y **solo se guardan los del catálogo**:
   sin ese filtro, un encargo llamado `clave` machacaría la credencial de pago.
+- **Cada encargo puede llevar su propio modelo** (SPECS §14.16-quinquies): la clave es de la
+  instalación, el modelo no. `ia.modelo:<id>` con el mismo filtro que los encargos, y el orden
+  es lo guardado → el de origen del encargo → el general. Hoy solo «Ordenar una lista de
+  ingredientes» trae uno puesto (haiku): es traducción y es el botón que más se pulsa.
 - **Un campo es su rótulo, el control y la pista debajo** (`components/Campo.jsx`, SPECS
   §14.16-ter, figura de `garciadoral-ops`): el estado vive **en el campo** —«Guardada, termina
   en ab12»— y no en una ficha con icono encima, y lo que contesta el servidor va en una

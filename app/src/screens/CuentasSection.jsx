@@ -448,6 +448,9 @@ export function IASection() {
   // Lo que se le pide al modelo, por encargo: `{ ideas: '…' }`. Los rótulos y
   // las pistas los pone el servidor, que es donde vive el catálogo.
   const [encargos, setEncargos] = useState({})
+  // Y con qué modelo se le pide cada cosa. `''` quiere decir «el de arriba»:
+  // la clave es de la instalación, el modelo no tiene por qué serlo.
+  const [modelosPorEncargo, setModelosPorEncargo] = useState({})
 
   /**
    * La lista, y con ella la comprobación de que el modelo apuntado sigue
@@ -475,6 +478,7 @@ export function IASection() {
         setIa(r.ia)
         setModelo(r.ia.modelo)
         setEncargos(Object.fromEntries((r.ia.encargos ?? []).map((e) => [e.id, e.texto])))
+        setModelosPorEncargo(Object.fromEntries((r.ia.encargos ?? []).map((e) => [e.id, e.modeloPropio ? e.modelo : ''])))
         // Sin clave no hay a quién preguntar; el desplegable aparece al ponerla.
         if (r.ia.hayClave) traerModelos()
       })
@@ -514,12 +518,14 @@ export function IASection() {
         clave: clave.trim() || undefined,
         modelo: modelo.trim() || undefined,
         encargos,
+        modelos: modelosPorEncargo,
       })
       setIa(r.ia)
       setClave('')
       // Lo que vuelve es lo que ha quedado: si uno se dejó en blanco, aquí
       // reaparece el de origen en vez de una caja vacía que no es lo que hay.
       setEncargos(Object.fromEntries((r.ia.encargos ?? []).map((e) => [e.id, e.texto])))
+      setModelosPorEncargo(Object.fromEntries((r.ia.encargos ?? []).map((e) => [e.id, e.modeloPropio ? e.modelo : ''])))
       contar('Guardado.')
       // Con clave nueva la lista puede ser otra: se vuelve a preguntar.
       if (r.ia.hayClave) traerModelos()
@@ -579,15 +585,40 @@ export function IASection() {
           se leen dos veces para enterarse de lo mismo. Con varios, cada uno se
           seguirá nombrando solo. */}
       {(ia?.encargos ?? []).map((e) => (
-        <Campo key={e.id} etiqueta={e.titulo} id={`ia-encargo-${e.id}`} pista={e.pista}>
-          <textarea
-            id={`ia-encargo-${e.id}`}
-            rows="7"
-            spellCheck="false"
-            value={encargos[e.id] ?? ''}
-            onChange={(ev) => setEncargos({ ...encargos, [e.id]: ev.target.value })}
-          />
-        </Campo>
+        <div key={e.id}>
+          <Campo etiqueta={e.titulo} id={`ia-encargo-${e.id}`} pista={e.pista}>
+            <textarea
+              id={`ia-encargo-${e.id}`}
+              rows="7"
+              spellCheck="false"
+              value={encargos[e.id] ?? ''}
+              onChange={(ev) => setEncargos({ ...encargos, [e.id]: ev.target.value })}
+            />
+          </Campo>
+          {/* Cada encargo puede llevar su propio modelo: ordenar una lista de
+              ingredientes es traducción y le sobra el grande, proponer cinco
+              platos que peguen con una paella no. «El de arriba» es lo de
+              fábrica salvo que el encargo traiga otro puesto. */}
+          <Campo
+            // «Modelo» a secas: el título del encargo está justo encima, y
+            // repetirlo entero se comía dos líneas para no decir nada nuevo.
+            etiqueta="Modelo"
+            id={`ia-modelo-${e.id}`}
+            pista={modelosPorEncargo[e.id] ? null : `Usa el de arriba: ${e.modelo}.`}
+          >
+            <select
+              id={`ia-modelo-${e.id}`}
+              value={modelosPorEncargo[e.id] ?? ''}
+              onChange={(ev) => setModelosPorEncargo({ ...modelosPorEncargo, [e.id]: ev.target.value })}
+            >
+              <option value="">El de arriba</option>
+              {!modelos?.some((m) => m.id === modelosPorEncargo[e.id]) && modelosPorEncargo[e.id] && (
+                <option value={modelosPorEncargo[e.id]}>{modelosPorEncargo[e.id]} (el que hay puesto)</option>
+              )}
+              {(modelos ?? []).map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+            </select>
+          </Campo>
+        </div>
       ))}
 
       <div className="editor-pie">

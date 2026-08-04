@@ -41,8 +41,9 @@ import {
 } from './repositorio.js';
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
-import { claveDeEncargo, esEncargoConocido } from './encargos.js';
+import { claveDeEncargo, claveDeModelo, esEncargoConocido } from './encargos.js';
 import { materialDelPlato, pedirCantidades } from './cantidades.js';
+import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 
 const TIPO_JSON = { 'content-type': 'application/json; charset=utf-8' };
@@ -447,7 +448,7 @@ async function sugerirPlanes(peticion, env) {
   const { eventId, descartadas = [] } = await peticion.json();
   if (!eventId) return json({ error: 'falta el evento' }, 400);
 
-  const { clave, modelo, encargos } = await leerConfiguracionIA(env.DB);
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
   // Sin clave no se falla a mitad: se dice que no está puesta, y la app esconde
   // el botón en vez de ofrecer algo que no puede hacer.
   if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
@@ -476,9 +477,9 @@ async function sugerirPlanes(peticion, env) {
     // no existe» no es algo que pueda arreglar quien pulsó el botón.
     const { resultado, cambiado } = await conModeloVigente({
       clave,
-      modelo,
+      modelo: modelos.ideas,
       hacer: (m) => pedirPropuestas({ clave, modelo: m, material, instruccion: encargos.ideas }),
-      guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('ideas')]: m }),
     });
     return json({ propuestas: resultado, cambiado: cambiado || null });
   } catch (e) {
@@ -502,7 +503,7 @@ async function cantidadesDeUnPlato(peticion, env) {
   const pedidos = (ingredientes || []).map((x) => String(x ?? '').trim()).filter(Boolean);
   if (!pedidos.length) return json({ error: 'no hay ingredientes que rellenar' }, 400);
 
-  const { clave, modelo, encargos } = await leerConfiguracionIA(env.DB);
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
   if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
 
   const material = materialDelPlato({ plato, raciones, ingredientes: pedidos });
@@ -510,11 +511,73 @@ async function cantidadesDeUnPlato(peticion, env) {
   try {
     const { resultado, cambiado } = await conModeloVigente({
       clave,
-      modelo,
+      modelo: modelos.cantidades,
       hacer: (m) => pedirCantidades({ clave, modelo: m, material, pedidos, instruccion: encargos.cantidades }),
-      guardar: (m) => guardarConfiguracionIA(env.DB, { modelo: m }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('cantidades')]: m }),
     });
     return json({ cantidades: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
+/**
+ * Ordena una lista de ingredientes escrita a saco (SPECS §14.20-bis).
+ *
+ * Del móvil salen las líneas tal como están y el nombre del plato; nada más. Lo
+ * que vuelve es, por línea, la cantidad, la unidad y el nombre limpio — y solo
+ * de las líneas que se mandaron: una línea de más aparecería sola en la receta
+ * de alguien.
+ */
+async function arreglarLaLista(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { plato = '', raciones = null, lineas = [] } = await peticion.json();
+  if (!Array.isArray(lineas) || !lineas.length) return json({ error: 'no hay líneas que ordenar' }, 400);
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDeLaLista({ plato, raciones, lineas });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.arreglar,
+      hacer: (m) => pedirArreglo({ clave, modelo: m, material, cuantas: lineas.length, instruccion: encargos.arreglar }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('arreglar')]: m }),
+    });
+    return json({ lineas: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
+/**
+ * Cinco platos que peguen con el que se está mirando (SPECS §14.20-bis).
+ *
+ * Tanda de cinco, como los regalos de `garciadoral-ops` y las ideas de plan: lo
+ * caro es contarle el contexto, y pasar de una propuesta a otra no vuelve a
+ * pedir nada. Llegan enteras —tipo e ingredientes incluidos— porque aceptar una
+ * abre el editor con todo puesto.
+ */
+async function platosParecidos(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { plato = '', ingredientes = [], yaHay = [] } = await peticion.json();
+  if (!plato && !ingredientes.length) return json({ error: 'hace falta al menos el nombre o los ingredientes' }, 400);
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDelPlatoParecido({ plato, ingredientes, yaHay });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.parecidos,
+      hacer: (m) => pedirParecidos({ clave, modelo: m, material, instruccion: encargos.parecidos }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('parecidos')]: m }),
+    });
+    return json({ platos: resultado, cambiado: cambiado || null });
   } catch (e) {
     return json({ error: String(e.message ?? e) }, 502);
   }
@@ -525,7 +588,7 @@ async function configuracionIA(peticion, env) {
   if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
 
   if (peticion.method === 'POST') {
-    const { clave, modelo, encargos = {} } = await peticion.json();
+    const { clave, modelo, encargos = {}, modelos = {} } = await peticion.json();
     await guardarConfiguracionIA(env.DB, { clave, modelo });
 
     // Los encargos se guardan **uno a uno y solo los conocidos**. Sin este
@@ -536,6 +599,12 @@ async function configuracionIA(peticion, env) {
       if (!esEncargoConocido(id)) continue;
       // Vacío no borra la fila: guarda «», y al leer eso vuelve el de origen.
       await guardarConfiguracionIA(env.DB, { [claveDeEncargo(id)]: String(texto ?? '').trim() });
+    }
+    // Y con qué modelo se le pide cada cosa. Mismo filtro y por lo mismo: sin
+    // él, un «modelo» llamado `clave` machacaría la credencial de pago.
+    for (const [id, cual] of Object.entries(modelos)) {
+      if (!esEncargoConocido(id)) continue;
+      await guardarConfiguracionIA(env.DB, { [claveDeModelo(id)]: String(cual ?? '').trim() });
     }
   }
 
@@ -614,6 +683,8 @@ const RUTAS = [
   ['POST', '/api/ia/probar', probarIA],
   ['POST', '/api/plan/sugerir', sugerirPlanes],
   ['POST', '/api/plato/cantidades', cantidadesDeUnPlato],
+  ['POST', '/api/plato/arreglar', arreglarLaLista],
+  ['POST', '/api/plato/parecidos', platosParecidos],
   ['POST', '/api/importar', importar],
 ];
 

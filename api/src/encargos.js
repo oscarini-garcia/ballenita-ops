@@ -24,6 +24,7 @@
 
 import { INSTRUCCION } from './sugerencias.js';
 import { INSTRUCCION as CANTIDADES } from './cantidades.js';
+import { INSTRUCCION_ARREGLAR, INSTRUCCION_PARECIDOS } from './receta.js';
 
 export const ENCARGOS = [
   {
@@ -38,12 +39,38 @@ export const ENCARGOS = [
     pista: 'Se le da el plato, para cuántas raciones es y los ingredientes a los que les falta la cifra; contesta con la cantidad y con en qué se compra (el envase), que es lo que permite redondear. Espera un JSON con «nombre», «cantidad», «unidad» y «lote»: si reescribes esto, conserva esa parte. Estirar la receta para la gente que hay no lo hace el modelo, lo hace la app. Vacío, vuelve el encargo de origen.',
     origen: CANTIDADES,
   },
+  {
+    id: 'arreglar',
+    titulo: 'Ordenar una lista de ingredientes escrita a saco',
+    pista: 'Convierte «tres pinchos de wagyu» en 3 · ud · «Pinchos de wagyu». Es traducción, no invención: saca la cantidad y deja el nombre **como lo escribiste** —no corrige faltas ni cambia mayúsculas, porque también te cambiaría los nombres raros puestos a propósito—. Lo que ya trae número se respeta y lo que no se entiende —«al gusto»— se queda sin cantidad. Espera un JSON con «i», «cantidad», «unidad» y «nombre»; si le quitas esa parte, el botón deja de hacer nada. Vacío, vuelve el encargo de origen.',
+    origen: INSTRUCCION_ARREGLAR,
+    // Este encargo es traducción y no criterio: sacar «tres» de una frase no
+    // pide el modelo grande, y es el botón que más se va a pulsar. Se puede
+    // cambiar desde Ajustes como todo lo demás.
+    modelo: 'claude-haiku-4-5',
+  },
+  {
+    id: 'parecidos',
+    titulo: 'Proponer platos parecidos a uno',
+    pista: 'Tanda de cinco a partir del plato abierto y de lo que ya hay en el catálogo. Cada propuesta llega entera —nombre, por qué, tipo e ingredientes con cantidades para 12— porque aceptarla abre el editor con todo puesto. Espera ese JSON: sin él no sale ninguna. Vacío, vuelve el encargo de origen.',
+    origen: INSTRUCCION_PARECIDOS,
+  },
 ];
 
 const PORid = new Map(ENCARGOS.map((e) => [e.id, e]));
 
 /** La clave con la que se guarda en `configuracion`. */
 export const claveDeEncargo = (id) => `encargo:${id}`;
+
+/**
+ * Y la del **modelo de ese encargo** (SPECS §14.16-quinquies).
+ *
+ * La clave es de la instalación, pero el modelo no tiene por qué: ordenar una
+ * lista de ingredientes es traducción y le sobra el modelo grande; proponer
+ * cinco platos que peguen con una paella, no. Sin nada guardado se usa el de
+ * origen del encargo, y sin él, el general.
+ */
+export const claveDeModelo = (id) => `modelo:${id}`;
 
 /** ¿Es uno de los nuestros? Lo que llega de un móvil no elige dónde se escribe. */
 export const esEncargoConocido = (id) => PORid.has(id);
@@ -60,13 +87,27 @@ export function encargosDe(filas) {
   );
 }
 
+/**
+ * Qué modelo usa cada encargo: el guardado, el de origen del encargo, o el
+ * general. En ese orden, y el general es siempre la última palabra.
+ */
+export function modelosDe(filas, general) {
+  return Object.fromEntries(
+    ENCARGOS.map((e) => [e.id, filas.get(`ia.${claveDeModelo(e.id)}`)?.valor || e.modelo || general]),
+  );
+}
+
 /** Lo que necesita la pantalla: el rótulo, la pista, el texto y si es el de origen. */
-export function encargosPublicos(encargos = {}) {
+export function encargosPublicos(encargos = {}, modelos = {}, general = '') {
   return ENCARGOS.map((e) => ({
     id: e.id,
     titulo: e.titulo,
     pista: e.pista,
     texto: encargos[e.id] ?? e.origen,
     esDeOrigen: (encargos[e.id] ?? e.origen) === e.origen,
+    // El que se está usando de verdad, y si viene del de arriba o es suyo: la
+    // pantalla necesita las dos cosas para poder ofrecer «el de arriba».
+    modelo: modelos[e.id] ?? e.modelo ?? general,
+    modeloPropio: modelos[e.id] !== general,
   }));
 }
