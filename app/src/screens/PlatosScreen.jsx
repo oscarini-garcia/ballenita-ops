@@ -379,8 +379,13 @@ function ModalPlato({ plato, event, usos, catalogo = [], onClose, onProponer }) 
 
   return (
     <>
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    // Pegado arriba, estrecho y **sin robar el foco**, como el editor de una
+    // idea (§14.19-ter). Un editor que se abre con el cursor puesto saca el
+    // teclado solo, y entre el teclado abajo y el modal a ancho completo había
+    // que hacer scroll para ver la lista que venías a mirar. Ahora se abre a
+    // leer la receta y el teclado no sale hasta que tocas un campo.
+    <div className="modal-bg arriba" onClick={onClose}>
+      <div className="modal arriba formulario" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2>{esNuevo ? 'Plato nuevo' : 'Editar plato'}</h2>
 
@@ -395,17 +400,13 @@ function ModalPlato({ plato, event, usos, catalogo = [], onClose, onProponer }) 
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Tortilla de patata"
-          autoFocus={!plato}
         />
 
         <label>Ingredientes</label>
-        {/* Al editar un plato que ya existe, el foco entra aquí: editar un
-            plato es casi siempre tocarle la lista. */}
         <Ingredientes
           valor={ingredientes}
           raciones={Number(raciones) || null}
           onCambiar={(x) => { setIngredientes(x); setAntes(null) }}
-          autoFocus={Boolean(plato)}
         />
 
         <div className="editor-pie">

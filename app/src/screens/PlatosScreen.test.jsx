@@ -105,6 +105,30 @@ describe('PlatosScreen', () => {
     expect(await listDishes()).toHaveLength(0)
   })
 
+  it('se abre a leer: ni el nombre ni la lista roban el foco', async () => {
+    // Con el cursor puesto, iOS saca el teclado solo y entre él abajo y el modal
+    // a ancho completo había que hacer scroll para ver la receta que venías a
+    // mirar. Es la misma decisión que el editor de una idea (§14.19-ter).
+    await addDish({ name: 'Paella mixta', categorias: ['principal'], ingredientes: [{ nombre: 'Arroz' }] })
+    render(<PlatosScreen />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await screen.findByLabelText('Nombre')
+
+    expect(document.activeElement).not.toBe(screen.getByLabelText('Nombre'))
+    expect(document.activeElement).not.toBe(screen.getByLabelText('Ingrediente 1'))
+    expect(document.activeElement?.tagName).not.toBe('INPUT')
+  })
+
+  it('el editor va estrecho y pegado arriba, que es donde no está el teclado', async () => {
+    await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    const { container } = render(<PlatosScreen />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Editar Paella mixta' }))
+    await screen.findByLabelText('Nombre')
+
+    expect(container.querySelector('.modal-bg.arriba')).toBeInTheDocument()
+    expect(container.querySelector('.modal.arriba.formulario')).toBeInTheDocument()
+  })
+
   it('el catálogo vacío se explica solo', async () => {
     render(<PlatosScreen />)
     expect(await screen.findByText(/El catálogo está vacío/)).toBeInTheDocument()

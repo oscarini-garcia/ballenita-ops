@@ -35,8 +35,10 @@ import { normalizarIngredientes, sinCantidad, cifra, partirCantidad, juntarCanti
  *   es la mitad de lo que se hace escribiendo una receta.
  * - **Siempre hay una fila vacía al final** (L2) y **pegar varias líneas las
  *   reparte** (L4).
+ * - **No roba el foco al abrir**: el editor se abre a leer la receta, y con el
+ *   cursor puesto el teclado salía solo y tapaba media lista.
  */
-export default function Ingredientes({ valor = [], raciones, onCambiar, autoFocus = false }) {
+export default function Ingredientes({ valor = [], raciones, onCambiar }) {
   // Sin recortar: se está escribiendo, y el espacio que acabas de teclear no
   // puede desaparecer antes de la letra siguiente. El recorte es al guardar.
   const lineas = normalizarIngredientes(valor, { recortar: false })
@@ -138,7 +140,6 @@ export default function Ingredientes({ valor = [], raciones, onCambiar, autoFocu
                 <input
                   ref={i === 0 ? primera : null}
                   type="text"
-                  autoFocus={autoFocus && i === 0}
                   aria-label={fantasma ? 'Ingrediente nuevo' : `Ingrediente ${i + 1}`}
                   value={linea.nombre}
                   placeholder={fantasma ? 'Otro ingrediente…' : ''}

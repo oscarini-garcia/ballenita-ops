@@ -30,7 +30,7 @@ import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/s
 import { tap } from '../lib/native.js'
 import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
-import { checkForOtaUpdate, isNative } from '../lib/native.js'
+import { checkForOtaUpdate, isNative, versionInstalada } from '../lib/native.js'
 
 // Lo que la lista terminada se queda en pantalla antes de recargar, para poder
 // leerla. Cinco segundos es el rato en que se lee «instalada» sin que dé tiempo
@@ -43,6 +43,30 @@ const PASOS_APP = ['checking', 'downloading', 'applying']
 
 // Inyectada por Vite (define). Guarda por si el global no existe (p. ej. en tests).
 const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
+
+/**
+ * Qué ha contestado el paquete OTA, en palabras y con qué hacer al respecto.
+ *
+ * `checkForOtaUpdate` devuelve cuatro cosas además de «actualizado», y las
+ * cuatro acababan en la basura: el botón seguía con el camino del service
+ * worker —que dentro de la app de iOS no trae nada— y terminaba con su ✓. La
+ * pantalla decía que sí y el teléfono se quedaba en la de antes.
+ *
+ * Cada motivo dice **dónde** está el problema, porque están en sitios
+ * distintos: en el manifiesto, en la red, o en que ya la tienes.
+ */
+export function motivoDelOta(ota = {}) {
+  if (ota.status === 'up-to-date') {
+    return `Ya tienes el último paquete${ota.version ? ` (v${ota.version})` : ''}. Si esperabas otro, es que todavía no se ha publicado: mira si el release ota-v… existe.`
+  }
+  if (ota.status === 'no-manifest') {
+    return 'No se ha podido leer el manifiesto (releases/latest/download/latest.json). O no hay red, o todavía no hay ningún release publicado.'
+  }
+  if (ota.status === 'skip') {
+    return 'Aquí no hay paquete que traer: los OTA son de la app de iOS.'
+  }
+  return `No se ha podido traer el paquete: ${ota.error || 'sin motivo'}`
+}
 
 /**
  * Sincronización, y es el apartado que se abre.
@@ -603,6 +627,13 @@ function AppSection({ esAdmin = false }) {
   // recarga se lo llevaba por delante en cuanto terminaba, y lo único que se
   // veía era la pantalla parpadeando sin decir en qué había quedado.
   const [terminado, setTerminado] = useState(false)
+  // Lo que contestó el paquete OTA cuando no fue «actualizado». Se enseña en vez
+  // de tirarse: «no ha actualizado» sin motivo no se puede arreglar desde aquí.
+  const [fallo, setFallo] = useState(null)
+  // La versión del **paquete que se está ejecutando**, que dentro de la app es la
+  // que cuenta: la de `package.json` es la que se horneó en el binario.
+  const [enCurso, setEnCurso] = useState(null)
+  useEffect(() => { versionInstalada().then(setEnCurso).catch(() => {}) }, [])
   const caja = useRef(null)
   useEffect(() => {
     if (!recienActualizada) return
@@ -618,6 +649,7 @@ function AppSection({ esAdmin = false }) {
     tap()
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
     setTerminado(false)
+    setFallo(null)
     setPaso('checking') // empieza a contar ya, sin esperar al primer aviso
     const inicio = Date.now()
 
@@ -630,6 +662,13 @@ function AppSection({ esAdmin = false }) {
       const ota = await checkForOtaUpdate({ aplicarYa: true })
       // Si se aplicó, la webview ya se está recargando con el paquete nuevo.
       if (ota.status === 'updated') return
+      // Y si no, **se dice por qué** (§14.9-bis). Antes esta respuesta se tiraba:
+      // el botón seguía con el camino del service worker —que dentro de la app
+      // de iOS no trae nada— y terminaba con su ✓. La pantalla decía que había
+      // actualizado y el teléfono se quedaba en la de antes, sin nada que mirar.
+      setPaso(null)
+      setFallo(motivoDelOta(ota))
+      return
     }
 
     forzarActualizacion(setPaso, {
@@ -655,6 +694,11 @@ function AppSection({ esAdmin = false }) {
           cerraba. Contado en su sitio se queda ahí y se puede releer. */}
       <div className="pista">
         Versión en curso: <b className="tnum">v{APP_VERSION}</b>.
+        {/* Dentro de la app hay dos números y no siempre coinciden: el que se
+            horneó en el binario y el del paquete OTA que está puesto encima.
+            Cuando difieren, decirlo es la diferencia entre «no ha actualizado» y
+            saber cuál de los dos se ha quedado atrás. */}
+        {enCurso && enCurso !== APP_VERSION ? ` Paquete puesto: v${enCurso}.` : ''}
         {recienActualizada ? ' Recién actualizada ✓' : ''}
       </div>
       <div className="pista">
@@ -683,6 +727,8 @@ function AppSection({ esAdmin = false }) {
           </div>
         </>
       )}
+
+      {fallo && <pre className="traza mal" role="status">{fallo}</pre>}
 
       {esAdmin && <MigracionesBloque />}
     </div>
