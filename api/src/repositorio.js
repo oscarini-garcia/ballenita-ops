@@ -376,7 +376,7 @@ export async function guardarConfiguracionIA(db, campos = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Recados: la tanda de frases de cada evento (SPECS §14.22)
+// Recados: la tanda de frases de cada evento (SPECS §14.24)
 // ---------------------------------------------------------------------------
 
 /**

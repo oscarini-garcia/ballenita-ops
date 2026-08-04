@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { enPalabras, momentoDelDia } from '../lib/sol.js'
+import { cieloDelMomento } from '../lib/cielo.js'
 
 /**
  * La línea del horizonte: tres puntos bajo la cabecera que son el día.
@@ -26,6 +27,19 @@ export default function LineaDelHorizonte({ ahora = null }) {
     const reloj = setInterval(() => setMomento(momentoDelDia(new Date())), 60_000)
     return () => clearInterval(reloj)
   }, [ahora])
+
+  /**
+   * Y de paso, **el color del cielo** (A2). Va aquí y no en un componente suyo
+   * porque es el mismo dato: quien ya sabe qué hora es del día es quien puede
+   * decir de qué color está. `--cielo` se pone en la raíz y lo recoge `.appbar`
+   * con el azul de siempre de reserva, así que sin JavaScript —o en la pantalla
+   * de eventos, donde esto no se monta— la cabecera sigue siendo la de siempre.
+   */
+  useEffect(() => {
+    const raiz = document.documentElement
+    raiz.style.setProperty('--cielo', cieloDelMomento(momento))
+    return () => raiz.style.removeProperty('--cielo')
+  }, [momento])
 
   // Solo la fracción, de 0 a 1. Dónde cae eso en píxeles —y que el disco no se
   // salga por los bordes— es cuenta del CSS (`--f` en `theme.css`).

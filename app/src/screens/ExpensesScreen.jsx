@@ -83,7 +83,7 @@ export default function ExpensesScreen({ eventId, event }) {
         })}
       </div>
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.22). */}
+      {/* El recado del viaje, al final del scroll (SPECS §14.24). */}
       <Recado evento={event} />
 
       <Fab label="Gasto" onClick={() => setFicha('nuevo')} />

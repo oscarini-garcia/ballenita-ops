@@ -1975,7 +1975,7 @@ volvía a montar la lista entera. Con seis consultas vivas encima, llegaba a
 tragarse un toque —la fila se cambiaba por otra igual entre que bajaba el dedo y
 se levantaba—. Vive fuera y recibe lo suyo por props.
 
-### 14.22 Que se note que es verano: el sol de la cabecera y los recados
+### 14.24 Que se note que es verano: el sol de la cabecera y los recados
 
 Decidido en `docs/diseño/verano.html` (**A4 · B2 · C2+C4 · D2+D3**), una hoja con
 cinco partes y diecinueve opciones. El encargo eran dos cosas de cariño y ninguna
@@ -2008,6 +2008,30 @@ un lunar suelto—; el disco viaja **de su propio radio al ancho menos su radio*
 porque al amanecer exacto se salía media luna por el borde; y **no se anima, salta**
 cada minuto: a 0,4 pt por minuto, interpolar sería gastar batería para mover menos
 de medio punto.
+
+**A2 · Y el cielo, que se añadió después de verlo fallar.** La hoja daba A4 + A2
+como la combinación buena y la primera vuelta se quedó solo con A4. Fue un error
+de lectura, y se vio en cuanto estuvo puesto: la franja **se llena desde el
+amanecer**, así que a las **08:07** de un 4 de agosto son **27,3 pt de 390** —el
+7 %— de naranja en la esquina izquierda, y los otros 363 son surco. Bajo una
+cabecera negra eso se lee como el borde de la cabecera. A la hora a la que se abre
+la app por la mañana no había nada que ver.
+
+El cielo no tiene ese problema porque **no se llena, cambia**: a cualquier hora
+ocupa los 390 × 78,8 pt enteros. `--appbar-bg` pasa a ser siete tonos
+interpolados por la hora (`lib/cielo.js`), con el azul de siempre de reserva —sin
+JavaScript, o en la pantalla de eventos donde la franja no se monta, la cabecera
+es la de toda la vida—. Los tonos son **hondos a propósito**: la tinta es
+`#e6eef3` fija, el cielo literal de agosto (A6) la deja en 1,26 : 1 al mediodía, y
+estos mantienen el peor de la serie en **7,54 : 1**. Hay un test que lo comprueba
+**minuto a minuto de las 24 horas** contra las horas de sol reales, en agosto y en
+diciembre. La transición es de 1,2 s y entre un minuto y el siguiente el color
+cambia como mucho dos cifras de 255: no se ve cambiar, se ve que a media tarde ya
+no es el de por la mañana.
+
+De paso la franja engordó de 3 a **4 pt** y el disco de 9 a **11**, y el surco
+dejó de ser el color de la cabecera aclarado —que con el cielo encima ya no valía—
+para ser un blanco al 26 %, que se lee sobre cualquiera de los siete tonos.
 
 **B2 · La hora del sol se calcula** (`lib/sol.js`): día juliano, anomalía media,
 declinación y ángulo horario en unas cuarenta líneas puras, sin red y sin

@@ -591,7 +591,7 @@ async function platosParecidos(peticion, env) {
 }
 
 /**
- * La tanda de recadillos del viaje (SPECS §14.22).
+ * La tanda de recadillos del viaje (SPECS §14.24).
  *
  * Tiene una diferencia con los otros servicios de IA y es la que decide lo que
  * cuesta: **la ventana de dos horas vive aquí, no en el móvil**. El primero que
