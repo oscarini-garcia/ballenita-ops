@@ -219,7 +219,7 @@ export default function CompraScreen({ eventId, event }) {
         </>
       )}
 
-      {/* El recado del viaje, al final de la lista (SPECS §14.22). */}
+      {/* El recado del viaje, al final de la lista (SPECS §14.25). */}
       <Recado evento={event} />
     </div>
   )

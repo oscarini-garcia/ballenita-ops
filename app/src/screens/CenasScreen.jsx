@@ -54,7 +54,7 @@ export default function CenasScreen({ eventId, event }) {
         </>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.22). */}
+      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
       <Recado evento={event} />
 
       <Fab label="Cena" onClick={() => setOpen(true)} />

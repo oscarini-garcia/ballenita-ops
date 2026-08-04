@@ -115,8 +115,8 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
-- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.22,
-  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **3 pt** bajo la cabecera
+- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.25,
+  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **4 pt** bajo la cabecera (a `z-index: 7`, o la cabecera le tapa medio sol)
   que se llena de amanecer a anochecer con el sol de tirador (`components/LineaDelHorizonte.jsx`);
   la hora se **calcula** (`lib/sol.js`, sin red ni dependencias) porque dos constantes de verano
   mienten 3 h 28 en enero. Se descartó el arco que cruza la cabecera: el disco pasa **7 h 29 al
@@ -127,7 +127,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   (`api/src/recados.js`), mezcladas en una bolsa. **La ventana de dos horas se cumple dos veces**:
   la del Worker ahorra la llamada de pago, la del móvil la petición — sin las dos, nueve
   teléfonos son nueve llamadas y nueve bromas distintas a la vez. Salen unos **tres céntimos al
-  día** con haiku.
+  día** con haiku. **La cabecera cambia además de color con la hora** (A2, `lib/cielo.js`): la
+  franja sola no bastaba porque se llena desde el amanecer, y a las 08:07 son 27,3 pt de 390 —a
+  la hora a la que se abre la app no se veía nada—. Siete tonos hondos, peor contraste **7,54 : 1**,
+  comprobado minuto a minuto de las 24 horas.
 - **Lo que cae fuera de las fechas se aparta, no se esconde** (SPECS §14.10-quater,
   `lib/evento.js` · `porDia`): Cenas y Planes se ordenan por día y lo que ya no pertenece al
   evento baja al final marcado. Esconderlo lo dejaría invisible pero contando en Estadísticas

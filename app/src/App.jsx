@@ -103,7 +103,7 @@ export default function App() {
   // esconde precisamente cuando el permiso está dado. Ver `lib/push.js`.
   useEffect(() => { if (sesion) asegurarPush() }, [sesion])
 
-  // La tanda de recadillos, cada dos horas (SPECS §14.22). La regla la cumple
+  // La tanda de recadillos, cada dos horas (SPECS §14.25). La regla la cumple
   // `asegurarTanda`: aquí solo se le pregunta —al entrar en el evento, al volver
   // del fondo y cada cinco minutos— y ella decide si ya tocaba. Un latido corto
   // con una ventana larga es lo que hace que valga igual con la app abierta toda
@@ -224,7 +224,7 @@ export default function App() {
         )}
       </header>
 
-      {/* El día, dibujado en tres puntos bajo la cabecera. Ver SPECS §14.22. */}
+      {/* El día, dibujado en tres puntos bajo la cabecera. Ver SPECS §14.25. */}
       <LineaDelHorizonte />
 
       {tab === 'agenda' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}

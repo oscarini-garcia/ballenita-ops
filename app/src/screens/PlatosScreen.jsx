@@ -79,7 +79,7 @@ export default function PlatosScreen({ event }) {
         </div>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.22). */}
+      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
       <Recado evento={event} />
 
       <Fab label="Plato" onClick={() => setEditando('nuevo')} />

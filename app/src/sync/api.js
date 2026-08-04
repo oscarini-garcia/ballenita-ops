@@ -225,7 +225,7 @@ export const sugerirPlanes = (eventId, descartadas = []) =>
   }).then((r) => r.propuestas || [])
 
 /**
- * La tanda de recadillos del viaje (SPECS §14.22).
+ * La tanda de recadillos del viaje (SPECS §14.25).
  *
  * Devuelve lo que el servidor tenga: la tanda guardada si sigue dentro de su
  * ventana de dos horas, una nueva si no. Sin clave de IA contesta la lista
