@@ -111,6 +111,19 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
+- **La cabecera sabe qué hora es, y al final de la lista alguien habla** (SPECS §14.22,
+  `docs/diseño/verano.html` · A4·B2·C2+C4·D2+D3): una franja de **3 pt** bajo la cabecera
+  que se llena de amanecer a anochecer con el sol de tirador (`components/LineaDelHorizonte.jsx`);
+  la hora se **calcula** (`lib/sol.js`, sin red ni dependencias) porque dos constantes de verano
+  mienten 3 h 28 en enero. Se descartó el arco que cruza la cabecera: el disco pasa **7 h 29 al
+  día por detrás del título**. Abajo, un emoji y una frase **al final del scroll y en los
+  vacíos** —0 pt permanentes—, no en un renglón fijo sobre la barra, que costaba de 42,6 a 66,2 pt
+  y cobraba más caro al que peor ve. Las frases salen de **los datos del viaje** (`lib/recados.js`,
+  con su guarda cada una y **sin señalar a nadie**) y de una **tanda de doce de la IA**
+  (`api/src/recados.js`), mezcladas en una bolsa. **La ventana de dos horas se cumple dos veces**:
+  la del Worker ahorra la llamada de pago, la del móvil la petición — sin las dos, nueve
+  teléfonos son nueve llamadas y nueve bromas distintas a la vez. Salen unos **tres céntimos al
+  día** con haiku.
 - **Lo que cae fuera de las fechas se aparta, no se esconde** (SPECS §14.10-quater,
   `lib/evento.js` · `porDia`): Cenas y Planes se ordenan por día y lo que ya no pertenece al
   evento baja al final marcado. Esconderlo lo dejaría invisible pero contando en Estadísticas

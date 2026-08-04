@@ -73,7 +73,8 @@ export default function IdeasScreen({ eventId, event }) {
       {ideas.length === 0 && (
         <div className="empty">
           <span className="e">🗺️</span>Todavía no hay ideas guardadas.<br />
-          Apunta la primera ahí arriba, o guarda un plan desde Planes.
+          Apunta la primera ahí arriba, o guarda un plan desde Planes.<br />
+          Las buenas se apuntan en la sobremesa y se olvidan al día siguiente.
         </div>
       )}
 

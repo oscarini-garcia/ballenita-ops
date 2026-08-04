@@ -8,6 +8,7 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { porDia } from '../lib/evento.js'
 import { tap } from '../lib/native.js'
 import Fab from '../components/Fab.jsx'
+import Recado from '../components/Recado.jsx'
 
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 const fmtDay = (d) => (d ? new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Sin día')
@@ -27,7 +28,11 @@ export default function CenasScreen({ eventId, event }) {
   return (
     <div className="body">
       {dinners.length === 0 && (
-        <div className="empty"><span className="e">🍳</span>Ninguna cena todavía.<br />Monta la primera con «+ Cena».</div>
+        <div className="empty">
+          <span className="e">🍳</span>Ninguna cena todavía.<br />
+          Monta la primera con «+ Cena».<br />
+          De momento se cena lo que haya en el maletero.
+        </div>
       )}
 
       {dentro.map((c) => (
@@ -48,6 +53,9 @@ export default function CenasScreen({ eventId, event }) {
           ))}
         </>
       )}
+
+      {/* El recado del viaje, al final del scroll (SPECS §14.22). */}
+      <Recado evento={event} />
 
       <Fab label="Cena" onClick={() => setOpen(true)} />
       {open && <AddDinnerModal eventId={eventId} evento={event} bungas={bungas} dishes={dishes} onClose={() => setOpen(false)} />}

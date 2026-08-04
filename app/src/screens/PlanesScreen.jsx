@@ -91,7 +91,8 @@ export default function PlanesScreen({ eventId, event }) {
       {plans.length === 0 && (
         <div className="empty">
           <span className="e">🗺️</span>Ningún plan todavía.<br />
-          Los planes salen de <b>Ideas</b>: apunta la idea ahí y dale a <b>Proponer</b>.
+          Los planes salen de <b>Ideas</b>: apunta la idea ahí y dale a <b>Proponer</b>.<br />
+          Un viaje sin planes también es un plan, pero avisa.
         </div>
       )}
 

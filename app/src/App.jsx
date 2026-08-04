@@ -11,6 +11,7 @@ import PlanesScreen from './screens/PlanesConAreasScreen.jsx'
 import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
 import Icono from './components/Icono.jsx'
 import SyncDot from './components/SyncDot.jsx'
+import LineaDelHorizonte from './components/LineaDelHorizonte.jsx'
 import ProgresoModal from './components/ProgresoModal.jsx'
 import { sincronizarTodo } from './lib/sincronizarTodo.js'
 import { useSyncEngine } from './sync/engine.js'
@@ -19,6 +20,7 @@ import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
 import { enDemo, salirDemo } from './lib/demo.js'
 import { asegurarPush } from './lib/push.js'
+import { LATIDO_MS, asegurarTanda } from './lib/tanda.js'
 import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
@@ -100,6 +102,21 @@ export default function App() {
   // servidor no tenía a dónde mandar, y el único botón que lo arreglaba se
   // esconde precisamente cuando el permiso está dado. Ver `lib/push.js`.
   useEffect(() => { if (sesion) asegurarPush() }, [sesion])
+
+  // La tanda de recadillos, cada dos horas (SPECS §14.22). La regla la cumple
+  // `asegurarTanda`: aquí solo se le pregunta —al entrar en el evento, al volver
+  // del fondo y cada cinco minutos— y ella decide si ya tocaba. Un latido corto
+  // con una ventana larga es lo que hace que valga igual con la app abierta toda
+  // la tarde que abriéndola una vez al día.
+  useEffect(() => {
+    if (!activeId) return undefined
+    const mirar = () => { asegurarTanda(activeId) }
+    mirar()
+    const reloj = setInterval(mirar, LATIDO_MS)
+    const alVolver = () => { if (document.visibilityState === 'visible') mirar() }
+    document.addEventListener('visibilitychange', alVolver)
+    return () => { clearInterval(reloj); document.removeEventListener('visibilitychange', alVolver) }
+  }, [activeId])
 
   // Si el Worker rechaza la sesión, el transporte ya la ha borrado: aquí solo
   // hay que volver a la puerta.
@@ -206,6 +223,9 @@ export default function App() {
           <SyncDot sync={sync} onClick={sincronizarTodoAhora} />
         )}
       </header>
+
+      {/* El día, dibujado en tres puntos bajo la cabecera. Ver SPECS §14.22. */}
+      <LineaDelHorizonte />
 
       {tab === 'agenda' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}
       {tab === 'dinero' && <DineroScreen eventId={activeId} event={event} />}

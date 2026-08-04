@@ -38,10 +38,13 @@ import {
   hayAlgunaCuenta, importarInstantanea, leerInstantanea, leerMejorasPendientes, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
   guardarTokenPush, olvidarTokenPush, silenciarDispositivo, tokensDeAdministradores,
-  tokensDeCuenta,
+  tokensDeCuenta, leerRecadosGuardados, guardarRecados,
 } from './repositorio.js';
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
+import {
+  materialDelViaje as materialDeRecados, pedirRecados, sigueSirviendo,
+} from './recados.js';
 import { claveDeEncargo, claveDeModelo, esEncargoConocido } from './encargos.js';
 import { materialDelPlato, pedirCantidades } from './cantidades.js';
 import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
@@ -584,6 +587,80 @@ async function platosParecidos(peticion, env) {
   }
 }
 
+/**
+ * La tanda de recadillos del viaje (SPECS §14.22).
+ *
+ * Tiene una diferencia con los otros servicios de IA y es la que decide lo que
+ * cuesta: **la ventana de dos horas vive aquí, no en el móvil**. El primero que
+ * pregunta pasadas las dos horas paga la llamada y los otros ocho teléfonos se
+ * llevan la misma tanda de la base. Al revés serían nueve llamadas por ventana
+ * —y nueve bromas distintas a la vez, que en un grupo es peor que caro—.
+ *
+ * Y **sin clave no es un error**: la app tiene sus propias frases sacadas de los
+ * datos del viaje, así que aquí se contesta con la lista vacía y se sigue. Un
+ * 409 obligaría a la pantalla a distinguir «no hay IA» de «ha fallado algo»,
+ * cuando en las dos la respuesta es la misma: enseñar lo que haya.
+ */
+async function recadosDelViaje(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { eventId, hoy = new Date().toISOString().slice(0, 10) } = await peticion.json();
+  if (!eventId) return json({ error: 'falta el evento' }, 400);
+
+  const guardada = await leerRecadosGuardados(env.DB, eventId);
+  if (guardada && sigueSirviendo(guardada.generadoEn)) {
+    return json({ recados: guardada.recados, generadoEn: guardada.generadoEn, deLaBase: true });
+  }
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ recados: [], generadoEn: null, sinClave: true });
+
+  const evento = await env.DB.prepare('SELECT * FROM events WHERE id = ? AND borrado = 0').bind(eventId).first();
+  if (!evento) return json({ error: 'ese evento no existe' }, 404);
+
+  const cuantos = async (tabla, mas = '') => {
+    const fila = await env.DB
+      .prepare(`SELECT COUNT(*) AS n FROM ${tabla} WHERE eventId = ? AND borrado = 0${mas}`)
+      .bind(eventId).first();
+    return fila?.n ?? 0;
+  };
+  const { results: personas } = await env.DB
+    .prepare('SELECT edad FROM persons WHERE eventId = ? AND borrado = 0').bind(eventId).all();
+
+  const material = materialDeRecados({
+    evento,
+    personas: personas || [],
+    hoy,
+    cuentas: {
+      gastos: await cuantos('expenses'),
+      cenas: await cuantos('dinners'),
+      planes: await cuantos('plans'),
+      compra: await cuantos('shop', ' AND comprado = 0'),
+    },
+  });
+
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.recados,
+      hacer: (m) => pedirRecados({ clave, modelo: m, material, instruccion: encargos.recados }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('recados')]: m }),
+    });
+
+    // Una tanda vacía —el encargo reescrito sin JSON— no se guarda: guardarla
+    // dejaría dos horas sin recados y sin manera de saber por qué.
+    if (!resultado.length) return json({ recados: [], generadoEn: null, cambiado: cambiado || null });
+
+    const generadoEn = await guardarRecados(env.DB, eventId, resultado);
+    return json({ recados: resultado, generadoEn, cambiado: cambiado || null });
+  } catch (e) {
+    // Si falla la llamada se devuelve lo viejo antes que nada: una tanda de hace
+    // cinco horas sigue teniendo gracia, y quedarse en blanco no.
+    if (guardada) return json({ recados: guardada.recados, generadoEn: guardada.generadoEn, caducada: true });
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
 async function configuracionIA(peticion, env) {
   const cuenta = await cuentaAutenticada(peticion, env);
   if (cuenta.rol !== 'administrador') return json({ error: 'reservado a administradores' }, 403);
@@ -703,6 +780,7 @@ const RUTAS = [
   ['POST', '/api/plato/cantidades', cantidadesDeUnPlato],
   ['POST', '/api/plato/arreglar', arreglarLaLista],
   ['POST', '/api/plato/parecidos', platosParecidos],
+  ['POST', '/api/recados', recadosDelViaje],
   ['POST', '/api/importar', importar],
   ['GET', '/api/mejoras', mejorasPendientes],
 ];

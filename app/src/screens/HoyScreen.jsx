@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { dinnersOf, plansOf, bungasOf, listDishes } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import PieDeVersion from '../components/PieDeVersion.jsx'
+import Recado from '../components/Recado.jsx'
 import {
   diasDe, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, fmtDiaCorto,
 } from '../lib/dias.js'
@@ -34,7 +35,8 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
         <div className="empty">
           <span className="e">🗓️</span>
           Este evento todavía no tiene fechas.<br />
-          Ponlas en Ajustes → Evento y aquí verás el día a día.
+          Ponlas en Ajustes → Evento y aquí verás el día a día.<br />
+          Sin fechas no hay cuenta atrás, y sin cuenta atrás no hay prisa.
         </div>
       </div>
     )
@@ -87,6 +89,9 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
           </button>
         ))}
       </div>
+
+      {/* El recado del día, encima de la versión (SPECS §14.22). */}
+      <Recado evento={event} />
 
       <PieDeVersion />
     </div>
