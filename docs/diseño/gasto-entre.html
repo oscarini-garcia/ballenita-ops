@@ -327,6 +327,27 @@
     </div>
   </div>
 
+  <!-- ══ LO DECIDIDO ═══════════════════════════════════════════════════════ -->
+  <div class="cierre">
+    <h2>Decidido y hecho · A3 · B2 · C2 con el renglón de C4 · D2 + D4 · E2 · F3</h2>
+    <p>La hoja se escribió para elegir y ya se eligió: esto es lo que hay puesto en la app desde la
+      <b>v0.20.0</b>, no una propuesta. Se hicieron las seis partes y los cuatro arreglos que no se eligen.</p>
+    <p><b>Los números del componente real, medidos después de construirlo</b> —y no los de esta réplica—:
+      la hoja mide <b>389,6 pt</b> cerrada y <b>421,6 en «Enorme»</b>, frente a los <b>711,3</b> de antes. Con
+      una familia abierta son 533,6 y sigue sin hacer scroll. La casilla de una familia tiene <b>44 × 44 pt</b>
+      de toque y los cuatro atajos entran en una fila <b>en las tres tallas</b>, sin cortarse.</p>
+    <p><b>La parte seis subió al `.modal` de todos, no solo al de gastos.</b> La hoja la planteaba para la
+      ficha y sus tres hojas; al ponerla se vio que el fallo lo tenían los once modales de la app —el papel
+      era `--foam`, que es `--app-bg`, en todos— y que dos papeles distintos para dos modales habría sido
+      peor que uno malo. Con eso, <code>.capa</code> y <code>velo-fuerte</code> se quedaron sin nada que
+      añadir y salieron del marcado; quien monta guardia ahora es <code>src/estilos.test.js</code>, que mira
+      el CSS y no las clases —que es lo que habría pillado el fallo la primera vez—.</p>
+    <p>Dos detalles que solo aparecen construyendo: dentro de una capa, <code>--foam-2</code> baja un escalón
+      <b>redefiniendo la variable y no cada regla</b> —si no, cada cosa nueva que se metiera en un modal habría
+      que acordarse de apuntarla—, y con eso una fila de persona sangrada quedaba <b>del mismo color que la
+      lista</b> que la contiene, así que se tiñe hacia el papel para que se lea colgando de su familia.</p>
+  </div>
+
   <!-- ══ LO QUE HAY HOY ════════════════════════════════════════════════════ -->
   <div class="grupo">
     <div class="parte">Lo que hay puesto</div>

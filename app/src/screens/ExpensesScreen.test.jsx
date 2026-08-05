@@ -201,14 +201,14 @@ describe('Gastos · los dos renglones y las dos hojas', () => {
     })
   })
 
-  it('«Entre» dice cuántos, y «Solo mayores» deja fuera a los niños', async () => {
+  it('«Entre» dice cuántos, y el atajo «Mayores» deja fuera a los niños', async () => {
     const { eventId, event, curro, ana } = await sembrar({ conGasto: false })
     render(<ExpensesScreen eventId={eventId} event={event} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
 
     await pad('5', '00')
     await userEvent.click(screen.getByRole('button', { name: /Entre todos \(3\)/ }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Solo mayores' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Mayores' }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
 
     // El renglón lo dice sin abrir nada: lo que no se ve, no se corrige.
@@ -217,6 +217,26 @@ describe('Gastos · los dos renglones y las dos hojas', () => {
     await waitFor(async () => {
       const [g] = await expensesOf(eventId)
       expect([...g.participantIds].sort()).toEqual([curro, ana].sort())
+    })
+  })
+
+  // La hoja escribía en la ficha en cada toque, así que salir por el fondo
+  // guardaba. Ahora trabaja sobre un borrador (§14.27).
+  it('y cancelar en esa hoja deja el reparto como estaba', async () => {
+    const { eventId, event, curro, ana, nino } = await sembrar({ conGasto: false })
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+
+    await pad('5', '00')
+    await userEvent.click(screen.getByRole('button', { name: /Entre todos \(3\)/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Nadie' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+    expect(await screen.findByText('todos (3)')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar gasto' }))
+    await waitFor(async () => {
+      const [g] = await expensesOf(eventId)
+      expect([...g.participantIds].sort()).toEqual([curro, ana, nino].sort())
     })
   })
 })

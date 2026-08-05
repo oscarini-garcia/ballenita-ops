@@ -109,3 +109,39 @@ describe('las cajas de varias líneas', () => {
     expect(CSS.slice(0, i)).toMatch(/textarea[^{]*$/)
   })
 })
+
+/**
+ * El papel de un modal no puede ser el fondo de la app.
+ *
+ * Lo era: `.modal` iba a `--foam`, que es también `--app-bg`. **1,00 : 1** sin
+ * velo y 1,06 con él en la cara oscura, así que lo único que decía dónde
+ * empezaba una hoja era que el fondo estaba un poco más oscuro. Se arregló una
+ * vez para el modal de votar un plan con una clase que había que acordarse de
+ * poner, y once modales después seguía sin ponerse. Ahora es del `.modal` de
+ * todos, y esto es la guardia (SPECS §14.26-bis).
+ */
+describe('una capa se ve como capa', () => {
+  const CSS = readFileSync(join(RAIZ, 'theme.css'), 'utf8')
+  const regla = (selector) => {
+    const i = CSS.indexOf(selector + ' {')
+    expect(i, `no encuentro la regla ${selector}`).toBeGreaterThan(-1)
+    return CSS.slice(i, CSS.indexOf('}', i))
+  }
+
+  it('el papel de un modal es el suyo, no el fondo de la app', () => {
+    const r = regla('.modal')
+    expect(r).toMatch(/background:\s*var\(--papel-capa\)/)
+    expect(r, 'var(--foam) es el fondo de la app: ahí no separa nada').not.toMatch(/background:\s*var\(--foam\)/)
+  })
+
+  it('y lleva canto y sombra, porque el papel solo no basta en la cara oscura', () => {
+    const r = regla('.modal')
+    expect(r).toMatch(/border:\s*1\.5px solid var\(--linea-capa\)/)
+    expect(r).toMatch(/box-shadow:/)
+  })
+
+  it('las cuatro caras declaran el papel y su canto', () => {
+    expect(CSS.match(/--papel-capa:/g)).toHaveLength(4)
+    expect(CSS.match(/--linea-capa:/g)).toHaveLength(4)
+  })
+})

@@ -50,6 +50,9 @@ const DIBUJOS = {
   lapiz: <><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z" /><path d="M14.5 6 18 9.5" /></>,
   papelera: <><path d="M4 6.5h16M9.5 6.5V4h5v2.5" /><path d="M6.5 6.5 7.6 20a1.5 1.5 0 0 0 1.5 1.4h5.8a1.5 1.5 0 0 0 1.5-1.4l1.1-13.5" /><path d="M10.5 10.5v7M13.5 10.5v7" /></>,
   visto: <><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></>,
+  // La lupa de «Entre» (§14.27): el buscador vive detrás de ella para no cobrar
+  // 53,4 pt mientras no se usa, que es casi siempre.
+  buscar: <><circle cx="11" cy="11" r="6.5" /><path d="M15.8 15.8 20.5 20.5" /></>,
   // La bombilla de las mejoras (§14.22): una idea sobre la propia app.
   mejora: <><path d="M9 18h6M10 21h4" /><path d="M12 3.5a5.5 5.5 0 0 1 3.2 10 3.5 3.5 0 0 0-1.2 2h-4a3.5 3.5 0 0 0-1.2-2A5.5 5.5 0 0 1 12 3.5z" /></>,
   aviso: <><path d="M6 9.5a6 6 0 0 1 12 0c0 3.4.8 5.2 1.6 6.2a.7.7 0 0 1-.5 1.1H4.9a.7.7 0 0 1-.5-1.1c.8-1 1.6-2.8 1.6-6.2z" /><path d="M10 19.6a2.2 2.2 0 0 0 4 0" /></>,

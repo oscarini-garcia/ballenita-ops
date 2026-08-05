@@ -16,8 +16,15 @@ import Icono from './Icono.jsx'
  *
  * El fondo cierra al tocarlo, `useBloqueoDeScroll` sujeta lo de detrás y el asa
  * de arriba no es un botón: es la marca de que esto se cierra hacia abajo.
+ *
+ * `acciones` —`{ onCancelar, onListo }`— cambia el título por una **cabecera de
+ * dos verbos** (`docs/diseño/gasto-entre.html` · E2): «Cancelar» a la izquierda,
+ * el título en medio y «Listo» a la derecha. Es el patrón de hoja modal de iOS y
+ * **sustituye** al `h2` en vez de sumarse a él, así que una hoja que necesita
+ * confirmar y descartar cuesta 61,9 pt menos que con dos botones abajo — medido.
+ * Sin `acciones`, la hoja se queda como estaba: título y a cerrar por el fondo.
  */
-export default function Hoja({ titulo, onCerrar, children }) {
+export default function Hoja({ titulo, onCerrar, acciones, children }) {
   useBloqueoDeScroll()
   return (
     <div className="modal-bg" onClick={onCerrar}>
@@ -29,7 +36,13 @@ export default function Hoja({ titulo, onCerrar, children }) {
         onClick={(e) => e.stopPropagation()}
       >
         <span className="hoja-asa" aria-hidden="true" />
-        <h2>{titulo}</h2>
+        {acciones ? (
+          <div className="cab-verbos">
+            <button type="button" className="can" onClick={() => { tap(); acciones.onCancelar() }}>Cancelar</button>
+            <h2>{titulo}</h2>
+            <button type="button" className="lis" onClick={() => { tap(); acciones.onListo() }}>Listo</button>
+          </div>
+        ) : <h2>{titulo}</h2>}
         {children}
       </div>
     </div>

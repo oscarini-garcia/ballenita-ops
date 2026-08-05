@@ -115,6 +115,23 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **idea** que se repite (`planIdeas`, catálogo compartido como `dishes`) y la **propuesta de
   este año** (`plans`, con día, estado y votos). Traer una idea **copia**, no enlaza: el día,
   el estado y los votos no viajan nunca. Planes tiene ahora dos áreas, Planes · Ideas.
+- **Entre quién se divide: cuatro atajos, las familias, y salir sin guardar** (SPECS §14.27,
+  `docs/diseño/gasto-entre.html` · A3·B2·C2+C4·D2+D4·E2): eran dos chips y los nueve nombres
+  del grupo seguidos —711,3 pt de 844, el 84 %, de los que 434 eran nombres—, y tocar el fondo
+  **guardaba**. Ahora son **389,6 pt** (421,6 en Enorme) con tres niveles y solo dos
+  desplegados: los cuatro atajos en un **segmentado** —los chips no caben, 384,7 pt de 356—,
+  las familias con su recuento, y la gente **dentro de su familia**. La casilla marca (44 × 44)
+  y el cuerpo abre; los tres estados se dibujan. El buscador vive detrás de una lupa que
+  comparte renglón, y al escribir las familias se retiran. **La hoja trabaja sobre un
+  borrador**: «Cancelar», el fondo y deslizar descartan; solo «Listo» guarda. Todo lo que
+  decide quién entra está en `lib/reparto-gente.js`, puro.
+- **Un modal se ve como una capa, y ya no hace falta acordarse** (SPECS §14.26-bis · F3): el
+  papel era `--foam`, que es `--app-bg` —1,00 : 1, y 1,06 con velo en oscuro—. `.capa` lo
+  arreglaba desde §14.19 en **un** modal y once seguían sin ella, así que sube al `.modal` de
+  todos: papel propio (`--papel-capa`), canto de 1,5 (`--linea-capa`) y velo a .68. **El velo
+  solo no valía**: de .50 a .78 son cuatro centésimas en oscuro. Dentro de una capa,
+  `--foam-2` baja un escalón **redefiniendo la variable**, no cada regla. La guardia está en
+  `src/estilos.test.js` y mira el CSS, no las clases.
 - **Un gasto se apunta sin teclado y con la cuenta hecha** (SPECS §14.26,
   `docs/diseño/gasto-nuevo.html` · A1·B3+B2·C1·D2·E2): la ficha medía 830,6 pt de 844 y
   abría el alfabético sola, dejando 508 de ventana —el 61 %— y un scroll dentro del modal
@@ -415,7 +432,7 @@ portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de te
 retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
 binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
-entrar, la demostración arranca llena y no sube nunca. 600 tests en la PWA + 143 en la API,
+entrar, la demostración arranca llena y no sube nunca. 642 tests en la PWA + 143 en la API,
 todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su

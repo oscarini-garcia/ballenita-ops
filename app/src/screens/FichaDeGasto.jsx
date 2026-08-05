@@ -7,8 +7,10 @@ import { useIdentidad } from '../lib/identidad.js'
 import { CATEGORIES, catOf } from '../lib/categorias.js'
 import { IMPORTE_VACIO, desdeCents, totalCents, guardable, enPalabras } from '../lib/importe.js'
 import { splitCents } from '../lib/reparto.js'
+import { comoSeReparte } from '../lib/reparto-gente.js'
 import PadDeImporte from '../components/PadDeImporte.jsx'
-import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
+import { HojaDeEleccion } from '../components/Hoja.jsx'
+import HojaDeEntre from './HojaDeEntre.jsx'
 import Icono from '../components/Icono.jsx'
 import { tap } from '../lib/native.js'
 
@@ -30,26 +32,10 @@ import { tap } from '../lib/native.js'
 // escribe una palabra sentado.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Cuántas personas cuentan como mayores, para el atajo de «solo mayores». */
-const mayoresDe = (persons) => persons.filter((p) => p.cuentaComoAdultoReparto)
-
 /**
- * Cómo se reparte, dicho en dos palabras para el renglón «Entre» y para la fila
- * de la lista. Vacío cuando es el reparto de siempre: lo normal no se anuncia.
+ * El renglón «Entre» de la ficha, que a diferencia de la fila de la lista **sí
+ * dice el caso normal**: ahí no enseñar nada se leería como que no hay valor.
  */
-export function comoSeReparte({ reparto, participantIds = [] }, persons = []) {
-  if (reparto?.modo === 'partes') return 'a partes'
-  if (reparto?.modo === 'importes') return 'por importes'
-  const dentro = participantIds.length
-  if (!persons.length || dentro === persons.length) return ''
-  const mayores = mayoresDe(persons)
-  if (dentro === mayores.length && mayores.every((p) => participantIds.includes(p.id))) {
-    return 'sin los niños'
-  }
-  return `entre ${dentro}`
-}
-
-/** Lo mismo, pero para el renglón de la ficha, donde sí se dice el caso normal. */
 function resumenDeEntre(estado, persons) {
   const raro = comoSeReparte(estado, persons)
   if (raro) return raro
@@ -229,6 +215,7 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
       {encima === 'entre' && (
         <HojaDeEntre
           persons={persons}
+          families={familias}
           participantIds={participantIds}
           onCambio={setParticipantIds}
           onCerrar={() => setEncima(null)}
@@ -249,61 +236,6 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
         />
       )}
     </>
-  )
-}
-
-/**
- * Entre quién se divide: los dos atajos de siempre arriba y la gente debajo.
- *
- * Es una hoja propia y no `HojaDeMarcar` porque «Todos» y «Solo mayores» son la
- * respuesta en el 99 % de los casos y tienen que estar antes de la lista, no
- * escondidos detrás de seis toques.
- */
-function HojaDeEntre({ persons, participantIds, onCambio, onCerrar }) {
-  const dentro = new Set(participantIds)
-  const mayores = mayoresDe(persons)
-  const todos = dentro.size === persons.length
-  const soloMayores = dentro.size === mayores.length && mayores.every((p) => dentro.has(p.id))
-
-  function alternar(id) {
-    tap()
-    const s = new Set(dentro)
-    s.has(id) ? s.delete(id) : s.add(id)
-    onCambio(persons.filter((p) => s.has(p.id)).map((p) => p.id))
-  }
-
-  return (
-    <Hoja titulo="Entre quién se divide" onCerrar={onCerrar}>
-      <div className="chips">
-        <button type="button" className={`chip${todos ? ' on' : ''}`} onClick={() => { tap(); onCambio(persons.map((p) => p.id)) }}>
-          Todos
-        </button>
-        {/* El «🍷» que llevaba este verbo era un emoji del cromo, de los que se
-            fueron en §14.13 y que este se quedó vivo dentro de un `label`. */}
-        <button type="button" className={`chip${soloMayores && !todos ? ' on' : ''}`} onClick={() => { tap(); onCambio(mayores.map((p) => p.id)) }}>
-          Solo mayores
-        </button>
-      </div>
-      <div className="eleccion">
-        {persons.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className="eleccion-op"
-            aria-pressed={dentro.has(p.id)}
-            onClick={() => alternar(p.id)}
-          >
-            <span className="et">{p.name}</span>
-            <span className="no">×{p.pesoReparto}</span>
-            {dentro.has(p.id) && <span className="tic"><Icono nombre="visto" /></span>}
-          </button>
-        ))}
-      </div>
-      <div className="note">Se reparte por el <b>peso</b> de cada persona y el saldo se suma a su familia (§3).</div>
-      <div style={{ marginTop: 14 }}>
-        <button type="button" className="btn block" onClick={() => { tap(); onCerrar() }}>Listo</button>
-      </div>
-    </Hoja>
   )
 }
 
@@ -358,9 +290,9 @@ export function DetallesDeGasto({
   }
 
   return (
-    <div className="modal-bg center velo-fuerte" onClick={onCerrar}>
+    <div className="modal-bg center" onClick={onCerrar}>
       <div
-        className="modal center formulario capa"
+        className="modal center formulario"
         role="dialog"
         aria-modal="true"
         aria-label="Detalles del gasto"
