@@ -208,8 +208,8 @@ function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) 
   }
 
   return (
-    <div className="modal-bg center velo-fuerte" onClick={onClose}>
-      <div className="modal center capa" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-bg center" onClick={onClose}>
+      <div className="modal center" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2>{plan.titulo}</h2>
         {plan.dia && <div className="pista">{fmtDay(plan.dia)}</div>}

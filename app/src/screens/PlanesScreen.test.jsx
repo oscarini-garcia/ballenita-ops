@@ -168,11 +168,12 @@ describe('el plan abierto', () => {
     await abrir('Cuevas')
 
     // El papel era el mismo color que el fondo de la app —1,0 : 1— y solo lo
-    // separaba el velo (docs/diseño/plan-voto.html · P1 · F1+F4 · V2).
+    // separaba el velo (docs/diseño/plan-voto.html · P1 · F1+F4 · V2). La clase
+    // `capa` que lo arreglaba **aquí** se retiró en §14.26-bis: ahora lo hace
+    // `.modal` para todos, y quien monta guardia sobre el papel es
+    // `src/estilos.test.js`, que mira el CSS y no el marcado.
     const caja = document.querySelector('.modal')
     expect(caja).toHaveClass('center')
-    expect(caja).toHaveClass('capa')
-    expect(caja.closest('.modal-bg')).toHaveClass('velo-fuerte')
   })
 
   it('con varios en el mismo voto, los nombres van seguidos', async () => {

@@ -7,7 +7,8 @@ import Deslizable from '../components/Deslizable.jsx'
 import Fab from '../components/Fab.jsx'
 import Recado from '../components/Recado.jsx'
 import Icono from '../components/Icono.jsx'
-import FichaDeGasto, { comoSeReparte } from './FichaDeGasto.jsx'
+import { comoSeReparte } from '../lib/reparto-gente.js'
+import FichaDeGasto from './FichaDeGasto.jsx'
 
 /** «19:40» — desempata dos gastos de la misma categoría el mismo día. */
 function hora(iso) {

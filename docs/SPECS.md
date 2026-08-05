@@ -2606,6 +2606,117 @@ para saber cómo se llama «bebida»—. Y las familias de la ficha se ordenan a
 con el reparto por importes eso importa, porque la última es la que lleva lo que
 falte.
 
+### 14.26-bis Una capa que se ve como capa, en todos los modales
+
+Decidido en `docs/diseño/gasto-entre.html` (**parte seis, F3**), junto con §14.27,
+porque son el mismo problema visto dos veces: la hoja de «Entre» se veía fea en
+parte porque no se veía **dónde acababa**.
+
+**El fallo, medido.** El papel de un modal era `--foam`, que es también
+`--app-bg`: **1,00 : 1** sin velo, y con el velo de entonces —`rgba(4,18,26,.5)`—
+**1,06 : 1** en la cara oscura. Lo único que separaba las dos capas era una sombra
+que no existía. Ya se había arreglado en §14.19 para el modal de votar un plan,
+con una clase `.capa` que había que **acordarse de poner** — y once modales
+después seguía sin ponerse en ninguno.
+
+**Por qué el velo no vale de palanca.** Es el dato que decide la parte: subirlo de
+`.50` a `.78` lleva el papel de **1,06 a 1,10 : 1** en la cara oscura. Cuatro
+centésimas por tapar el fondo casi del todo, porque el fondo ya es `#0b1f2c` y el
+velo `#041219`: oscurecer lo que ya es casi negro no lo aleja de nada. En la cara
+clara sí funciona —de 3,48 a 6,36— y por eso el fallo se veía en un móvil en
+oscuro y no en el portátil de al lado.
+
+**Las tres palancas a la vez**, que es lo que ya decía `plan-voto.html` y aquí se
+cumple entero: papel propio (`--papel-capa`, `#1a3d4f` en oscuro y blanco en
+clara → **1,60 : 1** contra el fondo velado), **canto de 1,5 pt** un punto por
+encima de la línea normal (`--linea-capa`, **3,12 : 1**, que es el que de verdad
+dibuja el borde) y el velo a `.68`, que es lo que hace trabajar a la cara clara
+(**6,98 : 1**).
+
+**Sube al `.modal` de todos y no a una clase.** La hoja lo planteaba para la ficha
+de gasto y sus hojas; al ponerlo se vio que el fallo lo tenían los once modales y
+que dos papeles distintos habrían sido peor que uno malo. Con eso, `.capa` y
+`velo-fuerte` se quedaron sin nada que añadir y **salieron del marcado**.
+
+**Lo que arrastra, y es lo interesante.** Dentro de una capa, lo que era
+`--foam-2` se fundiría con el papel —en la cara clara serían el mismo blanco—, así
+que baja un escalón **redefiniendo la variable en `.modal`** y no regla a regla:
+con lo segundo, cada cosa nueva que se metiera en un modal habría que acordarse de
+apuntarla, que es exactamente el error que se está arreglando. De rebote, una fila
+de persona sangrada quedaba **del mismo color que la lista** que la contiene y hubo
+que teñirla hacia el papel.
+
+**La guardia va en el CSS y no en el marcado** (`src/estilos.test.js`): que
+`.modal` no use `var(--foam)` de papel, que lleve canto y sombra, y que las cuatro
+caras declaren los dos tokens. Un test que comprobara «este modal tiene la clase
+`capa`» habría pasado en verde los once modales sin ella.
+
+### 14.27 Entre quién se divide: cuatro atajos, las familias, y salir sin guardar
+
+Decidido en `docs/diseño/gasto-entre.html` (**A3 · B2 · C2 con el renglón de C4 ·
+D2 + D4 · E2**), una hoja con seis partes y veintiséis opciones.
+
+**El problema, medido.** La hoja eran dos chips y **los nueve nombres del grupo
+puestos uno detrás de otro**: **711,3 pt** en un teléfono de 844 —el **84 %**—, de
+los que **434 eran nombres**. Sin familias, sin buscar, y con doce personas se
+pasaba de los 776,5 pt de tope y empezaba a hacer *scroll* dentro de la hoja.
+
+**Los cuatro arreglos que no se eligieron.** (1) **Tocar el fondo guardaba**:
+`HojaDeEntre` llamaba a `onCambio` en cada toque, así que escribía en la ficha y al
+cerrarse ya estaba hecho — no faltaba un botón de Cancelar, faltaba un **borrador**
+que cancelar, y sin él la parte cinco no se podía construir. (2) Ni la ficha ni sus
+hojas llevaban `.capa` (§14.26-bis). (3) **«Solo mayores» no tenía contrario** —ni
+atajo para los peques, que es la merienda de la playa, ni forma de vaciar la lista,
+así que marcar a dos personas sueltas eran siete toques de quitar y dos de poner—.
+(4) La nota del peso ocupaba **69,5 pt permanentes** para una regla que no cambia
+nunca y que desde §14.26 ya no siempre se aplica: baja a un renglón de apunte.
+
+**A3 · Tres niveles, y solo dos desplegados.** Los cuatro atajos y las familias con
+su recuento; la gente sale **de dentro de su familia**, sangrada, así que una
+persona no aparece nunca huérfana. Medido sobre el componente real: **389,6 pt**
+cerrada y **421,6 en «Enorme»**, contra 711,3 — y **no crece** aunque el grupo pase
+de nueve personas a quince, porque las familias siguen siendo tres. Con una abierta
+son 533,6 y sigue sin *scroll*. Se descartó desplegarlo todo (A1): con las nueve
+personas son **876,8 pt**, o sea **más que antes**, que es el encargo al revés.
+
+**B2 · Un segmentado y no cuatro pastillas.** Aquí la medida cambió la
+recomendación: las cuatro palabras como chips suman **384,7 pt de los 356** que hay,
+así que **doblan a dos filas ya en la talla de fábrica** —no en «Enorme»— y el
+bloque pasa de 50,3 a 96,7. En columnas miden lo mismo en las tres tallas y de paso
+dicen que son excluyentes, que un chip encendido no dice. **«Nadie» no es un estado
+como los otros tres** —un gasto sin nadie no se puede guardar— y va ahí igualmente
+porque es lo que hace baratos los repartos raros: vaciar y marcar dos.
+
+**C2 con el renglón de C4 · Dos verbos en una fila de 48.** La casilla marca —con
+**44 × 44 pt** de toque alrededor de un dibujo de 24, la regla del visto de
+§14.22— y el cuerpo de la fila abre. El objetivo pequeño es el que marca y el
+grande el que abre, porque abrir sin querer no cambia nada y marcar sin querer sí.
+Los **tres estados se dibujan** —lleno, **raya**, vacío—, que es lo que hace que
+«2 de 3» no haya que leerlo; y el renglón dice **quién** está dentro mientras quepa
+(26 caracteres) y «n de m» cuando no. Una familia a medias **se completa** al
+tocarla, que es lo que se quiere el 100 % de las veces.
+
+**D2 + D4 · El buscador detrás de una lupa.** Comparte renglón con el rótulo
+«Familias», así que no cuesta ni un punto propio mientras no se usa —el 95 % del
+tiempo—, y al escribir las familias se retiran y salen las personas que coinciden,
+con su familia al lado para desambiguar dos Anas. Sin tildes y sin mayúsculas, y
+buscando también por el apodo. Aquí el `autoFocus` **sí** se pide: has tocado la
+lupa para escribir, que es lo contrario del que se quitó de la ficha en §14.26.
+
+**E2 · Los dos verbos arriba.** «Cancelar» a la izquierda, «Entre» en medio y
+«Listo» a la derecha, en un renglón de 44 pt que **sustituye al título** en vez de
+sumarse a él: **61,9 pt menos** que dos botones abajo, medido. El fondo y el
+deslizar hacia abajo hacen **lo mismo que «Cancelar»**, no lo contrario — si el
+gesto más fácil hiciera lo opuesto al botón más visible, el botón sobraría. Vive en
+`components/Hoja.jsx` como prop `acciones`, porque lo van a querer las otras cinco
+hojas.
+
+**Lo que arrastró.** `screens/HojaDeEntre.jsx` nuevo con el borrador dentro;
+`lib/reparto-gente.js` puro y testeado con los atajos, el agrupado por familia, los
+tres estados, el renglón y el buscador —y ahí baja `comoSeReparte`, que lo miraban
+dos pantallas—; `components/Hoja.jsx` gana la cabecera de dos verbos; y el icono de
+la lupa entra en la tabla de `Icono.jsx`.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas
