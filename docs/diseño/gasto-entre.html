@@ -1,0 +1,1249 @@
+<title>Ballena Ops — 711 pt de hoja para decir «todos», un papel del color del fondo, y ninguna forma de arrepentirse</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css (v0.19.0). */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px; --t-hero: 33.6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(27px, 5.2vw, 39px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 66ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 74ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code, .op-idea code, .coste code, .defectos code, td code
+    { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; position: relative; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+  .tel.alto { height: 844px; }
+
+  /* El fondo de la app detrás del velo: la ficha de gasto de verdad. */
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .oscuro .t-cab { background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); }
+  .claro .t-cab { background: var(--abc-cromo); border-bottom: 1px solid var(--abc-linea); }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; flex: 1; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 10px; }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea); }
+
+  /* ── El velo y las capas ─────────────────────────────────────────────────
+     `.velo` es `.modal-bg`: rgba(4,18,26,.5) es el valor real de theme.css. */
+  .velo { position: absolute; inset: 0; background: rgba(4,18,26,.5);
+    display: flex; align-items: flex-end; justify-content: center; }
+  .velo.centro { align-items: center; padding: 14px; }
+  .velo.f68 { background: rgba(4,18,26,.68); }
+  .velo.f78 { background: rgba(4,18,26,.78); }
+  .velo.borroso { backdrop-filter: blur(8px); }
+  .velo.suelto { position: static; padding: 14px 0; }
+
+  /* `.modal.hoja`: 390 de ancho, 16 de relleno a cada lado = 358 de contenido.
+     El papel es `--foam`, que es **el mismo color que el fondo de la app**. */
+  .mod { width: 390px; border-radius: 12px 12px 0 0; padding: 16px 16px 26px;
+    display: flex; flex-direction: column; }
+  .mod.centrada { width: 362px; border-radius: 12px; padding: 18px 16px 22px; }
+  .oscuro .mod { background: var(--ab-fondo); }
+  .claro .mod { background: var(--abc-fondo); }
+  /* `.capa`, la clase que ya existe desde plan-voto.html y que ni la ficha ni
+     esta hoja llevan puesta: papel de tarjeta, borde y sombra. */
+  .mod.capa { }
+  .oscuro .mod.capa { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea);
+    box-shadow: 0 18px 44px rgba(4,18,26,.34); }
+  .claro .mod.capa { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea);
+    box-shadow: 0 18px 44px rgba(16,42,55,.16); }
+  .oscuro .mod.papel-propio { background: #1a3d4f; border: 1px solid var(--ab-linea);
+    box-shadow: 0 18px 44px rgba(4,18,26,.42); }
+  .claro .mod.papel-propio { background: #ffffff; border: 1px solid var(--abc-linea);
+    box-shadow: 0 18px 44px rgba(16,42,55,.2); }
+  .oscuro .mod.canto { border-color: #3a6a82; border-width: 1.5px; }
+  .claro .mod.canto { border-color: #a9bfc9; border-width: 1.5px; }
+  .mod.filo { border-top: 3px solid var(--ab-acento); }
+  .claro .mod.filo { border-top-color: var(--abc-acento); }
+
+  .asa { width: 38px; height: 5px; border-radius: 999px; margin: 2px auto 10px; }
+  .oscuro .asa { background: var(--ab-linea); } .claro .asa { background: var(--abc-linea); }
+  .mod h4 { margin: 4px 0 2px; font-size: var(--t-title); font-weight: 650; line-height: 1.2; }
+  .mod .rot { font-size: var(--t-label); font-weight: 700; margin: 12px 2px 5px; }
+  .oscuro .mod .rot { color: var(--ab-soft); } .claro .mod .rot { color: var(--abc-soft); }
+
+  /* La cabecera de hoja con los dos verbos arriba (E2). */
+  .cab-verbos { display: flex; align-items: center; justify-content: space-between;
+    min-height: 44px; font-size: var(--t-row); font-weight: 600; margin: -2px 0 2px; }
+  .cab-verbos .ti { font-size: var(--t-row); font-weight: 700; }
+  .oscuro .cab-verbos .can { color: var(--ab-soft); } .claro .cab-verbos .can { color: var(--abc-soft); }
+  .oscuro .cab-verbos .lis { color: var(--ab-acento-txt); } .claro .cab-verbos .lis { color: var(--abc-acento-txt); }
+
+  .btn-block { border-radius: 8px; padding: 12px 16px; text-align: center;
+    font-weight: 600; font-size: var(--t-row); }
+  .oscuro .btn-block { background: var(--ab-acento); color: #04161f; }
+  .claro .btn-block { background: var(--abc-acento); color: #fff; }
+  .btn-fantasma { border-radius: 8px; padding: 12px 16px; text-align: center; font-weight: 600;
+    font-size: var(--t-row); }
+  .oscuro .btn-fantasma { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .btn-fantasma { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .salida { display: flex; gap: 10px; margin-top: 14px; }
+  .salida > * { flex: 1; }
+
+  /* Chips y segmentado */
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); color: var(--ab-soft); display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap; }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+  .chip .n { opacity: .65; font-size: var(--t-micro); font-weight: 700; }
+
+  .mando { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; border-radius: 9px; padding: 3px; }
+  .oscuro .mando { background: var(--ab-fondo); border: 1px solid var(--ab-linea); }
+  .claro .mando { background: var(--abc-fondo); border: 1px solid var(--abc-linea); }
+  .capa .mando { background: transparent; }
+  .mando > div { text-align: center; padding: 9px 2px; border-radius: 7px; font-size: var(--t-sub);
+    font-weight: 600; }
+  .oscuro .mando > div { color: var(--ab-soft); } .claro .mando > div { color: var(--abc-soft); }
+  .oscuro .mando > div.on { background: var(--ab-acento); color: #04161f; }
+  .claro .mando > div.on { background: var(--abc-acento); color: #fff; }
+
+  .rejilla2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .casilla { border-radius: 9px; padding: 10px 12px; display: flex; align-items: baseline;
+    justify-content: space-between; font-size: var(--t-row); font-weight: 600; }
+  .oscuro .casilla { border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+  .claro .casilla { border: 1px solid var(--abc-linea); color: var(--abc-soft); }
+  .oscuro .casilla.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #04161f; }
+  .claro .casilla.on { border-color: var(--abc-acento); background: var(--abc-acento); color: #fff; }
+  .casilla .n { font-size: var(--t-micro); font-weight: 700; opacity: .7; }
+
+  /* La lista de elección real (`.eleccion` de theme.css) */
+  .lista { display: flex; flex-direction: column; margin-top: 6px; border-radius: 9px; overflow: hidden; }
+  .oscuro .lista { border: 1px solid var(--ab-linea); } .claro .lista { border: 1px solid var(--abc-linea); }
+  .fila { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 14px;
+    font-size: var(--t-row); }
+  .oscuro .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top: 1px solid var(--abc-linea-suave); }
+  .fila .et { flex: 1; min-width: 0; }
+  .fila .no { font-size: var(--t-label); }
+  .oscuro .fila .no { color: var(--ab-faint); } .claro .fila .no { color: var(--abc-faint); }
+  .fila .tic { display: grid; place-items: center; }
+  .oscuro .fila .tic { color: var(--ab-acento-txt); } .claro .fila .tic { color: var(--abc-acento-txt); }
+  .fila .tic svg { width: 20px; height: 20px; display: block; }
+  .fila .fle { opacity: .5; font-size: var(--t-row); }
+  .fila.sangrada { padding-left: 30px; }
+  .oscuro .fila.sangrada { background: color-mix(in srgb, var(--ab-fondo) 55%, transparent); }
+  .claro .fila.sangrada { background: color-mix(in srgb, var(--abc-fondo) 70%, transparent); }
+
+  /* La casilla de tres estados (C4) */
+  .aro { width: 24px; height: 24px; border-radius: 6px; flex: none; display: grid; place-items: center; }
+  .oscuro .aro { border: 2px solid var(--ab-linea); } .claro .aro { border: 2px solid var(--abc-linea); }
+  .aro svg { width: 15px; height: 15px; display: block; color: transparent; }
+  .oscuro .aro.todo { border-color: var(--ab-acento); background: var(--ab-acento); }
+  .claro .aro.todo { border-color: var(--abc-acento); background: var(--abc-acento); }
+  .aro.todo svg { color: #04161f; } .claro .aro.todo svg { color: #fff; }
+  .oscuro .aro.parte { border-color: var(--ab-acento); }
+  .claro .aro.parte { border-color: var(--abc-acento); }
+  .aro .raya { width: 11px; height: 2.5px; border-radius: 2px; }
+  .oscuro .aro.parte .raya { background: var(--ab-acento-txt); }
+  .claro .aro.parte .raya { background: var(--abc-acento-txt); }
+
+  /* Las pastillas de gente dentro de la fila de familia (C3) */
+  .gentecilla { display: flex; gap: 5px; flex-wrap: wrap; }
+  .mini { border-radius: 999px; padding: 4px 9px; font-size: var(--t-micro); font-weight: 600; }
+  .oscuro .mini { border: 1px solid var(--ab-linea); color: var(--ab-faint); }
+  .claro .mini { border: 1px solid var(--abc-linea); color: var(--abc-faint); }
+  .oscuro .mini.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #04161f; }
+  .claro .mini.on { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  /* El buscador */
+  .buscador { display: flex; align-items: center; gap: 9px; border-radius: 8px; padding: 11px 12px;
+    font-size: var(--t-body); }
+  .oscuro .buscador { background: var(--ab-fondo); border: 1px solid var(--ab-linea); color: var(--ab-faint); }
+  .claro .buscador { background: var(--abc-fondo); border: 1px solid var(--abc-linea); color: var(--abc-faint); }
+  .capa .buscador { }
+  .buscador svg { width: 18px; height: 18px; flex: none; }
+  .lupa-sola { display: flex; align-items: center; gap: 8px; font-size: var(--t-sub); font-weight: 600; }
+  .oscuro .lupa-sola { color: var(--ab-acento-txt); } .claro .lupa-sola { color: var(--abc-acento-txt); }
+  .lupa-sola svg { width: 17px; height: 17px; }
+
+  .cabecilla { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 14px 2px 4px; }
+  .oscuro .cabecilla { color: var(--ab-faint); } .claro .cabecilla { color: var(--abc-faint); }
+
+  .nota-mini { font-size: var(--t-sub); line-height: 1.45; border-radius: 9px; padding: 11px 13px;
+    margin-top: 10px; border: 1px dashed transparent; }
+  .oscuro .nota-mini { background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta));
+    border-color: var(--ab-linea); color: var(--ab-soft); }
+  .claro .nota-mini { background: color-mix(in srgb, var(--abc-acento) 7%, var(--abc-tarjeta));
+    border-color: var(--abc-linea); color: var(--abc-soft); }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 8px 0 0;
+    max-width: 390px; line-height: 1.45; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+  .medida .mal { color: var(--coral); font-weight: 700; }
+  .medida .bien { color: var(--acento); font-weight: 700; }
+
+  .tabla-scroll { overflow-x: auto; }
+  table.comp { width: 100%; min-width: 480px; border-collapse: collapse; font-size: 14.5px; color: var(--tinta-suave); }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--linea); vertical-align: top; color: var(--tinta-suave); }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.si { color: var(--acento); font-weight: 600; }
+  table.comp td.no { color: var(--coral); font-weight: 600; }
+  table.comp td.tnum { font-family: var(--mono); white-space: nowrap; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; color: var(--tinta); }
+  .cierre p { margin: 0; color: var(--tinta-suave); font-size: 15px; max-width: 74ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre ol { margin: 0; padding-left: 20px; color: var(--tinta-suave); font-size: 15px; }
+  .cierre li { margin: 5px 0; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <!-- ══ CABECERA ══════════════════════════════════════════════════════════ -->
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · Dinero → Gastos → «Entre quién se divide» · hoja de opciones</div>
+    <h1>711&nbsp;pt de hoja para decir «todos», un papel del color del fondo, y ninguna forma de arrepentirse</h1>
+    <p class="entradilla">La hoja de «Entre quién se divide» mide <b>711,3&nbsp;pt</b> con las nueve personas
+      del grupo dentro —el <b>84&nbsp;%</b> de un teléfono de 844—, y <b>432 de esos son nombres</b>: nueve
+      filas de 48 puestas una detrás de otra, sin familias, sin buscar y sin agrupar. Encima <b>el papel de
+      la hoja es exactamente el color del fondo de la app</b> (<code>--foam</code> es también
+      <code>--app-bg</code>): <b>1,00&nbsp;:&nbsp;1</b>, y con el velo puesto <b>1,06&nbsp;:&nbsp;1</b> en la
+      cara oscura. Lo único que separa las dos capas es una sombra que no existe. Y no hay forma de salir sin
+      guardar: tocar el fondo cierra la hoja <b>y se queda con lo tocado</b>.</p>
+    <div class="ficha">
+      <span><b>Ahora</b> = v0.19.0, <code>app/src/screens/FichaDeGasto.jsx</code> · <code>HojaDeEntre</code></span>
+      <span><b>Medida</b> 390 × 844 pt (iPhone 14)</span>
+      <span><b>Texto</b> 17 px × 1,12 «Grande», de fábrica</span>
+      <span><b>Paleta</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Contenido</b> el del grupo: García · Pérez · Solteros, 9 personas (6 mayores, 3 peques)</span>
+      <span><b>Las medidas</b> salen de renderizar el marcado contra <code>theme.css</code>, no de estimarlas</span>
+      <span><b>La réplica</b> del «hoy» sale a 732,8 pt y el componente real a 711,3 —un 3 % de deriva—;
+        las opciones se comparan <b>contra la réplica</b>, que es lo que hace justa la comparación</span>
+    </div>
+  </div>
+
+  <!-- ══ LO QUE HAY HOY ════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Lo que hay puesto</div>
+    <p class="parte-intro">Dos chips, nueve nombres y un botón. Medido contra <code>theme.css</code>:
+      <b>las nueve filas 434</b> · <b>la nota del peso 69,5</b> · <b>«Listo» 63,3</b> · y el resto entre el
+      asa, el título, los dos chips y el relleno. Con doce personas —que es un año con invitados— se va a
+      <b>876,8</b>, por encima de los 776,5 pt de tope, y <b>empieza a hacer scroll dentro de la hoja</b>.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body">
+            <div class="tarj" style="height:64px"></div>
+            <div class="tarj" style="height:64px"></div>
+          </div>
+          <div class="velo">
+            <div class="mod" data-medir="hoy">
+              <span class="asa"></span>
+              <h4>Entre quién se divide</h4>
+              <div class="chips" style="margin-top:10px">
+                <div class="chip on">Todos</div><div class="chip">Solo mayores</div>
+              </div>
+              <div class="lista">
+                <div class="fila"><span class="et">Curro</span><span class="no">×1</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Marta</span><span class="no">×1</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Pablo</span><span class="no">×0.6</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Fran</span><span class="no">×1</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Ana</span><span class="no">×1</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Luis</span><span class="no">×0.6</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Nacho</span><span class="no">×1</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Bea</span><span class="no">×1</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+                <div class="fila"><span class="et">Kike</span><span class="no">×0.6</span><span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span></div>
+              </div>
+              <div class="nota-mini">Se reparte por el <b>peso</b> de cada persona y el saldo se suma a su familia (§3).</div>
+              <div class="btn-block" style="margin-top:14px">Listo</div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">Hoy · <b>732,8 pt</b> en esta réplica (711,3 el componente real). Fíjate en el
+          canto de arriba: no hay línea, no hay sombra y el papel es el mismo color que la app. Lo único que
+          dice dónde empieza la hoja es que el fondo está un poco más oscuro.</p>
+      </div>
+    </div>
+    <p class="medida"><b>Hoja</b> 711,3 pt en la app · <b>nombres</b> 434 · <span class="mal">84 % de la pantalla</span> ·
+      <b>papel contra el fondo velado</b> <span class="mal">1,06 : 1</span> (cara oscura) ·
+      <b>toques para «los García invitan»</b> 9</p>
+  </div>
+
+  <!-- ══ DEFECTOS ══════════════════════════════════════════════════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · cuatro arreglos que no se eligen</h2>
+    <p><b>1 · Tocar el fondo guarda.</b> <code>HojaDeEntre</code> llama a <code>onCambio</code> en cada
+      toque, así que escribe directamente en el estado de la ficha: cuando cierras —con «Listo», con el
+      fondo o deslizando— <b>ya está hecho</b>. No es que falte un botón de Cancelar: es que <b>no hay nada
+      que cancelar porque no hay borrador</b>. Se arregla en el mismo sitio los dos problemas: la hoja
+      trabaja sobre una copia y solo la vuelca al confirmar. Sin eso, la parte cinco no se puede construir.</p>
+    <p class="linea-corte"><b>2 · La hoja y la ficha no llevan <code>.capa</code>.</b> La clase existe desde
+      <code>docs/diseño/plan-voto.html</code> · P1 y se escribió <b>exactamente para esto</b>; se le puso al
+      modal de votar un plan y no se le puso ni a la ficha de gasto ni a sus hojas. Eso es lo que hace que
+      el papel sea <code>--foam</code>, o sea <code>--app-bg</code>. Ponerla no se vota; lo que sí se decide
+      —parte seis— es <b>si con eso basta</b>, porque en la cara oscura <code>.capa</code> sola deja el papel
+      en <b>1,33 : 1</b>.</p>
+    <p class="linea-corte"><b>3 · «Solo mayores» no tiene contrario.</b> Hay atajo para quitar a los niños y
+      no para dejar <i>solo</i> a los niños, que es la merienda de la playa; y no hay forma de vaciar la
+      lista para empezar de cero, así que marcar a dos personas sueltas son <b>siete toques de quitar</b> y
+      luego dos de poner. Los cuatro atajos que se piden —Todos · Mayores · Peques · Nadie— cierran la mesa.</p>
+    <p class="linea-corte"><b>4 · La nota del peso se lee una vez en la vida.</b> Ocupa <b>64,7 pt</b>
+      permanentes para explicar una regla que no cambia nunca y que además ya no siempre se aplica —desde
+      §14.26 el reparto puede ir por partes o por importes—. Baja a un renglón de apunte bajo la lista, o se
+      va del todo: <code>Detalles → Cómo se reparte</code> es donde vive esa conversación.</p>
+  </div>
+
+  <!-- ══ PARTE UNO ═════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte uno · qué se ve al abrir, con tres niveles que caben mal a la vez</div>
+    <p class="parte-intro">Lo que se pide son tres cosas —<b>atajos</b>, <b>familias</b> y un
+      <b>buscador para individuales</b>— y las tres juntas y desplegadas son más alto que la de ahora, no
+      menos. La pregunta real es <b>qué está desplegado por defecto</b>. El dato que decide: de los repartos
+      que se hacen de verdad, <b>«todos» y «solo mayores» son casi todos</b>; una familia entera es el caso
+      de «esta cena la pagamos nosotros»; y una persona suelta es raro y casi siempre <b>una</b>.</p>
+
+    <div class="tira-tel">
+
+      <!-- A1 -->
+      <div>
+        <div class="tel oscuro">
+          <div class="velo suelto">
+            <div class="mod capa" data-medir="A1">
+              <span class="asa"></span>
+              <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+              <div class="mando"><div class="on">Todos</div><div>Mayores</div><div>Peques</div><div>Nadie</div></div>
+              <div class="cabecilla">Familias</div>
+              <div class="lista">
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Solteros</span><span class="no">3 de 3</span></div>
+              </div>
+              <div class="cabecilla">Individuales</div>
+              <div class="buscador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar a alguien…</div>
+              <div class="lista">
+                <div class="fila"><span class="et">Curro</span><span class="no">García · ×1</span></div>
+                <div class="fila"><span class="et">Marta</span><span class="no">García · ×1</span></div>
+                <div class="fila"><span class="et">Pablo</span><span class="no">García · ×0,6</span></div>
+                <div class="fila" style="opacity:.4"><span class="et">Fran</span><span class="no">Pérez · ×1</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A1 · tres bandas fijas — 636,8 pt con las cuatro dibujadas,
+          <b>876,8 con las nueve</b></p>
+      </div>
+
+      <!-- A2 -->
+      <div>
+        <div class="tel oscuro">
+          <div class="velo suelto">
+            <div class="mod capa" data-medir="A2">
+              <span class="asa"></span>
+              <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+              <div class="mando"><div class="on">Todos</div><div>Mayores</div><div>Peques</div><div>Nadie</div></div>
+              <div class="cabecilla">Familias</div>
+              <div class="lista">
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Solteros</span><span class="no">3 de 3</span></div>
+              </div>
+              <div class="buscador" style="margin-top:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar a alguien…</div>
+              <div class="nota-mini">Escribe un nombre para quitar o poner a una persona suelta.</div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A2 · las personas <b>no existen hasta que buscas</b> — <b>490,3 pt</b></p>
+      </div>
+
+      <!-- A3 -->
+      <div>
+        <div class="tel oscuro">
+          <div class="velo suelto">
+            <div class="mod capa" data-medir="A3">
+              <span class="asa"></span>
+              <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+              <div class="mando"><div class="on">Todos</div><div>Mayores</div><div>Peques</div><div>Nadie</div></div>
+              <div class="buscador" style="margin-top:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar a alguien…</div>
+              <div class="lista">
+                <div class="fila"><span class="aro parte"><span class="raya"></span></span><span class="et">García</span><span class="no">2 de 3</span><span class="fle">⌄</span></div>
+                <div class="fila sangrada"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Curro</span><span class="no">×1</span></div>
+                <div class="fila sangrada"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Marta</span><span class="no">×1</span></div>
+                <div class="fila sangrada"><span class="aro"></span><span class="et">Pablo</span><span class="no">×0,6</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Solteros</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A3 · familias plegables — <b>372,8</b> cerradas, <b>516,8</b> con una abierta
+          (así está dibujada)</p>
+      </div>
+
+      <!-- A4 -->
+      <div>
+        <div class="tel oscuro">
+          <div class="velo suelto">
+            <div class="mod capa" data-medir="A4">
+              <span class="asa"></span>
+              <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+              <div class="buscador" style="margin-top:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar…</div>
+              <div class="chips" style="margin-top:10px">
+                <div class="chip on">Todos <span class="n">9</span></div><div class="chip">Mayores <span class="n">6</span></div>
+                <div class="chip">Peques <span class="n">3</span></div><div class="chip">Nadie</div>
+              </div>
+              <div class="cabecilla">García</div>
+              <div class="lista">
+                <div class="fila"><span class="et">Curro</span><span class="no">×1</span></div>
+                <div class="fila"><span class="et">Marta</span><span class="no">×1</span></div>
+                <div class="fila"><span class="et">Pablo</span><span class="no">×0,6</span></div>
+              </div>
+              <div class="cabecilla">Pérez</div>
+              <div class="lista">
+                <div class="fila" style="opacity:.4"><span class="et">Fran</span><span class="no">×1</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A4 · una lista sola con cabeceras de familia — <b>825,1 pt</b> con las nueve</p>
+      </div>
+
+      <!-- A5 -->
+      <div>
+        <div class="tel oscuro">
+          <div class="velo suelto">
+            <div class="mod capa" data-medir="A5">
+              <span class="asa"></span>
+              <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+              <div class="mando"><div class="on">Todos</div><div>Mayores</div><div>Peques</div><div>Nadie</div></div>
+              <div class="cabecilla">Familias</div>
+              <div class="lista">
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Solteros</span><span class="no">3 de 3</span></div>
+                <div class="fila"><span class="et" style="opacity:.85">Uno a uno…</span><span class="fle">›</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">A5 · dos pasos, la gente en su propia hoja — <b>393,3 pt</b> la primera</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">Familias plegables, y la gente sale de dentro de su familia</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Cerrada mide <b>372,8 pt</b> —<b>360 menos que hoy</b>, la mitad justa— y enseña las
+        tres cosas que se piden sin esconder ninguna: los cuatro atajos, el buscador y las tres familias con
+        su recuento. Abrir una familia mete a su gente <b>debajo de ella y sangrada</b>, así que una persona
+        no aparece nunca huérfana: se ve de quién es. Con una abierta son <b>516,8</b> y sigue sin hacer
+        scroll. Y es <b>más corta que A2</b>, que es la que renuncia a poder mirar.
+        <b>Nadie deja de poder ver la lista entera</b> —que es lo que le falta a A2— y sin embargo no la
+        cargas encima al abrir.</p>
+      <p class="coste"><b>Cuesta</b> que la fila de familia tenga que hacer dos cosas —marcar y abrir— y eso
+        pide dos objetivos táctiles en 358 pt de ancho: es la parte tres, y ahí está resuelto.
+        <b>Cuesta también</b> el estado de qué familias están abiertas, que hay que decidir si se recuerda al
+        volver a abrir la hoja (no: se abre cerrada siempre, porque el 95 % de las veces no vas a abrir
+        ninguna). <b>Compra</b> el caso que hoy cuesta nueve toques —«esta cena la pagan los García»— en
+        <b>dos</b>: «Nadie» y luego García.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">Las personas no existen hasta que buscas</span><span class="etq base">la más corta</span></div>
+      <p class="op-idea">Atajos, familias, buscador, y punto: <b>490,3 pt</b> con las tres familias. La lista
+        de nueve nombres no se pinta nunca, porque el caso que la necesita es el raro y ese caso ya trae su
+        herramienta puesta. Es la lectura más literal de «que no sea grande».</p>
+      <p class="coste"><b>Cuesta</b> que no se puede <i>mirar</i> quién está dentro. Si el renglón dice
+        «7 de 9» y quieres saber cuáles son los dos que faltan, no hay respuesta sin escribir nombres a
+        ciegas. <b>Lo paga</b> quien va a corregir un gasto que apuntó otro. Es la razón por la que A3 le
+        gana: <b>117,5 pt menos</b> —el rótulo y la nota que A2 necesita para explicarse pesan más que los
+        chevrones de A3— y encima sí se puede mirar.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A5</span><span class="op-nombre">Dos pasos: primero lo grueso, «Uno a uno ›» lleva a la gente</span></div>
+      <p class="op-idea">La hoja de entrada es la más corta de todas —<b>393,3 pt</b>— y la lista completa de
+        personas vive en su propia hoja, con su buscador, encima de esta. Es la figura que ya usan Cenas
+        (<code>HojaDeMarcar</code>) y el editor de un día.</p>
+      <p class="coste"><b>Cuesta una capa más</b>: la ficha de gasto, la hoja de «Entre» y encima la de
+        personas son tres velos apilados, y desde §14.26 la ficha ya vive debajo de una. <b>Cuesta también</b>
+        que ir y volver son dos toques donde A3 gasta uno. <b>Compra</b> que cada pantalla haga una sola cosa,
+        que no es poco si algún día hay quince personas.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">Tres bandas fijas, todo desplegado</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">Atajos, familias y la lista entera de personas con su buscador encima, sin plegar nada.</p>
+      <p class="coste"><b>Cuesta 876,8 pt</b> con las nueve personas —<b>144 más que hoy</b>—, o sea que el
+        encargo sale al revés: se pidió que fuera más pequeña y esto la hace crecer, y encima se pasa del tope
+        de 776,5 y hace scroll. Es lo que pasa al sumar tres niveles sin quitar ninguno.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">Una sola lista, con la familia como cabecera</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">Sin niveles: nueve filas seguidas, agrupadas bajo el nombre de su familia, y el
+        buscador filtra todo a la vez.</p>
+      <p class="coste"><b>Cuesta 825,1 pt</b> —las nueve filas siguen ahí y encima pagas tres cabeceras—, y
+        sobre todo <b>una familia deja de ser tocable</b>: la cabecera es un rótulo, no un botón, así que
+        «los García invitan» vuelve a costar tres toques. Se pidió justo lo contrario.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE DOS ═════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte dos · los cuatro atajos, que tienen que caber en una línea</div>
+    <p class="parte-intro">El ancho útil son <b>356 pt</b>, y aquí está la sorpresa de medirlo: las cuatro
+      palabras —Todos · Mayores · Peques · Nadie— como chips de <code>theme.css</code> suman <b>384,7 pt</b>
+      con sus huecos, así que <b>no caben en una fila ya en «Grande»</b>, que es la talla de fábrica. Doblan,
+      y el bloque pasa de 50,3 a <b>96,7</b>. En «Enorme» son 413,9. Eso es lo que hay que resolver, y es lo
+      que separa las cuatro opciones. Aparte, «Nadie» no es un estado como los otros tres: es un <b>verbo</b>,
+      y un gasto sin nadie dentro no se puede guardar.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="B1" style="padding-bottom:16px">
+          <div class="chips">
+            <div class="chip on">Todos</div><div class="chip">Mayores</div>
+            <div class="chip">Peques</div><div class="chip">Nadie</div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">B1 · cuatro chips · <b>96,7 pt</b>, ya en dos filas en la talla de fábrica</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="B2" style="padding-bottom:16px">
+          <div class="mando"><div class="on">Todos</div><div>Mayores</div><div>Peques</div><div>Nadie</div></div>
+        </div></div></div>
+        <p class="pie-tel">B2 · segmentado de cuatro · <b>50,3 pt</b>, y los mismos en las tres tallas</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="B3" style="padding-bottom:16px">
+          <div class="mando" style="grid-template-columns:repeat(3,1fr)"><div class="on">Todos</div><div>Mayores</div><div>Peques</div></div>
+          <div style="display:flex; justify-content:flex-end; margin-top:8px">
+            <div class="lupa-sola">Vaciar la lista</div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">B3 · tres de estado + «Vaciar» como verbo · 50,3 + 34,4 = <b>84,7</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="B4" style="padding-bottom:16px">
+          <div class="rejilla2">
+            <div class="casilla on">Todos <span class="n">9</span></div>
+            <div class="casilla">Mayores <span class="n">6</span></div>
+            <div class="casilla">Peques <span class="n">3</span></div>
+            <div class="casilla">Nadie <span class="n">0</span></div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">B4 · rejilla 2 × 2 con el recuento · <b>107,5 pt</b></p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">Un segmentado de cuatro, que es el mando que ya usa la app</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Es <code>SubNav</code>, el mismo control que parte Agenda en Hoy · Días y Comidas en
+        Cenas · Platos · Compra: <b>una sola pieza con cuatro caras</b> y una encendida. Mide <b>50,3 pt</b>
+        y <b>los sigue midiendo en Enorme</b>, porque las cuatro columnas son fracciones del ancho y no del
+        texto: lo que hace la letra grande es apretar las palabras, no romper la fila. Frente a B1 son
+        <b>46,4 pt menos</b> y una forma que no cambia. Y dice sin decirlo lo que un chip no dice: que
+        <b>son excluyentes</b>, que solo uno puede estar puesto.</p>
+      <p class="coste"><b>Cuesta</b> que «Nadie» quede dibujado como un estado más cuando en realidad no se
+        puede guardar un gasto sin nadie: el botón de Guardar se apagará y hay que aceptar ese segundo de
+        «¿por qué?». <b>Se compensa</b> con el renglón de debajo, que dice «Entre · nadie todavía» en vez de
+        un cero. <b>Cuesta también</b> que en Enorme las palabras van muy justas dentro de sus 89 pt de
+        columna: cabe, pero sin holgura, y si algún día se añade un quinto atajo hay que repensarlo entero.
+        <b>Compra</b> la única forma de que los cuatro atajos midan lo mismo en las tres tallas.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B4</span><span class="op-nombre">Rejilla de dos por dos, con cuántos son dentro</span><span class="etq base">la que más dice</span></div>
+      <p class="op-idea">«Todos · 9», «Mayores · 6», «Peques · 3». El número contesta la pregunta que se hace
+        de verdad —«¿entre cuántos sale?»— sin abrir nada, y en 2 × 2 nunca hay problema de ancho: cada
+        casilla tiene 175 pt para una palabra y un número.</p>
+      <p class="coste"><b>Cuesta 57,2 pt más que B2</b> (107,5 frente a 50,3), y esos 57 son un sexto de la
+        hoja recomendada. <b>Vuelve a estar sobre la mesa</b> si se elige A5, que es la estructura más corta y
+        tiene sitio de sobra. <b>Compra</b> el recuento, que en el segmentado no se puede tener: «Mayores 6»
+        no cabe en una columna de 89 pt.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">Tres estados, y «Nadie» dicho como lo que es: un verbo</span></div>
+      <p class="op-idea">Todos · Mayores · Peques en el segmentado, y <b>«Vaciar la lista»</b> como enlace
+        aparte, alineado a la derecha. Es más honesto: los tres primeros dejan el gasto guardable y el cuarto
+        no, así que no son la misma clase de cosa.</p>
+      <p class="coste"><b>Cuesta 34,4 pt</b> y una segunda fila donde B2 tiene una. <b>Y cuesta un
+        descubrimiento</b>: un enlace de texto a la derecha se ve menos que la cuarta cara de un mando que ya
+        estás mirando. <b>Lo paga</b> quien viene a marcar dos personas sueltas, que es justo para quien se
+        inventó el atajo.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">Cuatro chips, como los de hoy</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">Lo mínimo: añadir dos chips a los dos que ya hay.</p>
+      <p class="coste"><b>Cuesta que no quepa, y no en Enorme: ya en la talla de fábrica.</b> Los cuatro
+        chips suman <b>384,7 pt de los 356</b> que hay, así que «Nadie» cae a una segunda fila y el bloque
+        pasa de 50,3 a <b>96,7</b> — el doble que B2 para decir lo mismo. Esto lo dio el navegador, no la
+        estimación: sobre el papel parecía que entraban. <b>Y cuesta la ambigüedad</b>: un chip encendido
+        junto a otros tres apagados se lee como una casilla, no como una posición, y aquí son excluyentes.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE TRES ════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte tres · la fila de una familia, que tiene que hacer dos cosas</div>
+    <p class="parte-intro">Con A3 la fila de «García» <b>marca a los tres</b> y también <b>abre</b> para ver
+      quién es quién. Dos verbos en una fila de <b>48 pt de alto y 356 de ancho</b>. La regla de la casa son <b>44 pt de objetivo tocable</b>, así que
+      lo que se decide es dónde cae la frontera y qué pasa cuando una familia está <b>a medias</b> —dos de
+      tres— que es el estado que más se va a ver en cuanto alguien toque un nombre suelto.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="C1" style="padding-bottom:16px">
+          <div class="lista">
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span></div>
+            <div class="fila"><span class="aro parte"><span class="raya"></span></span><span class="et">Pérez</span><span class="no">2 de 3</span></div>
+            <div class="fila"><span class="aro"></span><span class="et">Solteros</span><span class="no">0 de 3</span></div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">C1 · la fila entera marca; no se puede abrir</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="C2" style="padding-bottom:16px">
+          <div class="lista">
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span><span class="fle">⌄</span></div>
+            <div class="fila"><span class="aro parte"><span class="raya"></span></span><span class="et">Pérez</span><span class="no">2 de 3</span><span class="fle">›</span></div>
+            <div class="fila"><span class="aro"></span><span class="et">Solteros</span><span class="no">0 de 3</span><span class="fle">›</span></div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">C2 · la casilla marca (44 pt), el resto de la fila abre</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="C3" style="padding-bottom:16px">
+          <div class="lista">
+            <div class="fila" style="flex-wrap:wrap; row-gap:8px">
+              <span class="et" style="flex:1 0 100%; font-weight:600">García <span class="no" style="font-weight:400">3 de 3</span></span>
+              <span class="gentecilla"><span class="mini on">Curro</span><span class="mini on">Marta</span><span class="mini on">Pablo</span></span>
+            </div>
+            <div class="fila" style="flex-wrap:wrap; row-gap:8px">
+              <span class="et" style="flex:1 0 100%; font-weight:600">Pérez <span class="no" style="font-weight:400">2 de 3</span></span>
+              <span class="gentecilla"><span class="mini on">Fran</span><span class="mini on">Ana</span><span class="mini">Luis</span></span>
+            </div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">C3 · la gente vive dentro de la fila, en pastillas · <b>83,3 pt por familia</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="C4" style="padding-bottom:16px">
+          <div class="lista">
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">Curro · Marta · Pablo</span></div>
+            <div class="fila"><span class="aro parte"><span class="raya"></span></span><span class="et">Pérez</span><span class="no">Fran · Ana</span></div>
+            <div class="fila"><span class="aro"></span><span class="et">Solteros</span><span class="no">nadie</span></div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">C4 · el renglón dice <b>quién</b> está dentro, no cuántos</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">La casilla marca, el resto de la fila abre</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Es el reparto que todo el mundo ya conoce de una app de correo o de fotos: la
+        casilla de la izquierda <b>selecciona</b>, tocar el cuerpo de la fila <b>entra</b>. La casilla tiene
+        <b>44 pt de toque</b> alrededor de un dibujo de 24 —la misma regla del visto de Mejoras (§14.22) y del
+        aspa del editor de receta—, y a la fila le quedan 314. Los <b>tres estados se dibujan</b>: visto lleno
+        = los tres dentro, <b>raya</b> = algunos, vacío = ninguno, que es lo que hace que «2 de 3» no haya que
+        leerlo para verlo.</p>
+      <p class="coste"><b>Cuesta</b> que un dedo gordo pueda abrir una familia queriendo marcarla. Se paga
+        barato porque abrirla no cambia nada: se ve lo que hay y se cierra. Al revés —marcar sin querer— sí
+        costaría, y por eso el objetivo pequeño es el que marca y el grande el que abre. <b>Compra</b> los dos
+        verbos en una fila de 48, que es lo que hace que A3 quepa en 404,9 pt.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">El renglón dice quién, no cuántos</span><span class="etq base">complemento</span></div>
+      <p class="op-idea">«Fran · Ana» en vez de «2 de 3». Contesta a la vez la pregunta de cuántos y la de
+        cuáles, así que <b>quita la mitad de las razones para abrir la familia</b>.</p>
+      <p class="coste"><b>Cuesta el ancho</b>: con la casilla, el nombre de la familia y el chevrón puestos
+        quedan unos <b>190 pt</b> para los nombres, que dan para tres cortos y no para cuatro. <b>Combina bien
+        con C2</b> —así está dibujada la combinación final—: renglón de C4 mientras quepa y «3 de 3» cuando
+        no, que es una línea de código y ninguna decisión que tomar.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">La gente vive dentro de la fila, en pastillas</span></div>
+      <p class="op-idea">Sin abrir ni plegar nada: cada familia trae a los suyos puestos como pastillas
+        tocables. Un solo nivel, y ver y marcar son el mismo gesto.</p>
+      <p class="coste"><b>Cuesta 83,3 pt por familia</b> —249,8 por las tres, frente a los 146 de la lista de
+        C2—, o sea <b>103,8 pt</b> sobre la hoja recomendada y ninguna diferencia entre abierto y cerrado.
+        <b>Y cuesta el tamaño del toque</b>: una pastilla de nombre mide 29 pt de alto, quince por debajo del
+        suelo de iOS, y son justo las que más se van a tocar.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">La fila entera marca, y no se abre</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">Lo más simple: tocar «García» pone o quita a los tres, y para ver quién es quién
+        está el buscador.</p>
+      <p class="coste"><b>Cuesta lo mismo que A2</b> y por la misma razón: «2 de 3» sin forma de saber cuál
+        falta. <b>Y aquí es peor</b>, porque el estado a medias solo puede llegar desde el buscador y desde
+        ahí no se ve el conjunto: quedas con un recuento que no cuadra y ninguna pantalla que lo explique.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE CUATRO ══════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte cuatro · el buscador, que cuesta 52 pt esté o no esté</div>
+    <p class="parte-intro">Un campo de texto de <code>theme.css</code> mide <b>53,4 pt</b>, y
+      abre el teclado alfabético, que son <b>336</b>. En un grupo de nueve personas <b>buscar es casi siempre
+      más lento que mirar</b>; el buscador gana cuando el grupo crece o cuando ya sabes el nombre. Lo que se
+      decide es cuánto sitio ocupa mientras no se usa, que es el 95 % del tiempo.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="D1" style="padding-bottom:16px">
+          <div class="buscador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar a alguien…</div>
+          <div class="lista">
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">D1 · campo fijo arriba · <b>53,4 pt</b> siempre</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="D2" style="padding-bottom:16px">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <span class="cabecilla" style="margin:0">Familias</span>
+            <span class="lupa-sola"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar</span>
+          </div>
+          <div class="lista">
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+          </div>
+        </div></div></div>
+        <p class="pie-tel">D2 · lupa que despliega · <b>0 pt propios</b>: comparte renglón con «Familias»,
+          y contra D1 son <b>29,1 pt menos</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="D3" style="padding-bottom:16px">
+          <div class="cabecilla" style="margin-top:0">Familias</div>
+          <div class="lista">
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Solteros</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+          </div>
+          <div class="nota-mini">Sin buscador: con 9 personas, mirar es más rápido que escribir.</div>
+        </div></div></div>
+        <p class="pie-tel">D3 · aparece solo por encima de 12 personas · 0 pt hoy</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="D4" style="padding-bottom:16px">
+          <div class="buscador">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+            <span style="color:var(--ab-ink)">an</span>
+          </div>
+          <div class="lista">
+            <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Ana</span><span class="no">Pérez · ×1</span></div>
+            <div class="fila"><span class="aro"></span><span class="et">N<b>an</b>do</span><span class="no">Solteros · ×1</span></div>
+          </div>
+          <div class="nota-mini">Buscando: las familias se esconden y salen las personas que coinciden.</div>
+        </div></div></div>
+        <p class="pie-tel">D4 · el mismo campo, y al escribir la hoja cambia de contenido</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">Una lupa en el rótulo, que despliega el campo</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">La lupa comparte el renglón del rótulo «Familias», así que <b>no cuesta ni un punto propio</b> mientras
+        no se use, y al tocarla el campo baja en su sitio con el teclado detrás. Es el mismo trato que se le
+        dio al recado del verano (§14.25 · C2+C4): lo que se usa poco vive donde no cobra alquiler.</p>
+      <p class="coste"><b>Cuesta un toque</b> para empezar a buscar y <b>cuesta que se descubra menos</b> que
+        un campo puesto. <b>Se paga bien</b> porque buscar es el caso raro por definición —el frecuente son
+        los cuatro atajos, que están arriba y a la vista—. <b>Compra 29,1 pt netos</b> sobre D1 —el campo
+        cuesta 53,4 y el rótulo que la lupa necesita, 24,3—, que es un trece por ciento de la hoja entera.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D4</span><span class="op-nombre">Y al escribir, la hoja se convierte en resultados</span><span class="etq base">complemento</span></div>
+      <p class="op-idea">No es una alternativa a D1/D2/D3 sino <b>qué pasa después</b>: mientras hay letras
+        escritas, las familias se retiran y salen las personas que coinciden, con su familia en el renglón
+        para desambiguar dos Anas. Borrar el campo devuelve la hoja a lo que era.</p>
+      <p class="coste"><b>Cuesta</b> que la hoja cambie de forma mientras el teclado está puesto, que es
+        exactamente lo que se evitó en la ficha rápida. <b>Aquí se acepta</b>: al buscar ya has decidido que
+        no vas a usar las familias, y el teclado te va a tapar la mitad de todas formas. Va con la que se
+        elija de las tres de arriba.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">Que aparezca solo cuando el grupo es grande</span></div>
+      <p class="op-idea">Con doce personas o menos no hay buscador: mirar nueve nombres es más rápido que
+        escribir tres letras y leer lo que queda. Por encima, aparece solo.</p>
+      <p class="coste"><b>Cuesta cero puntos y una promesa que no se puede cumplir</b>: pediste el buscador,
+        y esta opción decide por ti que no te hace falta. <b>Y cuesta una pantalla que cambia</b> según
+        cuánta gente haya, que es difícil de explicar el día que alguien lo busca y no está. La dejo
+        dibujada porque es el número honesto —hoy no haría falta—, no porque la recomiende.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">Campo fijo, siempre visible</span></div>
+      <p class="op-idea">Lo que se pidió, tal cual: un buscador arriba que está siempre.</p>
+      <p class="coste"><b>Cuesta 52,3 pt permanentes</b> para una función que se usa una vez de cada veinte, y
+        son el 13 % de la hoja recomendada. <b>Compra</b> que no haya que descubrir nada — y si al verlo en
+        el móvil la lupa de D2 se te esconde demasiado, esta es el recambio de una línea.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE CINCO ═══════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte cinco · salir sin guardar, que hoy no se puede</div>
+    <p class="parte-intro">Con el borrador puesto (defecto 1), la hoja tiene <b>dos salidas de verdad</b> y hay
+      que decidir dónde van y qué hace el fondo. Ojo a una trampa: si «Cancelar» está abajo, el fondo tiene que
+      cancelar también, porque si no <b>el gesto más fácil hace lo contrario que el botón más visible</b>. Y
+      una hoja que se cierra deslizando hacia abajo —que es lo que enseña el asa— no puede guardar en
+      silencio.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="E1" style="padding-bottom:16px">
+          <span class="asa"></span>
+          <h4>Entre quién se divide</h4>
+          <div class="nota-mini" style="margin-top:10px">… los atajos, las familias y el buscador …</div>
+          <div class="salida"><div class="btn-fantasma">Cancelar</div><div class="btn-block">Listo</div></div>
+        </div></div></div>
+        <p class="pie-tel">E1 · dos botones abajo, mitad y mitad · <b>67,8 pt</b> con su hueco</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="E2" style="padding-bottom:16px">
+          <span class="asa"></span>
+          <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+          <div class="nota-mini" style="margin-top:6px">… los atajos, las familias y el buscador …</div>
+        </div></div></div>
+        <p class="pie-tel">E2 · los dos verbos arriba, con el título en medio · 44 pt, <b>y se come el título</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="E3" style="padding-bottom:16px">
+          <span class="asa"></span>
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <h4>Entre quién se divide</h4><span style="font-size:26px; opacity:.6">×</span>
+          </div>
+          <div class="nota-mini" style="margin-top:10px">… los atajos, las familias y el buscador …</div>
+          <div style="margin-top:14px"><div class="btn-block">Listo</div></div>
+        </div></div></div>
+        <p class="pie-tel">E3 · aspa arriba (cancela) + «Listo» ancho abajo · <b>66 pt</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro"><div class="velo suelto"><div class="mod capa" data-medir="E4" style="padding-bottom:16px">
+          <span class="asa"></span>
+          <h4>Entre quién se divide</h4>
+          <div class="nota-mini" style="margin-top:10px">… los atajos, las familias y el buscador …</div>
+          <div style="margin-top:14px"><div class="btn-block">Listo · entre 6</div></div>
+        </div></div></div>
+        <p class="pie-tel">E4 · un solo botón, y el fondo cancela de verdad · <b>59,9 pt</b></p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">E2</span><span class="op-nombre">Los dos verbos arriba, y el título entre ellos</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">«Cancelar» a la izquierda, «Listo» a la derecha y «Entre» en medio, en un renglón de
+        <b>44 pt</b> que <b>sustituye al título</b> en vez de sumarse a él: los 34,2 pt del <code>h2</code>
+        se los queda él. Medido de punta a punta, la misma hoja con E2 sale a <b>147,8</b> y con E1 a
+        <b>209,7</b>: <b>61,9 pt de regalo</b>. Es el patrón de hoja modal de iOS y el que
+        ya tienen medio sistema y la mitad de las apps del teléfono. Los dos verbos están donde el pulgar no
+        los toca sin querer, que en una lista de casillas importa.</p>
+      <p class="coste"><b>Cuesta</b> que «Listo» deja de ser un botón lleno y pasa a ser texto de acento: en
+        una pantalla con un solo botón lleno por regla (§14.12), aquí no habría ninguno. <b>Se acepta</b>
+        porque esta hoja no confirma nada peligroso — solo vuelve a la ficha, donde sí está el botón lleno de
+        Guardar. <b>Cuesta también</b> alcance: arriba del todo en un teléfono grande es donde peor llega el
+        pulgar, y eso es un argumento real a favor de E1.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E1</span><span class="op-nombre">Cancelar y Listo abajo, mitad y mitad</span><span class="etq base">si el pulgar manda</span></div>
+      <p class="op-idea">Los dos verbos donde cae el pulgar, «Cancelar» en fantasma y «Listo» lleno. Es lo que
+        ya hace la hoja de editar una familia en <code>GrupoSection</code>, así que no habría que aprender
+        nada nuevo.</p>
+      <p class="coste"><b>Cuesta 61,9 pt</b> —los que E2 regala— y, al estar los dos abajo, <b>«Cancelar»
+        queda a un pulgar de «Listo»</b>, que es donde más se falla. <b>Compra</b> alcance y un botón lleno de
+        verdad. <b>Es la buena si se elige A5</b>, donde la hoja es corta y sobran los 62.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E4</span><span class="op-nombre">Un solo «Listo · entre 6», y el fondo cancela</span></div>
+      <p class="op-idea">Sin botón de cancelar: el fondo y el deslizar hacia abajo <b>descartan</b>, que es lo
+        que ya significan en todo el sistema, y el único botón dice además <b>qué va a guardar</b> —«Listo ·
+        entre 6»—, que es la confirmación que de verdad hace falta.</p>
+      <p class="coste"><b>Cuesta</b> que descartar sea invisible: quien no sepa que el fondo descarta se queda
+        sin salida y tocará «Listo» para «salir sin hacer nada», que es justo lo contrario. <b>Y cuesta</b>
+        que hoy el fondo hace lo opuesto, así que cambiaría de significado sin avisar. <b>Compra</b> la hoja
+        más limpia de las cuatro y el recuento en el botón, que <b>se puede llevar a cualquiera de las otras</b>.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E3</span><span class="op-nombre">Aspa arriba para cancelar, «Listo» ancho abajo</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">El aspa de los modales de la app arriba a la derecha, y el botón lleno abajo.</p>
+      <p class="coste"><b>Cuesta que el aspa mienta.</b> En toda la app el aspa <b>cierra</b>, y aquí tendría
+        que <b>descartar</b>: el mismo dibujo con dos significados según la pantalla es peor que no tener
+        salida. <b>Y cuesta 66 pt</b> del botón sin ahorrar los del título —la hoja entera sale a 213,8, la
+        más alta de las cuatro—, así que es E1 pagando más con la mitad de la claridad.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE SEIS ════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte seis · que la ficha de gasto se vea como una capa y no como la app</div>
+    <p class="parte-intro">Esta parte vale para <b>la ficha de gasto y sus tres hojas a la vez</b>. El papel de
+      un modal es <code>--foam</code>, que es <b>el mismo valor</b> que <code>--app-bg</code>:
+      <b>1,00 : 1</b> sin velo. Con el velo de hoy —<code>rgba(4,18,26,.5)</code>— la cara clara sale a
+      <b>3,48 : 1</b> y se ve bien; <b>la oscura sale a 1,06</b>. Y aquí está el dato que decide:
+      <b>subir el velo casi no hace nada en oscuro</b> —de .50 a .78 sube de 1,06 a 1,10— porque oscurecer un
+      fondo que ya es casi negro no lo aleja del papel. Lo que separa en oscuro es <b>subir el papel</b> y
+      <b>dibujar el canto</b>.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo centro"><div class="mod centrada" style="height:420px">
+            <div class="cab-verbos"><span class="lis">Detalles ›</span><span style="font-size:26px; opacity:.5">×</span></div>
+            <div style="text-align:right; font-size:var(--t-hero); font-weight:700; padding:8px 4px">24,30 <span style="font-size:var(--t-title); opacity:.6">€</span></div>
+          </div></div>
+        </div>
+        <p class="pie-tel">Hoy · <b>1,06 : 1</b>. El canto de la ficha no existe.</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo centro f78"><div class="mod centrada" style="height:420px">
+            <div class="cab-verbos"><span class="lis">Detalles ›</span><span style="font-size:26px; opacity:.5">×</span></div>
+            <div style="text-align:right; font-size:var(--t-hero); font-weight:700; padding:8px 4px">24,30 <span style="font-size:var(--t-title); opacity:.6">€</span></div>
+          </div></div>
+        </div>
+        <p class="pie-tel">F2 · solo velo, subido a .78 · <b>1,10 : 1</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo centro f68"><div class="mod centrada capa" style="height:420px">
+            <div class="cab-verbos"><span class="lis">Detalles ›</span><span style="font-size:26px; opacity:.5">×</span></div>
+            <div style="text-align:right; font-size:var(--t-hero); font-weight:700; padding:8px 4px">24,30 <span style="font-size:var(--t-title); opacity:.6">€</span></div>
+          </div></div>
+        </div>
+        <p class="pie-tel">F1 · <code>.capa</code> tal cual + velo .68 · papel <b>1,33 : 1</b>, borde <b>2,25 : 1</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo centro f68"><div class="mod centrada papel-propio canto" style="height:420px">
+            <div class="cab-verbos"><span class="lis">Detalles ›</span><span style="font-size:26px; opacity:.5">×</span></div>
+            <div style="text-align:right; font-size:var(--t-hero); font-weight:700; padding:8px 4px">24,30 <span style="font-size:var(--t-title); opacity:.6">€</span></div>
+          </div></div>
+        </div>
+        <p class="pie-tel">F3 · papel propio (#1a3d4f) + canto de 1,5 · papel <b>1,60 : 1</b>, borde <b>3,12 : 1</b></p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo centro f68 borroso"><div class="mod centrada capa" style="height:420px">
+            <div class="cab-verbos"><span class="lis">Detalles ›</span><span style="font-size:26px; opacity:.5">×</span></div>
+            <div style="text-align:right; font-size:var(--t-hero); font-weight:700; padding:8px 4px">24,30 <span style="font-size:var(--t-title); opacity:.6">€</span></div>
+          </div></div>
+        </div>
+        <p class="pie-tel">F4 · <code>.capa</code> + el fondo desenfocado 8 px</p>
+      </div>
+
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo centro f68"><div class="mod centrada capa filo" style="height:420px">
+            <div class="cab-verbos"><span class="lis">Detalles ›</span><span style="font-size:26px; opacity:.5">×</span></div>
+            <div style="text-align:right; font-size:var(--t-hero); font-weight:700; padding:8px 4px">24,30 <span style="font-size:var(--t-title); opacity:.6">€</span></div>
+          </div></div>
+        </div>
+        <p class="pie-tel">F5 · <code>.capa</code> + filo de acento de 3 pt arriba</p>
+      </div>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">Papel propio de capa, canto de 1,5 y velo a .68</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Las tres palancas a la vez, que es lo que ya decía <code>plan-voto.html</code>:
+        <b>ninguna aguanta sola las dos caras</b>. El papel sube a un tono propio —<code>#1a3d4f</code> en
+        oscuro, blanco en clara—, el <b>borde engorda a 1,5 pt y sube un punto</b> (<code>#3a6a82</code>) y el
+        velo pasa a .68. Números en la cara oscura: papel <b>1,60 : 1</b> contra el fondo velado —frente a
+        1,06 de hoy— y <b>canto a 3,12 : 1</b>, que es el que de verdad dibuja el borde de la hoja. En la
+        clara el velo a .68 lleva el papel a <b>6,98 : 1</b>, así que la cara buena no se toca.</p>
+      <p class="coste"><b>Cuesta una variable nueva</b> —el papel de capa no es <code>--foam-2</code>, así que
+        hay que declararlo en las cuatro caras de <code>theme.css</code>— y <b>cuesta cuidar lo de dentro</b>:
+        con el papel más claro, las tarjetas interiores en <code>--foam-2</code> quedan <b>1,20 : 1</b> por
+        debajo y hay que bajarlas un escalón, que es el mismo truco que <code>.capa</code> ya hace con los
+        chips. <b>Compra</b> que la hoja tenga canto: hoy no sabes dónde acaba.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">Aplicar <code>.capa</code>, que ya está escrita</span><span class="etq base">lo mínimo</span></div>
+      <p class="op-idea">Añadir la clase a la ficha y a las hojas y subir el velo a <code>velo-fuerte</code>.
+        <b>Cero CSS nuevo</b>: la decisión ya se tomó en <code>plan-voto.html</code> · P1 y esto es solo
+        terminar de aplicarla.</p>
+      <p class="coste"><b>Cuesta</b> quedarse a medio camino en la cara oscura: <b>1,33 : 1</b> de papel, que
+        es exactamente lo que se dijo del modal de votar un plan —«1,22 : 1»— y que allí bastaba porque el
+        modal era pequeño y sobre una lista con color. Una hoja de 405 pt pegada al borde de abajo tiene mucho
+        más canto que enseñar. <b>Compra</b> que se hace hoy y sin decidir nada. <b>Es la mitad de F3</b>: si
+        te vale, F3 sobra.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F5</span><span class="op-nombre"><code>.capa</code> + un filo de acento arriba</span><span class="etq base">complemento</span></div>
+      <p class="op-idea">Tres puntos de acento en el borde superior de la hoja. No separa por luminancia sino
+        por <b>color</b>, que es un canal que el velo no toca, y funciona igual de bien en las dos caras.</p>
+      <p class="coste"><b>Cuesta</b> meter el azul del acento en un sitio donde no significa nada —§14.13:
+        el color de la app informa, y este no informaría de nada—. <b>Se combina bien con F1</b> si F3 parece
+        demasiado cambio: F1 + F5 dan canto sin inventar un papel nuevo. En la ficha centrada, el filo tendría
+        que rodear los cuatro lados o se lee torcido.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre"><code>.capa</code> + desenfocar el fondo</span></div>
+      <p class="op-idea">Un <code>backdrop-filter: blur(8px)</code> en el velo. Es lo que hace iOS y separa por
+        <b>nitidez</b>, que es otro canal más que el velo no usa: la ficha se lee enfocada sobre algo que no lo
+        está, y eso funciona incluso a 1,06 : 1.</p>
+      <p class="coste"><b>Cuesta batería y fotogramas</b> en un panel que sube desde abajo: es el efecto más
+        caro de la lista y se nota al abrir en un teléfono viejo. <b>Y cuesta una comprobación</b> —
+        <code>backdrop-filter</code> hay que probarlo en el WebView de la app, no solo en Safari—. <b>Compra</b>
+        el efecto más bonito de las cinco, y no lo descarto: si F3 se hace y aún se quiere más, esto va encima.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">Subir el velo y nada más</span><span class="etq no">descartada</span></div>
+      <p class="op-idea">Lo primero que uno prueba: oscurecer más lo de detrás.</p>
+      <p class="coste"><b>Cuesta el problema entero sin resolver.</b> En la cara oscura el velo va de .50 a .78
+        y el papel pasa de <b>1,06 a 1,10 : 1</b> — cuatro centésimas por tapar el fondo casi del todo. El
+        motivo es aritmética: el fondo ya es <code>#0b1f2c</code> y el velo <code>#041219</code>, así que
+        oscurecer no aleja. <b>Y encima cuesta</b> perder de vista la lista de gastos que hay detrás, que es
+        parte de saber dónde estás.</p>
+    </div>
+  </div>
+
+  <!-- ══ LA COMBINACIÓN ════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">La combinación · A3 · B2 · C2 (con el renglón de C4) · D2 (+ D4) · E2 · F3</div>
+    <p class="parte-intro">Así queda la hoja entera, en las dos caras y a tamaño real, con la ficha de gasto
+      detrás para que se vea el canto. <b>400,5 pt cerrada</b> frente a los 732,8 de la réplica de hoy
+      —<b>332 menos, un 45 %</b>—, y sin crecer aunque el grupo pase de nueve personas a quince, porque las
+      familias son tres y las personas viven dentro. «Esta cena la pagan los García» pasa de <b>nueve toques
+      a dos</b>.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel oscuro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo f68">
+            <div class="mod papel-propio canto" data-medir="FIN-o" style="border-radius:12px 12px 0 0">
+              <span class="asa"></span>
+              <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+              <div class="mando"><div class="on">Todos</div><div>Mayores</div><div>Peques</div><div>Nadie</div></div>
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span class="cabecilla" style="margin:14px 2px 4px">Familias</span>
+                <span class="lupa-sola" style="margin-top:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar</span>
+              </div>
+              <div class="lista">
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">Curro · Marta · Pablo</span><span class="fle">›</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Solteros</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+              </div>
+              <div style="font-size:var(--t-label); color:var(--ab-faint); margin:10px 2px 0">Por el peso de cada uno: 1 el mayor, 0,6 el niño.</div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">La hoja · cara oscura · <b>400,5 pt</b></p>
+      </div>
+
+      <div>
+        <div class="tel claro alto">
+          <div class="t-cab"><div class="ti">Gastos</div><div class="punto"></div></div>
+          <div class="t-body"><div class="tarj" style="height:64px"></div><div class="tarj" style="height:64px"></div></div>
+          <div class="velo f68">
+            <div class="mod papel-propio canto" data-medir="FIN-c" style="border-radius:12px 12px 0 0">
+              <span class="asa"></span>
+              <div class="cab-verbos"><span class="can">Cancelar</span><span class="ti">Entre</span><span class="lis">Listo</span></div>
+              <div class="mando"><div class="on">Todos</div><div>Mayores</div><div>Peques</div><div>Nadie</div></div>
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span class="cabecilla" style="margin:14px 2px 4px">Familias</span>
+                <span class="lupa-sola" style="margin-top:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Buscar</span>
+              </div>
+              <div class="lista">
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">García</span><span class="no">Curro · Marta · Pablo</span><span class="fle">›</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Pérez</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+                <div class="fila"><span class="aro todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></span><span class="et">Solteros</span><span class="no">3 de 3</span><span class="fle">›</span></div>
+              </div>
+              <div style="font-size:var(--t-label); color:var(--abc-faint); margin:10px 2px 0">Por el peso de cada uno: 1 el mayor, 0,6 el niño.</div>
+            </div>
+          </div>
+        </div>
+        <p class="pie-tel">La hoja · cara clara · <b>400,5 pt</b></p>
+      </div>
+    </div>
+
+    <div class="tabla-scroll">
+    <table class="comp">
+      <tr><th>Lo que se hace</th><th>Hoy</th><th>Con la combinación</th></tr>
+      <tr><td>Dividir entre todos</td><td>ya está puesto</td><td>ya está puesto</td></tr>
+      <tr><td>Quitar a los niños</td><td>1 toque («Solo mayores»)</td><td class="si">1 toque</td></tr>
+      <tr><td>Solo los niños (la merienda)</td><td class="no">no hay atajo: 6 toques de quitar</td><td class="si">1 toque</td></tr>
+      <tr><td>«Esta cena la pagan los García»</td><td class="no">9 toques</td><td class="si">2 toques: «Nadie» y luego García</td></tr>
+      <tr><td>Quitar a una persona suelta</td><td>1 toque, pero hay que encontrarla entre 9</td><td class="si">abrir su familia o buscarla</td></tr>
+      <tr><td>Salir sin guardar</td><td class="no">no se puede: el fondo guarda</td><td class="si">Cancelar, el fondo y deslizar</td></tr>
+      <tr><td>Alto de la hoja</td><td class="tnum no">732,8 pt (87 % de la pantalla)</td><td class="tnum si">400,5 pt (47 %)</td></tr>
+      <tr><td>Con 12 personas</td><td class="no">876,8 pt: se pasa del tope y hace scroll</td><td class="si">400,5 pt: no cambia</td></tr>
+      <tr><td>Papel contra el fondo (oscuro)</td><td class="tnum no">1,06 : 1</td><td class="tnum si">1,60 : 1, canto a 3,12</td></tr>
+    </table>
+    </div>
+  </div>
+
+  <!-- ══ CIERRE ════════════════════════════════════════════════════════════ -->
+  <div class="cierre">
+    <h2>Lo que hay que decidir, y en qué orden</h2>
+    <p>Las seis partes son independientes salvo dos ataduras. <b>La parte cinco depende del defecto 1</b>
+      —sin borrador no hay nada que cancelar—, así que ese arreglo va primero pase lo que pase. Y
+      <b>la parte seis es la única que toca `theme.css` a lo ancho</b>: vale para la ficha de gasto y sus tres
+      hojas a la vez, y de paso para cualquier modal futuro, así que se puede hacer sola y antes que todo lo
+      demás si lo que más molesta es no ver dónde acaba la ficha.</p>
+    <ol>
+      <li><b>Parte uno</b> — estructura: A1 · A2 · <b>A3</b> · A4 · A5 &nbsp;(A3 cerrada 372,8 pt · A5 393,3 si prefieres dos pantallas cortas)</li>
+      <li><b>Parte dos</b> — atajos: B1 · <b>B2</b> · B3 · B4 &nbsp;(B4 vuelve si eliges A5, que deja sitio)</li>
+      <li><b>Parte tres</b> — la fila de familia: C1 · <b>C2</b> · C3 · C4 &nbsp;(C2 + el renglón de C4 es la combinación buena)</li>
+      <li><b>Parte cuatro</b> — el buscador: D1 · <b>D2</b> · D3 · D4 &nbsp;(D4 va encima de la que elijas)</li>
+      <li><b>Parte cinco</b> — la salida: E1 · <b>E2</b> · E3 · E4 &nbsp;(E1 si el alcance del pulgar pesa más que 59 pt)</li>
+      <li><b>Parte seis</b> — que se vea la capa: F1 · F2 · <b>F3</b> · F4 · F5 &nbsp;(F1 es la mitad y se hace hoy; F4 va encima)</li>
+    </ol>
+    <p><b>Lo que arrastraría la vuelta entera:</b> <code>HojaDeEntre</code> sale de
+      <code>FichaDeGasto.jsx</code> a su propio fichero con el borrador dentro;
+      <code>lib/reparto-gente.js</code> nuevo y puro para los cuatro atajos y el estado de una familia
+      —todos / algunos / ninguno—, con su test; <code>components/Hoja.jsx</code> gana la cabecera de dos
+      verbos, que la van a querer las otras cinco hojas; <code>theme.css</code> gana el papel de capa y se lo
+      pone a la ficha y a sus hojas; y el spec gana una §14.27 que cita esta hoja por nombre y código.</p>
+  </div>
+
+</div>
+</div>
