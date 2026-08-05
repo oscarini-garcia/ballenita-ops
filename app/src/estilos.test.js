@@ -145,3 +145,31 @@ describe('una capa se ve como capa', () => {
     expect(CSS.match(/--linea-capa:/g)).toHaveLength(4)
   })
 })
+
+/**
+ * Todo `input` que use la app tiene que estar en la lista que los viste.
+ *
+ * Es el fallo que ha mordido **tres veces**: `password` salió con el borde
+ * cuadrado del navegador, `url` se pintó blanco sobre el tema oscuro, y
+ * `datetime-local` —el campo «Cuándo» de un gasto— se llevó la peor parte,
+ * porque hereda `color: inherit` (tinta clara) y se quedaba con el `Field`
+ * blanco de fábrica: **el campo se veía literalmente en blanco**. Las tres veces
+ * se vio en el móvil y ninguna aquí. Ahora la lista se comprueba sola.
+ */
+describe('los campos de formulario', () => {
+  const CSS = readFileSync(join(RAIZ, 'theme.css'), 'utf8')
+  // La regla que da fondo, borde y ancho a todos los campos.
+  const LISTA = CSS.slice(0, CSS.indexOf('{', CSS.indexOf('input[type=text]')))
+
+  it('están todos vestidos, ninguno con el aspecto de fábrica', () => {
+    const usados = new Set()
+    for (const f of jsx()) {
+      const texto = readFileSync(f, 'utf8')
+      for (const m of texto.matchAll(/<input\b[^>]*?\btype="([a-z-]+)"/g)) usados.add(m[1])
+    }
+    // Los que no son cajas de texto se visten en su propia regla.
+    const aparte = new Set(['checkbox', 'radio', 'file', 'range', 'color', 'hidden', 'submit'])
+    const huerfanos = [...usados].filter((t) => !aparte.has(t) && !LISTA.includes(`input[type=${t}]`))
+    expect(huerfanos.join(', '), 'sin vestir se pintan con el fondo del navegador').toBe('')
+  })
+})

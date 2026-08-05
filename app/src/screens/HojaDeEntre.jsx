@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import Hoja from '../components/Hoja.jsx'
 import Icono from '../components/Icono.jsx'
+import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import {
   ATAJOS, genteDeAtajo, atajoDe, porFamilias, estadoDeFamilia, quienDeFamilia, buscarGente,
@@ -8,7 +8,7 @@ import {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Entre quién se divide (SPECS §14.27 · `docs/diseño/gasto-entre.html`,
-// combinación A3 · B2 · C2 con el renglón de C4 · D2 + D4 · E2).
+// combinación A3 · B2 · C2 con el renglón de C4 · D2 + D4, y E1 en vez de E2).
 //
 // La de antes eran dos chips y **los nueve nombres del grupo puestos uno detrás
 // de otro**: 711,3 pt en un teléfono de 844 —el 84 %—, de los que 434 eran
@@ -20,9 +20,18 @@ import {
 // familias con su recuento —que se abren para ver quién es quién— y el buscador
 // detrás de una lupa. 372,8 pt cerrada, y **no crece** aunque el grupo pase de
 // nueve personas a quince, porque las familias siguen siendo tres.
+//
+// Va **centrada y con los dos botones abajo**, no como hoja desde el borde con
+// los verbos arriba. Vivió una versión al revés —el patrón de hoja modal de iOS,
+// que ahorraba 61,9 pt— y se cambió: en una app donde todas las demás pantallas
+// confirman abajo y en azul, ser el único sitio que lo hace de otra forma cuesta
+// más que 61 pt. Y **no cambia de tamaño**: cuando el contenido no cabe —una
+// familia abierta en «Enorme»— hace scroll dentro, que es lo que hace que el
+// mando de arriba no se mueva mientras trabajas.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function HojaDeEntre({ persons, families, participantIds, onCambio, onCerrar }) {
+  useBloqueoDeScroll()
   // El borrador. Sin él no hay nada que cancelar: no es que faltara el botón, es
   // que la hoja escribía en la ficha en cada toque y al cerrarse ya estaba hecho.
   const [dentro, setDentro] = useState(() => new Set(participantIds))
@@ -62,114 +71,137 @@ export default function HojaDeEntre({ persons, families, participantIds, onCambi
   }
 
   return (
-    <Hoja
-      titulo="Entre"
-      onCerrar={onCerrar}
-      acciones={{ onCancelar: onCerrar, onListo: () => { onCambio([...dentro]); onCerrar() } }}
-    >
-      {/* B2 · un segmentado y no cuatro pastillas: las cuatro palabras suman
-          384,7 pt de los 356 que hay, así que como chips doblan a dos filas ya en
-          la talla de fábrica. En columnas miden lo mismo en las tres tallas. */}
-      <div className="mando-atajos" role="group" aria-label="Atajos">
-        {ATAJOS.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            className={atajo === a.id ? 'on' : ''}
-            aria-pressed={atajo === a.id}
-            onClick={() => ponerAtajo(a.id)}
-          >
-            {a.etiqueta}
-          </button>
-        ))}
-      </div>
+    <div className="modal-bg center" onClick={onCerrar}>
+      <div
+        className="modal center formulario"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Entre quién se divide"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2>Entre quién se divide</h2>
 
-      {/* D2 · la lupa comparte renglón con el rótulo, así que no cuesta ni un
-          punto propio mientras no se usa, que es el 95 % del tiempo. */}
-      <div className="reng-rotulo">
-        <span className="sec-h">{buscando ? 'Quien coincide' : 'Familias'}</span>
-        {busqueda === null ? (
-          <button type="button" className="lupa" onClick={() => { tap(); setBusqueda('') }}>
-            <Icono nombre="buscar" />Buscar
-          </button>
-        ) : (
-          <button type="button" className="lupa" onClick={() => { tap(); setBusqueda(null) }}>
-            Cerrar la búsqueda
-          </button>
-        )}
-      </div>
-
-      {busqueda !== null && (
-        <input
-          type="text"
-          className="campo-busqueda"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar a alguien…"
-          aria-label="Buscar a alguien"
-          // El foco aquí sí se pide: has tocado la lupa para escribir. Es lo
-          // contrario del `autoFocus` que se quitó de la ficha, que salía solo.
-          autoFocus
-        />
-      )}
-
-      {/* D4 · mientras hay letras, las familias se retiran y salen las personas.
-          Al buscar ya has decidido que no vas a usar las familias. */}
-      {buscando ? (
-        <div className="eleccion">
-          {encontrados.length === 0 && <div className="note">Nadie se llama así.</div>}
-          {encontrados.map((p) => (
-            <FilaPersona key={p.id} persona={p} dentro={dentro} onAlternar={alternarPersona} conFamilia={families} />
+        {/* B2 · un segmentado y no cuatro pastillas: las cuatro palabras suman
+            384,7 pt de los 356 que hay, así que como chips doblan a dos filas ya en
+            la talla de fábrica. En columnas miden lo mismo en las tres tallas. */}
+        <div className="mando-atajos" role="group" aria-label="Atajos">
+          {ATAJOS.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              className={atajo === a.id ? 'on' : ''}
+              aria-pressed={atajo === a.id}
+              onClick={() => ponerAtajo(a.id)}
+            >
+              {a.etiqueta}
+            </button>
           ))}
         </div>
-      ) : (
-        <div className="eleccion">
-          {grupos.map((g) => {
-            const estado = estadoDeFamilia(g.gente, dentro)
-            const abierta = abiertas.has(g.id)
-            return (
-              <div key={g.id ?? 'sueltos'} className="grupo-fam">
-                {/* C2 · dos verbos en una fila de 48: la casilla marca —con sus
-                    44 pt de toque alrededor de un dibujo de 24— y el cuerpo abre.
-                    El objetivo pequeño es el que marca y el grande el que abre,
-                    porque abrir sin querer no cambia nada y marcar sin querer sí. */}
-                <div className="fila-fam">
-                  <button
-                    type="button"
-                    className="marca"
-                    aria-pressed={estado === 'todo'}
-                    aria-label={`${estado === 'todo' ? 'Quitar' : 'Poner'} a los ${g.nombre}`}
-                    onClick={() => alternarFamilia(g.gente)}
-                  >
-                    <Casilla estado={estado} />
-                  </button>
-                  <button
-                    type="button"
-                    className="destapa"
-                    aria-expanded={abierta}
-                    onClick={() => destapar(g.id)}
-                  >
-                    <span className="et">{g.nombre}</span>
-                    {/* C4 · quién está dentro mientras quepa, y «n de m» cuando no. */}
-                    <span className="no">{quienDeFamilia(g.gente, dentro)}</span>
-                    <span className={`fle${abierta ? ' abierta' : ''}`} aria-hidden="true">›</span>
-                  </button>
-                </div>
-                {abierta && g.gente.map((p) => (
-                  <FilaPersona key={p.id} persona={p} dentro={dentro} onAlternar={alternarPersona} sangrada />
-                ))}
-              </div>
-            )
-          })}
-        </div>
-      )}
 
-      {/* La nota del peso ocupaba 69,5 pt permanentes para explicar una regla que
-          no cambia nunca y que desde §14.26 ya no siempre se aplica. Un renglón. */}
-      <div className="apunte" style={{ marginTop: 10 }}>
-        Por el peso de cada uno: 1 el mayor, 0,6 el niño.
+        {/* D2 · la lupa comparte renglón con el rótulo, así que no cuesta ni un
+            punto propio mientras no se usa, que es el 95 % del tiempo. */}
+        <div className="reng-rotulo">
+          <span className="sec-h">{buscando ? 'Quien coincide' : 'Familias'}</span>
+          {busqueda === null ? (
+            <button type="button" className="lupa" onClick={() => { tap(); setBusqueda('') }}>
+              <Icono nombre="buscar" />Buscar
+            </button>
+          ) : (
+            <button type="button" className="lupa" onClick={() => { tap(); setBusqueda(null) }}>
+              Cerrar la búsqueda
+            </button>
+          )}
+        </div>
+
+        {busqueda !== null && (
+          <input
+            type="text"
+            className="campo-busqueda"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar a alguien…"
+            aria-label="Buscar a alguien"
+            // El foco aquí sí se pide: has tocado la lupa para escribir. Es lo
+            // contrario del `autoFocus` que se quitó de la ficha, que salía solo.
+            autoFocus
+          />
+        )}
+
+        {/* D4 · mientras hay letras, las familias se retiran y salen las personas.
+            Al buscar ya has decidido que no vas a usar las familias. */}
+        {buscando ? (
+          <div className="eleccion">
+            {encontrados.length === 0 && <div className="note">Nadie se llama así.</div>}
+            {encontrados.map((p) => (
+              <FilaPersona key={p.id} persona={p} dentro={dentro} onAlternar={alternarPersona} conFamilia={families} />
+            ))}
+          </div>
+        ) : (
+          <div className="eleccion">
+            {grupos.map((g) => {
+              const estado = estadoDeFamilia(g.gente, dentro)
+              const abierta = abiertas.has(g.id)
+              return (
+                <div key={g.id ?? 'sueltos'} className="grupo-fam">
+                  {/* C2 · dos verbos en una fila de 48: la casilla marca —con sus
+                      44 pt de toque alrededor de un dibujo de 24— y el cuerpo abre.
+                      El objetivo pequeño es el que marca y el grande el que abre,
+                      porque abrir sin querer no cambia nada y marcar sin querer sí. */}
+                  <div className="fila-fam">
+                    <button
+                      type="button"
+                      className="marca"
+                      aria-pressed={estado === 'todo'}
+                      aria-label={`${estado === 'todo' ? 'Quitar' : 'Poner'} a los ${g.nombre}`}
+                      onClick={() => alternarFamilia(g.gente)}
+                    >
+                      <Casilla estado={estado} />
+                    </button>
+                    <button
+                      type="button"
+                      className="destapa"
+                      aria-expanded={abierta}
+                      onClick={() => destapar(g.id)}
+                    >
+                      <span className="et">{g.nombre}</span>
+                      {/* C4 · quién está dentro mientras quepa, y «n de m» cuando no. */}
+                      <span className="no">{quienDeFamilia(g.gente, dentro)}</span>
+                      <span className={`fle${abierta ? ' abierta' : ''}`} aria-hidden="true">›</span>
+                    </button>
+                  </div>
+                  {abierta && g.gente.map((p) => (
+                    <FilaPersona key={p.id} persona={p} dentro={dentro} onAlternar={alternarPersona} sangrada />
+                  ))}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* La nota del reparto ocupaba 69,5 pt permanentes para explicar una regla
+            que no cambia nunca y que desde §14.26 ya no siempre se aplica. Un
+            renglón. Y es un **coeficiente**, no un peso: lo que multiplica a lo que
+            te toca, que es lo que dice el `×1` de cada fila. */}
+        <div className="apunte" style={{ marginTop: 10 }}>
+          Por el coeficiente de cada uno: 1 el mayor, 0,6 el niño.
+        </div>
+
+        {/* Abajo y en azul, como el resto: el lleno es lo que se ha venido a
+            hacer y el de contorno la salida. El fondo hace lo mismo que
+            «Cancelar», que si no el gesto más fácil haría lo contrario que el
+            botón más visible. */}
+        <div className="salida">
+          <button type="button" className="btn ghost" onClick={() => { tap(); onCerrar() }}>Cancelar</button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => { tap(); onCambio([...dentro]); onCerrar() }}
+          >
+            Listo
+          </button>
+        </div>
       </div>
-    </Hoja>
+    </div>
   )
 }
 

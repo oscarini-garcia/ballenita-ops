@@ -62,7 +62,7 @@ describe('Gastos · la lista', () => {
     expect(screen.queryByRole('button', { name: /^borrar$/i })).not.toBeInTheDocument()
   })
 
-  it('deslizar la fila descubre Editar y Borrar', async () => {
+  it('deslizar la fila descubre Borrar, y ya no Editar', async () => {
     const { eventId, event } = await sembrar()
     render(<ExpensesScreen eventId={eventId} event={event} />)
     await screen.findByText('Cañas en el chiringuito')
@@ -70,8 +70,19 @@ describe('Gastos · la lista', () => {
     expect(document.querySelector('.deslizable-verbos').style.visibility).toBe('hidden')
     deslizar(document.querySelector('.deslizable-cara'))
     expect(document.querySelector('.deslizable-verbos').style.visibility).toBe('visible')
-    expect(screen.getByRole('button', { name: /Editar/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Borrar/ })).toBeInTheDocument()
+    // «Editar» se retiró al poder tocar la fila: dos caminos a la misma
+    // pantalla, uno escondido detrás de un gesto y encima el único anunciado.
+    expect(screen.queryByRole('button', { name: /Editar/ })).not.toBeInTheDocument()
+  })
+
+  it('y tocar el gasto lo abre para corregirlo, en la pantalla con la que se apuntó', async () => {
+    const { eventId, event } = await sembrar()
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /Cañas en el chiringuito/ }))
+    await screen.findByRole('dialog', { name: 'Corregir gasto' })
+    expect(screen.getByText('24,60')).toBeInTheDocument()
   })
 
   // B3 · escribir dejó de ser obligatorio, así que la fila necesitaba un nombre
@@ -242,6 +253,41 @@ describe('Gastos · los dos renglones y las dos hojas', () => {
 })
 
 describe('Gastos · Detalles', () => {
+  // Vivía arriba, a la izquierda del aspa, donde era cromo delante de la cifra.
+  it('se entra por el último renglón del formulario, con «Paga» y «Entre»', async () => {
+    const { eventId, event } = await sembrar({ conGasto: false })
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+
+    const renglones = [...document.querySelectorAll('.caja-reng .reng .k')].map((e) => e.textContent)
+    expect(renglones).toEqual(['Paga', 'Entre', 'Detalles'])
+
+    await userEvent.click(screen.getByRole('button', { name: /Detalles/ }))
+    expect(await screen.findByRole('dialog', { name: 'Detalles del gasto' })).toBeInTheDocument()
+  })
+
+  // Un coeficiente es lo que multiplica a lo que te toca; un peso es otra cosa.
+  it('el reparto de siempre se llama «Coeficiente», no «Peso»', async () => {
+    const { eventId, event } = await sembrar({ conGasto: false })
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+    await userEvent.click(screen.getByRole('button', { name: /Detalles/ }))
+
+    expect(await screen.findByRole('button', { name: 'Coeficiente' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Peso' })).not.toBeInTheDocument()
+  })
+
+  it('y el campo «Cuándo» llega con la fecha del gasto puesta, no en blanco', async () => {
+    const { eventId, event } = await sembrar()
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: /Cañas en el chiringuito/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Detalles/ }))
+
+    const cuando = await screen.findByLabelText('Cuándo')
+    expect(cuando).toHaveAttribute('type', 'datetime-local')
+    expect(cuando.value).toMatch(/^2026-08-12T/)
+  })
+
   it('la descripción vive ahí y ya no es obligatoria para guardar', async () => {
     const { eventId, event } = await sembrar({ conGasto: false })
     render(<ExpensesScreen eventId={eventId} event={event} />)
@@ -293,8 +339,7 @@ describe('Gastos · corregir', () => {
     render(<ExpensesScreen eventId={eventId} event={event} />)
     await screen.findByText('Cañas en el chiringuito')
 
-    deslizar(document.querySelector('.deslizable-cara'))
-    await userEvent.click(screen.getByRole('button', { name: /Editar/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Cañas en el chiringuito/ }))
 
     // La ficha arranca con lo que ya había: es una corrección, no un alta.
     await screen.findByRole('dialog', { name: 'Corregir gasto' })

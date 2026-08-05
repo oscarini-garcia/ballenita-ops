@@ -43,9 +43,12 @@ export default function ExpensesScreen({ eventId, event }) {
         </div>
       )}
 
-      {/* Una tarjeta por gasto y cada una con su gesto: se desliza a la izquierda
-          para editarlo o borrarlo. El botón «borrar» que llevaba cada fila se
-          comía justo el hueco del importe, que es a lo que se entra aquí. */}
+      {/* Una tarjeta por gasto. **Se toca para corregirlo** —la misma pantalla
+          con la que se apuntó, que es lo que se viene a hacer la mitad de las
+          veces que se abre un gasto— y se desliza a la izquierda para borrarlo.
+          «Editar» estuvo detrás del gesto y se retiró al poner el toque: dos
+          caminos a la misma pantalla, uno de ellos escondido, y el escondido
+          además el único que se anunciaba (§14.19, el «+ Plan»). */}
       <div className="lista-deslizable">
         {expenses.map((e) => {
           const c = catOf(e.category)
@@ -66,28 +69,24 @@ export default function ExpensesScreen({ eventId, event }) {
           return (
             <Deslizable
               key={e.id}
+              ancho={76}
               verbos={
-                <>
-                  <button className="verbo editar" onClick={() => setFicha(e)}>
-                    <Icono nombre="lapiz" className="g" />Editar
-                  </button>
-                  <button className="verbo borrar" onClick={() => removeExpense(e.id)}>
-                    <Icono nombre="papelera" className="g" />Borrar
-                  </button>
-                </>
+                <button className="verbo borrar" onClick={() => removeExpense(e.id)}>
+                  <Icono nombre="papelera" className="g" />Borrar
+                </button>
               }
             >
-              <div className="row">
-                <div className="ico" data-cat={c.tono}><Icono nombre={c.icon} /></div>
-                <div className="main">
-                  <div className="n">{puesto || c.label}</div>
-                  <div className="sub">
+              <button type="button" className="row fila-gasto" onClick={() => setFicha(e)}>
+                <span className="ico" data-cat={c.tono}><Icono nombre={c.icon} /></span>
+                <span className="main">
+                  <span className="n">{puesto || c.label}</span>
+                  <span className="sub">
                     {sub}
                     {e.currency && e.currency !== event.currency && <> · <span className="pill fx">{e.amountOriginal} {e.currency}</span></>}
-                  </div>
-                </div>
-                <div className="amt tnum">{formatCents(e.amountCents, event.currency)}</div>
-              </div>
+                  </span>
+                </span>
+                <span className="amt tnum">{formatCents(e.amountCents, event.currency)}</span>
+              </button>
             </Deslizable>
           )
         })}

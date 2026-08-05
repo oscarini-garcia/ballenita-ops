@@ -125,6 +125,16 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   comparte renglón, y al escribir las familias se retiran. **La hoja trabaja sobre un
   borrador**: «Cancelar», el fondo y deslizar descartan; solo «Listo» guarda. Todo lo que
   decide quién entra está en `lib/reparto-gente.js`, puro.
+- **Lo que dijo el móvil y no decía la hoja** (SPECS §14.27-bis): **un gasto se corrige
+  tocándolo** —corregir estaba detrás del gesto de deslizar, y es la mitad de las veces que
+  se abre un gasto; «Editar» se retiró y queda «Borrar»—; los dos verbos vuelven **abajo y en
+  azul** y «Entre» pasa a **modal centrado**, porque era el único sitio de la app que
+  confirmaba arriba; **«Detalles» baja al final del formulario**, con «Paga» y «Entre», que es
+  donde se rellena y no delante de la cifra; **el modal no cambia de tamaño, hace scroll**
+  (649,8 pt en Grande, tope en Enorme); el campo «Cuándo» **se veía en blanco** —
+  `datetime-local` no estaba en la lista de campos vestidos, tercera vez que muerde lo mismo:
+  ahora hay guardia que saca los tipos del JSX—; y es un **coeficiente**, no un peso (cambia
+  la palabra, no el campo `pesoReparto`).
 - **Un modal se ve como una capa, y ya no hace falta acordarse** (SPECS §14.26-bis · F3): el
   papel era `--foam`, que es `--app-bg` —1,00 : 1, y 1,06 con velo en oscuro—. `.capa` lo
   arreglaba desde §14.19 en **un** modal y once seguían sin ella, así que sube al `.modal` de
@@ -432,7 +442,7 @@ portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de te
 retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
 binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
-entrar, la demostración arranca llena y no sube nunca. 642 tests en la PWA + 143 en la API,
+entrar, la demostración arranca llena y no sube nunca. 647 tests en la PWA + 143 en la API,
 todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su

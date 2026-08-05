@@ -2703,19 +2703,72 @@ con su familia al lado para desambiguar dos Anas. Sin tildes y sin mayúsculas, 
 buscando también por el apodo. Aquí el `autoFocus` **sí** se pide: has tocado la
 lupa para escribir, que es lo contrario del que se quitó de la ficha en §14.26.
 
-**E2 · Los dos verbos arriba.** «Cancelar» a la izquierda, «Entre» en medio y
-«Listo» a la derecha, en un renglón de 44 pt que **sustituye al título** en vez de
-sumarse a él: **61,9 pt menos** que dos botones abajo, medido. El fondo y el
-deslizar hacia abajo hacen **lo mismo que «Cancelar»**, no lo contrario — si el
-gesto más fácil hiciera lo opuesto al botón más visible, el botón sobraría. Vive en
-`components/Hoja.jsx` como prop `acciones`, porque lo van a querer las otras cinco
-hojas.
+**E2 · Los dos verbos arriba** —«Cancelar» a la izquierda, «Entre» en medio y
+«Listo» a la derecha, en un renglón de 44 pt que sustituye al título: 61,9 pt menos
+que dos botones abajo—. **Duró una versión y se cambió por E1** (§14.27-bis). El
+fondo y el deslizar siguen haciendo **lo mismo que «Cancelar»**, no lo contrario —
+si el gesto más fácil hiciera lo opuesto al botón más visible, el botón sobraría.
 
 **Lo que arrastró.** `screens/HojaDeEntre.jsx` nuevo con el borrador dentro;
 `lib/reparto-gente.js` puro y testeado con los atajos, el agrupado por familia, los
 tres estados, el renglón y el buscador —y ahí baja `comoSeReparte`, que lo miraban
 dos pantallas—; `components/Hoja.jsx` gana la cabecera de dos verbos; y el icono de
 la lupa entra en la tabla de `Icono.jsx`.
+
+### 14.27-bis Lo que dijo el móvil, que no lo decía la hoja
+
+Siete correcciones de la primera pasada de §14.26 y §14.27, todas de haberlo tenido
+delante. Ninguna es de gusto y ninguna se votó: cinco eran fallos y dos, la app
+contradiciéndose a sí misma.
+
+**Un gasto se corrige tocándolo.** Corregir estaba **detrás de un gesto**: había que
+deslizar la fila para descubrir «Editar». Y corregir es lo que se hace la mitad de
+las veces que se abre un gasto —un 24,60 que eran 26,40—, así que el camino normal
+no puede ser el escondido. Ahora la fila es un botón y abre **la misma pantalla con
+la que se apuntó**. «Editar» se retiró del gesto: dos caminos a la misma pantalla,
+uno de ellos oculto, es la figura del «+ Plan» de §14.19. Queda «Borrar», y el
+cajón se estrecha de 152 a 76 pt.
+
+**Los dos verbos vuelven abajo, y el modal se centra** (E1 en vez de E2). La
+cabecera de dos verbos era el patrón de hoja modal de iOS y ahorraba 61,9 pt
+medidos — y era **el único sitio de la app que confirmaba arriba**. Todas las demás
+pantallas confirman abajo y en azul, así que esos 61 pt costaban más de lo que
+valían: una app que hace lo mismo de dos formas obliga a mirar antes de tocar.
+«Entre» pasa además de hoja pegada al borde a **modal centrado**, como la ficha de
+la que sale. El prop `acciones` de `components/Hoja.jsx` se retiró con ella.
+
+**«Detalles» baja al final del formulario.** Estaba arriba, a la izquierda del
+aspa, donde era cromo **delante de la cifra** — lo primero que se lee en una
+pantalla cuyo título es el importe. Ahora es el tercer renglón de la caja, hermano
+de «Paga» y «Entre»: los tres abren su pantalla, los tres dicen lo que llevan
+dentro, y van en el orden en que se rellenan. El renglón enseña la descripción si
+la hay y, si no, qué se va a encontrar.
+
+**El modal no cambia de tamaño: cuando no cabe, hace scroll.** Es lo que hace que
+se pueda aprender dónde cae cada tecla sin mirar, y lo que la ficha ya prometía en
+§14.26 respecto a abrir Detalles. Con el renglón nuevo la ficha mide **649,8 pt** en
+«Grande» sobre un tope de 658,3, y en «Enorme» toca el tope y **hace scroll dentro**
+en vez de crecer. La hoja de «Entre» centrada, lo mismo: 597,8 y 616,2 con una
+familia abierta.
+
+**El campo «Cuándo» se veía en blanco.** `input[type=datetime-local]` no estaba en
+la lista de campos vestidos de `theme.css`, así que heredaba `color: inherit`
+—tinta clara— y se quedaba con el `Field` **blanco** del navegador: texto claro
+sobre fondo blanco, o sea nada. De paso traía su propio ancho (287 pt de los 356) y
+un borde de 2. Es la **tercera vez** que muerde lo mismo —`password` salió con el
+borde cuadrado, `url` se pintó blanco— y las tres se vieron en el móvil y ninguna en
+los tests. Ahora hay una guardia en `src/estilos.test.js` que **saca los tipos de
+`input` del propio JSX** y comprueba que todos estén en la regla; comprobada
+quitando `datetime-local` a mano, falla nombrándolo.
+
+**Es un coeficiente, no un peso.** Lo que multiplica a lo que a cada uno le toca —1
+el mayor, 0,6 el niño— es un coeficiente; un peso es otra cosa, y encima en una app
+donde se habla de comida se lee mal. Cambia la palabra en la pantalla —el chip pasa
+de «Peso» a «Coeficiente» y las dos notas lo dicen— y **no el campo**
+`pesoReparto`, que es de la persona y lo miran Grupo, Cenas y el motor de reparto.
+El identificador interno del modo se queda en `'pesos'` por la misma razón: no se
+guarda nunca —el reparto de siempre es `reparto: null`— pero está escrito en la
+migración `0012`, que ya está aplicada.
 
 ## 15. Registro de decisiones
 
