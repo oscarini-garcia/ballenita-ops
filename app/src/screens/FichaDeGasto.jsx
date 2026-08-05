@@ -149,9 +149,6 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
           {/* Sin título: el título de esta ficha es la cifra, y quitarlo es lo
               que dejó sitio para que el pad y el botón convivan sin scroll. */}
           <div className="cab-fina">
-            <button type="button" className="paso-detalles" onClick={() => { tap(); setEncima('detalles') }}>
-              Detalles <span aria-hidden="true">›</span>
-            </button>
             <button type="button" className="x" onClick={onClose} aria-label="Cerrar">×</button>
           </div>
 
@@ -188,6 +185,17 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
               <span className="k">Entre</span>
               <span className="v">
                 {resumenDeEntre(estado, persons)}
+                <span className="fle" aria-hidden="true">›</span>
+              </span>
+            </button>
+            {/* «Detalles» vivía arriba, a la izquierda del aspa, y ahí era un
+                renglón de cromo antes de la cifra. Aquí es lo que es: el último
+                renglón del formulario, hermano de «Paga» y «Entre» —los tres
+                abren su pantalla— y en el orden en que se rellenan. */}
+            <button type="button" className="reng" onClick={() => { tap(); setEncima('detalles') }}>
+              <span className="k">Detalles</span>
+              <span className={`v${description.trim() ? '' : ' vacio'}`}>
+                <span className="t">{description.trim() || 'descripción, fecha, reparto…'}</span>
                 <span className="fle" aria-hidden="true">›</span>
               </span>
             </button>
@@ -316,7 +324,7 @@ export function DetallesDeGasto({
 
         <label>Cómo se reparte</label>
         <div className="chips">
-          {[['pesos', 'Peso'], ['partes', 'Partes'], ['importes', 'Importes']].map(([id, et]) => (
+          {[['pesos', 'Coeficiente'], ['partes', 'Partes'], ['importes', 'Importes']].map(([id, et]) => (
             <button key={id} type="button" className={`chip${modo === id ? ' on' : ''}`} onClick={() => cambiarModo(id)}>
               {et}
             </button>
@@ -324,7 +332,8 @@ export function DetallesDeGasto({
         </div>
         {modo === 'pesos' && (
           <div className="note">
-            Por el <b>peso</b> de cada persona (1 el mayor, 0,6 el niño) y entre quien esté marcado en «Entre».
+            Por el <b>coeficiente</b> de cada persona (1 el mayor, 0,6 el niño) y entre quien esté marcado en
+            «Entre». Es lo que multiplica a lo que le toca, no cuánto pesa.
           </div>
         )}
         {modo !== 'pesos' && (

@@ -381,7 +381,14 @@ label { display: block; font-size: var(--t-label); font-weight: 700; color: var(
    veía en el móvil, no en los tests. */
 /* `url` estaba fuera de la lista, así que el campo del enlace —el único de ese
    tipo en toda la app— se pintaba blanco sobre el tema oscuro. */
-input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=url], select, textarea {
+/* Y `datetime-local` era el tercero de la misma familia, el peor de los tres:
+   la regla de arriba le da `color: inherit` —tinta clara— pero el fondo se
+   quedaba en el `Field` de fábrica, que es **blanco**. O sea el campo «Cuándo»
+   de un gasto se veía literalmente en blanco sobre el tema oscuro. De paso traía
+   su propio ancho (287 pt de los 356) y un borde de 2. Va `time` con él, que
+   todavía no se usa pero es el mismo caso esperando. */
+input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=url],
+input[type=datetime-local], input[type=time], select, textarea {
   width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
   /* Nunca por debajo de 16 px: iOS hace zoom al enfocar el campo si el cuerpo
@@ -391,8 +398,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--spout); out
 /* Un `input[type=date]` de iOS trae su propio ancho —el del texto completo más
    el icono— y se sale de la caja aunque le pongas `width: 100%`: sin quitarle la
    apariencia nativa, la hoja entera se iba de lado. */
-input[type=date] { -webkit-appearance: none; appearance: none; max-width: 100%; min-width: 0; }
-input[type=date]::-webkit-date-and-time-value { text-align: left; }
+input[type=date], input[type=datetime-local], input[type=time] {
+  -webkit-appearance: none; appearance: none; max-width: 100%; min-width: 0; }
+input[type=date]::-webkit-date-and-time-value,
+input[type=datetime-local]::-webkit-date-and-time-value,
+input[type=time]::-webkit-date-and-time-value { text-align: left; }
 
 .pill { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .pill.owe { background: var(--owe-bg); color: var(--owe); }
@@ -676,6 +686,12 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    La fila entera es el objetivo: en Planes abre el plan, en Ideas lo edita. Un
    `button` para que el teclado y el lector de pantalla lo vean como lo que es,
    pero sin nada de lo que un botón trae puesto. */
+/* Un gasto se corrige **tocándolo**, así que su fila es un botón de verdad —para
+   el teclado y para el lector de pantalla— sin nada de lo que un botón trae
+   puesto. Mismo trato que la fila de un plan. */
+.row.fila-gasto { width: 100%; background: none; border: none; font-family: inherit;
+  text-align: left; color: inherit; padding: 11px 0; cursor: pointer; }
+.row.fila-gasto:focus-visible { outline: 2px solid var(--spout); outline-offset: -2px; border-radius: 8px; }
 .row.fila-plan, .fila-idea .main.destapa, .fila-mejora .main.destapa {
   width: 100%; background: none; border: none; font-family: inherit;
   text-align: left; color: inherit; padding: 0; }
@@ -1264,11 +1280,12 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .ficha-gasto { display: flex; flex-direction: column; }
 
 /* La cabecera fina: 30 pt y sin título, porque el título de esta ficha es la
-   cifra. Quitarlo es lo que dejó sitio para que el pad y el botón convivan. */
-.cab-fina { display: flex; align-items: center; justify-content: space-between; min-height: 30px; }
+   cifra. Quitarlo es lo que dejó sitio para que el pad y el botón convivan.
+   Llevó «Detalles ›» a la izquierda del aspa, y bajó al final del formulario:
+   ahí era cromo delante de la cifra, y abajo es el último renglón de lo que se
+   rellena, hermano de «Paga» y «Entre». */
+.cab-fina { display: flex; align-items: center; justify-content: flex-end; min-height: 30px; }
 .cab-fina .x { float: none; }
-.paso-detalles { background: none; border: none; padding: 4px 2px; font: inherit;
-  font-size: var(--t-sub); font-weight: 600; color: var(--spout-deep); cursor: pointer; }
 
 /* ── El pad (A1) ──────────────────────────────────────────────────────────── */
 .pad-importe { display: flex; flex-direction: column; }
@@ -1329,7 +1346,12 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
   font-family: inherit; font-size: var(--t-row); color: inherit; text-align: left; }
 .reng:first-child { border-top: none; }
 .reng .k { font-weight: 550; color: var(--ink-soft); }
-.reng .v { display: flex; align-items: center; gap: 7px; font-weight: 600; min-width: 0; }
+.reng .v { display: flex; align-items: center; gap: 7px; font-weight: 600; min-width: 0;
+  overflow: hidden; }
+.reng .v .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Lo que todavía no se ha escrito se dice en gris y sin peso: es una pista de
+   qué hay dentro, no un valor guardado. */
+.reng .v.vacio { font-weight: 500; color: var(--ink-faint); }
 .reng .fle { color: var(--ink-faint); }
 
 .guardar-gasto { margin-top: 12px; }
@@ -1353,16 +1375,13 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; }
    pt en un teléfono de 844 —el 84 %—, de los que 434 eran nombres. Ahora son tres
    niveles y solo dos desplegados, y mide 372,8 cerrada. */
 
-/* La cabecera de dos verbos (E2): sustituye al título en vez de sumarse a él, así
-   que confirmar y descartar cuestan 61,9 pt menos que dos botones abajo. */
-.cab-verbos { display: flex; align-items: center; justify-content: space-between;
-  gap: 10px; min-height: var(--toque); margin: -2px 0 2px; }
-.cab-verbos h2 { margin: 0; font-size: var(--t-row); font-weight: 700; }
-.cab-verbos button { background: none; border: none; padding: 6px 2px; cursor: pointer;
-  font: inherit; font-size: var(--t-row); font-weight: 600; }
-.cab-verbos .can { color: var(--ink-soft); }
-.cab-verbos .lis { color: var(--spout-deep); }
-.cab-verbos button:focus-visible { outline: 2px solid var(--spout); outline-offset: 2px; border-radius: 6px; }
+/* Cancelar y Listo, abajo y como el resto de la app: el lleno es la acción que
+   se ha venido a hacer y el de contorno la salida. Vivieron arriba en una
+   cabecera de dos verbos —el patrón de iOS, 61,9 pt más barato— y duró una
+   versión: en una app donde **todas** las demás pantallas confirman abajo y en
+   azul, ser el único sitio que lo hace de otra forma cuesta más que 61 pt. */
+.salida { display: flex; gap: 10px; margin-top: 14px; }
+.salida > * { flex: 1; }
 
 /* Los cuatro atajos (B2): un segmentado y no cuatro pastillas. Las cuatro
    palabras como chips suman 384,7 pt de los 356 que hay, o sea que doblan a dos
