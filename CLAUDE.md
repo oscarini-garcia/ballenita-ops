@@ -295,10 +295,17 @@ coinciden. Cuando aparezca uno, se arregla el código —no el generador.
 
 - **Web:** Cloudflare Pages conectado al repo; build `cd app && npm ci && npm run build`,
   salida `app/dist`. Cada push a `main` republica. Base path `/` (ya no hay subpath).
-- **API:** se publica **sola** al entrar en `main` cualquier cosa de `api/`
+- **API:** se publica **sola en cada entrada a `main`**
   (`.github/workflows/desplegar-api.yml`, secreto `CLOUDFLARE_API_TOKEN`), y a mano
   desde Actions → desplegar api → Run workflow, que es lo que se puede pulsar desde el
   móvil. `cd api && npm run desplegar` sigue valiendo como salida de emergencia.
+  **El filtro `paths: api/**` se retiró** y no es un descuido: si el empujón que trae
+  el cambio no llega a disparar el flujo —le pasó al merge de la v0.21.0, hecho por la
+  API de GitHub—, ningún empujón posterior que no toque `api/` lo reintenta, y la única
+  salida es el botón de «Run workflow», que **necesita un permiso que no tiene la
+  aplicación que conduce esto**. Publicar es idempotente y tarda segundos; el filtro
+  ahorraba eso y a cambio dejaba el Worker impublicable. Misma corrección en `ota.yml`.
+  La figura es de `meeting-ops-air`, que se comió el problema entero antes.
   **Las migraciones no se lanzan solas**, a propósito, pero ya no exigen portátil
   (SPECS §14.23): si administras y la base va por detrás del código, **Ajustes →
   Actualizar** lo dice y las aplica una a una contando el progreso — el SQL vive
@@ -307,7 +314,11 @@ coinciden. Cuando aparezca uno, se arregla el código —no el generador.
   de D1 y `npm run migrar:remotoN` siguen valiendo. Secretos del Worker:
   `SESION_SECRETO` y `TOKEN_SERVICIO`, con `wrangler secret put`.
 - **Pruebas:** `.github/workflows/pruebas.yml` corre las dos suites en cada rama.
-- **OTA de iOS:** sin cambios (`ota.yml`); sube la versión en `app/package.json` y mergea.
+- **OTA de iOS:** sube la versión en `app/package.json` y mergea (`ota.yml`). Corre en
+  **cada** empujón a `main` y decide la guarda: si esa versión ya tiene release y el
+  bundle no cambia, lo dice y sale; si ya tiene release **y el bundle sí cambia**,
+  **falla a propósito** —eso es trabajo en `main` que no llegaría a ningún móvil, y el
+  silencio es peor que el fallo—.
 - **Lo que no viaja por OTA** es todo lo nativo: plugins, permisos, iconos y
   `capacitor.config.json`. Eso obliga a `npm run sync:ios`, archivar y subir binario.
 - Pasos completos en [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md); los de la tienda, en

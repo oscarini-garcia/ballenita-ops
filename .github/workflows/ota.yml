@@ -9,11 +9,25 @@ name: Publish OTA bundle
 # la versión en package.json y mergear. Si no cambias la versión, no se publica nada.
 # También se puede lanzar a mano (workflow_dispatch). Ver docs/IOS.md.
 
+# Cada empujón a `main`, y decide la guarda de abajo. **No hay filtro de rutas, y
+# eso es la corrección de un error, no un descuido** (la figura es de
+# `meeting-ops-air`, que se comió el problema entero antes que nosotros).
+#
+# Un filtro parece que ahorra un trabajo, y lo que hace de verdad es dejar una
+# versión **impublicable**. Si la publicación no llega a dispararse —porque el
+# empujón que subió la versión no tocó `app/`, o porque ese empujón no disparó
+# nada en absoluto—, no hay ningún camino que lo reintente: hace falta el botón
+# de «Run workflow», y ese botón **necesita un permiso que la aplicación que
+# conduce esto no tiene**. Aquí pasó exactamente eso con la v0.21.0.
+#
+# La guarda ya es la que decide, y está escrita para correr en balde: si la
+# versión ya tiene release y el bundle no cambia, lo dice y sale. Preguntárselo
+# en cada empujón cuesta segundos y quita una clase entera de atasco — cualquier
+# merge posterior publica lo que quedó pendiente.
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['app/**']
 
 permissions:
   contents: write # crear el release
@@ -25,7 +39,11 @@ jobs:
       run:
         working-directory: app
     steps:
+      # Historia completa: sin ella, la comparación de la guarda no tiene contra
+      # qué comparar.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -39,16 +57,53 @@ jobs:
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
+          ANTES: ${{ github.event.before }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if gh release view "ota-v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "ℹ️ ota-v$VERSION ya existe → no publico. Sube la versión en package.json para un OTA nuevo."
-          else
+
+          if ! gh release view "ota-v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "publish=true" >> "$GITHUB_OUTPUT"
             echo "✅ ota-v$VERSION es nueva → publico OTA."
+            exit 0
           fi
+
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+
+          # La versión ya está publicada. Eso es lo normal en un empujón a `main`
+          # que no toca el bundle, y un **desastre silencioso** si sí lo toca: el
+          # trabajo se queda en `main` y no llega a ningún móvil. Los dos casos se
+          # distinguen mirando qué lleva el empujón. (La figura es de
+          # `meeting-ops-air`, donde el síntoma fue la web sirviendo lo nuevo y
+          # los teléfonos siguiendo con lo viejo, sin un aviso en ninguna parte.)
+          if [[ -z "$ANTES" || "$ANTES" == 0000000000000000000000000000000000000000 ]]; then
+            echo "ℹ️ ota-v$VERSION ya existe y no hay empujón anterior con el que comparar. No hago nada."
+            exit 0
+          fi
+          if ! git cat-file -e "$ANTES^{commit}" 2>/dev/null; then
+            echo "ℹ️ ota-v$VERSION ya existe y $ANTES no está en la historia. No hago nada."
+            exit 0
+          fi
+
+          # Lo que no viaja en el bundle no puede obligar a subir la versión: las
+          # pruebas no se construyen y los README de `app/` son documentación que
+          # vive ahí. Sin estas exclusiones, la guarda pararía un merge que no
+          # podía llegar a un teléfono de ninguna manera.
+          # `:(top)` ancla los patrones a la raíz del repositorio: este paso corre
+          # desde `app/`, y sin eso `app/**` significaría `app/app/**` y no
+          # excluiría nada.
+          CAMBIA=$(git diff --name-only "$ANTES" "$GITHUB_SHA" -- ':(top)app' \
+            ':(top,exclude)app/**/*.test.js' ':(top,exclude)app/**/*.test.jsx' \
+            ':(top,exclude)app/**/*.md')
+          if [[ -z "$CAMBIA" ]]; then
+            echo "ℹ️ ota-v$VERSION ya existe y el bundle no cambia. No hago nada."
+            exit 0
+          fi
+
+          echo "::error file=app/package.json::La versión $VERSION ya tiene release y este empujón cambia el bundle, así que no llegaría a ningún móvil. Sube la versión en app/package.json y vuelve a mergear."
+          echo "Lo que cambia y no se publicaría:"
+          echo "$CAMBIA" | sed 's/^/  · /'
+          exit 1
 
       - if: steps.check.outputs.publish == 'true'
         run: npm ci

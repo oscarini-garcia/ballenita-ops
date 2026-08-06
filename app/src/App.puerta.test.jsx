@@ -31,10 +31,12 @@ vi.mock('./sync/api.js', async (original) => ({
   traerInstantanea: vi.fn(),
   enviarCambios: vi.fn(),
 }))
+const { hayApi } = await import('./sync/api.js')
 
 beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
+  hayApi.mockImplementation(async () => false)
 })
 
 describe('App — la puerta de acceso', () => {
@@ -56,8 +58,16 @@ describe('App — la puerta de acceso', () => {
   // libreta vacía que invita a crear un evento duplicado (§14.29 · C2).
   it('con sesión pero sin haber bajado nunca nada, cuenta la primera bajada', async () => {
     guardarSesion({ token: 'jwt', cuenta: { id: 'cta_1', nombre: 'Curro García' } })
+    // La bienvenida se retira sola en cuanto la bajada termina, y con el
+    // transporte fingido termina en el mismo tick: sin dejarla a medias, lo que
+    // se estaría probando es quién gana la carrera.
+    // Fijo y no `…Once`: el motor de sincronización también llama a `hayApi` al
+    // montar, y con una sola vez se la quedaba él.
+    hayApi.mockImplementation(() => new Promise(() => {}))
     render(<App />)
+
     expect(await screen.findByText('Ya estás dentro, Curro')).toBeInTheDocument()
+    expect(screen.getByText(/Trayendo lo del grupo/)).toBeInTheDocument()
   })
 
   // El caso que importa: Apple falla por algo que no se arregla desde el móvil
