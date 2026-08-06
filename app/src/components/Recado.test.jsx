@@ -14,8 +14,12 @@ describe('Recado', () => {
 
   beforeEach(async () => {
     localStorage.clear()
+    // Fechas **pasadas** a propósito: un evento en curso siempre tiene algo que
+    // decir —«Quedan 2 días»— y eso es correcto, así que un test que pide
+    // silencio no puede usar un evento que esté ocurriendo. Con 2026-08-01 el
+    // fixture pasaba cuando se escribió y empezó a fallar al llegar agosto.
     evento = await db.events.get(await createEvent({
-      name: 'Ballenita 2026', startDate: '2026-08-01', endDate: '2026-08-08',
+      name: 'Ballenita 2020', startDate: '2020-08-01', endDate: '2020-08-08',
     }))
   })
 

@@ -1,3 +1,8 @@
+// Saldos: cuánto debe cada familia y las transferencias que lo saldan.
+//
+// No guarda nada: los saldos se **calculan** en local a partir de los hechos
+// (`lib/reparto.js`), que es la regla de oro del proyecto. Un saldo no se
+// sincroniza jamás.
 import { useLiveQuery } from 'dexie-react-hooks'
 import { expensesOf, familiesOf, personsOf, settlementsOf, addSettlement } from '../db.js'
 import { computeFamilyBalances, simplifyDebts } from '../lib/reparto.js'

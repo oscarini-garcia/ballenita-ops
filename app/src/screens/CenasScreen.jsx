@@ -1,3 +1,4 @@
+// Las cenas del viaje: qué se come cada día y en qué bunga, mayores y niños.
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {

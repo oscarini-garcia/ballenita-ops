@@ -1,3 +1,5 @@
+// El arranque: monta React en el DOM y pone el tema y el tamaño de letra antes
+// del primer pintado, para que la app no aparezca con la cara equivocada.
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'

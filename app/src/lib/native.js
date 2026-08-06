@@ -2,15 +2,31 @@
 // si no corremos dentro de la cáscara iOS, las funciones hacen no-op o usan el
 // equivalente web (p. ej. navigator.share). Así la PWA y los tests no se rompen.
 import { Capacitor } from '@capacitor/core'
+import { cargarConfiguracion } from './config.js'
 
 // URL del manifiesto OTA auto-alojado (GitHub Releases, ver .github/workflows/ota.yml
 // y docs/IOS.md). `releases/latest/download/...` redirige siempre al último release.
-const OTA_MANIFEST_URL =
+//
+// Se lee de `config.json` (clave `otaManifiesto`), que es configuración en caliente:
+// así cambiar de dónde salen las actualizaciones **no exige publicar un OTA nuevo**
+// —lo cual, tratándose del propio canal de actualización, sería tener que actualizar
+// para poder actualizar—. La constante se queda de respaldo para cuando la clave no
+// esté: sin ella, una configuración a medias dejaría a los móviles sin vía de
+// actualizarse. Lo encontró el mapa del repositorio (§14.28): la clave llevaba desde
+// julio declarada en `config.json` y sin que nadie la leyera, mientras `CLAUDE.md` la
+// vendía como configuración en caliente.
+const OTA_MANIFEST_POR_DEFECTO =
   'https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json'
 
-// Endpoint propio para avisar al grupo. Hoy no hay ninguno declarado, así que
-// `notifyGroup` es un no-op; ver el comentario de `registerPush`.
-const PUSH_ENDPOINT = import.meta.env?.VITE_PUSH_ENDPOINT
+export async function urlDelManifiestoOta() {
+  try {
+    const { otaManifiesto } = await cargarConfiguracion()
+    if (typeof otaManifiesto === 'string' && otaManifiesto.trim()) return otaManifiesto.trim()
+  } catch {
+    /* sin configuración se usa el respaldo, que es lo que había antes */
+  }
+  return OTA_MANIFEST_POR_DEFECTO
+}
 
 export function isNative() {
   try {
@@ -64,7 +80,7 @@ export async function checkForOtaUpdate({ aplicarYa = false } = {}) {
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
     const current = await CapacitorUpdater.current()
-    const res = await fetch(OTA_MANIFEST_URL, { cache: 'no-store' })
+    const res = await fetch(await urlDelManifiestoOta(), { cache: 'no-store' })
     if (!res.ok) return { status: 'no-manifest' }
     const manifest = await res.json() // { version, url, checksum }
     const installed = current?.bundle?.version
@@ -301,25 +317,6 @@ export async function estadoDePush() {
     return receive // 'granted' · 'denied' · 'prompt' · 'prompt-with-rationale'
   } catch (e) {
     return e?.message === SIN_PLUGIN ? SIN_PLUGIN : 'no-aplica'
-  }
-}
-
-// --- Aviso al grupo (envío automático, opcional) ---------------------------
-// Pide a TU endpoint serverless (que guarda la REST key de OneSignal) que mande
-// un push al grupo. No-op si no hay VITE_PUSH_ENDPOINT configurado. Así la REST
-// key nunca vive en el cliente público. Pensado para llamarlo tras sincronizar
-// un hecho nuevo (p. ej. un gasto). Devuelve true si se aceptó el envío.
-export async function notifyGroup({ title, message, url } = {}) {
-  if (!PUSH_ENDPOINT) return false
-  try {
-    const res = await fetch(PUSH_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, message, url }),
-    })
-    return res.ok
-  } catch {
-    return false
   }
 }
 

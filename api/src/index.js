@@ -29,6 +29,13 @@
  *   GET  /api/migraciones  · qué migraciones conoce el código y cuáles le faltan a la base (administradores)
  *   POST /api/migraciones  · aplica la siguiente pendiente (administradores)
  *   POST /api/idea/mejorar · la misma idea, mejor contada por el modelo (IA)
+ *   GET  /api/ia/modelos   · los modelos que ofrece Anthropic hoy (administradores)
+ *   POST /api/ia/probar    · prueba el par clave+modelo con una llamada de verdad (administradores)
+ *   POST /api/plan/sugerir · una tanda de ideas de plan (IA)
+ *   POST /api/plato/cantidades · pone cantidades a los ingredientes de un plato (IA)
+ *   POST /api/plato/arreglar   · ordena a saco una lista de ingredientes escrita a mano (IA)
+ *   POST /api/plato/parecidos  · cinco platos enteros que se le parecen (IA)
+ *   POST /api/recados      · una tanda de frases para el final de la lista (IA)
  */
 
 import { verificarTokenDeApple } from './apple.js';

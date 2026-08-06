@@ -2770,6 +2770,73 @@ El identificador interno del modo se queda en `'pesos'` por la misma razón: no 
 guarda nunca —el reparto de siempre es `reparto: null`— pero está escrito en la
 migración `0012`, que ya está aplicada.
 
+### 14.28 El mapa del repositorio, compuesto leyendo el código
+
+Abrir una sesión aquí exigía estudiarse la aplicación entera para saber dónde
+mirar. Y cualquier resumen escrito a mano se desfasa en silencio: el árbol de
+módulos de `CLAUDE.md` ya se había quedado sin cuatro pantallas y seguía diciendo
+que el acceso con Apple funciona en web.
+
+**Se escribió en julio, en la PR #28, y se quedó sin fusionar.** Diez meses y 62
+commits después, la rama tenía nueve ficheros en conflicto y dos de los que
+tocaba —`UpdateModal.jsx` y `skins.js`— ya no existen. Antes de rehacerla se hizo
+la prueba que en julio no se podía hacer: coger el generador tal cual y ponerlo
+contra el código de hoy. **Funcionó sin tocarle una línea** — leyó las 12 rutas
+del Worker, los 71 ficheros de test, `mejoras`, `planIdeas` y los recados, nada de
+lo cual existía cuando se escribió. Eso es lo que decidió rehacerla en vez de
+tirarla: la parte cara estaba probada.
+
+**Las tres capas.** (1) `herramientas/mapa.mjs` + `escaner.mjs`, determinista, sin
+IA y **sin dependencias** —se ejecuta al arrancar la sesión y en cada empujón, así
+que no puede depender de un `install`—. (2) El hook `SessionStart`, que lo corre
+con `--contexto` e inyecta el resultado más el estado vivo de git; **no escribe
+nada en el árbol de trabajo** y si falla la sesión arranca igual con un aviso.
+(3) `docs/mapa.md` versionado, con un trabajo de CI que corre `--verificar`: un
+commit no puede dejar el mapa desfasado sin que salte.
+
+Lo que hace que se mantenga solo es que **el hook no lee `docs/mapa.md`**: lo
+genera en ese instante a partir del código que hay delante. Un resumen guardado se
+desfasa en silencio; este no puede.
+
+**Sin AST, y con una prueba que lo justifica.** Ni Node ni Python traen un
+analizador de JavaScript en su biblioteca estándar, así que sin dependencias no
+hay AST. `escaner.mjs` es un autómata sobre la gramática léxica —comentarios, las
+tres clases de cadena, literales de expresión regular, `${}` anidados—. Para no
+pedir que se confíe en eso, **una prueba importa de verdad los módulos y compara
+las exportaciones que Node ve con las que el escáner deduce del texto**.
+
+**Los desfases son la mitad del valor.** Donde un hecho está declarado dos veces,
+el mapa contrasta las dos. Al ponerlo contra `main` salieron doce, y filtrarlos
+uno a uno es lo que dejó el trabajo de esta vuelta:
+
+- **`otaManifiesto` estaba en `config.json` y no lo leía nadie.** La URL del
+  manifiesto OTA seguía a fuego en `native.js` mientras `CLAUDE.md` la vendía como
+  configuración en caliente. Es el hallazgo original de julio, sin arreglar desde
+  entonces porque la PR no se fusionó. Ahora se lee de la configuración, con la
+  constante de respaldo — sin ella, una configuración a medias dejaría a los
+  móviles sin poder actualizarse, y en el propio canal de actualización eso es
+  tener que actualizar para poder actualizar.
+- **`notifyGroup` y `VITE_PUSH_ENDPOINT` eran código muerto** de la era OneSignal:
+  la función no la llamaba nadie y la variable no la inyectaba ningún flujo. §14.17
+  las sustituyó por APNs desde el Worker y estas se quedaron. Se retiran.
+- **Siete rutas del Worker** estaban en la tabla `RUTAS` y no en la lista de su
+  cabecera. Añadidas.
+- **Doce módulos sin cabecera** —`App.jsx`, `main.jsx` y diez pantallas—, que
+  habrían salido en blanco. Escritas.
+- **Y uno era del generador**: decía que `planIdeas` y `mejoras` no estaban en la
+  migración de D1, y sí están, en la 0006 y la 0010. Solo miraba
+  `0001_esquema.sql`. **Un aviso falso es peor que ninguno** —enseña a ignorar la
+  lista—, así que ahora lee todas.
+
+El presupuesto de contexto sube de ~200 líneas a **380**: la app ha crecido de 47
+a 112 módulos y de 93 a 786 pruebas desde julio, y el mapa con ella. Sigue habiendo
+una prueba que vigila que no se desmadre, porque un mapa que no cabe en el
+contexto no es un mapa.
+
+**Queda una decisión abierta**, la misma que dejó la PR #28: si sembrar datos de
+prueba en producción justifica tener viva `POST /api/importar`, una ruta que puede
+sobrescribir la base entera con un secreto registrado.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

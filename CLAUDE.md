@@ -125,6 +125,17 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   comparte renglón, y al escribir las familias se retiran. **La hoja trabaja sobre un
   borrador**: «Cancelar», el fondo y deslizar descartan; solo «Listo» guarda. Todo lo que
   decide quién entra está en `lib/reparto-gente.js`, puro.
+- **El mapa del repositorio se compone leyendo el código** (SPECS §14.28,
+  `herramientas/mapa.mjs`): determinista, sin IA y **sin dependencias**, lo inyecta el hook
+  de `SessionStart` **recién generado** —no lee `docs/mapa.md`, que es lo que hace que no se
+  desfase— y CI lo comprueba con `--verificar`. Lo escribió la PR #28 en julio y se quedó sin
+  fusionar; diez meses después **funcionó contra el código de hoy sin tocarle una línea**, y
+  eso es lo que decidió rehacerla. Su lista de **desfases** encontró que `otaManifiesto`
+  llevaba desde julio en `config.json` sin que nadie lo leyera, que `notifyGroup` y
+  `VITE_PUSH_ENDPOINT` eran código muerto de la era OneSignal, siete rutas sin documentar y
+  doce módulos sin cabecera. **Cuando salte un desfase se arregla el código, no el
+  generador** — salvo que sea del generador, como el que decía que `mejoras` no estaba en
+  ninguna migración.
 - **Lo que dijo el móvil y no decía la hoja** (SPECS §14.27-bis): **un gasto se corrige
   tocándolo** —corregir estaba detrás del gesto de deslizar, y es la mitad de las veces que
   se abre un gasto; «Editar» se retiró y queda «Borrar»—; los dos verbos vuelven **abajo y en
@@ -252,45 +263,16 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 
 ## Estructura
 
-```
-app/src/
-  db.js                 Dexie: esquema, CRUD, cola (outbox), instantánea
-  lib/  reparto.js      motor de saldos (puro, testeado)  ·  config.js  config en caliente
-        stats.js money.js ids.js native.js pwa.js
-        tema.js tamano.js     aspecto: cara del tema y tamaño del texto (por dispositivo)
-        identidad.js          quién eres en un evento (compartido cabecera ↔ Ajustes)
-        asignacion.js         qué bungas y qué familias están libres (el 1 a 1)
-        personas.js           pesos por edad (1 · 0,6) y los emoji para elegir
-        evento.js             qué cenas y planes se caen al acortar las fechas
-        fechas.js             el fin se propone solo y nunca va antes del inicio
-        admin.js              quién administra (uno, escrito a mano) · avisos.js  lo pendiente
-        sincronizarTodo.js    datos + versión de la app, en una lista de pasos
-        salida.js             salir sin perder lo que no ha subido
-        hace.js               «hoy a las 14:03», «hace 12 min» (de garciadoral-ops)
-        scrollLock.js avatares.js
-  auth/ apple.js        Sign in with Apple (web + iOS)    ·  sesion.js  token del dispositivo
-  lib/  demo.js         demostración sin cuenta (directriz 2.1 de Apple)
-  sync/ engine.js       orquestador (cuándo sincronizar)  ·  api.js  transporte
-        tables.js
-  lib/  dias.js               los días de un evento y qué se hace en cada uno (puro)
-        areas.js              el área elegida en cada sección, que no se olvida al salir
-  screens/  Agenda(Hoy·Días), Dinero(Gastos·Saldos), Comidas(Cenas·Platos·Compra),
-            Planes(Planes·Ideas), Stats, EventSettings (= Ajustes, en acordeón),
-            Grupo(familias+bungas+gente), Cuentas(+Notificaciones+IA), Events, Acceso
-  components/ Acordeon.jsx · Deslizable.jsx · Fab.jsx · Hoja.jsx · Icono.jsx
-              ProgresoModal.jsx · SyncDot.jsx · WhaleLogo.jsx
-  App.jsx  ·  theme.css
-  public/config.json    API, cliente de Apple y manifiesto OTA (leído en caliente)
-  public/privacidad.html · soporte.html   las dos URL que exige la ficha de la App Store
+**No se escribe a mano: la genera `herramientas/mapa.mjs` leyendo el código** y vive en
+[`docs/mapa.md`](docs/mapa.md) (SPECS §14.28). El árbol que había aquí se desfasaba en
+silencio —llegó a quedarse sin cuatro pantallas y a decir que Apple funciona en web—, y
+ahora sale de las cabeceras, los `export`, la tabla `RUTAS`, `SYNC_TABLES` y las
+migraciones, con los recuentos de pruebas incluidos. Un `SessionStart` lo inyecta **recién
+generado** al abrir sesión, así que no hace falta leer el fichero; el fichero está para
+que CI compruebe con `--verificar` que no miente. Si algo falta ahí, falta en el código.
 
-api/
-  src/  index.js        rutas del Worker   ·  repositorio.js  lectura/escritura sobre D1
-        tablas.js       descriptor de tablas y conversión de tipos
-        apple.js sesion.js  ·  revocacion.js  avisar a Apple al darse de baja
-  migraciones/0001_esquema.sql
-  test/                 pruebas con node:sqlite contra el esquema real
-  herramientas/sembrar-desde-jsonbin.mjs
-```
+El mapa lleva además una lista de **desfases**: un hecho declarado en dos sitios que ya no
+coinciden. Cuando aparezca uno, se arregla el código —no el generador.
 
 ## Despliegue
 
@@ -442,7 +424,7 @@ portado de `garciadoral-ops`) y el plugin oficial de Capacitor, sin el SDK de te
 retiró en su día. El permiso se pide en Ajustes → Notificaciones, no al arrancar, y **exige
 binario nuevo**: los plugins nativos no viajan por OTA. La demostración convive con
 «usar solo en este móvil» y resuelve otra cosa: la local arranca vacía y lo apuntado sube al
-entrar, la demostración arranca llena y no sube nunca. 647 tests en la PWA + 143 en la API,
+entrar, la demostración arranca llena y no sube nunca. 643 tests en la PWA + 143 en la API + 24 del generador,
 todos en verde.
 
 **Pendiente de despliegue** (pasos manuales, `docs/DESPLIEGUE.md`): crear la D1 y pegar su

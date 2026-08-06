@@ -1,3 +1,7 @@
+// Planes: lo que se propone para este viaje, y a qué se apunta cada uno.
+//
+// Aquí solo se vota; el día se pone en Agenda y un plan solo nace de una idea
+// del catálogo (SPECS §14.19).
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, updatePlan, personsOf, familiesOf, devolverPlanAIdea } from '../db.js'
