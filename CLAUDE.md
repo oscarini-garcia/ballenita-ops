@@ -125,6 +125,23 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   comparte renglón, y al escribir las familias se retiran. **La hoja trabaja sobre un
   borrador**: «Cancelar», el fondo y deslizar descartan; solo «Listo» guarda. Todo lo que
   decide quién entra está en `lib/reparto-gente.js`, puro.
+- **La puerta cabe, la sala de espera es la pantalla y entrar por primera vez se cuenta**
+  (SPECS §14.29, `docs/diseño/acceso.html` · A3·B2+B4·C2+C4): la pantalla de acceso pedía
+  **909,2 pt** —**1.292,8** con la sala de espera— en una ventana de 844, y `.acceso` centraba
+  **sin `overflow-y`**, así que lo que sobraba no se apartaba sino que se **recortaba** por los
+  dos extremos (196,5 y 196,5) y no había forma de llegar. Ahora hace scroll, nadie se aplasta
+  (`flex: none`), las pistas pierden el marco de rayas que dejaba `.acceso > .note` al no
+  reponer `border`, y **nada de esta pantalla sigue al tema**: es oscura siempre, y heredar
+  `.note` ponía el párrafo de la espera a **1,52 : 1** con el móvil en claro. La puerta son tres
+  cosas y un **pie de tres renglones**, cada uno con su hoja. La sala de espera **sustituye** a
+  la puerta, se recuerda entre arranques (`auth/espera.js`) y **entra sola**: `POST
+  /api/sesion/espera` con un **pase** firmado (`tipo: 'espera'`, 30 días, y las dos direcciones
+  cerradas: una sesión no vale de pase ni un pase de sesión) evita volver a sacar la hoja de
+  Apple cada veinte segundos. Y al entrar por primera vez, `BienvenidaScreen` cuenta la bajada
+  con la lista de pasos (`lib/primeraBajada.js`, que **no** comprueba la versión: recargar recién
+  entrado es la peor primera impresión) y se entra sola si hay un único evento. **El motor
+  recibe la sesión como dependencia**: montaba con `[]` y su primera vuelta era sin sesión, y por
+  eso al ser aceptado la app decía que no había ningún evento hasta reiniciar.
 - **El mapa del repositorio se compone leyendo el código** (SPECS §14.28,
   `herramientas/mapa.mjs`): determinista, sin IA y **sin dependencias**, lo inyecta el hook
   de `SessionStart` **recién generado** —no lee `docs/mapa.md`, que es lo que hace que no se

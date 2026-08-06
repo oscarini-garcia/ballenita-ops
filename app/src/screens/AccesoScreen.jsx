@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import WhaleLogo from '../components/WhaleLogo.jsx'
+import Hoja from '../components/Hoja.jsx'
 import { entrarConApple } from '../auth/apple.js'
 import { activarModoLocal, guardarSesion } from '../auth/sesion.js'
+import { guardarEspera, leerEspera, olvidarEspera, preguntarSiYaEntro } from '../auth/espera.js'
 import { activarDemo } from '../lib/demo.js'
 import { tap } from '../lib/native.js'
 import { forzarActualizacion } from '../lib/pwa.js'
@@ -11,9 +13,8 @@ import { forzarActualizacion } from '../lib/pwa.js'
  *
  * El acceso es solo con Apple: no hay contraseña propia que recordar ni que
  * recuperar. La incorporación es por invitación —alguien del grupo da de alta
- * tu identificador—, así que la primera vez que entra alguien nuevo la API
- * responde con su código y esta pantalla lo enseña para que lo pase por el
- * chat del grupo.
+ * tu identificador—, así que quien llega nuevo queda apuntado en una sala de
+ * espera hasta que le enlacen con su persona.
  *
  * La puerta no puede ser un muro. Cuando Apple falla por algo que no se arregla
  * desde el móvil —el binario sin la capacidad, el App ID a medias—, quedarse
@@ -26,30 +27,89 @@ import { forzarActualizacion } from '../lib/pwa.js'
  * entrar, y por eso arranca **vacía** y lo que se escriba en ella acaba
  * subiendo. La demostración es para quien no es del grupo —el equipo de
  * revisión de Apple, sin ir más lejos—, arranca **llena** de un camping
- * inventado y no sube nada nunca. Una app vacía no enseña lo que hace, que es
- * justo lo que hay que enseñarle a quien revisa. El porqué está en `lib/demo.js`.
+ * inventado y no sube nada nunca. El porqué está en `lib/demo.js`.
+ *
+ * ── Una puerta y un pie (SPECS §14.29, `docs/diseño/acceso.html` · A3) ──────
+ *
+ * Las tres salidas de arriba venían cada una con su párrafo debajo, y entre los
+ * tres párrafos y el de la cabecera sumaban **353,8 pt de prosa**: el 39 % de
+ * una puerta de 909,2 que no cabía en los 844 de un iPhone. Y `.acceso` no hacía
+ * scroll, así que lo que sobraba no se apartaba: se **recortaba** por los dos
+ * extremos a la vez.
+ *
+ * Ahora la pantalla dice tres cosas —quién eres, qué es esto en una línea, y
+ * «Entrar con Apple»— y las otras tres salidas son renglones de un pie. Cada uno
+ * **abre su hoja**, con el texto entero y su botón: es donde de verdad se lee,
+ * sin prisa y sin competir con la puerta. Lo que se paga es un toque más para
+ * quien necesita el modo local; lo que se gana es que la puerta quepa entera en
+ * las tres tallas de letra y que «Entrar con Apple» esté siempre a la vista.
+ *
+ * La segunda frase de la cabecera —«alguien del grupo tiene que haberte dado
+ * acceso antes»— baja **debajo** del botón de Apple. Es donde importa: se lee
+ * cuando Apple ya ha fallado, no antes de intentarlo.
  */
-export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo }) {
+
+// Lo que explica cada salida, junto al verbo que la ejecuta. Vive en una tabla
+// porque las tres hojas son la misma hoja con distinto texto, y tenerlas sueltas
+// era lo que hacía fácil que una se quedara sin actualizar.
+const SALIDAS = {
+  local: {
+    titulo: 'Usar solo en este móvil',
+    // El verbo no repite el rótulo del renglón que abrió la hoja: repetido, no
+    // se sabe si es el mismo botón otra vez o el que confirma.
+    verbo: 'Seguir solo en este móvil',
+    texto:
+      'Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda aquí. '
+      + 'Lo que apuntes se sube entero en cuanto consigas entrar, así que no se pierde '
+      + 'nada por empezar así.',
+  },
+  demo: {
+    titulo: 'Ver una demostración',
+    verbo: 'Abrir la demostración',
+    texto:
+      '¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo funciona. '
+      + 'No hace falta cuenta, no se conecta a nada y al salir no queda rastro.',
+  },
+  version: {
+    titulo: 'Buscar la última versión',
+    verbo: 'Buscar ahora',
+    texto:
+      'Trae la última versión publicada y recarga. Sirve aquí mismo, sin entrar: si lo '
+      + 'que falla es esta pantalla, no hace falta entrar para poder arreglarla.',
+  },
+}
+
+// Cada cuánto vuelve a preguntar la sala de espera. Veinte segundos es corto
+// para quien está mirando la pantalla esperando y largo para el servidor: quien
+// espera tiene la app abierta y delante, y son tres peticiones por minuto.
+export const CADA = 20_000
+
+export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo, intervalo = CADA }) {
   const [entrando, setEntrando] = useState(false)
   const [error, setError] = useState(null)
   const [identificador, setIdentificador] = useState(null)
   const [copiado, setCopiado] = useState(false)
-  // Sala de espera: la solicitud está apuntada y falta que le pongan nombre.
-  const [espera, setEspera] = useState(null)
+  // La sala de espera **se recuerda entre arranques**: la solicitud está hecha
+  // en el servidor, y volver a enseñar la puerta al reabrir la app se lee como
+  // si no lo hubieras intentado nunca.
+  const [espera, setEspera] = useState(leerEspera)
+  const [mirando, setMirando] = useState(false)
   const [buscando, setBuscando] = useState(false)
+  const [hoja, setHoja] = useState(null)
 
   async function entrar() {
     tap()
     setEntrando(true)
     setError(null)
     setIdentificador(null)
-    setEspera(null)
     try {
       const sesion = await entrarConApple(configuracion)
+      olvidarEspera()
+      setEspera(null)
       guardarSesion(sesion)
       onEntrar(sesion)
     } catch (e) {
-      if (e.enEspera) setEspera({ mensaje: e.message, nombre: e.nombre })
+      if (e.enEspera) setEspera(guardarEspera({ nombre: e.nombre, pase: e.pase }) ?? { nombre: e.nombre })
       else {
         setError(e.message || 'No se pudo entrar.')
         if (e.identificador) setIdentificador(e.identificador)
@@ -57,6 +117,66 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
     } finally {
       setEntrando(false)
     }
+  }
+
+  /**
+   * «¿Ya me han dejado entrar?», sin pasar por Apple (§14.29 · B4).
+   *
+   * Devuelve si hay que seguir preguntando, para que el reloj de abajo se pare
+   * solo cuando ya no tiene sentido seguir.
+   */
+  async function mirarLaEspera(pase) {
+    const respuesta = await preguntarSiYaEntro(configuracion, pase)
+
+    if (respuesta.estado === 'dentro') {
+      olvidarEspera()
+      setEspera(null)
+      guardarSesion(respuesta)
+      onEntrar(respuesta)
+      return false
+    }
+    // La solicitud ya no existe —la han eliminado, o el pase no vale—: se vuelve
+    // a la puerta, que es donde se consigue uno nuevo.
+    if (respuesta.estado === 'desconocida') {
+      olvidarEspera()
+      setEspera(null)
+      return false
+    }
+    if (respuesta.estado === 'desactivada') {
+      olvidarEspera()
+      setEspera(null)
+      setError('Tu acceso al grupo está desactivado. Habla con quien lleva el grupo.')
+      return false
+    }
+    // `espera` y `sin-respuesta` se quedan igual. Que la red falle un momento no
+    // es una noticia que dar aquí: lo único que cambia es que se sigue esperando.
+    if (respuesta.nombre) setEspera((v) => (v ? { ...v, nombre: respuesta.nombre } : v))
+    return true
+  }
+
+  // El reloj de la sala de espera. Se monta solo mientras hay una espera con
+  // pase y se para en cuanto deja de haberla, que es lo que hace que no siga
+  // preguntando por una solicitud que ya se resolvió.
+  const pase = espera?.pase
+  const alEntrar = useRef(null)
+  alEntrar.current = mirarLaEspera
+  useEffect(() => {
+    if (!pase) return undefined
+    let vivo = true
+    const reloj = setInterval(async () => {
+      if (!vivo || document.visibilityState === 'hidden') return
+      const seguir = await alEntrar.current(pase)
+      if (!seguir) clearInterval(reloj)
+    }, intervalo)
+    return () => { vivo = false; clearInterval(reloj) }
+  }, [pase, intervalo])
+
+  async function mirarAhora() {
+    if (mirando) return
+    tap()
+    setMirando(true)
+    await alEntrar.current(pase)
+    setMirando(false)
   }
 
   function seguirEnLocal() {
@@ -88,14 +208,77 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
     }
   }
 
+  const ejecutar = { local: seguirEnLocal, demo: demostracion, version: actualizar }
+
+  // El pie de las tres salidas. Es el mismo en la puerta y en la sala de espera,
+  // salvo que allí no se ofrece la demostración: quien ya está apuntado no está
+  // mirando la app por curiosidad.
+  const pie = (salidas) => (
+    <div className="acceso-pie">
+      {salidas.map((id) => (
+        <button key={id} type="button" className="acceso-salida" onClick={() => { tap(); setHoja(id) }}>
+          {SALIDAS[id].titulo}
+        </button>
+      ))}
+    </div>
+  )
+
+  const laHoja = hoja && (
+    <Hoja titulo={SALIDAS[hoja].titulo} onCerrar={() => setHoja(null)}>
+      <p className="hoja-texto">{SALIDAS[hoja].texto}</p>
+      <button
+        className="btn block"
+        style={{ marginTop: 14 }}
+        disabled={hoja === 'version' && buscando}
+        onClick={() => { ejecutar[hoja]() }}
+      >
+        {hoja === 'version' && buscando ? 'Buscando…' : SALIDAS[hoja].verbo}
+      </button>
+    </Hoja>
+  )
+
+  // ── La sala de espera **es** la pantalla (§14.29 · B2) ────────────────────
+  //
+  // Antes se apilaba encima de la puerta entera: 369,7 pt de tarjeta sumados a
+  // los 909 de una puerta que ya no cabía. Y lo que se leía primero era la
+  // explicación de cómo entrar, dirigida a alguien que ya lo ha intentado y no
+  // puede. Ahora, si estás en la lista, eso es lo que dice la pantalla, y el
+  // botón grande deja de ser «Entrar con Apple» —que aquí no hace nada— para ser
+  // el único que sirve. La puerta vuelve sola en cuanto la espera se resuelve.
+  if (espera) {
+    return (
+      <div className="acceso">
+        <WhaleLogo className="acceso-logo chico" />
+        <h1 className="acceso-titulo-corto">Ya estás en la lista</h1>
+        <p className="acceso-texto">
+          {espera.nombre
+            ? <>Le hemos dicho a quien lleva el grupo que eres <b>{espera.nombre}</b>. En cuanto te enlace con tu persona, entras.</>
+            : <>Quien lleva el grupo tiene que decir quién eres. En cuanto te enlace con tu persona, entras.</>}
+        </p>
+
+        <button className="btn block" onClick={mirarAhora} disabled={mirando || !pase}>
+          {mirando ? 'Mirando…' : '¿Ya me han dejado entrar?'}
+        </button>
+
+        <p className="note">
+          {pase
+            ? 'No hay nada más que hacer desde aquí: estamos mirando solos cada pocos segundos y la app entrará sola en cuanto te dejen pasar.'
+            : 'No hay nada más que hacer desde aquí. Vuelve a mirar de vez en cuando.'}
+          {' '}Mientras tanto puedes usar la app solo en este móvil: lo que apuntes se subirá entero
+          en cuanto te dejen pasar.
+        </p>
+
+        {pie(['local', 'version'])}
+        {laHoja}
+      </div>
+    )
+  }
+
   return (
     <div className="acceso">
       <WhaleLogo className="acceso-logo" />
       <h1>Ballena Ops 🐳</h1>
-      <p className="acceso-texto">
-        Los gastos, las cenas y los planes del grupo. Entra con tu Apple ID;
-        alguien del grupo tiene que haberte dado acceso antes.
-      </p>
+      <p className="acceso-texto">Los gastos, las cenas y los planes del grupo.</p>
 
       <button className="btn block apple" onClick={entrar} disabled={entrando}>
         <svg viewBox="0 0 16 16" aria-hidden="true" width="16" height="16">
@@ -103,30 +286,14 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
         </svg>
         <span>{entrando ? 'Entrando…' : 'Entrar con Apple'}</span>
       </button>
-
-      {espera && (
-        <div className="acceso-aviso" role="status">
-          <p><b>Ya estás en la lista.</b></p>
-          <p className="note">
-            {espera.mensaje} {espera.nombre ? `Le hemos dicho que eres ${espera.nombre}.` : ''}
-          </p>
-          <p className="note">
-            No hay nada más que hacer desde aquí: cuando te enlacen con tu persona, entras con este
-            mismo botón. Mientras tanto puedes usar la app <b>solo en este móvil</b> y lo que apuntes
-            se subirá entero en cuanto te dejen pasar.
-          </p>
-          <button className="btn sm ghost" onClick={entrar} disabled={entrando}>
-            {entrando ? 'Mirando…' : '¿Ya me han dejado entrar?'}
-          </button>
-        </div>
-      )}
+      <p className="note">Alguien del grupo tiene que haberte dado acceso antes.</p>
 
       {error && (
         <div className="acceso-aviso" role="alert">
           <p>{error}</p>
           {identificador && (
             <>
-              <p className="note">
+              <p className="acceso-pista">
                 Pásale este código a quien lleve el grupo para que te dé de alta:
               </p>
               <code className="acceso-codigo">{identificador}</code>
@@ -137,7 +304,7 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
                   el que aquí no hay ningún «eliminar mi solicitud». Quien no
                   entra no deja cuenta que borrar, y conviene decirlo donde se
                   lee y no solo en la política de privacidad. */}
-              <p className="note">
+              <p className="acceso-pista">
                 Mientras tanto no hemos guardado nada tuyo: sin acceso no se crea
                 ninguna cuenta ni queda registro de este intento.
               </p>
@@ -146,34 +313,8 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo 
         </div>
       )}
 
-      <button className="btn block ghost" style={{ marginTop: 12 }} onClick={seguirEnLocal}>
-        Usar solo en este móvil
-      </button>
-      <p className="note">
-        Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda
-        aquí. Lo que apuntes se sube entero en cuanto consigas entrar, así que no
-        se pierde nada por empezar así.
-      </p>
-
-      <button className="btn block ghost" onClick={demostracion}>
-        Ver una demostración con datos de ejemplo
-      </button>
-      <p className="note">
-        ¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo
-        funciona. No hace falta cuenta, no se conecta a nada y al salir no queda
-        rastro.
-      </p>
-
-      {/* Buscar la última versión **antes** de entrar. Hasta ahora eso vivía
-          dentro de Ajustes, o sea detrás de la puerta: si lo que falla es
-          justo la pantalla de acceso —y es la que más cambia—, había que entrar
-          para poder arreglarlo entrando. */}
-      <button className="btn block ghost" onClick={actualizar} disabled={buscando}>
-        {buscando ? 'Buscando…' : '🔄 Buscar la última versión'}
-      </button>
-      <p className="note">
-        Trae la última versión publicada y recarga. Sirve aquí mismo, sin entrar.
-      </p>
+      {pie(['local', 'demo', 'version'])}
+      {laHoja}
     </div>
   )
 }

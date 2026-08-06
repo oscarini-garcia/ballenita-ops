@@ -5,9 +5,10 @@
 // acceso, la lista de eventos— y monta el motor de sincronización.
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { getEvent } from './db.js'
+import { getEvent, listEvents } from './db.js'
 import WhaleLogo from './components/WhaleLogo.jsx'
 import AccesoScreen from './screens/AccesoScreen.jsx'
+import BienvenidaScreen from './screens/BienvenidaScreen.jsx'
 import EventsScreen from './screens/EventsScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
 import DineroScreen from './screens/DineroScreen.jsx'
@@ -19,7 +20,8 @@ import SyncDot from './components/SyncDot.jsx'
 import LineaDelHorizonte from './components/LineaDelHorizonte.jsx'
 import ProgresoModal from './components/ProgresoModal.jsx'
 import { sincronizarTodo } from './lib/sincronizarTodo.js'
-import { useSyncEngine } from './sync/engine.js'
+import { primeraBajada } from './lib/primeraBajada.js'
+import { useSyncEngine, ultimaSincronizacion } from './sync/engine.js'
 import { isNative, tap } from './lib/native.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
@@ -78,7 +80,12 @@ export default function App() {
   const [demo, setDemo] = useState(enDemo)
   useEffect(() => { cargarConfiguracion().then(setConfiguracion) }, [])
 
-  const sync = useSyncEngine()
+  // Si hay sesión pero este móvil no ha sincronizado **nunca**, lo que viene
+  // ahora es la primera bajada y hay que contarla (SPECS §14.29 · C2). Se
+  // decide una sola vez al arrancar: en cuanto se entra, se apaga.
+  const [bienvenida, setBienvenida] = useState(() => Boolean(leerSesion()) && !ultimaSincronizacion())
+
+  const sync = useSyncEngine(sesion)
 
   // Sincronizar todo: los datos y, detrás, la versión de la app. Vive en App
   // porque lo disparan dos sitios —el punto de la cabecera y el botón de
@@ -145,6 +152,22 @@ export default function App() {
     setTab('agenda')
   }
 
+  /**
+   * Al terminar la primera bajada, si el grupo tiene **un solo** evento se entra
+   * en él sin preguntar (SPECS §14.29 · C4).
+   *
+   * En este grupo hay uno, siempre: la lista de eventos con una sola fila es una
+   * pregunta cuya respuesta ya se sabe. Con dos o más se enseña la lista, que es
+   * lo que hay que hacer entonces — el atajo se retira solo el día que deje de
+   * ser cierto, en vez de llevar a un evento que a lo mejor no es el que quieres.
+   */
+  async function entrarEnLoQueHaya() {
+    setBienvenida(false)
+    if (activeId) return
+    const eventos = await listEvents().catch(() => [])
+    if (eventos.length === 1) pick(eventos[0].id)
+  }
+
   // Solo si el evento activo se ha resuelto a "no existe" (borrado), volver a la lista.
   useEffect(() => {
     if (activeId && resolvedForActive && event === null) pick(null)
@@ -168,9 +191,24 @@ export default function App() {
       <div className="app">
         <AccesoScreen
           configuracion={configuracion}
-          onEntrar={setSesion}
+          onEntrar={(s) => { setSesion(s); setBienvenida(true) }}
           onLocal={() => setSoloLocal(true)}
           onDemo={(id) => { setDemo(true); if (id) pick(id) }}
+        />
+      </div>
+    )
+  }
+
+  // Recién entrado y sin nada bajado todavía: se cuenta la primera bajada en vez
+  // de enseñar una libreta vacía que invita a crear un evento duplicado
+  // (SPECS §14.29 · C2). La demostración no pasa por aquí: arranca llena.
+  if (bienvenida && sesion && !demo) {
+    return (
+      <div className="app">
+        <BienvenidaScreen
+          nombre={sesion.cuenta?.nombre?.split(' ')[0]}
+          sincronizar={({ alAvanzar }) => primeraBajada({ sincronizarDatos: sync.sync, alAvanzar })}
+          onListo={entrarEnLoQueHaya}
         />
       </div>
     )

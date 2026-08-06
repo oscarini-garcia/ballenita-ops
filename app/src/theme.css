@@ -899,13 +899,33 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 /* Pantalla de acceso (Sign in with Apple). Es lo primero que ve alguien nuevo,
    así que va con el mismo fondo de la cabecera: la app se presenta entera antes
    de pedir nada. */
-.acceso { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;
+/* `height` y no `min-height`, con `overflow-y: auto`: es lo que hace que esta
+   pantalla **se desplace en vez de recortarse**. Un flex centrado que desborda
+   se sale por los dos extremos a la vez, y el de arriba no se alcanza ni con el
+   scroll de la página — con la sala de espera puesta llegaron a perderse 196,5
+   pt por arriba y otros tantos por abajo, o sea la ballena, el título y el botón
+   que trae la versión nueva (SPECS §14.29 · F1).
+
+   El centrado sigue existiendo y lo pone `.acceso-centro` con `margin: auto`,
+   que es la forma segura: cuando no cabe, deja de centrar y empieza por arriba
+   en vez de comerse el principio. */
+.acceso { height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; justify-content: safe center;
   gap: 14px; text-align: center;
   padding: calc(24px + env(safe-area-inset-top)) 26px calc(24px + env(safe-area-inset-bottom));
   background: linear-gradient(150deg, var(--abyss), #0d2d3c); color: #eaf6fb; }
+/* Y que nadie encoja. Sin esto, el navegador le quita alto a lo que se deja
+   —el botón de la demostración pasaba de 61,5 a 44 pt con dos líneas dentro, o
+   sea 17,5 pt de texto fuera de su caja (§14.29 · F2)—. */
+.acceso > * { flex: none; }
 .acceso-logo { width: 84px; height: 84px; margin: 0 auto; }
+.acceso-logo.chico { width: 56px; height: 56px; }
 .acceso h1 { font-size: calc(28px * var(--escala)); font-weight: 650; margin: 0; }
+/* El titular de la sala de espera y el de la bienvenida son frases, no la marca:
+   a 28 px se parten en tres líneas y empujan fuera lo que viene detrás. */
+.acceso .acceso-titulo-corto { font-size: calc(24px * var(--escala)); }
 .acceso-texto { font-size: var(--t-row); line-height: 1.5; color: #bcdcea; margin: 0 auto; max-width: 340px; }
+.acceso-texto b { color: #eaf6fb; font-weight: 650; }
 
 /* El botón de Apple mantiene su aspecto en los dos temas a propósito: es una
    marca ajena y su contraste está fijado por las normas de Apple. */
@@ -918,7 +938,14 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 /* Los mensajes de error traen saltos de línea a propósito: separan el fallo de
    Apple, que es críptico, de la explicación de qué suele causarlo. */
 .acceso-aviso p { white-space: pre-line; margin: 0; }
-.acceso-aviso .note { color: #a9cede; margin: 0; }
+/* La letra pequeña **dentro** de un aviso de esta pantalla no puede ser `.note`:
+   `.note` trae su propio papel casi blanco (`--foam-2`), que aquí es el papel de
+   la app y no el de esta pantalla, y con la tinta apagada encima daba
+   **1,52 : 1** — ilegible, y solo con el móvil puesto en claro, porque la
+   pantalla es oscura siempre pero sus variables seguían al sistema. Se leía la
+   negrita y nada más (§14.29 · F4). Así que aquí la letra pequeña se pinta
+   sola. */
+.acceso-pista { font-size: var(--t-label); line-height: 1.5; color: #bcdcea; margin: 0; }
 .acceso-codigo { display: block; width: 100%; word-break: break-all; font-size: var(--t-label);
   background: rgba(0,0,0,.25); border-radius: 6px; padding: 8px; }
 /* El fondo de esta pantalla es oscuro siempre —no sigue la cara clara del tema—,
@@ -926,8 +953,50 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    colores de siempre, tinta sobre papel, quedarían ilegibles. El tamaño sí sale
    de la escala, como todo lo demás. */
 .acceso .btn.ghost { color: #eaf6fb; border-color: rgba(255,255,255,.3); background: transparent; }
-.acceso > .note { color: #a9cede; font-size: var(--t-label); line-height: 1.5; margin: 0 auto;
-  max-width: 340px; background: none; padding: 0; }
+/* El botón lleno también: `--spout` sigue al tema, y sobre este fondo —que es
+   oscuro con el móvil puesto en claro y con el móvil puesto en oscuro— daba
+   3,65 : 1 en la cara oscura. Aquí se fija, como el resto de esta pantalla. */
+.acceso .btn:not(.ghost):not(.apple) { background: #2f89ab; color: #04161f; }
+/* Y el pequeño no baja de 44 pt de toque por estar en esta pantalla: aquí el
+   único que lo usa es «copiar código», que se pulsa con el móvil en la mano y
+   con prisa. */
+.acceso .btn.sm { min-height: var(--toque); }
+/* `border: none` no estaba, y por eso quedaban cuatro marcos de rayas pegados al
+   texto: esta regla le quitaba a `.note` el fondo y el relleno pero se dejaba su
+   `1px dashed` (§14.29 · F3). */
+.acceso > .note { color: #bcdcea; font-size: var(--t-label); line-height: 1.5; margin: 0 auto;
+  max-width: 340px; background: none; border: none; padding: 0; }
+
+/* El pie de las otras salidas (`docs/diseño/acceso.html` · A3). Renglones de 44
+   pt separados por un filete, sin explicación: cada uno abre su hoja, que es
+   donde el texto se lee sin competir con la puerta. */
+.acceso-pie { display: flex; flex-direction: column; margin-top: 6px; }
+.acceso-salida { appearance: none; background: none; border: none; width: 100%;
+  border-top: 1px solid rgba(255,255,255,.14); color: #bcdcea;
+  font-family: inherit; font-size: var(--t-row); font-weight: 550;
+  min-height: var(--toque); padding: 11px 8px; cursor: pointer; }
+.acceso-salida:last-child { border-bottom: 1px solid rgba(255,255,255,.14); }
+.acceso-salida:active { color: #eaf6fb; }
+/* El texto de una hoja de la puerta: es prosa, no un rótulo de campo. */
+.hoja-texto { font-size: var(--t-row); line-height: 1.5; color: var(--ink-soft); margin: 4px 0 0; }
+
+/* La bienvenida (§14.29 · C2) alinea a la izquierda su lista de pasos: una lista
+   centrada con marcas a la derecha no tiene por dónde leerse.
+
+   Los colores de estado se reponen uno a uno por lo mismo que todo lo demás de
+   esta pantalla: `.pasos` está pensada para el papel de la app y aquí el fondo
+   es oscuro siempre. Sin esto, el punto del paso en curso quedaba a **1,80 : 1**
+   con el móvil en oscuro — el mismo fallo que F4, cometido otra vez con otra
+   pieza prestada. */
+.acceso.bienvenida .pasos { text-align: left; width: 100%; max-width: 340px; margin: 4px auto 0; }
+.acceso.bienvenida .pasos li { color: #eaf6fb; }
+.acceso.bienvenida .pasos li[data-estado="hecho"] { color: #86d6ab; }
+.acceso.bienvenida .pasos li[data-estado="aviso"] { color: #bcdcea; }
+.acceso.bienvenida .pasos li[data-estado="pendiente"] { color: #8fb0c0; opacity: 1; }
+.acceso.bienvenida .pasos li[data-estado="fallo"] { color: #ffb3a6; background: rgba(216,90,74,.18); }
+.acceso.bienvenida .pasos li[data-estado="curso"],
+.acceso.bienvenida .pasos li[data-estado="ahora"] {
+  background: rgba(255,255,255,.09); color: #9fd4e8; }
 
 /* Sección de cuentas en Ajustes (solo administradores). */
 .cuenta-fila { display: flex; align-items: center; gap: 10px; padding: 9px 0;

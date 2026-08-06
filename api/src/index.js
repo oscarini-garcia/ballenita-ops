@@ -15,6 +15,7 @@
  * Rutas:
  *   GET  /api/salud     · comprobación sin autenticar
  *   POST /api/sesion    · canjea un token de Apple por una sesión propia
+ *   POST /api/sesion/espera · «¿ya me han dejado entrar?», con el pase y sin Apple
  *   GET  /api/sync      · instantánea completa del grupo
  *   POST /api/cambios   · aplica la cola del dispositivo y devuelve la instantánea
  *   GET  /api/cuentas   · quién tiene acceso (administradores)
@@ -40,7 +41,9 @@
 
 import { verificarTokenDeApple } from './apple.js';
 import { enviarAviso, hayApnsConfigurado } from './apns.js';
-import { coincideEnTiempoConstante, emitirSesion, verificarSesion } from './sesion.js';
+import {
+  coincideEnTiempoConstante, emitirPaseDeEspera, emitirSesion, verificarPaseDeEspera, verificarSesion,
+} from './sesion.js';
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
 import {
   administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
@@ -156,6 +159,9 @@ async function abrirSesion(peticion, env) {
           mensaje: 'Hemos apuntado tu petición. Quien lleva el grupo tiene que decir quién eres para dejarte entrar.',
           identificador: sub,
           nombre: espera.nombre,
+          // Con esto el móvil puede volver a preguntar sin pasar otra vez por la
+          // hoja de Apple, y entrar solo en cuanto le enlacen.
+          pase: await emitirPaseDeEspera(env.SESION_SECRETO, espera.id),
         },
         403,
       );
@@ -173,6 +179,7 @@ async function abrirSesion(peticion, env) {
           mensaje: 'Tu petición sigue esperando a que quien lleva el grupo diga quién eres.',
           identificador: sub,
           nombre: cuenta.nombre,
+          pase: await emitirPaseDeEspera(env.SESION_SECRETO, cuenta.id),
         },
         403,
       );
@@ -185,6 +192,43 @@ async function abrirSesion(peticion, env) {
 
   return json({
     token,
+    cuenta: { id: cuenta.id, nombre: cuenta.nombre, rol: cuenta.rol },
+  });
+}
+
+/**
+ * «¿Ya me han dejado entrar?», preguntado sin Apple.
+ *
+ * Es la mitad que le faltaba a la sala de espera. Antes, la única forma de
+ * saberlo era volver a canjear un token de Apple, o sea sacar la hoja del
+ * sistema por encima de la app: eso se puede hacer cuando alguien pulsa un
+ * botón, pero no cada veinte segundos. Con el pase, esto es una petición normal
+ * y el móvil puede quedarse mirando y entrar solo en cuanto le enlacen.
+ *
+ * Devuelve **la sesión** en cuanto la cuenta está activa, y ahí acaba la espera.
+ * Es legítimo: el pase se le entregó a quien ya demostró ante Apple ser el dueño
+ * de esa cuenta, y lo que faltaba no era demostrar quién es sino que alguien del
+ * grupo le diera acceso. Lo que decide es `activa`, igual que en `abrirSesion`.
+ */
+async function mirarLaEspera(peticion, env) {
+  const { pase } = await peticion.json();
+  const cuentaId = await verificarPaseDeEspera(env.SESION_SECRETO, pase);
+  const cuenta = await cuentaPorId(env.DB, cuentaId);
+
+  // La cuenta ya no está: la han eliminado desde Ajustes mientras esperaba. El
+  // móvil tiene que olvidar el pase y volver a la puerta, no seguir preguntando
+  // por algo que ya no existe.
+  if (!cuenta) return json({ estado: 'desconocida' });
+
+  if (!cuenta.activa) {
+    if (!cuenta.personId) return json({ estado: 'espera', nombre: cuenta.nombre });
+    return json({ estado: 'desactivada' });
+  }
+
+  await anotarAcceso(env.DB, cuenta.id);
+  return json({
+    estado: 'dentro',
+    token: await emitirSesion(env.SESION_SECRETO, cuenta, 'ios'),
     cuenta: { id: cuenta.id, nombre: cuenta.nombre, rol: cuenta.rol },
   });
 }
@@ -843,6 +887,7 @@ async function migraciones(peticion, env) {
 const RUTAS = [
   ['GET', '/api/salud', async () => json({ estado: 'ok', ahora: new Date().toISOString() })],
   ['POST', '/api/sesion', abrirSesion],
+  ['POST', '/api/sesion/espera', mirarLaEspera],
   ['GET', '/api/sync', sincronizar],
   ['POST', '/api/cambios', recibirCambios],
   ['GET', '/api/cuentas', cuentas],

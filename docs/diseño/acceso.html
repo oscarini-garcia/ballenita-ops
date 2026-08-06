@@ -809,13 +809,37 @@
   </div>
 
   <div class="cierre">
-    <h2>Qué hace falta que decidas</h2>
-    <p><b>Una de A, una de B y una de C</b> (C3 se puede llevar puesta con cualquiera; C4 es opcional
-      encima de la que elijas). Los cinco arreglos F1–F5 van en todos los casos y no hace falta que digas
-      nada de ellos.</p>
-    <p>Mi voto: <b>A3 · B2 · C2 · C3</b>, y dejar B4 y C4 para una vuelta posterior.</p>
-    <p><b>No he tocado código.</b> Esta vuelta es la hoja; en cuanto elijas, lo implemento y actualizo
-      <code>docs/SPECS.md</code> con la sección que toque.</p>
+    <h2>Decidido y hecho · A3 · B2 + B4 · C2 + C4 · F1–F5</h2>
+    <p>La hoja se escribió para elegir y ya se eligió: esto es lo que hay puesto en la app desde la
+      <b>v0.21.0</b>, no una propuesta. <b>C3 se dejó fuera</b> y sigue disponible: con C2 y C4 puestos,
+      la ventana en la que se puede crear un evento duplicado se cierra casi entera —pero no del todo si
+      la primera bajada falla y se sigue sin esperar—.</p>
+
+    <p><b>Los números de los componentes reales, medidos después de construirlos</b> —renderizando el JSX
+      contra <code>theme.css</code> en un navegador, no esta réplica—: la puerta, la sala de espera y la
+      bienvenida <b>caben en 844 pt en las tres tallas de letra y en las dos caras</b>. El peor contraste
+      de las tres es <b>4,64 : 1</b> y ningún objetivo tocable baja de 44 pt. La puerta con un fallo largo
+      de Apple mide <b>1.106 pt</b> en «Enorme» y <b>se desplaza</b>: 262 px de scroll, con el principio y
+      el final alcanzables — que era exactamente lo que F1 no dejaba hacer.</p>
+
+    <p><b>Tres cosas que solo aparecen construyendo.</b> La primera: F4 no era un descuido suelto sino un
+      patrón, y lo volví a cometer. Al traer la lista de pasos a la bienvenida, el punto del paso en curso
+      salió a <b>1,80 : 1</b> con el móvil en oscuro — misma causa exacta que el párrafo de la sala de
+      espera, otra pieza prestada que sigue al tema sobre un fondo que no lo sigue. Lo mismo el botón
+      lleno, a 3,65. En esta pantalla <b>no vale heredar nada de color</b>, y ahora está escrito así.</p>
+
+    <p>La segunda: B4 pedía partir <code>POST /api/sesion</code> en dos, y la parte que no estaba en la
+      hoja es que el pase <b>devuelve la sesión</b>. Es lo que lo hace útil —si solo dijera «sí, ya
+      estás», habría que volver a pasar por Apple justo al final— y es legítimo, porque el pase se le
+      entrega a quien ya demostró ante Apple ser el dueño de esa cuenta: lo que faltaba no era demostrar
+      quién es, sino que alguien del grupo le diera acceso. Lo que sí obliga es a cerrar las <b>dos</b>
+      direcciones: los dos papeles se firman con el mismo secreto, así que sin la marca de
+      <code>tipo</code> un pase valdría como sesión — y el pase se emite precisamente a quien todavía
+      <b>no</b> tiene acceso.</p>
+
+    <p>Y la tercera, pequeña: el verbo de cada hoja no puede repetir el rótulo del renglón que la abrió
+      («Usar solo en este móvil» dos veces, una encima de la otra). Repetido no se sabe si es el mismo
+      botón otra vez o el que confirma; ahora el de dentro dice <b>«Seguir solo en este móvil»</b>.</p>
   </div>
 
 </div>
