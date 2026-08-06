@@ -1,0 +1,934 @@
+<meta charset="utf-8">
+<title>Ballena Ops — 1.292 pt de puerta en un teléfono de 844, sin scroll, y una app que arranca vacía justo cuando te dejan entrar</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --verde: #1d6b4e; --verde-fondo: #dff0e7;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css (v0.20.2). */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-papel-capa: #1a3d4f; --ab-linea-capa: #3a6a82;
+    --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-ink: #12262f; --abc-soft: #4d6674;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px; --t-hero: 33.6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+      --verde: #6fc79b; --verde-fondo: #16311f;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --verde: #1d6b4e; --verde-fondo: #dff0e7;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    --verde: #6fc79b; --verde-fondo: #16311f;
+  }
+
+  * { box-sizing: border-box; }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(27px, 5.2vw, 39px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 66ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 74ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code, .parte-intro code, .op-idea code, .coste code, td code, .cierre code
+    { font-family: var(--mono); font-size: 12.5px;
+      background: color-mix(in srgb, var(--tinta-tenue) 15%, transparent); border-radius: 4px; padding: 1px 5px; }
+  .defectos code { background: color-mix(in srgb, var(--oro) 14%, transparent); }
+  .linea-corte { border-top: 1px solid color-mix(in srgb, var(--oro) 30%, transparent); padding-top: 11px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+  .grupo > h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -.01em; }
+
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; gap: 5px; align-items: baseline; margin-top: 7px; }
+  .medida b { color: var(--tinta-suave); font-weight: 700; }
+  .medida.mal b { color: var(--coral); }
+  .medida.bien b { color: var(--verde); }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; position: relative; }
+  .tel.alto { height: 844px; }
+  /* El teléfono «completo» enseña **todo** el contenido, no solo lo que cabe:
+     es la única forma de dibujar lo que se pierde. La ventana de 844 se marca
+     encima con dos filetes, y lo que queda fuera va rayado. */
+  .tel.completo { height: auto; }
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin-top: 8px;
+    width: 390px; line-height: 1.5; }
+  .pie-tel b { color: var(--tinta-suave); }
+  .pie-tel .malo { color: var(--coral); font-weight: 700; }
+  .pie-tel .bueno { color: var(--verde); font-weight: 700; }
+
+  /* ── La puerta, réplica de `.acceso` de theme.css ────────────────────────
+     Valores calcados: gap 14, relleno 24/26, gradiente 150deg, tinta #eaf6fb.
+     La escala tipográfica es la de fábrica (17 px × 1,12). */
+  .puerta { display: flex; flex-direction: column; gap: 14px; text-align: center;
+    padding: 24px 26px; color: #eaf6fb;
+    background: linear-gradient(150deg, #0b1f2c, #0d2d3c); }
+  .puerta > * { flex: none; }
+  .puerta.aplasta > * { flex: 0 1 auto; }
+  .p-logo { width: 84px; height: 84px; margin: 0 auto; color: #8fbdd1; display: grid; place-items: center; }
+  .p-logo.mini { width: 56px; height: 56px; }
+  .p-logo svg { width: 100%; height: 100%; display: block; }
+  .p-titulo { font-size: 31.4px; font-weight: 650; margin: 0; line-height: 1.2; }
+  .p-titulo.chico { font-size: 26.9px; }
+  .p-texto { font-size: var(--t-row); line-height: 1.5; color: #bcdcea; margin: 0 auto; max-width: 340px; }
+  .p-btn { border-radius: 8px; padding: 12px 16px; font-weight: 600; font-size: var(--t-row);
+    min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .p-btn.apple { background: #fff; color: #000; margin-top: 8px; }
+  .p-btn.apple svg { width: 16px; height: 16px; flex: none; }
+  .p-btn.ghost { border: 1px solid rgba(255,255,255,.3); color: #eaf6fb; background: transparent; }
+  .p-btn.sm { font-size: var(--t-sub); padding: 8px 12px; min-height: 38px; font-weight: 550; border-radius: 7px; }
+  .p-nota { font-size: var(--t-label); line-height: 1.5; color: #a9cede; margin: 0 auto; max-width: 340px; }
+  /* El fallo tal cual está en el CSS: `.acceso > .note` quita fondo y relleno
+     pero NO el borde de `.note`, así que queda el marco de rayas. */
+  .p-nota.rayas { border: 1px dashed #c3d2da; }
+  .p-aviso { background: rgba(255,255,255,.08); border-radius: 9px; padding: 14px;
+    font-size: var(--t-sub); line-height: 1.5; text-align: left; display: grid; gap: 8px; justify-items: start; }
+  .p-aviso p { margin: 0; }
+  /* Y el otro fallo: `.acceso-aviso .note` cambia solo el color y hereda el
+     fondo casi blanco de `.note`. Estos son los colores exactos que salen. */
+  .p-aviso .mala { background: #eff5f7; color: #a9cede; border: 1px dashed #c3d2da;
+    border-radius: 9px; padding: 11px 13px; }
+  .p-aviso .mala b { color: #12262f; }
+  .p-aviso .buena { background: var(--ab-papel-capa); color: var(--ab-ink);
+    border: 1px solid var(--ab-linea-capa); border-radius: 9px; padding: 11px 13px; }
+  .p-aviso .buena b { color: #fff; }
+
+  /* El corte: lo que queda fuera de la ventana y no se puede alcanzar. */
+  .tel .fuera { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(
+      135deg, rgba(168,50,42,.30) 0 6px, rgba(168,50,42,.13) 6px 12px);
+    pointer-events: none; display: flex; justify-content: center; padding: 4px 0;
+    font-family: var(--mono); font-size: 11px; color: #ffd9d4; font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,.8); letter-spacing: .04em; }
+  .tel .fuera[data-banda="arriba"] { align-items: flex-start; }
+  .tel .fuera[data-banda="abajo"] { align-items: flex-end; }
+  .tel .borde-vent { position: absolute; left: 0; right: 0; height: 0;
+    border-top: 2px dashed #ff8f7d; pointer-events: none; }
+  .tel .rotulo-vent { position: absolute; right: 6px; font-family: var(--mono); font-size: 10px;
+    color: #ff8f7d; font-weight: 700; background: rgba(11,31,44,.85); padding: 1px 5px; border-radius: 4px; }
+
+  /* La barra de estado de iOS, para que se vea con qué choca el título. */
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 47px; z-index: 3;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    font-size: 15px; font-weight: 650; color: #fff; pointer-events: none; }
+  .statusbar .der { display: flex; gap: 5px; align-items: center; font-size: 12px; }
+
+  /* El pie de enlaces (A3) */
+  .p-pie { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+  .p-pie a { color: #bcdcea; font-size: var(--t-row); text-decoration: none; padding: 11px 0;
+    min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 7px; }
+  .p-pie .sep { height: 1px; background: rgba(255,255,255,.14); }
+
+  /* El acordeón (A4) y el desplegable de pista (A2) */
+  .p-acordeon { border: 1px solid rgba(255,255,255,.22); border-radius: 9px; padding: 13px 14px;
+    display: flex; align-items: center; justify-content: space-between; font-size: var(--t-row);
+    font-weight: 600; color: #eaf6fb; min-height: 48px; }
+  .p-acordeon .fle { color: #a9cede; font-size: var(--t-sub); }
+  .p-quees { font-size: var(--t-label); color: #a9cede; display: flex; align-items: center;
+    justify-content: center; gap: 6px; min-height: 30px; margin-top: -6px; }
+
+  /* La app por dentro (parte tres) */
+  .t-cab { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: var(--ab-cromo); border-bottom: 1px solid var(--ab-linea); color: var(--ab-ink); }
+  .t-cab .marca { width: 30px; height: 30px; color: #8fbdd1; flex: none; }
+  .t-cab .marca svg { width: 100%; height: 100%; display: block; }
+  .t-cab .ti { font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; }
+  .t-cab .su { font-size: var(--t-micro); color: var(--ab-ink); opacity: .78; }
+  .t-cab .grow { flex: 1; min-width: 0; }
+  .t-cab .punto { width: 11px; height: 11px; border-radius: 50%; background: #35b37e; flex: none; }
+  .t-cuerpo { background: var(--ab-fondo); color: var(--ab-ink); padding: 14px;
+    display: flex; flex-direction: column; gap: 10px; min-height: 300px; }
+  .t-vacio { display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 40px 24px; text-align: center; color: var(--ab-soft); font-size: var(--t-row);
+    line-height: 1.5; }
+  .t-vacio .e { font-size: 40px; }
+  .t-tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); border-radius: 9px;
+    padding: 12px; display: flex; align-items: center; gap: 10px; }
+  .t-tarj .av { width: 42px; height: 42px; border-radius: 9px; background: #1a6280; display: grid;
+    place-items: center; font-size: 20px; flex: none; }
+  .t-tarj .main { flex: 1; min-width: 0; }
+  .t-tarj .n { font-weight: 700; font-size: var(--t-row); }
+  .t-tarj .sub { font-size: var(--t-sub); color: var(--ab-soft); }
+  .t-pastilla { font-size: var(--t-micro); border-radius: 999px; padding: 4px 9px;
+    background: rgba(255,255,255,.08); color: var(--ab-soft); font-weight: 600; }
+  .t-btn { border-radius: 8px; padding: 12px 16px; text-align: center; font-weight: 600;
+    font-size: var(--t-row); background: var(--ab-acento); color: #04161f; min-height: 44px;
+    display: flex; align-items: center; justify-content: center; }
+  .t-btn.fantasma { background: transparent; border: 1px solid var(--ab-linea); color: var(--ab-soft); }
+
+  /* La lista de pasos (`.pasos` de theme.css) */
+  .pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px;
+    font-size: var(--t-sub); color: var(--ab-ink); }
+  .pasos li { display: flex; align-items: center; gap: 9px; }
+  .pasos li .mk { width: 20px; flex: none; text-align: center; }
+  .pasos li.hecho .mk { color: #6fc79b; }
+  .pasos li.curso .mk { color: var(--ab-acento-txt); }
+  .pasos li.espera { color: var(--ab-faint); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--tinta-tenue); font-weight: 700; }
+  td b { color: var(--tinta); }
+  td.n { font-family: var(--mono); white-space: nowrap; }
+  tr.rec td { background: var(--acento-suave); }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 21px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 74ch; }
+  .cierre b { color: var(--tinta); }
+
+  .combo { background: var(--verde-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 10px; }
+  .combo h2 { font-family: var(--serif); font-weight: 600; font-size: 21px; margin: 0; }
+  .combo p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 74ch; }
+  .combo b { color: var(--tinta); }
+  .combo code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--verde) 16%, transparent); border-radius: 4px; padding: 1px 5px; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <!-- ══ CABECERA ══════════════════════════════════════════════════════════ -->
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · pantalla de acceso · sala de espera · el primer arranque tras ser aceptado · hoja de opciones</div>
+    <h1>1.292&nbsp;pt de puerta en un teléfono de 844, sin scroll, y una app que arranca vacía justo cuando te dejan entrar</h1>
+    <p class="entradilla">La pantalla de acceso pide <b>909,2&nbsp;pt</b> tal cual, y <b>1.292,8</b> cuando
+      aparece la sala de espera. La ventana son <b>844</b>. Y <code>.acceso</code> <b>no hace scroll</b>:
+      lo que sobra no se aparta, se recorta —<b>196,5&nbsp;pt por arriba y 196,5 por abajo</b>—, así que la
+      ballena y el título se van fuera por el techo y «Buscar la última versión» se cae por el suelo. Es
+      exactamente la segunda captura. Dentro de la sala de espera, el párrafo que explica qué hacer está a
+      <b>1,52&nbsp;:&nbsp;1</b> de contraste sobre su fondo —el mínimo exigible es 4,5— y por eso solo se leen
+      las dos palabras en negrita. Y hay un tercer problema que no es de dibujo: <b>cuando te aceptan y entras
+      por primera vez, la app dice que no hay ningún evento</b> y te ofrece crear uno; al reiniciar, el evento
+      está. El motor de sincronización arrancó sin sesión y nadie lo vuelve a llamar.</p>
+    <div class="ficha">
+      <span><b>Ahora</b> = v0.20.2, <code>app/src/screens/AccesoScreen.jsx</code> + <code>.acceso</code> de <code>theme.css</code></span>
+      <span><b>Medida</b> 390 × 844 pt (iPhone 14)</span>
+      <span><b>Texto</b> 17 px × 1,12 «Grande», de fábrica</span>
+      <span><b>Paleta</b> Abisal Sobrio; la puerta es oscura siempre</span>
+      <span><b>Móvil de las capturas</b> 428 × 926 pt, puesto en <b>claro</b></span>
+      <span><b>Las medidas</b> salen de renderizar el marcado real contra <code>theme.css</code> en un navegador, no de estimarlas</span>
+      <span><b>La réplica</b> de la puerta sale a 904,7 pt y el componente real a 909,2 —<b>0,5 %</b> de
+        deriva—; la de la sala de espera va un <b>4 %</b> alta. Las opciones se comparan <b>contra la
+        réplica</b>, que es lo que hace justa la comparación; los números en prosa son los del
+        <b>componente real</b>, medidos contra <code>theme.css</code></span>
+    </div>
+  </div>
+
+  <!-- ══ LO QUE HAY HOY ════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Lo que hay puesto · las dos capturas, medidas</div>
+    <p class="parte-intro">A la izquierda, la puerta sin sala de espera: <b>909,2&nbsp;pt</b> de contenido en
+      844 de ventana. En el móvil de las capturas (926 de alto) cabe por <b>22&nbsp;pt</b>, y por eso la primera
+      captura se ve entera. A la derecha, la misma puerta con la sala de espera puesta: <b>1.292,8&nbsp;pt</b>,
+      un <b>53&nbsp;%</b> más de lo que hay. Como <code>.acceso</code> centra sin poder desplazarse, el sobrante
+      se reparte a partes iguales y se pierde por los dos lados a la vez.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel completo" data-medir="hoy-limpia" data-recorte>
+          <div class="statusbar" data-barra><span>19:55</span><span class="der">▮▮▯ 37</span></div>
+          <div class="puerta">
+            <div class="p-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo">Ballena Ops 🐳</h4>
+            <p class="p-texto">Los gastos, las cenas y los planes del grupo. Entra con tu Apple ID; alguien del grupo tiene que haberte dado acceso antes.</p>
+            <div class="p-btn apple"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M11.18 8.53c.02-1.6 1.31-2.37 1.37-2.41-.75-1.1-1.91-1.25-2.32-1.26-.99-.1-1.93.58-2.43.58-.5 0-1.27-.57-2.09-.55-1.07.02-2.06.62-2.61 1.58-1.11 1.93-.28 4.79.8 6.36.53.77 1.16 1.63 1.99 1.6.8-.03 1.1-.52 2.06-.52.96 0 1.24.52 2.08.5.86-.01 1.4-.78 1.93-1.55.61-.89.86-1.75.87-1.79-.02-.01-1.67-.64-1.65-2.54zM9.6 3.8c.44-.53.74-1.27.66-2.01-.64.03-1.41.42-1.86.95-.4.47-.76 1.22-.66 1.94.71.06 1.43-.36 1.86-.88z"/></svg><span>Entrar con Apple</span></div>
+            <div class="p-btn ghost" style="margin-top:12px">Usar solo en este móvil</div>
+            <p class="p-nota rayas">Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda aquí. Lo que apuntes se sube entero en cuanto consigas entrar, así que no se pierde nada por empezar así.</p>
+            <div class="p-btn ghost">Ver una demostración con datos de ejemplo</div>
+            <p class="p-nota rayas">¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo funciona. No hace falta cuenta, no se conecta a nada y al salir no queda rastro.</p>
+            <div class="p-btn ghost">🔄 Buscar la última versión</div>
+            <p class="p-nota rayas">Trae la última versión publicada y recarga. Sirve aquí mismo, sin entrar.</p>
+          </div>
+          <div class="fuera" data-banda="arriba"></div>
+          <div class="fuera" data-banda="abajo"></div>
+          <div class="borde-vent" data-vent="arriba"></div>
+          <div class="rotulo-vent" data-vent-rot="arriba">borde de la ventana</div>
+          <div class="borde-vent" data-vent="abajo"></div>
+          <div class="rotulo-vent" data-vent-rot="abajo">844 pt de ventana</div>
+        </div>
+        <div class="pie-tel"><b>Hoy · la puerta sola.</b> <span class="malo">909,2 pt</span> de contenido en 844
+          de ventana. Cuatro botones, <b>353,8 pt de prosa</b> (el 39 %) y <b>cuatro marcos de rayas</b> que
+          nadie quiso: <code>.acceso &gt; .note</code> le quita a <code>.note</code> el fondo y el relleno,
+          pero se deja el <code>border: 1px dashed</code>.</div>
+      </div>
+
+      <div>
+        <div class="tel completo" data-medir="hoy-espera" data-recorte>
+          <div class="statusbar" data-barra><span>19:56</span><span class="der">▮▮▯ 37</span></div>
+          <div class="puerta aplasta">
+            <div class="p-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo">Ballena Ops 🐳</h4>
+            <p class="p-texto">Los gastos, las cenas y los planes del grupo. Entra con tu Apple ID; alguien del grupo tiene que haberte dado acceso antes.</p>
+            <div class="p-btn apple"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M11.18 8.53c.02-1.6 1.31-2.37 1.37-2.41-.75-1.1-1.91-1.25-2.32-1.26-.99-.1-1.93.58-2.43.58-.5 0-1.27-.57-2.09-.55-1.07.02-2.06.62-2.61 1.58-1.11 1.93-.28 4.79.8 6.36.53.77 1.16 1.63 1.99 1.6.8-.03 1.1-.52 2.06-.52.96 0 1.24.52 2.08.5.86-.01 1.4-.78 1.93-1.55.61-.89.86-1.75.87-1.79-.02-.01-1.67-.64-1.65-2.54zM9.6 3.8c.44-.53.74-1.27.66-2.01-.64.03-1.41.42-1.86.95-.4.47-.76 1.22-.66 1.94.71.06 1.43-.36 1.86-.88z"/></svg><span>Entrar con Apple</span></div>
+            <div class="p-aviso">
+              <p><b>Ya estás en la lista.</b></p>
+              <p class="mala">Hemos apuntado tu petición. Quien lleva el grupo tiene que decir quién eres para dejarte entrar. Le hemos dicho que eres Ana Doral.</p>
+              <p class="mala">No hay nada más que hacer desde aquí: cuando te enlacen con tu persona, entras con este mismo botón. Mientras tanto puedes usar la app <b>solo en este móvil</b> y lo que apuntes se subirá entero en cuanto te dejen pasar.</p>
+              <div class="p-btn ghost sm">¿Ya me han dejado entrar?</div>
+            </div>
+            <div class="p-btn ghost" style="margin-top:12px">Usar solo en este móvil</div>
+            <p class="p-nota rayas">Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda aquí. Lo que apuntes se sube entero en cuanto consigas entrar, así que no se pierde nada por empezar así.</p>
+            <div class="p-btn ghost">Ver una demostración con datos de ejemplo</div>
+            <p class="p-nota rayas">¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo funciona. No hace falta cuenta, no se conecta a nada y al salir no queda rastro.</p>
+            <div class="p-btn ghost">🔄 Buscar la última versión</div>
+            <p class="p-nota rayas">Trae la última versión publicada y recarga. Sirve aquí mismo, sin entrar.</p>
+          </div>
+          <div class="fuera" data-banda="arriba"></div>
+          <div class="fuera" data-banda="abajo"></div>
+          <div class="borde-vent" data-vent="arriba"></div>
+          <div class="rotulo-vent" data-vent-rot="arriba">borde de la ventana</div>
+          <div class="borde-vent" data-vent="abajo"></div>
+          <div class="rotulo-vent" data-vent-rot="abajo">844 pt de ventana</div>
+        </div>
+        <div class="pie-tel"><b>Hoy · con la sala de espera.</b> En el componente real,
+          <span class="malo">1.292,8 pt</span> en 844: sobran <b>448,8</b>, y se recortan <b>196,5 por
+          arriba</b> y <b>196,5 por abajo</b> sin <b>ningún scroll</b> que los alcance. (El dibujo va un 4 %
+          alto y se rotula con lo suyo.) Los dos párrafos blancos son el fallo de contraste: <span class="malo">1,52 : 1</span>.
+          El botón de la demostración se aplasta de 61,5 a 44 pt y su texto <b>se sale de la caja</b> —eso es lo
+          que se ve al pie de tu captura—.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DEFECTOS ══════════════════════════════════════════════════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · cinco arreglos que no se eligen</h2>
+    <p>Esto está mal y se arregla, no se somete a votación. Van todos aunque luego se elija cualquier cosa
+      de las tres partes de abajo.</p>
+
+    <p class="linea-corte"><b>F1 · La puerta no hace scroll.</b> <code>.acceso</code> es
+      <code>min-height: 100dvh</code> con <code>justify-content: center</code> y sin
+      <code>overflow-y</code>. Cuando el contenido pasa de la ventana, un flex centrado desborda
+      <b>por los dos extremos a la vez</b> y el de arriba no se alcanza ni con scroll de la página. Arreglo:
+      <code>overflow-y: auto</code> y centrar de forma segura (envoltorio con <code>margin: auto</code>, o
+      <code>justify-content: safe center</code>).</p>
+
+    <p class="linea-corte"><b>F2 · Los botones se aplastan.</b> Son hijos de un flex y ninguno lleva
+      <code>flex: none</code>, así que cuando falta sitio el navegador les quita alto: el de la demostración
+      pasa de <b>61,5 a 44 pt</b> con dos líneas dentro, y <b>17,5 pt de texto quedan fuera de su caja</b>.
+      El logo se salva por los pelos —<code>.marca</code> sí lleva <code>flex: none</code>—.</p>
+
+    <p class="linea-corte"><b>F3 · Cuatro marcos de rayas que nadie quiso.</b>
+      <code>.acceso &gt; .note</code> repone el color y quita <code>background</code> y
+      <code>padding</code> de <code>.note</code>… y se deja el <code>border: 1px dashed</code>. Quedan cuatro
+      recuadros punteados pegados al texto, con relleno 0. Arreglo: <code>border: none</code>.</p>
+
+    <p class="linea-corte"><b>F4 · La sala de espera, a 1,52 : 1.</b> <code>.acceso-aviso .note</code> cambia
+      el color y hereda el fondo casi blanco de <code>.note</code>
+      (<code>color-mix(--spout 7%, --foam-2)</code>). Sobre <code>#eff5f7</code>, el texto
+      <code>#a9cede</code> da <b>1,52 : 1</b>. Lo único legible es la negrita, porque <code>.note b</code> la
+      pinta con <code>--ink</code> (<b>14,21 : 1</b>) — que es justo lo que enseña tu captura. Y solo pasa con
+      el móvil en <b>claro</b>: en oscuro son 7,54 : 1. La puerta es oscura siempre pero sus variables siguen
+      al sistema, así que el mismo aparato enseña dos apps distintas. Arreglo: la sala de espera pinta su
+      papel y su tinta y no hereda <code>.note</code>.</p>
+
+    <p class="linea-corte"><b>F5 · El motor de sincronización no se rearma al entrar.</b>
+      <code>useSyncEngine</code> monta con dependencias <code>[]</code>: su primera vuelta ocurre
+      <b>antes de que haya sesión</b>, <code>syncNow()</code> devuelve <code>sin-sesion</code> y se acabó. Al
+      volver de Apple ya hay sesión, pero nadie llama otra vez: hay que esperar al latido de <b>90 s</b>, a
+      un <code>visibilitychange</code> o a que se escriba algo. Reiniciar funciona porque entonces el motor
+      monta <b>con</b> la sesión puesta. Arreglo: sincronizar en cuanto la sesión aparece. <b>Qué se enseña
+      durante esos segundos es lo que sí se elige</b>, y es la parte tres.</p>
+  </div>
+
+  <!-- ══ PARTE UNO ═════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte uno · la puerta, que explica tres salidas que se usan una vez en la vida</div>
+    <p class="parte-intro">Con F1 puesto la puerta ya no recorta nada, pero sigue midiendo <b>909,2 pt</b>
+      para cuatro botones, y <b>353,8 de esos son prosa</b>: el párrafo de cabecera (107,5) y las tres pistas
+      (111,2 · 89,4 · 45,7). Las tres pistas explican cosas que se hacen <b>una vez</b> —o ninguna—, y ocupan
+      más que los cuatro botones juntos (193,5). La pregunta de esta parte es dónde va esa prosa.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel" data-medir="A1">
+          <div class="puerta">
+            <div class="p-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo">Ballena Ops 🐳</h4>
+            <p class="p-texto">Los gastos, las cenas y los planes del grupo. Entra con tu Apple ID; alguien del grupo tiene que haberte dado acceso antes.</p>
+            <div class="p-btn apple"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M11.18 8.53c.02-1.6 1.31-2.37 1.37-2.41-.75-1.1-1.91-1.25-2.32-1.26-.99-.1-1.93.58-2.43.58-.5 0-1.27-.57-2.09-.55-1.07.02-2.06.62-2.61 1.58-1.11 1.93-.28 4.79.8 6.36.53.77 1.16 1.63 1.99 1.6.8-.03 1.1-.52 2.06-.52.96 0 1.24.52 2.08.5.86-.01 1.4-.78 1.93-1.55.61-.89.86-1.75.87-1.79-.02-.01-1.67-.64-1.65-2.54zM9.6 3.8c.44-.53.74-1.27.66-2.01-.64.03-1.41.42-1.86.95-.4.47-.76 1.22-.66 1.94.71.06 1.43-.36 1.86-.88z"/></svg><span>Entrar con Apple</span></div>
+            <div class="p-btn ghost" style="margin-top:12px">Usar solo en este móvil</div>
+            <p class="p-nota">Sin entrar, Ballena Ops es tu libreta: todo funciona igual pero se queda aquí. Lo que apuntes se sube entero en cuanto consigas entrar, así que no se pierde nada por empezar así.</p>
+            <div class="p-btn ghost">Ver una demostración con datos de ejemplo</div>
+            <p class="p-nota">¿Solo mirando? Esta abre la app con un camping inventado, para ver cómo funciona. No hace falta cuenta, no se conecta a nada y al salir no queda rastro.</p>
+            <div class="p-btn ghost">🔄 Buscar la última versión</div>
+            <p class="p-nota">Trae la última versión publicada y recarga. Sirve aquí mismo, sin entrar.</p>
+          </div>
+        </div>
+        <div class="pie-tel"><b>A1</b> · lo mismo, con scroll y sin marcos de rayas.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="A2">
+          <div class="puerta">
+            <div class="p-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo">Ballena Ops 🐳</h4>
+            <p class="p-texto">Los gastos, las cenas y los planes del grupo. Entra con tu Apple ID; alguien del grupo tiene que haberte dado acceso antes.</p>
+            <div class="p-btn apple"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M11.18 8.53c.02-1.6 1.31-2.37 1.37-2.41-.75-1.1-1.91-1.25-2.32-1.26-.99-.1-1.93.58-2.43.58-.5 0-1.27-.57-2.09-.55-1.07.02-2.06.62-2.61 1.58-1.11 1.93-.28 4.79.8 6.36.53.77 1.16 1.63 1.99 1.6.8-.03 1.1-.52 2.06-.52.96 0 1.24.52 2.08.5.86-.01 1.4-.78 1.93-1.55.61-.89.86-1.75.87-1.79-.02-.01-1.67-.64-1.65-2.54zM9.6 3.8c.44-.53.74-1.27.66-2.01-.64.03-1.41.42-1.86.95-.4.47-.76 1.22-.66 1.94.71.06 1.43-.36 1.86-.88z"/></svg><span>Entrar con Apple</span></div>
+            <div class="p-btn ghost" style="margin-top:12px">Usar solo en este móvil</div>
+            <div class="p-quees">¿Qué es esto? <span>▾</span></div>
+            <div class="p-btn ghost">Ver una demostración</div>
+            <div class="p-quees">¿Qué es esto? <span>▾</span></div>
+            <div class="p-btn ghost">🔄 Buscar la última versión</div>
+            <div class="p-quees">¿Qué es esto? <span>▾</span></div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>A2</b> · cada pista, plegada debajo de su botón.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="A3">
+          <div class="puerta">
+            <div class="p-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo">Ballena Ops 🐳</h4>
+            <p class="p-texto">Los gastos, las cenas y los planes del grupo.</p>
+            <div class="p-btn apple"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M11.18 8.53c.02-1.6 1.31-2.37 1.37-2.41-.75-1.1-1.91-1.25-2.32-1.26-.99-.1-1.93.58-2.43.58-.5 0-1.27-.57-2.09-.55-1.07.02-2.06.62-2.61 1.58-1.11 1.93-.28 4.79.8 6.36.53.77 1.16 1.63 1.99 1.6.8-.03 1.1-.52 2.06-.52.96 0 1.24.52 2.08.5.86-.01 1.4-.78 1.93-1.55.61-.89.86-1.75.87-1.79-.02-.01-1.67-.64-1.65-2.54zM9.6 3.8c.44-.53.74-1.27.66-2.01-.64.03-1.41.42-1.86.95-.4.47-.76 1.22-.66 1.94.71.06 1.43-.36 1.86-.88z"/></svg><span>Entrar con Apple</span></div>
+            <p class="p-nota">Alguien del grupo tiene que haberte dado acceso antes.</p>
+            <div class="p-pie">
+              <div class="sep"></div>
+              <a>Usar solo en este móvil</a>
+              <div class="sep"></div>
+              <a>Ver una demostración</a>
+              <div class="sep"></div>
+              <a>🔄 Buscar la última versión</a>
+            </div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>A3</b> · una puerta y un pie. Cada enlace abre su hoja (dibujada abajo).</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="A4">
+          <div class="puerta">
+            <div class="p-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo">Ballena Ops 🐳</h4>
+            <p class="p-texto">Los gastos, las cenas y los planes del grupo. Entra con tu Apple ID; alguien del grupo tiene que haberte dado acceso antes.</p>
+            <div class="p-btn apple"><svg viewBox="0 0 16 16"><path fill="currentColor" d="M11.18 8.53c.02-1.6 1.31-2.37 1.37-2.41-.75-1.1-1.91-1.25-2.32-1.26-.99-.1-1.93.58-2.43.58-.5 0-1.27-.57-2.09-.55-1.07.02-2.06.62-2.61 1.58-1.11 1.93-.28 4.79.8 6.36.53.77 1.16 1.63 1.99 1.6.8-.03 1.1-.52 2.06-.52.96 0 1.24.52 2.08.5.86-.01 1.4-.78 1.93-1.55.61-.89.86-1.75.87-1.79-.02-.01-1.67-.64-1.65-2.54zM9.6 3.8c.44-.53.74-1.27.66-2.01-.64.03-1.41.42-1.86.95-.4.47-.76 1.22-.66 1.94.71.06 1.43-.36 1.86-.88z"/></svg><span>Entrar con Apple</span></div>
+            <div class="p-acordeon" style="margin-top:8px"><span>Otras formas de entrar</span><span class="fle">▾</span></div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>A4</b> · lo esencial, y las tres salidas en un acordeón cerrado.</div>
+      </div>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">Scroll y ya</span><span class="etq base">el mínimo</span></div>
+      <p class="op-idea">Se arreglan los cinco defectos y no se toca nada más: la puerta hace scroll, los
+        botones no se aplastan y las pistas pierden el marco de rayas. Sigue midiendo <b>909,2 pt</b>.</p>
+      <p class="coste"><b>Qué cuesta y quién lo paga:</b> la puerta sigue siendo un folleto. «Entrar con
+        Apple» —lo que hace el 99 % de la gente— queda a <b>284 pt</b> del borde de arriba, y para descubrir
+        que existe una demostración hay que bajar. Lo paga <b>todo el mundo, cada vez que entra</b>, para
+        explicar tres cosas que se hacen una vez.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">Cada pista, plegada bajo su botón</span></div>
+      <p class="op-idea">Las tres pistas pasan a un <code>&lt;details&gt;</code> de un renglón —«¿Qué es
+        esto? ▾»— pegado a su botón. La explicación no se va a ninguna parte: está a un toque y sale
+        <b>donde estaba</b>.</p>
+      <p class="coste"><b>Qué cuesta:</b> tres tiradores idénticos seguidos, que en una lista de cuatro
+        botones se leen como ruido y no dicen <b>de qué</b> es la explicación hasta abrirlos. Y el párrafo de
+        cabecera (107,5 pt) se queda entero.</p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">Una puerta y un pie</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">La pantalla dice tres cosas: quién eres, qué es esto en <b>una línea</b>, y
+        «Entrar con Apple». Debajo, separadas por un filete, las otras tres salidas como <b>renglones de
+        44 pt</b>, sin explicación: cada una <b>abre su hoja</b> con el texto entero y su botón, que es donde
+        de verdad se lee, sin prisa y sin competir con la puerta. La segunda línea de la cabecera —«alguien
+        del grupo tiene que haberte dado acceso antes»— baja debajo del botón de Apple, que es donde
+        importa: se lee <b>cuando Apple ha fallado</b>.</p>
+      <p class="coste"><b>Qué cuesta y quién lo paga:</b> quien no puede entrar con Apple y necesita el modo
+        local paga <b>un toque más</b> para leer qué es. A cambio, la puerta cabe entera sin scroll en las
+        tres tallas de letra y «Entrar con Apple» está siempre a la vista. Es el mismo reparto que ya usa
+        Ajustes: el rótulo arriba, la explicación dentro.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">«Otras formas de entrar», en acordeón</span></div>
+      <p class="op-idea">Lo esencial arriba y las tres salidas dentro de un acordeón cerrado, con sus
+        pistas completas dentro. Es la figura que ya usa Ajustes (<code>&lt;details&gt;</code> nativo,
+        todo plegado).</p>
+      <p class="coste"><b>Qué cuesta:</b> esconde detrás de una palabra genérica las <b>dos salidas de
+        emergencia</b> —el modo local y «Buscar la última versión»—, que son justo las que se buscan
+        cuando algo no va y con prisa. Un acordeón cerrado que dice «otras formas» no promete un arreglo.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE DOS ═════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte dos · la sala de espera, que hoy se apila encima de la puerta entera</div>
+    <p class="parte-intro">La sala de espera mide <b>369,7 pt</b> y <b>se suma</b> a los 909 de la puerta:
+      369,7 + 909,2 + 14 de hueco = <b>1.292,8</b>. Y su contenido son dos párrafos —69,5 y 168 pt— que dicen
+      la misma cosa dos veces: que ya está apuntado y que no hay nada que hacer. Mientras tanto, todo lo que
+      hay <b>encima</b> —la ballena, el título, el párrafo de bienvenida— explica cómo entrar a alguien que
+      <b>ya lo ha intentado y no puede</b>.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel" data-medir="B1">
+          <div class="puerta"><div class="p-aviso">
+            <p><b>Ya estás en la lista.</b></p>
+            <p class="buena">Hemos apuntado tu petición. Quien lleva el grupo tiene que decir quién eres para dejarte entrar. Le hemos dicho que eres Ana Doral.</p>
+            <p class="buena">No hay nada más que hacer desde aquí: cuando te enlacen con tu persona, entras con este mismo botón. Mientras tanto puedes usar la app <b>solo en este móvil</b> y lo que apuntes se subirá entero en cuanto te dejen pasar.</p>
+            <div class="p-btn ghost sm">¿Ya me han dejado entrar?</div>
+          </div></div>
+        </div>
+        <div class="pie-tel"><b>B1</b> · la misma tarjeta, con papel y tinta propios. Contraste
+          <span class="bueno" data-contraste="buena">—</span> en vez de
+          <span class="malo" data-contraste="mala">—</span>.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="B2">
+          <div class="puerta">
+            <div class="p-logo mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo chico">Ya estás en la lista</h4>
+            <p class="p-texto">Le hemos dicho a quien lleva el grupo que eres <b>Ana Doral</b>. En cuanto te enlace con tu persona, entras.</p>
+            <div class="p-btn apple"><span>¿Ya me han dejado entrar?</span></div>
+            <p class="p-nota">No hay nada más que hacer desde aquí. Mientras tanto puedes usar la app solo en este móvil: lo que apuntes se subirá entero en cuanto te dejen pasar.</p>
+            <div class="p-pie">
+              <div class="sep"></div>
+              <a>Usar solo en este móvil</a>
+              <div class="sep"></div>
+              <a>🔄 Buscar la última versión</a>
+            </div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>B2</b> · la sala de espera <b>sustituye</b> a la puerta. El botón grande deja
+          de ser «Entrar con Apple» y pasa a ser el que sirve aquí.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="B3">
+          <div class="puerta"><div class="p-aviso">
+            <p><b>Ya estás en la lista, Ana Doral.</b></p>
+            <p style="color:#bcdcea">Falta que te enlacen con tu persona.</p>
+            <div class="p-quees" style="justify-content:flex-start;margin:0">¿Y mientras tanto? <span>▾</span></div>
+            <div class="p-btn ghost sm">¿Ya me han dejado entrar?</div>
+          </div></div>
+        </div>
+        <div class="pie-tel"><b>B3</b> · dos renglones y el botón; el párrafo largo, plegado.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="B4">
+          <div class="puerta">
+            <div class="p-logo mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo chico">Ya estás en la lista</h4>
+            <p class="p-texto">Le hemos dicho a quien lleva el grupo que eres <b>Ana Doral</b>.</p>
+            <p class="p-nota">Estamos mirando cada 20 segundos. En cuanto te enlacen con tu persona, la app entra sola: no hace falta que hagas nada.</p>
+            <div class="p-btn ghost"><span>Mirando…</span></div>
+            <div class="p-pie">
+              <div class="sep"></div>
+              <a>Usar solo en este móvil</a>
+              <div class="sep"></div>
+              <a>🔄 Buscar la última versión</a>
+            </div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>B4</b> · B2 y además <b>entra sola</b> cuando le abren.</div>
+      </div>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">La misma tarjeta, legible</span><span class="etq base">el mínimo</span></div>
+      <p class="op-idea">Solo el arreglo F4: la sala de espera pinta su papel (<code>--papel-capa</code>) y
+        su tinta (<code>--ink</code>) en vez de heredar <code>.note</code>. De
+        <b data-contraste="mala">—</b> a <b data-contraste="buena">—</b>.</p>
+      <p class="coste"><b>Qué cuesta:</b> sigue midiendo 369,7 pt <b>encima</b> de la puerta entera. Con F1
+        puesto ya no se recorta nada, pero para leerla hay que <b>bajar</b>, y lo que se ve al abrir sigue
+        siendo la explicación de cómo entrar dirigida a alguien que no puede.</p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">La sala de espera es la pantalla</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Si estás en la lista, <b>eso</b> es lo que dice la pantalla: el titular, tu nombre,
+        y un botón grande que ya no es «Entrar con Apple» sino <b>«¿Ya me han dejado entrar?»</b> —el único
+        que hace algo aquí—. Debajo, el pie de A3 con las dos salidas que siguen valiendo. La puerta no
+        desaparece: <b>vuelve</b> en cuanto el servidor dice que ya estás dentro.</p>
+      <p class="coste"><b>Qué cuesta y quién lo paga:</b> hay que decidir cuándo se vuelve a la puerta —si
+        el administrador te borra de la lista, la pantalla tiene que revertir sola— y el estado se guarda
+        entre arranques, o al reabrir la app vuelve a salir la puerta como si nunca lo hubieras intentado.
+        Lo paga el código, una vez. A cambio, quien espera ve <b>una pantalla escrita para él</b>.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">Dos renglones y el botón</span></div>
+      <p class="op-idea">La tarjeta se queda donde está pero adelgaza: titular con tu nombre, una línea de
+        estado, y el párrafo largo detrás de «¿Y mientras tanto? ▾».</p>
+      <p class="coste"><b>Qué cuesta:</b> es la opción barata y no arregla el orden. El que espera sigue
+        leyendo primero cómo entrar. Y esconde el aviso de que <b>lo apuntado en local se sube</b> después,
+        que es la única razón por la que alguien elegiría el modo local estando en la lista.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B4</span><span class="op-nombre">B2, y además entra sola</span></div>
+      <p class="op-idea">Todo lo de B2 y encima <b>no hay que volver</b>: mientras la pantalla está abierta
+        pregunta cada 20 s, y en cuanto le enlacen entra sin que nadie toque nada. El botón se queda como
+        salida manual, con «Mirando…» mientras pregunta.</p>
+      <p class="coste"><b>Qué cuesta:</b> son llamadas a Apple, no al Worker —cada intento es un
+        <code>entrarConApple()</code> entero—, y eso puede sacar la hoja del sistema o gastar batería. Habría
+        que separar «¿ya me han enlazado?» de «entrar», que hoy son la misma llamada. <b>Es una obra en la
+        API, no un cambio de pantalla</b>: por eso va aparte de B2 y no dentro.</p>
+    </div>
+  </div>
+
+  <!-- ══ PARTE TRES ════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Parte tres · el primer segundo después de que te acepten, que hoy dice que no hay nada</div>
+    <p class="parte-intro">Con F5 arreglado la instantánea empieza a bajar en cuanto hay sesión, pero
+      <b>tarda</b>: hay una petición de red por medio. La pregunta es qué se enseña mientras. Hoy se enseña
+      la lista de eventos <b>vacía</b>, con «Aún no hay ningún evento. Crea uno o carga el de ejemplo» y un
+      «+ Nuevo evento» a mano. El susto es lo de menos: el peligro es que ahí se cree un evento duplicado
+      <b>que sube al grupo</b> y que ya no lo quita nadie desde el móvil.</p>
+
+    <div class="tira-tel">
+      <div>
+        <div class="tel" data-medir="C0">
+          <div class="t-cab"><div class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div><div class="grow"><div class="ti">Ballena Ops</div><div class="su">Tus eventos 🐳</div></div></div>
+          <div class="t-cuerpo">
+            <div class="t-vacio"><span class="e">🐳</span>Aún no hay ningún evento.<br>Crea uno o carga el de ejemplo.</div>
+            <div class="t-btn">+ Nuevo evento</div>
+            <div class="t-btn fantasma">Cargar el evento «Ballenita 2026»</div>
+          </div>
+        </div>
+        <div class="pie-tel"><span class="malo"><b>Hoy.</b></span> Lo que ves al entrar por primera vez tras
+          ser aceptado. Los datos están en el servidor; aquí no ha bajado nada todavía.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="C1">
+          <div class="t-cuerpo" style="min-height:560px;justify-content:center">
+            <div class="t-vacio"><span class="e">🐳</span>Cargando…</div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>C1</b> · la pantalla de «Cargando…» que ya existe, hasta que baje la
+          instantánea.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="C2">
+          <div class="puerta" style="text-align:left">
+            <div class="p-logo mini" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div>
+            <h4 class="p-titulo chico">Ya estás dentro, Ana</h4>
+            <p class="p-texto" style="margin:0">Trayendo lo del grupo. Es solo la primera vez.</p>
+            <ul class="pasos" style="margin-top:6px">
+              <li class="hecho"><span class="mk">✓</span>Sesión abierta</li>
+              <li class="curso"><span class="mk">◐</span>Bajando el evento y la gente…</li>
+              <li class="espera"><span class="mk">○</span>Gastos, cenas y planes</li>
+            </ul>
+          </div>
+        </div>
+        <div class="pie-tel"><b>C2</b> · bienvenida con la lista de pasos que ya existe
+          (<code>ListaDePasos</code>). Si falla, dice el motivo y ofrece reintentar.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="C3">
+          <div class="t-cab"><div class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div><div class="grow"><div class="ti">Ballena Ops</div><div class="su">Tus eventos 🐳</div></div><div class="punto"></div></div>
+          <div class="t-cuerpo">
+            <div class="t-vacio"><span class="e">🐳</span>Todavía no ha bajado nada del grupo.<br>Estamos trayéndolo.</div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>C3</b> · la lista de eventos, pero honesta: sin «+ Nuevo evento» hasta que
+          haya bajado una instantánea.</div>
+      </div>
+
+      <div>
+        <div class="tel" data-medir="C4">
+          <div class="t-cab"><div class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 12.9c0-3.1 3.2-5.3 7.2-5.3 4.5 0 7.6 2.6 9 5.3-1.4 2.7-4.5 5.3-9 5.3-4 0-7.2-2.2-7.2-5.3z"/><path d="M19.1 12.9c.9-.7 2-1 3.1-.9-.5 1.2-.5 2.4 0 3.6-1.2 0-2.3-.5-3.1-1.4"/><path d="M9.6 7.4c0-1.2.5-2.2 1.5-2.9"/><circle cx="7.3" cy="11.7" r=".85" fill="currentColor" stroke="none"/></svg></div><div class="grow"><div class="ti">Ballenita 2026</div><div class="su">Camping La Ballena Alegre</div></div><div class="punto"></div></div>
+          <div class="t-cuerpo">
+            <div class="t-tarj"><div class="av">🗓️</div><div class="main"><div class="n">Sábado 8 de agosto</div><div class="sub">Bunga 12 · Fideuá · Kayak</div></div></div>
+            <div class="t-tarj"><div class="av">💶</div><div class="main"><div class="n">Estáis en paz</div><div class="sub">14 gastos · 428,50 €</div></div></div>
+          </div>
+        </div>
+        <div class="pie-tel"><b>C4</b> · si al bajar la instantánea hay <b>un solo evento</b>, se entra
+          directo en él.</div>
+      </div>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">Rearmar y callar</span><span class="etq base">el mínimo</span></div>
+      <p class="op-idea">Solo F5: se sincroniza en cuanto aparece la sesión, y mientras tanto se enseña la
+        pantalla de «Cargando…» que <b>ya existe</b> en <code>App.jsx</code>. Cero pantallas nuevas.</p>
+      <p class="coste"><b>Qué cuesta:</b> si la red va mal, un «Cargando…» que no acaba y no dice por qué.
+        Y sigue faltando la valla: si la primera instantánea falla, se cae otra vez en la lista vacía con
+        «+ Nuevo evento» a mano.</p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">Bienvenida con los pasos contados</span><span class="etq rec">recomendada</span></div>
+      <p class="op-idea">La primera vez que entras, la app te lo dice: «Ya estás dentro, Ana. Trayendo lo del
+        grupo». Debajo, la <b>lista de pasos</b> que ya se usa en Sincronización y en Actualizar, con la
+        marca de cada uno. Si algo falla, sale el <b>estado HTTP y el motivo</b> —la figura de §14.9-bis— y
+        un «Reintentar», en vez de una app vacía.</p>
+      <p class="coste"><b>Qué cuesta y quién lo paga:</b> una pantalla más y su test. Se ve <b>una vez en
+        la vida</b> por persona, que es exactamente cuando la app se está ganando la confianza: es el único
+        momento en el que alguien ve la app vacía y no sabe todavía que eso es raro.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">La lista vacía, pero honesta</span><span class="etq rec">recomendada, y va con cualquiera</span></div>
+      <p class="op-idea">Mientras no haya bajado <b>ninguna</b> instantánea, el vacío de la lista de eventos
+        no dice «crea uno»: dice <b>«todavía no ha bajado nada del grupo»</b> y <b>«+ Nuevo evento» no
+        está</b>. Aparecen los dos en cuanto hay una sincronización buena.</p>
+      <p class="coste"><b>Qué cuesta:</b> quien de verdad quiera crear el primer evento del grupo espera a
+        la primera sincronización. Es una valla, no una pantalla: <b>impide crear el duplicado</b> en la
+        única ventana en la que se puede crear por error, y por eso vale la pena tenerla puesta aunque se
+        elija C1 o C2.</p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">Entrar solo si hay un único evento</span></div>
+      <p class="op-idea">Cuando baja la instantánea, si hay exactamente <b>un</b> evento se entra en él sin
+        preguntar. En este grupo hay uno, siempre.</p>
+      <p class="coste"><b>Qué cuesta:</b> el día que haya dos —el viaje y un finde— el atajo deja de
+        funcionar y nadie sabrá que existía. Y quien salga a la lista a propósito se encontrará con que la
+        app le mete otra vez dentro. Va bien <b>como remate</b> de C2, y mal como única medida.</p>
+    </div>
+  </div>
+
+  <!-- ══ COMBINACIONES ═════════════════════════════════════════════════════ -->
+  <div class="combo">
+    <h2>Las combinaciones que tienen sentido</h2>
+    <p><b>La barata · A1 + B1 + C1 + C3.</b> Solo los cinco arreglos y la valla del duplicado. Nada de
+      pantallas nuevas, ningún test nuevo salvo dos. Deja de recortarse, deja de ser ilegible y deja de
+      poder crearse un evento fantasma. La puerta sigue midiendo 909 pt.</p>
+    <p><b>La recomendada · A3 + B2 + C2 + C3.</b> La puerta cabe entera y siempre enseña Apple; quien está
+      en la lista ve una pantalla escrita para él; quien acaba de ser aceptado ve que su viaje está bajando,
+      con los pasos y con el motivo si falla; y en ninguno de los dos casos aparece un «+ Nuevo evento» que
+      pueda ensuciar el grupo. <b>C4 encima es opcional</b> y se puede añadir después sin tocar nada de lo
+      demás.</p>
+    <p><b>La de después · B4.</b> Entrar solo cuando te enlazan es lo que de verdad cierra la sala de
+      espera, pero pide partir <code>POST /api/sesion</code> en dos —«¿me han enlazado ya?» y «entra»— para
+      no llamar a Apple cada veinte segundos. Es una obra de API: mejor una vuelta aparte, con B2 ya
+      puesto.</p>
+  </div>
+
+  <!-- ══ TABLA ═════════════════════════════════════════════════════════════ -->
+  <div class="grupo">
+    <div class="parte">Todo junto, para decidir de un vistazo</div>
+    <table>
+      <thead><tr><th>Opción</th><th>Qué es</th><th class="n">Mide</th><th>Qué cuesta</th></tr></thead>
+      <tbody>
+        <tr><td><b>A1</b></td><td>Scroll y ya</td><td class="n" data-cifra="A1">—</td><td>La puerta sigue siendo un folleto</td></tr>
+        <tr><td><b>A2</b></td><td>Pistas plegadas bajo su botón</td><td class="n" data-cifra="A2">—</td><td>Tres tiradores iguales seguidos</td></tr>
+        <tr class="rec"><td><b>A3</b></td><td>Una puerta y un pie de enlaces</td><td class="n" data-cifra="A3">—</td><td>Un toque más para leer el modo local</td></tr>
+        <tr><td><b>A4</b></td><td>Acordeón «Otras formas de entrar»</td><td class="n" data-cifra="A4">—</td><td>Esconde las dos salidas de emergencia</td></tr>
+        <tr><td><b>B1</b></td><td>La tarjeta de espera, legible</td><td class="n" data-cifra="B1" data-suma="A1">—</td><td>Sigue sumando sobre la puerta entera</td></tr>
+        <tr class="rec"><td><b>B2</b></td><td>La espera <b>es</b> la pantalla</td><td class="n" data-cifra="B2">—</td><td>Hay que decidir cuándo se revierte</td></tr>
+        <tr><td><b>B3</b></td><td>Dos renglones y el botón</td><td class="n" data-cifra="B3" data-suma="A1">—</td><td>No arregla el orden; esconde el aviso del local</td></tr>
+        <tr><td><b>B4</b></td><td>B2 y entra sola</td><td class="n" data-cifra="B4">—</td><td>Obra en la API; llamaría a Apple en bucle</td></tr>
+        <tr><td><b>C1</b></td><td>Rearmar y callar</td><td class="n">no se mide en pt</td><td>«Cargando…» sin fin si falla la red</td></tr>
+        <tr class="rec"><td><b>C2</b></td><td>Bienvenida con pasos</td><td class="n">no se mide en pt</td><td>Una pantalla más y su test</td></tr>
+        <tr class="rec"><td><b>C3</b></td><td>Lista vacía honesta, sin «+ Nuevo evento»</td><td class="n">no se mide en pt</td><td>Crear el primer evento espera a la 1.ª sync</td></tr>
+        <tr><td><b>C4</b></td><td>Entrar solo si hay uno</td><td class="n">no se mide en pt</td><td>Se cae el día que haya dos eventos</td></tr>
+      </tbody>
+    </table>
+    <p class="coste">Las cifras de la columna «Mide» las <b>escribe el navegador</b> al abrir esta hoja,
+      midiendo los teléfonos dibujados arriba a 390 pt de ancho. No están escritas a mano.</p>
+  </div>
+
+  <div class="cierre">
+    <h2>Qué hace falta que decidas</h2>
+    <p><b>Una de A, una de B y una de C</b> (C3 se puede llevar puesta con cualquiera; C4 es opcional
+      encima de la que elijas). Los cinco arreglos F1–F5 van en todos los casos y no hace falta que digas
+      nada de ellos.</p>
+    <p>Mi voto: <b>A3 · B2 · C2 · C3</b>, y dejar B4 y C4 para una vuelta posterior.</p>
+    <p><b>No he tocado código.</b> Esta vuelta es la hoja; en cuanto elijas, lo implemento y actualizo
+      <code>docs/SPECS.md</code> con la sección que toque.</p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // Las cifras de la tabla las mide el navegador al abrir la hoja, para que no
+  // haya números escritos a mano que se desfasen del dibujo que tienen al lado.
+  // Es la misma regla que el mapa del repositorio: si un hecho está dos veces,
+  // una de ellas lo genera una máquina.
+  document.addEventListener('DOMContentLoaded', () => {
+    const VENTANA = 844
+    // Punto de millar y coma decimal, que es como se escribe aquí y como está
+    // escrito el resto de la hoja: 1.342,8 y no 1342.8.
+    // `useGrouping: 'always'` porque el español se salta el punto de millar en
+    // los números de cuatro cifras, y el resto de la hoja escribe 1.292,8.
+    const pt = (v) => `${(Math.round(v * 10) / 10)
+      .toLocaleString('es-ES', { maximumFractionDigits: 1, useGrouping: 'always' })} pt`
+    const alto = (el) => el.getBoundingClientRect().height
+
+    // 1 · Los dos dibujos de «hoy» enseñan el contenido **entero** y marcan
+    //     encima dónde acaba la ventana. Es la única forma honesta de dibujar
+    //     un recorte: pintar la banda sobre la ventana taparía justo lo que sí
+    //     se ve. `.acceso` centra sin poder desplazarse, así que el sobrante se
+    //     reparte a partes iguales por arriba y por abajo.
+    const QUE = {
+      'hoy-limpia': ['la ballena', '«Buscar la última versión»'],
+      'hoy-espera': ['la ballena y el título', '«Buscar la última versión»'],
+    }
+    document.querySelectorAll('[data-recorte]').forEach((marco) => {
+      const puerta = marco.querySelector('.puerta')
+      const mitad = Math.max(0, alto(puerta) - VENTANA) / 2
+      const [arriba, abajo] = QUE[marco.dataset.medir]
+      marco.querySelectorAll('[data-banda]').forEach((b) => {
+        const esArriba = b.dataset.banda === 'arriba'
+        b.style.height = `${mitad}px`
+        b.style[esArriba ? 'top' : 'bottom'] = '0'
+        b.textContent = mitad < 1 ? '' :
+          `${esArriba ? '▲' : '▼'} ${pt(mitad)} fuera · ${esArriba ? arriba : abajo}`
+      })
+      marco.querySelectorAll('[data-vent]').forEach((f) => {
+        f.style.top = `${f.dataset.vent === 'arriba' ? mitad : mitad + VENTANA}px`
+      })
+      marco.querySelectorAll('[data-vent-rot]').forEach((r) => {
+        r.style.top = `${r.dataset.ventRot === 'arriba' ? mitad + 3 : mitad + VENTANA - 16}px`
+      })
+      // La barra de estado de iOS vive en el borde de arriba de la ventana,
+      // no en el del contenido: es contra ella contra la que choca el título.
+      const barra = marco.querySelector('[data-barra]')
+      if (barra) barra.style.top = `${mitad}px`
+    })
+
+    // 3 · Las cifras de la tabla y del pie de cada teléfono.
+    const medida = (id) => {
+      const tel = document.querySelector(`[data-medir="${id}"]`)
+      if (!tel) return null
+      const puerta = tel.querySelector('.puerta')
+      return puerta ? alto(puerta) : alto(tel)
+    }
+    const pinta = (celda, v, cabe) => {
+      celda.style.color = cabe ? 'var(--verde)' : 'var(--coral)'
+      celda.style.fontWeight = '700'
+    }
+    document.querySelectorAll('[data-cifra]').forEach((celda) => {
+      const v = medida(celda.dataset.cifra)
+      if (v == null) return
+      const suma = celda.dataset.suma ? medida(celda.dataset.suma) : null
+      // B1 y B3 dibujan **solo la tarjeta**: su medida de verdad es lo que
+      // suman encima de la puerta, y comparar la tarjeta sola con una pantalla
+      // entera sería comparar dos cosas distintas.
+      if (suma != null) {
+        const tarjeta = v - 48 // el relleno de `.puerta` que envuelve el dibujo
+        const total = suma + 14 + tarjeta
+        celda.innerHTML = `tarjeta ${pt(tarjeta)}<br>con A1: <b>${pt(total)}</b>`
+        pinta(celda, total, total <= VENTANA)
+        celda.title = total <= VENTANA ? 'cabe en 844 pt' : 'no cabe en 844 pt'
+        return
+      }
+      celda.textContent = pt(v)
+      pinta(celda, v, v <= VENTANA)
+      celda.title = v <= VENTANA ? 'cabe en 844 pt' : 'no cabe en 844 pt'
+    })
+    document.querySelectorAll('[data-medir]').forEach((tel) => {
+      if (tel.hasAttribute('data-recorte')) return
+      const puerta = tel.querySelector('.puerta')
+      if (!puerta) return
+      const v = alto(puerta)
+      const pie = tel.parentElement.querySelector('.pie-tel')
+      if (!pie) return
+      const marca = document.createElement('div')
+      marca.style.marginTop = '4px'
+      marca.innerHTML = `<b style="color:${v <= VENTANA ? 'var(--verde)' : 'var(--coral)'}">${pt(v)}</b> de 844`
+      pie.appendChild(marca)
+    })
+
+    // 4 · Los contrastes, calculados sobre los colores que de verdad salen del
+    //     CSS. Los dos párrafos de la sala de espera están pintados con los
+    //     valores reales de `theme.css`, así que esto mide el fallo, no una
+    //     estimación de él.
+    const lum = (c) => {
+      const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map(Number)
+      const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+    }
+    const razon = (sel) => {
+      const el = document.querySelector(sel)
+      const s = getComputedStyle(el)
+      const [x, y] = [lum(s.color), lum(s.backgroundColor)].sort((m, n) => n - m)
+      return `${(Math.round(((x + 0.05) / (y + 0.05)) * 100) / 100).toFixed(2).replace('.', ',')} : 1`
+    }
+    const razones = { mala: razon('.p-aviso .mala'), buena: razon('.p-aviso .buena') }
+    document.querySelectorAll('[data-contraste]').forEach((el) => {
+      el.textContent = razones[el.dataset.contraste]
+    })
+  })
+</script>
