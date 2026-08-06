@@ -154,6 +154,9 @@ export async function entrarConApple(configuracion) {
     // pantalla de acceso lo cuenta como una sala de espera y no como un error.
     error.enEspera = datos.error === 'en_espera'
     error.nombre = datos.nombre
+    // El pase con el que volver a preguntar sin pasar otra vez por la hoja de
+    // Apple. Ver `auth/espera.js`.
+    error.pase = datos.pase
     throw error
   }
 

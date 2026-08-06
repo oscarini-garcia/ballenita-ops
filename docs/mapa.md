@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.20.2 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  643 pruebas en 71 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.21.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  679 pruebas en 74 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  143 pruebas en 16 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  154 pruebas en 17 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -23,6 +23,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 | --- | --- | --- | --- |
 | `GET` | `/api/salud` | — | comprobación sin autenticar |
 | `POST` | `/api/sesion` | — | canjea un token de Apple por una sesión propia |
+| `POST` | `/api/sesion/espera` | — | «¿ya me han dejado entrar?», con el pase y sin Apple |
 | `GET` | `/api/sync` | sesión | instantánea completa del grupo |
 | `POST` | `/api/cambios` | sesión | aplica la cola del dispositivo y devuelve la instantánea |
 | `GET` | `/api/cuentas` | sesión | quién tiene acceso (administradores) |
@@ -104,6 +105,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `apple.js` — Acceso con Sign in with Apple — **solo dentro de la app de iOS**.
   ↳ codigoDeApple, explicarFalloDeApple, codigoDeAutorizacionDeApple, entrarConApple
+- `espera.js` — La sala de espera, del lado del móvil.
+  ↳ leerEspera, guardarEspera, olvidarEspera, preguntarSiYaEntro
 - `sesion.js` — La sesión de este dispositivo: el token que firmó el Worker y a quién corresponde.
   ↳ leerSesion, guardarSesion, borrarSesion, modoLocal, activarModoLocal, salirDeModoLocal · +1 más
 
@@ -183,6 +186,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ EDADES, pesoDe, EMOJIS_PERSONA
 - `planes.js` — Lo que se dice de un plan sin abrirlo: cuántos lo quieren y quién falta.
   ↳ quienFaltaPorVotar, votosDe
+- `primeraBajada.js` — La primera bajada: traer lo del grupo justo después de entrar por primera vez.
+  ↳ primeraBajada
 - `push.js` — Que el servidor sepa a qué aparato mandar, sin que nadie lo pida.
   ↳ asegurarPush
 - `pwa.js` — Fuerza que la PWA cargue la última versión desplegada sin tener que quitar y volver a añadir a la pantalla de inicio.
@@ -215,8 +220,10 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`app/src/screens/`**
 
 - `AccesoScreen.jsx` — Puerta de entrada al grupo.
+  ↳ CADA
 - `AgendaScreen.jsx` — «Agenda», partida en dos áreas (opciones A1 y B2 de `docs/diseño/navegacion.html`).
 - `BalancesScreen.jsx` — Saldos: cuánto debe cada familia y las transferencias que lo saldan.
+- `BienvenidaScreen.jsx` — Lo que se ve la primera vez que entras, mientras baja lo del grupo.
 - `CenasScreen.jsx` — Las cenas del viaje: qué se come cada día y en qué bunga, mayores y niños.
 - `ComidasScreen.jsx` — «Comidas», con tres áreas (opciones A1, C1 y D1 de `docs/diseño/navegacion.html`).
 - `CompraScreen.jsx` — La lista de la compra: lo que sale de las recetas y lo que se apunta a mano.
@@ -280,7 +287,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `revocacion.js` — Revocación del token de Sign in with Apple al darse de baja.
   ↳ hayRevocacionConfigurada, secretoDeCliente, revocarEnApple
 - `sesion.js` — Sesión propia: un JWT HS256 corto que el dispositivo presenta en cada petición.
-  ↳ emitirSesion, verificarSesion, coincideEnTiempoConstante
+  ↳ emitirSesion, emitirPaseDeEspera, verificarPaseDeEspera, verificarSesion, coincideEnTiempoConstante
 - `sugerencias.js` — Cinco planes propuestos para un viaje.
   ↳ retratoDelGrupo, materialDelViaje, leerPropuestas, pedirPropuestas, INSTRUCCION
 - `tablas.js` — Descripción de las tablas sincronizadas: qué columnas tiene cada una y cuáles necesitan conversión al cruzar la frontera entre SQLite y JavaScript.
@@ -331,7 +338,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14** Arquitectura técnica (PWA) → `db.js`, `ids.js`
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
-- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `ProgresoModal.jsx`, `avatares.js`, `db.js`, `ia.js`, `index.js`, `native.js`, `personas.js`, `salida.js`, `tablas.js`, `tables.js`
+- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `ProgresoModal.jsx`, `avatares.js`, `db.js`, `ia.js`, `index.js`, `native.js`, `personas.js`, `primeraBajada.js`, `salida.js`, `tablas.js`, `tables.js`
 - **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `scrollLock.js`
 - **§14.13** Los dibujos, y el único color que informa → `categorias.js`, `personas.js`, `pwa.js`
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `evento.js`, `reparto-gente.js`
@@ -347,3 +354,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `importe.js`, `reparto.js`, `tablas.js`
 - **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
+- **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`

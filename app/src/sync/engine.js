@@ -108,7 +108,17 @@ export async function syncNow() {
 //     que hay quince es lo que hace esperar a tener cobertura en vez de dar por
 //     perdido lo apuntado.
 //   · `recheck` → fuerza recomprobar red + sincronizar (al tocar el punto).
-export function useSyncEngine() {
+//
+// **`sesion` es una dependencia, no un adorno.** El motor se monta con la app,
+// o sea antes de que nadie haya entrado: su primera vuelta devuelve
+// `sin-sesion` y se acaba ahí. Con las dependencias vacías que tenía, volver de
+// Apple no despertaba a nadie —había que esperar al latido de 90 s, a un
+// `visibilitychange` o a que se escribiera algo—, y mientras tanto la app
+// enseñaba una libreta vacía a quien acababa de ser aceptado: «he entrado y no
+// está mi viaje». Reiniciar lo arreglaba porque entonces el motor montaba con
+// la sesión ya puesta, que es exactamente la pista de que el fallo era este.
+export function useSyncEngine(sesion) {
+  const credencial = sesion?.token ?? null
   const [state, setState] = useState({ status: 'idle' })
   const [pendientes, setPendientes] = useState(0)
   const [isConfigured, setConfigured] = useState(false)
@@ -172,7 +182,7 @@ export function useSyncEngine() {
       clearInterval(iv)
       clearTimeout(debounce)
     }
-  }, [])
+  }, [credencial])
 
   const recheck = async () => {
     if (typeof navigator !== 'undefined') setOnline(navigator.onLine !== false)

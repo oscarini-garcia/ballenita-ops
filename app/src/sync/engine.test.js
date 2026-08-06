@@ -155,3 +155,49 @@ describe('syncNow', () => {
     expect(await colaPendiente()).toHaveLength(antes)
   })
 })
+
+// ── El motor, rearmado al entrar (SPECS §14.29 · F5) ─────────────────────────
+//
+// El fallo que se veía desde el móvil: te aceptan, entras, y la app dice que no
+// hay ningún evento; reinicias y ahí está. El motor se montaba con la app —o
+// sea antes de que nadie hubiera entrado—, su primera vuelta devolvía
+// `sin-sesion`, y con las dependencias vacías que tenía nadie lo volvía a
+// llamar hasta el latido de 90 s.
+describe('useSyncEngine se rearma cuando aparece la sesión', () => {
+  it('vuelve a sincronizar en cuanto le llega una sesión que antes no había', async () => {
+    const { renderHook, waitFor } = await import('@testing-library/react')
+    const { useSyncEngine } = await import('./engine.js')
+
+    sesionMock.haySesion.mockReturnValue(false)
+    api.traerInstantanea.mockResolvedValue(instantaneaVacia)
+
+    const { rerender } = renderHook(({ sesion }) => useSyncEngine(sesion), {
+      initialProps: { sesion: null },
+    })
+    await waitFor(() => expect(api.hayApi).toHaveBeenCalled())
+    expect(api.traerInstantanea).not.toHaveBeenCalled()
+
+    // Se entra: esto es lo que hace `onEntrar` en App.
+    sesionMock.haySesion.mockReturnValue(true)
+    rerender({ sesion: { token: 'jwt' } })
+
+    await waitFor(() => expect(api.traerInstantanea).toHaveBeenCalled())
+  })
+
+  it('un render con la misma sesión no vuelve a bajar la instantánea', async () => {
+    const { renderHook, waitFor } = await import('@testing-library/react')
+    const { useSyncEngine } = await import('./engine.js')
+
+    api.traerInstantanea.mockResolvedValue(instantaneaVacia)
+    const sesion = { token: 'jwt' }
+
+    const { rerender } = renderHook(({ s }) => useSyncEngine(s), { initialProps: { s: sesion } })
+    await waitFor(() => expect(api.traerInstantanea).toHaveBeenCalledTimes(1))
+
+    // Otro objeto, el mismo token: es lo que pasa en cada render de App.
+    rerender({ s: { token: 'jwt' } })
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(api.traerInstantanea).toHaveBeenCalledTimes(1)
+  })
+})

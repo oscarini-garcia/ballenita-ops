@@ -2837,6 +2837,94 @@ contexto no es un mapa.
 prueba en producción justifica tener viva `POST /api/importar`, una ruta que puede
 sobrescribir la base entera con un secreto registrado.
 
+### 14.29 La puerta, la sala de espera y el primer arranque tras ser aceptado
+
+Decidido en `docs/diseño/acceso.html` · **A3 · B2 + B4 · C2 + C4**, más los cinco
+arreglos que no se eligen.
+
+**Lo que estaba mal, medido.** La pantalla de acceso pedía **909,2 pt** tal cual y
+**1.292,8** con la sala de espera puesta, en una ventana de **844**. Y `.acceso`
+era `min-height: 100dvh` con `justify-content: center` y sin `overflow-y`: lo que
+sobraba no se apartaba, se **recortaba** —196,5 pt por arriba y 196,5 por abajo—,
+y el de arriba no se alcanzaba ni con el scroll de la página. Se perdían la
+ballena, el título y «Buscar la última versión», que es el botón que arregla la
+app cuando la app está mal. Dentro de la sala de espera, el párrafo que explica
+qué hacer estaba a **1,52 : 1**: `.acceso-aviso .note` cambiaba el color y
+heredaba el papel casi blanco de `.note`, y solo se leía la negrita —14,21 : 1,
+porque `.note b` la pinta con `--ink`—. Y solo mordía con el móvil en **claro**:
+en oscuro eran 7,54. La pantalla es oscura siempre, pero sus variables seguían al
+sistema.
+
+**Los cinco arreglos.** (F1) `.acceso` pasa a `height: 100dvh` con
+`overflow-y: auto`, y el centrado lo hace `justify-content: safe center`, que
+deja de centrar cuando no cabe en vez de comerse el principio. (F2) `.acceso > *`
+lleva `flex: none`: sin él, el botón de la demostración se aplastaba de 61,5 a 44
+pt con dos líneas dentro. (F3) `.acceso > .note` recupera `border: none` —quitaba
+el fondo y el relleno de `.note` pero se dejaba su `1px dashed`, y quedaban cuatro
+marcos de rayas—. (F4) la letra pequeña de esta pantalla se pinta sola
+(`.acceso-pista`) en vez de heredar `.note`, y lo mismo el botón lleno y las
+marcas de `.pasos`, que seguían al tema sobre un fondo que no lo sigue. (F5)
+`useSyncEngine` recibe la **sesión** como dependencia: montaba con la app, o sea
+antes de que nadie hubiera entrado, su primera vuelta devolvía `sin-sesion` y
+nadie lo volvía a llamar hasta el latido de 90 s. Ese era el fallo que se veía
+desde el móvil —«me aceptan, entro, y la app dice que no hay ningún evento; al
+reiniciar está»—, y reiniciar lo arreglaba porque entonces el motor montaba con
+la sesión ya puesta.
+
+**A3 · una puerta y un pie.** La pantalla dice tres cosas —quién eres, qué es esto
+en una línea y «Entrar con Apple»— y las otras tres salidas son renglones de 44 pt
+en un pie. Cada uno **abre su hoja**, con el texto entero y su botón. Los 353,8 pt
+de prosa que había en la puerta explicaban tres cosas que se hacen una vez en la
+vida, y las pagaba todo el mundo cada vez que entraba. La segunda frase de la
+cabecera baja **debajo** del botón de Apple, que es donde importa: se lee cuando
+Apple ya ha fallado.
+
+**B2 · la sala de espera es la pantalla.** Si estás en la lista, eso es lo que
+dice la pantalla, y el botón grande deja de ser «Entrar con Apple» —que aquí no
+hace nada— para ser «¿Ya me han dejado entrar?». Se **recuerda entre arranques**
+(`auth/espera.js`, en `localStorage` como la sesión): sin eso, cada arranque se
+leía como si nunca lo hubieras intentado. La puerta vuelve sola en cuanto la
+espera se resuelve, se cancela o el pase deja de valer.
+
+**B4 · y mira sola.** `POST /api/sesion/espera` con un **pase** que el Worker
+entrega al apuntar la solicitud (`emitirPaseDeEspera`, `api/src/sesion.js`).
+Antes, «¿ya me han dejado entrar?» era otro `entrarConApple()` entero, o sea
+sacar la hoja del sistema por encima de la app: se puede hacer con un botón, no
+cada veinte segundos. Con el pase, la app pregunta cada 20 s y **entra sola** en
+cuanto la enlacen. El pase va firmado con el secreto de la sesión y lleva
+`tipo: 'espera'`, y las dos verificaciones se cierran en las dos direcciones: una
+sesión no vale como pase y un pase no vale como sesión. Dura 30 días, no 90.
+Devolver la sesión desde el pase es legítimo: se le entregó a quien ya demostró
+ante Apple ser el dueño de esa cuenta, y lo que faltaba no era demostrar quién es
+sino que alguien del grupo le diera acceso.
+
+**C2 · la primera bajada se cuenta.** Recién entrado y sin nada bajado todavía,
+`BienvenidaScreen` saluda por tu nombre y pinta la **lista de pasos** de siempre
+(§14.9-bis) mientras `lib/primeraBajada.js` trae la instantánea. Si falla, sale el
+motivo con su estado HTTP, un «Reintentar» y un «Seguir sin esperar» —un fallo que
+se repite no puede encerrar a nadie—. Es hermana de `sincronizarTodo` y **no la
+misma**: aquella comprueba además si hay versión nueva y recarga, y recargar a los
+tres segundos de entrar por primera vez es la peor primera impresión posible.
+
+**C4 · y se entra sola si hay un evento.** Al terminar la bajada, si el grupo
+tiene exactamente uno se entra en él sin preguntar. Con dos o más se enseña la
+lista: el atajo se retira solo el día que deje de ser cierto.
+
+**Lo que sustituye todo esto** es la pantalla que decía «Aún no hay ningún evento.
+Crea uno o carga el de ejemplo» con un «+ Nuevo evento» a mano. El susto era lo de
+menos: el peligro era crear ahí un evento duplicado **que sube al grupo** y que ya
+no quita nadie desde un móvil. **C3 —esconder «+ Nuevo evento» hasta la primera
+instantánea— se dejó fuera** y sigue disponible: con C2 y C4 puestos, esa ventana
+se cierra casi entera, pero no del todo si la primera bajada falla y se sigue sin
+esperar.
+
+Medido después de construirlo, renderizando los componentes reales contra
+`theme.css`: la puerta, la sala de espera y la bienvenida **caben en 844 pt en las
+tres tallas de letra y en las dos caras**, el peor contraste de las tres es
+**4,64 : 1** y ningún objetivo tocable baja de 44 pt. La puerta con un fallo largo
+de Apple mide 1.106 pt en «Enorme» y **se desplaza**: 262 px de scroll, con el
+principio y el final alcanzables.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas
