@@ -1,3 +1,7 @@
+// La lista de eventos: cuál está activo, y crear o editar uno.
+//
+// Un evento suele ser un viaje, pero es cualquier plan con fecha de inicio y de
+// fin. Es la entidad raíz: todo lo demás cuelga de aquí.
 import { useState } from 'react'
 import { finPara } from '../lib/fechas.js'
 import { useLiveQuery } from 'dexie-react-hooks'

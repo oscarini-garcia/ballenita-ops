@@ -1,3 +1,11 @@
+// El orquestador de la sincronización: cuándo se sube la cola y se baja la
+// instantánea.
+//
+// Sube la cola de cambios, el servidor la aplica y devuelve la instantánea, que
+// **sustituye** a la copia local: el servidor es la autoridad, así que aquí no
+// hay merge ni tombstones. Se sincroniza al abrir, al volver la red, al pasar a
+// primer plano y cada 90 s — en iOS no hay background sync, así que todo pasa
+// en primer plano.
 import { useEffect, useState } from 'react'
 import { colaPendiente, importSnapshot, vaciarCola, db } from '../db.js'
 import { haySesion } from '../auth/sesion.js'

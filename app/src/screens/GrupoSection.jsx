@@ -1,3 +1,7 @@
+// El grupo en una sola sección: una ficha por familia, con su bunga y su gente.
+//
+// «Sueltos» recoge lo que no está colocado, y se edita de verdad —se toca la
+// fila y sube una hoja desde abajo— (SPECS §14.14).
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {

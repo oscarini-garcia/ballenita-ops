@@ -1,3 +1,8 @@
+// La versión que hay puesta, al final del scroll, y el botón de actualizar.
+//
+// Es la respuesta a «¿tengo lo nuevo?», que es la primera pregunta ante
+// cualquier cosa que no se ve. En nativo comprueba el OTA; en web, el service
+// worker.
 import { useEffect, useRef, useState } from 'react'
 import { checkForOtaUpdate, isNative, tap, versionInstalada } from '../lib/native.js'
 import { forzarActualizacion } from '../lib/pwa.js'

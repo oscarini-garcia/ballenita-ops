@@ -1,3 +1,8 @@
+// Lo que está pasando, contado de arriba abajo, mientras dura un proceso largo.
+//
+// Lo pintan los dos que hay —sincronizar todo y comprobar la versión—, que son
+// el mismo gesto a capas distintas y por eso comparten figura. Cuando falla,
+// dice qué ha fallado (SPECS §14.9-bis).
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 

@@ -1,3 +1,7 @@
+// Estadísticas del evento: el gasto, las cenas y los planes, contados.
+//
+// Las métricas con pique van detrás de un interruptor, porque nada aquí señala
+// a nadie por defecto (SPECS §7).
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {

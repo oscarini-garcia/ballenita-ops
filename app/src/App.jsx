@@ -1,3 +1,8 @@
+// El esqueleto de la aplicación: cabecera, cuerpo y barra de cinco destinos.
+//
+// Es una columna de `100dvh` en la que nada es `position: fixed`, así que nada
+// se solapa (SPECS §14.10). Decide también qué se enseña antes de entrar —el
+// acceso, la lista de eventos— y monta el motor de sincronización.
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getEvent } from './db.js'

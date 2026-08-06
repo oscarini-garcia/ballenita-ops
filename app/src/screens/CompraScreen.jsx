@@ -1,3 +1,7 @@
+// La lista de la compra: lo que sale de las recetas y lo que se apunta a mano.
+//
+// Lo que calculan las cenas se rehace solo al cambiarlas y **lo dice**, pero no
+// toca nunca ni lo escrito a mano ni lo ya comprado (SPECS §14.20).
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
