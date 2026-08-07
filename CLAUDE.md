@@ -222,6 +222,9 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   (JWT HS256, 90 días). Quien entra queda apuntado en una **sala de espera** y no entra hasta que
   el administrador **lo enlaza con una persona** (SPECS §14.18). Administrador hay **uno y escrito
   a mano** (`lib/admin.js`); la primera cuenta de una instalación vacía nace administradora.
+  **El administrador no espera en su propia sala** (`api/src/administrador.js`, SPECS §14.15): si
+  el correo que verifica Apple en el token es el suyo, entra solo como administrador y enlazado
+  con su persona — sin esto, salir de la cuenta el único administrador era un cerrojo.
 - **La clave de la IA vive en el servidor** (tabla `configuracion`, SPECS §14.16) y no vuelve
   entera a ningún móvil: es una credencial de pago. **El modelo se elige de una lista** que trae
   el Worker de Anthropic, y hay un botón que **prueba el par clave+modelo** con una llamada de
