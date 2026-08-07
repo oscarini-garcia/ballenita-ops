@@ -18,8 +18,33 @@ export const ADMINISTRADOR = {
   correo: 'oscarini@gmail.com',
 };
 
+/** Sin tildes, sin mayúsculas y sin espacios de más: Apple guarda «Oscar
+ *  García Chillón» sin tilde, y una llave que exige la tilde no abre. */
+export function normalizarNombre(texto) {
+  return String(texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+}
+
 /** ¿Es el correo del administrador? Se normaliza: un correo no distingue
  *  mayúsculas, y Apple lo entrega tal como se escribió en su día. */
 export function esCorreoDelAdministrador(correo) {
   return String(correo || '').trim().toLowerCase() === ADMINISTRADOR.correo;
+}
+
+/**
+ * ¿Es el nombre del administrador? Es la **segunda** llave, y más débil que el
+ * correo: el nombre no viene firmado por Apple —lo manda la app al abrir
+ * sesión—, así que quien la use debe exigir además que **no quede ningún
+ * administrador activo** (`hayAdministradorActivo`), que es el estado del
+ * cerrojo: la sala de espera no la puede abrir nadie y la alternativa es un
+ * grupo cerrado con la llave dentro. El correo, en cambio, vale siempre… si
+ * Apple lo entrega: con «Ocultar mi correo» llega una dirección de relé y esta
+ * llave es la única que queda.
+ */
+export function esNombreDelAdministrador(nombre) {
+  return normalizarNombre(nombre) === normalizarNombre(ADMINISTRADOR.nombre);
 }

@@ -14,7 +14,7 @@
 
 import { NOMBRES, TABLAS, existeTabla, filaAObjeto, objetoAColumnas } from './tablas.js';
 import { encargosDe, encargosPublicos, modelosDe } from './encargos.js';
-import { ADMINISTRADOR } from './administrador.js';
+import { ADMINISTRADOR, normalizarNombre } from './administrador.js';
 
 const ahoraISO = () => new Date().toISOString();
 
@@ -91,27 +91,46 @@ export async function enlazarCuentaConPersona(db, cuentaId, personId) {
 }
 
 /**
+ * ¿Queda alguien que pueda abrir la sala de espera? Es la guarda de la llave
+ * débil del administrador (ver `administrador.js`): el nombre solo cuenta
+ * cuando la respuesta es que no.
+ */
+export async function hayAdministradorActivo(db) {
+  const fila = await db
+    .prepare("SELECT COUNT(*) AS total FROM cuenta WHERE rol = 'administrador' AND activa = 1")
+    .first();
+  return (fila?.total ?? 0) > 0;
+}
+
+/**
  * La persona del grupo que es el administrador, para enlazarle solo.
  *
  * Se busca por nombre en los eventos de verdad —el Demo es arena— admitiendo el
  * nombre completo o el de pila, y prefiriendo el completo; a igualdad, la fila
- * más reciente. Puede no haber ninguna (una base recién sembrada): entonces se
- * entra sin persona y se elige después en Ajustes → Cuentas, como cualquiera.
+ * más reciente. La comparación se hace aquí y no en SQL porque va **sin
+ * tildes** (`normalizarNombre`): en el grupo puede estar escrito «Oscar», y
+ * `LIKE` no sabe que es el mismo nombre. Puede no haber ninguna (una base
+ * recién sembrada): entonces se entra sin persona y se elige después en
+ * Ajustes → Cuentas, como cualquiera.
  */
-export function personaDelAdministrador(db) {
-  const completo = ADMINISTRADOR.nombre;
-  const pila = completo.split(' ')[0];
-  return db
+export async function personaDelAdministrador(db) {
+  const { results } = await db
     .prepare(
-      `SELECT p.id FROM persons p
+      `SELECT p.id, p.name FROM persons p
         JOIN events e ON e.id = p.eventId
        WHERE p.borrado = 0 AND e.borrado = 0 AND e.esDemo = 0
-         AND (p.name = ? OR p.name = ? OR p.name LIKE ?)
-       ORDER BY (p.name = ?) DESC, p.updatedAt DESC
-       LIMIT 1`,
+       ORDER BY p.updatedAt DESC`,
     )
-    .bind(completo, pila, `${pila} %`, completo)
-    .first();
+    .all();
+  const personas = results || [];
+  const completo = normalizarNombre(ADMINISTRADOR.nombre);
+  const pila = completo.split(' ')[0];
+  return (
+    personas.find((p) => normalizarNombre(p.name) === completo)
+    || personas.find((p) => normalizarNombre(p.name) === pila)
+    || personas.find((p) => normalizarNombre(p.name).startsWith(`${pila} `))
+    || null
+  );
 }
 
 /**
