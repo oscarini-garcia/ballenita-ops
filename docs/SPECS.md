@@ -1197,7 +1197,14 @@ dos personas para algo que el servidor ya sabía.
   nombre, en eventos de verdad, sin pisar un enlace ya puesto). Vale en la
   puerta (`POST /api/sesion`) y en el sondeo de la sala
   (`POST /api/sesion/espera`), que es lo que saca a un móvil ya clavado en la
-  sala sin volver a pasar por la hoja de Apple.
+  sala sin volver a pasar por la hoja de Apple. **Hay una segunda llave, más
+  débil, para cuando el correo no sirve**: con «Ocultar mi correo» Apple
+  entrega una dirección de relé, no la de verdad. El **nombre** —comparado sin
+  tildes ni mayúsculas, que Apple lo guarda «Oscar» y `lib/admin.js` lo escribe
+  «Óscar»— también abre, pero **solo cuando no queda ningún administrador
+  activo**: el nombre no lo firma Apple, lo manda la app, así que únicamente
+  cuenta en el estado del cerrojo, donde la alternativa es un grupo cerrado con
+  la llave dentro. La búsqueda de su persona normaliza igual.
 - **✅ Avisos derivados, nunca filas** (`lib/avisos.js`, figura de `avisos.js` en
   `garciadoral-ops`). Hoy solo hay uno —alguien ha entrado y todavía no es
   nadie— y es del administrador. Al enlazar la cuenta, el aviso desaparece

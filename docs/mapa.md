@@ -12,7 +12,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 - **`app/`** v0.21.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
   679 pruebas en 74 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  162 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -259,7 +259,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`api/src/`**
 
 - `administrador.js` — Quién administra, y cómo se le reconoce sin que nadie le abra la puerta.
-  ↳ esCorreoDelAdministrador, ADMINISTRADOR
+  ↳ normalizarNombre, esCorreoDelAdministrador, esNombreDelAdministrador, ADMINISTRADOR
 - `apns.js` — El transporte hasta el teléfono: APNs con autenticación por token.
   ↳ hayApnsConfigurado, tokenDeProveedor, enviarAviso, olvidarTokenDeProveedor
 - `apple.js` — Verificación del token de identidad de Sign in with Apple.
@@ -285,7 +285,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `receta.js` — Los dos encargos del editor de una receta (SPECS §14.20-bis).
   ↳ materialDeLaLista, materialDelPlatoParecido, leerArreglo, leerParecidos, pedirArreglo, pedirParecidos · +2 más
 - `repositorio.js` — Lectura y escritura del registro del grupo sobre D1.
-  ↳ cuentaPorApple, cuentaPorId, hayAlgunaCuenta, crearCuenta, listarCuentas, enlazarCuentaConPersona · +24 más
+  ↳ cuentaPorApple, cuentaPorId, hayAlgunaCuenta, crearCuenta, listarCuentas, enlazarCuentaConPersona · +25 más
 - `revocacion.js` — Revocación del token de Sign in with Apple al darse de baja.
   ↳ hayRevocacionConfigurada, secretoDeCliente, revocarEnApple
 - `sesion.js` — Sesión propia: un JWT HS256 corto que el dispositivo presenta en cada petición.

@@ -45,11 +45,12 @@ import {
   coincideEnTiempoConstante, emitirPaseDeEspera, emitirSesion, verificarPaseDeEspera, verificarSesion,
 } from './sesion.js';
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
-import { esCorreoDelAdministrador } from './administrador.js';
+import { esCorreoDelAdministrador, esNombreDelAdministrador } from './administrador.js';
 import {
   administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
   cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta, enlazarCuentaConPersona,
-  hayAlgunaCuenta, importarInstantanea, leerInstantanea, leerMejorasPendientes, listarCuentas,
+  hayAdministradorActivo, hayAlgunaCuenta, importarInstantanea, leerInstantanea,
+  leerMejorasPendientes, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
   guardarTokenPush, olvidarTokenPush, promoverCuentaAAdministrador, silenciarDispositivo,
   tokensDeAdministradores, tokensDeCuenta, leerRecadosGuardados, guardarRecados,
@@ -106,6 +107,21 @@ function idDeCuenta() {
   return `cta_${crypto.randomUUID()}`;
 }
 
+/**
+ * ¿Es este el administrador? Dos llaves, de distinta fuerza (`administrador.js`).
+ *
+ * El **correo** vale siempre: viene dentro del token que firma Apple, no lo
+ * elige quien llama. El **nombre** solo vale cuando **no queda ningún
+ * administrador activo** —el estado del cerrojo—, porque no lo firma nadie: lo
+ * manda la app. Hace falta porque el correo puede no servir de llave: con
+ * «Ocultar mi correo», Apple entrega una dirección de relé y no la de verdad.
+ */
+async function esLaLlaveDelAdministrador(env, { correo, nombre }) {
+  if (esCorreoDelAdministrador(correo)) return true;
+  if (!esNombreDelAdministrador(nombre)) return false;
+  return !(await hayAdministradorActivo(env.DB));
+}
+
 // ---------------------------------------------------------------------------
 // Rutas
 // ---------------------------------------------------------------------------
@@ -143,10 +159,13 @@ async function abrirSesion(peticion, env) {
 
   // El administrador no espera en su propia sala (SPECS §14.15): la sala solo
   // la abre un administrador, así que si el único que hay sale de la cuenta, al
-  // volver no queda nadie dentro que pueda enlazarle. Cuando el correo que trae
-  // el token —verificado por Apple, no lo elige quien llama— es el suyo, la
-  // cuenta nace o vuelve administradora, activa y enlazada con su persona.
-  const esElAdministrador = esCorreoDelAdministrador(email ?? cuenta?.email);
+  // volver no queda nadie dentro que pueda enlazarle. Si trae su llave —el
+  // correo, o el nombre cuando no queda administrador—, la cuenta nace o vuelve
+  // administradora, activa y enlazada con su persona.
+  const esElAdministrador = await esLaLlaveDelAdministrador(env, {
+    correo: email ?? cuenta?.email,
+    nombre: nombre || cuenta?.nombre,
+  });
 
   if (esElAdministrador) {
     if (!cuenta) {
@@ -239,11 +258,13 @@ async function mirarLaEspera(peticion, env) {
   // por algo que ya no existe.
   if (!cuenta) return json({ estado: 'desconocida' });
 
-  // La misma llave que en la puerta (ver `abrirSesion`): si quien espera es el
-  // administrador —su correo lo apuntó `crearCuenta` de un token verificado—,
-  // se le asciende aquí y este sondeo ya devuelve la sesión. Es lo que saca a
-  // un móvil clavado en la sala sin volver a pasar por la hoja de Apple.
-  if (!cuenta.activa && esCorreoDelAdministrador(cuenta.email)) {
+  // Las mismas llaves que en la puerta (ver `esLaLlaveDelAdministrador`): el
+  // correo y el nombre los apuntó `crearCuenta` al abrir la solicitud. Si quien
+  // espera es el administrador, se le asciende aquí y este sondeo ya devuelve
+  // la sesión: es lo que saca a un móvil clavado en la sala sin volver a pasar
+  // por la hoja de Apple.
+  if (!cuenta.activa
+    && (await esLaLlaveDelAdministrador(env, { correo: cuenta.email, nombre: cuenta.nombre }))) {
     cuenta = await promoverCuentaAAdministrador(env.DB, cuenta.id);
   }
 
