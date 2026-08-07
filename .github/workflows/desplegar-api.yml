@@ -17,15 +17,19 @@ name: desplegar api
 #   CLOUDFLARE_API_TOKEN   · token con permiso de editar Workers
 #   CLOUDFLARE_ACCOUNT_ID  · solo si tu token ve más de una cuenta
 
+# **El filtro de rutas se retiró**, por lo mismo que en `ota.yml`: dejaba el
+# Worker impublicable. Si el empujón que trae el cambio de `api/` no llega a
+# disparar nada —y el merge de la v0.21.0 no disparó nada—, ningún empujón
+# posterior que no toque `api/` lo reintenta, y hace falta el botón de «Run
+# workflow», que necesita un permiso que la aplicación que conduce esto no tiene.
+#
+# Publicar el Worker es idempotente y tarda segundos: preguntarlo en cada empujón
+# a `main` cuesta menos que la clase de atasco que quita. La figura es la de
+# `meeting-ops-air`.
 on:
   push:
     branches: [main]
-    paths:
-      - 'api/**'
-      - '.github/workflows/desplegar-api.yml'
-  # Para poder lanzarlo a mano desde el móvil: Actions → desplegar api → Run
-  # workflow. Es lo que hay que usar cuando el cambio de `api/` ya está en
-  # `main` y no va a haber otro empujón que lo dispare.
+  # Sigue estando a mano desde el móvil: Actions → desplegar api → Run workflow.
   workflow_dispatch:
 
 permissions:

@@ -157,10 +157,19 @@ curl https://ballena-ops-api.oscarini.workers.dev/api/salud
 
 ### 2.1 El Worker se publica solo
 
-`.github/workflows/desplegar-api.yml` lo publica en cada empujón a `main` que
-toque `api/`, y también a mano desde **Actions → desplegar api → Run workflow**,
-que es la forma de lanzarlo desde el móvil. `npm run desplegar` se queda como
-salida de emergencia, no como el camino de todos los días.
+`.github/workflows/desplegar-api.yml` lo publica en **cada** empujón a `main`, y
+también a mano desde **Actions → desplegar api → Run workflow**, que es la forma
+de lanzarlo desde el móvil. `npm run desplegar` se queda como salida de
+emergencia, no como el camino de todos los días.
+
+**Tenía un filtro `paths: api/**` y se retiró.** Un filtro parece que ahorra un
+trabajo, y lo que hace es dejar el Worker impublicable: si el empujón que trae el
+cambio no llega a disparar el flujo, ningún empujón posterior que no toque `api/`
+lo reintenta. Pasó con la v0.21.0 —el merge lo hizo la API de GitHub y no disparó
+ninguno de los tres flujos—, y la única salida era el botón de «Run workflow», que
+necesita un permiso que la aplicación que conduce esto no tiene. Publicar es
+idempotente y tarda segundos, así que ahora se pregunta siempre. La misma
+corrección está en `ota.yml`, y la figura es de `meeting-ops-air`.
 
 Hace falta **un secreto** en el repositorio (**Settings → Secrets and variables →
 Actions → New repository secret**):
@@ -457,6 +466,7 @@ en `app/package.json`, mergea a `main`, y el workflow publica el OTA.
 | En iOS, «esta versión no trae el acceso con Apple» | La cáscara instalada es anterior al plugin. Hace falta binario nuevo, no un OTA |
 | En iOS, «Apple canceló el acceso (error 1001)» | 1001 es *cancelado*, y sale igual en tres casos. Si la hoja **no** aparece: iCloud sin sesión, Apple ID sin verificación en dos pasos, Tiempo de uso restringiendo, o binario sin la capacidad «Sign in with Apple» (eso último pide compilación nueva). Si aparece y Apple dice **«Registro no completado»**: es la cuenta, no la app — contrato pendiente en `developer.apple.com/account`, términos de iCloud sin aceptar, o un registro a medias que hay que revocar en Ajustes → Inicio de sesión y seguridad. Mientras tanto, «Usar solo en este móvil» deja trabajar y lo apuntado sube al entrar |
 | El OTA no baja | Comprueba `otaManifiesto` en `config.json`, que el release exista y que subiste la versión en `app/package.json` |
+| Mergeaste y no ha corrido **ningún** flujo | El merge lo hizo la API de GitHub y no reabre el ciclo. Fusiona desde la web —o empuja cualquier cosa a `main`— y los tres salen solos. Desde que los filtros de rutas se retiraron, ese empujón publica también lo que quedó pendiente |
 
 Trazas en vivo del Worker:
 

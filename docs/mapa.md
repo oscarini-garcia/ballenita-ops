@@ -82,7 +82,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
   cuando: push (branches [main]) · workflow_dispatch
   corre: `npm ci`, `npm test`, `npx wrangler deploy`
 - **Publish OTA bundle** `.github/workflows/ota.yml`
-  cuando: workflow_dispatch · push (branches [main]; paths ['app/**'])
+  cuando: workflow_dispatch · push (branches [main])
   corre: `npm ci`, `npm test`, `npm run build:app` (+4 guiones de varias líneas)
 - **pruebas** `.github/workflows/pruebas.yml`
   cuando: push (branches ['**']) · pull_request · workflow_dispatch
