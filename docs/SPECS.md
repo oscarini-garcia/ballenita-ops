@@ -1187,6 +1187,17 @@ dos personas para algo que el servidor ya sabía.
   que sin esto el rol dependería de quién llegó primero. El nombre no da
   permisos —los da el `rol` que firma el Worker—: sirve para decir en pantalla
   de quién se está hablando.
+- **✅ El administrador no espera en su propia sala** (`api/src/administrador.js`,
+  el gemelo del de arriba, con su correo). La sala solo la abre un
+  administrador, así que si el único que hay sale de la cuenta, al volver se
+  quedaba esperando a que le enlazara… él mismo, y la salida era escribir en la
+  base a mano. Cuando el correo del token —**verificado por Apple**, no lo
+  elige quien llama— es el suyo, la cuenta nace o vuelve administradora, activa
+  y **enlazada sola con su persona** (`promoverCuentaAAdministrador`: por
+  nombre, en eventos de verdad, sin pisar un enlace ya puesto). Vale en la
+  puerta (`POST /api/sesion`) y en el sondeo de la sala
+  (`POST /api/sesion/espera`), que es lo que saca a un móvil ya clavado en la
+  sala sin volver a pasar por la hoja de Apple.
 - **✅ Avisos derivados, nunca filas** (`lib/avisos.js`, figura de `avisos.js` en
   `garciadoral-ops`). Hoy solo hay uno —alguien ha entrado y todavía no es
   nadie— y es del administrador. Al enlazar la cuenta, el aviso desaparece

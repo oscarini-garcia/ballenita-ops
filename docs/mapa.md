@@ -12,7 +12,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 - **`app/`** v0.21.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
   679 pruebas en 74 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  154 pruebas en 17 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  162 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -258,6 +258,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 **`api/src/`**
 
+- `administrador.js` — Quién administra, y cómo se le reconoce sin que nadie le abra la puerta.
+  ↳ esCorreoDelAdministrador, ADMINISTRADOR
 - `apns.js` — El transporte hasta el teléfono: APNs con autenticación por token.
   ↳ hayApnsConfigurado, tokenDeProveedor, enviarAviso, olvidarTokenDeProveedor
 - `apple.js` — Verificación del token de identidad de Sign in with Apple.
@@ -283,7 +285,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `receta.js` — Los dos encargos del editor de una receta (SPECS §14.20-bis).
   ↳ materialDeLaLista, materialDelPlatoParecido, leerArreglo, leerParecidos, pedirArreglo, pedirParecidos · +2 más
 - `repositorio.js` — Lectura y escritura del registro del grupo sobre D1.
-  ↳ cuentaPorApple, cuentaPorId, hayAlgunaCuenta, crearCuenta, listarCuentas, enlazarCuentaConPersona · +22 más
+  ↳ cuentaPorApple, cuentaPorId, hayAlgunaCuenta, crearCuenta, listarCuentas, enlazarCuentaConPersona · +24 más
 - `revocacion.js` — Revocación del token de Sign in with Apple al darse de baja.
   ↳ hayRevocacionConfigurada, secretoDeCliente, revocarEnApple
 - `sesion.js` — Sesión propia: un JWT HS256 corto que el dispositivo presenta en cada petición.
@@ -342,6 +344,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `scrollLock.js`
 - **§14.13** Los dibujos, y el único color que informa → `categorias.js`, `personas.js`, `pwa.js`
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `evento.js`, `reparto-gente.js`
+- **§14.15** Quién entra: la sala de espera, las cuentas y los avisos → `index.js`
 - **§14.16** La IA: la clave vive en el servidor → `api.js`, `cocina.js`, `encargos.js`, `ia.js`, `index.js`, `receta.js`, `repositorio.js`
 - **§14.18** El día es el de aquí, no el de Greenwich → `db.js`
 - **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `cantidades.js`, `db.js`, `idea.js`, `index.js`, `recados.js`, `receta.js`, `tablas.js`

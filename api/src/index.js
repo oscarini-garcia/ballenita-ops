@@ -45,13 +45,14 @@ import {
   coincideEnTiempoConstante, emitirPaseDeEspera, emitirSesion, verificarPaseDeEspera, verificarSesion,
 } from './sesion.js';
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
+import { esCorreoDelAdministrador } from './administrador.js';
 import {
   administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
   cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta, enlazarCuentaConPersona,
   hayAlgunaCuenta, importarInstantanea, leerInstantanea, leerMejorasPendientes, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
-  guardarTokenPush, olvidarTokenPush, silenciarDispositivo, tokensDeAdministradores,
-  tokensDeCuenta, leerRecadosGuardados, guardarRecados,
+  guardarTokenPush, olvidarTokenPush, promoverCuentaAAdministrador, silenciarDispositivo,
+  tokensDeAdministradores, tokensDeCuenta, leerRecadosGuardados, guardarRecados,
 } from './repositorio.js';
 
 import { materialDelViaje, pedirPropuestas } from './sugerencias.js';
@@ -140,6 +141,24 @@ async function abrirSesion(peticion, env) {
     }
   }
 
+  // El administrador no espera en su propia sala (SPECS §14.15): la sala solo
+  // la abre un administrador, así que si el único que hay sale de la cuenta, al
+  // volver no queda nadie dentro que pueda enlazarle. Cuando el correo que trae
+  // el token —verificado por Apple, no lo elige quien llama— es el suyo, la
+  // cuenta nace o vuelve administradora, activa y enlazada con su persona.
+  const esElAdministrador = esCorreoDelAdministrador(email ?? cuenta?.email);
+
+  if (esElAdministrador) {
+    if (!cuenta) {
+      cuenta = await crearCuenta(env.DB, {
+        id: idDeCuenta(), appleSub: sub, nombre, email, rol: 'administrador',
+      });
+    }
+    if (!cuenta.activa || cuenta.rol !== 'administrador' || !cuenta.personId) {
+      cuenta = await promoverCuentaAAdministrador(env.DB, cuenta.id);
+    }
+  }
+
   if (!cuenta) {
     if (await hayAlgunaCuenta(env.DB)) {
       // Sala de espera: en vez de un 403 seco con un código que había que
@@ -213,12 +232,20 @@ async function abrirSesion(peticion, env) {
 async function mirarLaEspera(peticion, env) {
   const { pase } = await peticion.json();
   const cuentaId = await verificarPaseDeEspera(env.SESION_SECRETO, pase);
-  const cuenta = await cuentaPorId(env.DB, cuentaId);
+  let cuenta = await cuentaPorId(env.DB, cuentaId);
 
   // La cuenta ya no está: la han eliminado desde Ajustes mientras esperaba. El
   // móvil tiene que olvidar el pase y volver a la puerta, no seguir preguntando
   // por algo que ya no existe.
   if (!cuenta) return json({ estado: 'desconocida' });
+
+  // La misma llave que en la puerta (ver `abrirSesion`): si quien espera es el
+  // administrador —su correo lo apuntó `crearCuenta` de un token verificado—,
+  // se le asciende aquí y este sondeo ya devuelve la sesión. Es lo que saca a
+  // un móvil clavado en la sala sin volver a pasar por la hoja de Apple.
+  if (!cuenta.activa && esCorreoDelAdministrador(cuenta.email)) {
+    cuenta = await promoverCuentaAAdministrador(env.DB, cuenta.id);
+  }
 
   if (!cuenta.activa) {
     if (!cuenta.personId) return json({ estado: 'espera', nombre: cuenta.nombre });
