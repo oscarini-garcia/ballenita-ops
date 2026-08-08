@@ -123,6 +123,14 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   (solo durante el viaje), días con plan, racha de cenas— y dos retratos al pique (el
   entusiasta 👍 y el indeciso 🤷, con los empates dichos). Todo en `computeStats`, local y
   puro; nada señala fuera del interruptor.
+- **En Saldos la familia lleva su pastilla, y el renglón dice quién paga a quién** (SPECS
+  §14.35, `docs/diseño/saldos.html` · F3·R2·E1): el emoji sobre el color pleno se va —las
+  iniciales ahí dan 2,81 : 1 en el azul de los Solteros, y la pastilla de `Alias.jsx` da
+  4,82–5,85 en las dos caras con cualquier color—; la sección es **«Quién paga a quién»**,
+  la fila son dos líneas con «pagado» al lado (93,5 → 70,7 pt) y **sin tocar la letra**: le
+  sobraba estructura, no tamaño. Quien no tiene familia sale con su nombre, no como «Sin
+  familia». La hoja se corrigió antes de escribir el spec: su maqueta **doblaba** el titular
+  donde `theme.css` lo **recorta**, y por eso midió 119,4 en vez de 93,5.
 - **Cada versión se describe a sí misma** (SPECS §14.34, figura de `meeting-ops-air`):
   `lib/notas.js` lleva unas líneas **a mano** por versión —lo que se nota en pantalla, no qué
   módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de
