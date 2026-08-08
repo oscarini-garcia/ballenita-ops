@@ -3012,6 +3012,60 @@ filas que abren la capa de votar (R3, que queda como añadido posible sobre R2)�
 están argumentadas en la hoja. Nada de esto toca la base ni la API: todo es
 `app/` y cero migraciones.
 
+### 14.31 Los elegidores del día: al centro, con borrador y buscador
+
+Decidido en `docs/diseño/elegidores.html` · **C2 · V2 · S2 · B1 · L3 + L1**.
+Revisa dos piezas de §14.30 con nombre y apellido, a encargo de quien lo usa:
+H1 (cada toque escribía) y la mitad de R2 (las bungas dentro de «La cena», con
+una hoja de dos listas).
+
+**C2 · el elegidor trabaja sobre un borrador.** La figura de la hoja de «Entre»
+(§14.27): al abrir se copia lo puesto, tocar marca **el borrador**, «Listo»
+escribe todo junto y «Cancelar», el fondo y desmontar descartan. El motivo de
+revisar H1 es de palabras: el encargo pidió un «Cancelar», y **un «Cancelar»
+sin borrador es un verbo que miente** — cierra sin deshacer, que es el mismo
+defecto que §14.30 quitó con «Guardar la cena». La regla cabe en una frase:
+dentro de un elegidor, nada es definitivo hasta «Listo». La capa del día no
+cambia de memoria: enseña lo guardado y sigue sin botón global. En los planes
+el «Listo» aplica el **diff** contra lo guardado —lo desmarcado vuelve a
+libres, lo nuevo se coloca, lo que no cambió no encola nada— y hay dos guardas:
+«Ninguna» o cero platos en un día **sin** cena no crían una cena vacía, y un
+«Listo» sin cambios no escribe. «Quitar la cena» sigue dentro del elegidor de
+platos con su segunda pulsación: es un verbo con confirmación propia, no parte
+del borrador.
+
+**V2 · una capa cada vez.** El elegidor **sustituye** al día en la misma capa
+—apilar dos papeles iguales casi concéntricos se lee como un marco doble, y el
+canto de 1,5 pt de §14.26-bis separa una capa del fondo, no de otra igual— y
+como el día ya no se ve, lo lleva en su cabecera: «Bunga mayores» y debajo
+«domingo, 9 de agosto». El fondo, con un elegidor abierto, es su «Cancelar»:
+descarta y vuelve al día; sin elegidor, cierra el día, que con C2 no tiene nada
+que perder. Los dos verbos van abajo y en azul (§14.27-bis), con `.salida`.
+
+**S2 · el día en tres secciones.** «La cena» (una fila: los platos), «Las
+bungas» (**dos filas**: mayores y niños, cada una con su casa y de quién es —
+«Mayores · El del ruido / la de los Pérez»—) y «El plan». Cada bunga abre su
+selector de **una** lista: el doble con la fila rica medía **815,8 pt** en la
+hoja y el tope de una capa es 658,3 — no cabía, y fue lo que decidió partirlo.
+
+**B1 · la familia manda en la fila.** El selector de una bunga la nombra por su
+familia, con el alias de seña a la derecha («Pérez · El del ruido»); una bunga
+sin familia dueña se queda con su alias. «Ninguna» encabeza la lista, porque
+quitar también es elegir.
+
+**L3 + L1 · el buscador.** Platos y planes llevan **campo de buscar siempre a
+la vista** —era el encargo original: «el buscador de planes y platos»— que
+filtra sin esconder (`filtraOpciones`, `lib/dias.js`: sin tildes ni mayúsculas,
+y mira también la nota, porque en los platos es la categoría y buscar «postre»
+es legítimo) y **no roba el foco** (§14.24). Las bungas no llevan (L1): tres
+casas no se buscan. `input[type=search]` entra en la lista de campos vestidos
+de `theme.css` — la guardia de §14.27-bis lo exige y es la cuarta vez que un
+tipo nuevo pasa por ahí.
+
+Con esto `HojaDeMarcar` se quedó sin su único consumidor y **se retira**;
+`Hoja` y `HojaDeEleccion` siguen siendo la figura de elegir de Ajustes y
+Gastos. Nada toca la base ni la API: todo es `app/`, cero migraciones.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

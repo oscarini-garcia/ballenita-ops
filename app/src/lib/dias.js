@@ -174,6 +174,21 @@ export function titularDeCena(cena, platos = []) {
   return `${plato.name} y ${enLetras(resto)} ${resto === 1 ? 'cosa más' : 'cosas más'}`
 }
 
+/** Sin tildes y en minúscula, la misma vara que `buscarGente` (lib/reparto-gente.js). */
+const plano = (s) => (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+/**
+ * Las filas de un elegidor que casan con lo escrito
+ * (`docs/diseño/elegidores.html` · L3). Con la caja vacía salen todas: el
+ * buscador filtra la lista, no la esconde. Mira también la nota porque en los
+ * platos es la categoría — buscar «postre» es tan legítimo como buscar «sandía».
+ */
+export function filtraOpciones(opciones = [], texto = '') {
+  const q = plano(texto).trim()
+  if (!q) return opciones
+  return opciones.filter((o) => plano(o.etiqueta).includes(q) || plano(o.nota).includes(q))
+}
+
 /**
  * El titular grande de «Hoy» titula **lo que hay**, no siempre la cena
  * (`docs/diseño/dia-abierto.html` · P2): la cena con platos manda; sin ella,

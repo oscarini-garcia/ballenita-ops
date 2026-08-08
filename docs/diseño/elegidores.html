@@ -1,0 +1,780 @@
+<title>Ballena Ops — El elegidor pasa al centro y gana un «Cancelar», que hoy no tendría nada que deshacer</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-papel-capa: #1a3d4f; --ab-linea-capa: #3a6a82;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-papel-capa: #ffffff; --abc-linea-capa: #a9bfc9;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+  .coste code { font-family: var(--mono); font-size: 12.5px; }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── El teléfono, a 390 pt. line-height 1.45 = el de body en theme.css. ── */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45;
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 0 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+
+  .fila { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+
+  .velo-alto { flex: 1; min-height: 110px; background: rgba(4,18,26,.68); }
+  .velo-centro { flex: 1; background: rgba(4,18,26,.68); display: flex; align-items: center;
+    justify-content: center; padding: 12px 14px; min-height: 120px; }
+  .capa { width: 90%; max-width: 460px; background: var(--ab-papel-capa);
+    border: 1.5px solid var(--ab-linea-capa); border-radius: 12px; padding: 18px 16px 22px;
+    box-shadow: 0 18px 44px rgba(4,18,26,.34); }
+  .claro .capa { background: var(--abc-papel-capa); border-color: var(--abc-linea-capa); }
+  .capa.ancha { width: 100%; }
+  .hoja-abajo { background: var(--ab-papel-capa); border: 1.5px solid var(--ab-linea-capa);
+    border-bottom: none; border-radius: 12px 12px 0 0; padding: 10px 16px 26px; }
+  .hoja-asa { display: block; width: 38px; height: 5px; border-radius: 999px;
+    background: var(--ab-linea); margin: 2px auto 10px; }
+
+  .m-x { float: right; font-size: 26px; line-height: 1; color: var(--ab-faint); min-width: 44px;
+    text-align: right; }
+  .claro .m-x { color: var(--abc-faint); }
+  .m-t { margin: 4px 0 2px; font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; }
+  .m-t::first-letter { text-transform: uppercase; }
+  .pista { font-size: var(--t-sub); }
+  .oscuro .pista { color: var(--ab-faint); } .claro .pista { color: var(--abc-faint); }
+
+  .etiq { display: block; font-size: var(--t-label); font-weight: 700; margin: 12px 2px 5px; }
+  .oscuro .etiq { color: var(--ab-soft); } .claro .etiq { color: var(--abc-soft); }
+
+  .eleccion { display: flex; flex-direction: column; margin-top: 6px; border: 1px solid var(--ab-linea-suave);
+    border-radius: 9px; overflow: hidden; background: var(--ab-tarjeta); }
+  .claro .eleccion { border-color: var(--abc-linea-suave); background: var(--abc-tarjeta); }
+  .elec-op { display: flex; flex-wrap: wrap; align-items: center; row-gap: 2px; gap: 10px;
+    min-height: 48px; padding: 10px 14px; border-bottom: 1px solid var(--ab-linea-suave);
+    font-size: var(--t-row); }
+  .claro .elec-op { border-bottom-color: var(--abc-linea-suave); }
+  .elec-op:last-child { border-bottom: none; }
+  .elec-op .et { flex: 1 0 100%; font-weight: 550; }
+  .eleccion.simple .elec-op .et { flex: 1; }
+  .elec-op .no { font-size: var(--t-label); }
+  .oscuro .elec-op .no { color: var(--ab-faint); } .claro .elec-op .no { color: var(--abc-faint); }
+  .elec-op .tic { margin-left: auto; color: var(--ab-acento-txt); }
+  .claro .elec-op .tic { color: var(--abc-acento-txt); }
+  .elec-op .tic svg { width: 20px; height: 20px; display: block; }
+  /* La firma con alias (lib/alias.js): dos letras con el color de su familia. */
+  .alias { font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 3px 6px; color: #fff; }
+
+  .apunte { font-size: var(--t-label); font-weight: 500; }
+  .oscuro .apunte { color: var(--ab-faint); } .claro .apunte { color: var(--abc-faint); }
+
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: 9px; padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+  .claro .nota { border-color: var(--abc-linea); color: var(--abc-soft);
+    background: color-mix(in srgb, var(--abc-acento) 7%, var(--abc-tarjeta)); }
+  .claro .nota b { color: var(--abc-ink); }
+
+  .btn { display: block; width: 100%; border: none; border-radius: 8px; padding: 12px 16px;
+    font-family: inherit; font-weight: 600; font-size: var(--t-row); min-height: 44px;
+    background: var(--ab-acento); color: #fff; text-align: center; }
+  .claro .btn { background: var(--abc-acento); }
+  .btn.fantasma { background: transparent; border: 1px solid var(--ab-linea);
+    font-weight: 550; }
+  .claro .btn.fantasma { border-color: var(--abc-linea); }
+  .btn.fantasma.azul { color: var(--ab-acento-txt); }
+  .claro .btn.fantasma.azul { color: var(--abc-acento-txt); }
+  /* Los dos verbos, abajo y en azul (§14.27-bis): la salida de un borrador. */
+  .salida { display: flex; gap: 8px; margin-top: 14px; }
+  .salida .btn { flex: 1; }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  .tabla-scroll { overflow-x: auto; }
+
+  /* Las cuatro fichas de la fila de una bunga: el selector solo, sin teléfono. */
+  .tira-b { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .ficha-b { width: 340px; flex: none; font-family: var(--sans); line-height: 1.45;
+    background: var(--ab-papel-capa); color: var(--ab-ink); border: 1.5px solid var(--ab-linea-capa);
+    border-radius: 12px; padding: 12px 14px 14px; }
+  .ficha-b .rotulo { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ab-faint); margin-bottom: 2px; }
+  .ficha-b .eleccion { background: var(--ab-tarjeta); }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre code { font-family: var(--mono); font-size: 12.5px; }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Agenda, los elegidores del día</div>
+    <h1>El elegidor pasa al centro y gana un «Cancelar» — que hoy no tendría nada que deshacer</h1>
+    <p class="entradilla">
+      El encargo mueve los elegidores del día —platos, planes y bungas— de la hoja de abajo a un
+      <b>modal centrado con «Cancelar»</b>, separa las bungas en <b>su propia sección</b> y pide que
+      la fila de una bunga diga <b>la familia y algún dato</b>, no solo el alias. Todo eso está
+      decidido y no se vota aquí.
+    </p>
+    <p class="entradilla">
+      Lo que sí hay que decidir son dos cosas gordas y dos pequeñas: <b>qué deshace «Cancelar»</b>
+      —en §14.30 cada toque escribe, así que hoy un «Cancelar» no tendría nada que deshacer— y
+      <b>cómo conviven dos capas centradas</b>, que es una figura que la app no tiene; y luego cómo
+      se dibujan las tres secciones y qué dato lleva la fila de una bunga.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.22.0 (<code>main</code>, 87ef6a2)</span>
+      <span><b>Medida:</b> 390 pt · ventana de 844 · tope de una capa 658,3</span>
+      <span><b>Paleta:</b> Abisal Sobrio</span>
+      <span><b>Contenido:</b> el Demo (bungas, familias y platos de la semilla)</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Las medidas se toman en el navegador sobre estas maquetas al servirse la hoja, con los valores
+      reales de <code>theme.css</code>; la capa del día (532,9 pt) viene medida de
+      <code>dia-abierto.html</code>.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO DECIDIDO ══════════════ -->
+  <div class="defectos">
+    <h2>Lo decidido en el encargo · no está sobre la mesa</h2>
+    <p>
+      <b>1 · Los elegidores pasan a modal centrado</b>, con «Cancelar» escrito. La hoja de abajo
+      deja de ser su mueble.<br>
+      <b>2 · Las bungas son sección propia del día:</b> la capa pasa de dos secciones a tres —la
+      cena, las bungas, el plan— para que se lea que son tres cosas distintas.<br>
+      <b>3 · La fila de una bunga dice la familia y algún dato</b>, no solo «El del ruido».
+    </p>
+    <p>
+      Y una cosa que esta hoja <b>no</b> reabre: la capa del día sigue sin botón global de guardar.
+      Lo que se decide en la parte uno es la memoria <b>del elegidor</b>, no la del día.
+    </p>
+  </div>
+
+  <!-- ══════════════ EL AHORA ══════════════ -->
+  <div class="parte">El ahora, dibujado: la hoja de bungas de v0.22.0</div>
+  <p class="parte-intro">
+    La hoja sube desde abajo sobre la capa del día, las filas dicen solo el alias, cada toque
+    escribe y «Listo» solo cierra. Es lo que se acaba de mergear y lo que este encargo revisa.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="velo-alto"></div>
+      <div class="hoja-abajo" id="m-ahora">
+        <span class="hoja-asa"></span>
+        <div class="m-t">Dónde se cena</div>
+        <span class="etiq">Bunga mayores</span>
+        <div class="eleccion simple">
+          <div class="elec-op"><span class="et">Ninguna</span></div>
+          <div class="elec-op"><span class="et">El de la piscina</span></div>
+          <div class="elec-op"><span class="et">El del ruido</span>
+            <span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></svg></span></div>
+          <div class="elec-op"><span class="et">El del fondo</span></div>
+        </div>
+        <span class="etiq">Bunga niños</span>
+        <div class="eleccion simple">
+          <div class="elec-op"><span class="et">Ninguna</span></div>
+          <div class="elec-op"><span class="et">El de la piscina</span></div>
+          <div class="elec-op"><span class="et">El del ruido</span></div>
+          <div class="elec-op"><span class="et">El del fondo</span>
+            <span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></svg></span></div>
+        </div>
+        <div class="apunte" style="margin-top:10px">Cada elección se guarda al tocarla.</div>
+        <div style="margin-top:14px"><div class="btn">Listo</div></div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">Ahora · <span data-mide="m-ahora">—</span> pt de hoja, filas de solo alias</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · qué deshace «Cancelar»</div>
+  <p class="parte-intro">
+    Un «Cancelar» solo vale lo que deshace. Con la memoria de §14.30 —cada toque escribe— no
+    deshace nada, así que añadirlo obliga a decidir la memoria del elegidor. La tabla compara las
+    cuatro; la del día no cambia en ninguna.
+  </p>
+
+  <div class="tabla-scroll"><table class="comp">
+    <tr><th></th><th>al tocar una fila</th><th>al «Listo»</th><th>al «Cancelar» o al fondo</th></tr>
+    <tr><td><b>C1</b> cerrar sin más</td><td>escribe</td><td>cierra</td><td><b>cierra igual</b> — no deshace</td></tr>
+    <tr><td><b>C2</b> borrador</td><td>marca el borrador</td><td><b>escribe todo junto</b></td><td>descarta</td></tr>
+    <tr><td><b>C3</b> toque + deshacer</td><td>escribe</td><td>cierra</td><td><b>reescribe lo de antes</b></td></tr>
+    <tr><td><b>C4</b> mixta</td><td>según qué elegidor</td><td>según</td><td>según</td></tr>
+  </table></div>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C1</span><span class="op-nombre">«Cancelar» cierra sin más</span><span class="etq no">verbo que miente</span></div>
+      <p class="op-idea">
+        Se añade el botón y se deja la memoria como está: cada toque ya escribió, «Cancelar» solo
+        cierra.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> es exactamente el defecto que §14.30 acaba de quitar con «Guardar la cena»
+        —un verbo que promete algo que no pasa—. Quien cancela después de desmarcar tres platos se
+        encuentra la cena rota. Se lista para descartarla con motivo.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">C2</span><span class="op-nombre">El elegidor trabaja sobre un borrador</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La figura de la hoja de «Entre» (§14.27): al abrir se copia lo puesto, tocar marca <b>el
+        borrador</b>, «Listo» escribe todo junto —una entrada en la cola por visita, no seis— y
+        «Cancelar», el fondo y la X descartan. El día sigue enseñando solo lo guardado.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> poner un plan pasa de un toque a dos («ponerlo» y «Listo»), y esto <b>revisa
+        H1 de §14.30, y hay que decirlo</b>: cada toque escribía; ahora escribe cada «Listo». A
+        cambio «Cancelar» deshace de verdad, que es para lo que se pide, y la regla cabe en una
+        frase: <b>dentro de un elegidor, nada es definitivo hasta «Listo»</b>.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C3</span><span class="op-nombre">Al toque, con deshacer al cancelar</span></div>
+      <p class="op-idea">
+        Cada toque escribe como hoy; al abrir se guarda una foto y «Cancelar» la reescribe. Lo
+        mejor de los dos mundos, en apariencia.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> los arrepentimientos viajan — marcar y desmarcar son <b>dos cambios en la
+        cola</b> que suben al grupo, y si la sincronización corre en medio, los demás ven la cena
+        cambiar y volver. Un borrador que se descarta no deja rastro; un deshacer, sí.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">C4</span><span class="op-nombre">Mixta: platos y bungas borrador, planes al toque</span></div>
+      <p class="op-idea">
+        El plan al toque «como votar» y lo de la cena con borrador, con la idea de que colocar un
+        plan es más ligero que rehacer un menú.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> dos memorias detrás de ventanas gemelas — la tabla del bloque amarillo de
+        <code>dia-abierto.html</code>, otra vez. §14.30 se hizo para matar exactamente esto.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · cómo conviven dos capas centradas</div>
+  <p class="parte-intro">
+    El día ya es una capa centrada. Si el elegidor también lo es, hay que decidir qué pasa con la
+    de abajo: la app tiene la figura «hoja sobre capa», no «capa sobre capa».
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V1</span><span class="op-nombre">Apilar: el elegidor encima, con su velo</span></div>
+      <p class="op-idea">
+        Dos capas centradas, la del día debajo con un segundo velo encima. Se ve que vienes del
+        día.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> dos papeles del mismo color casi concéntricos — el canto de 1,5 pt que
+        separa una capa del fondo (§14.26-bis) no separa una capa de otra igual; los bordes se
+        leen como un marco doble, un error de pintura. Y el velo doble oscurece el título del día
+        justo cuando el elegidor ya lo repite.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">V2</span><span class="op-nombre">Sustituir: una capa cada vez</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Al abrir un elegidor, la capa del día <b>se aparta</b> y el elegidor ocupa el centro, solo.
+        «Listo» y «Cancelar» devuelven al día. Como el día ya no se ve, el elegidor lleva el
+        contexto en su cabecera: <b>«Bunga mayores»</b> y debajo <b>«domingo, 9 de agosto»</b>.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> mientras eliges no ves el resto del día — que no hace falta: cada elegidor
+        pregunta una sola cosa. <b>Lo paga:</b> siempre hay una capa en pantalla, el velo es uno y
+        el papel se lee como papel. Es además lo que ya pasa con el teclado en los editores
+        centrados (§14.24): una cosa a la vez.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V3</span><span class="op-nombre">El elegidor fino, encima</span></div>
+      <p class="op-idea">
+        Apilar, pero el elegidor usa la variante estrecha (<code>modal fino</code>, que en 390
+        queda en 325,8 pt) para que la capa del día asome por los lados.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> con la capa del día a 362 pt, lo que asoma son <b>18,1 pt por lado</b> — no
+        se lee como «el día sigue ahí», se lee como un borde sucio. Y la fila rica de una bunga
+        pierde 36,2 pt de ancho justo cuando gana texto.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · el día en tres secciones</div>
+  <p class="parte-intro">
+    Las bungas salen de «La cena». La pregunta es cuántas filas les tocan, porque arrastra el
+    tamaño del selector: <b>una fila</b> obliga a un selector con las dos listas, <b>dos filas</b>
+    dan dos selectores de una lista.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">S1</span><span class="op-nombre">«Las bungas» en una fila, selector doble</span></div>
+      <p class="op-idea">
+        Tres secciones y la de bungas con una sola fila («Mayores en El del ruido · niños en El del
+        fondo») que abre un selector con las dos listas, como la hoja de hoy.
+      </p>
+      <p class="coste">
+        <b>Cuesta, medido abajo:</b> con filas de familia y gente, las dos listas piden
+        <b><span data-mide="m-doble">—</span> pt</b> y el tope de una capa es <b>658,3</b>: el
+        selector doble <b>no cabe sin scroll</b> en cuanto la fila engorda. Cabría con filas de
+        solo alias (B1), que es renunciar a la otra mitad del encargo.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">S2</span><span class="op-nombre">«Las bungas» con dos filas, dos selectores de una lista</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La sección de bungas lleva <b>dos filas</b> —mayores y niños, cada una con su bunga y su
+        familia— y cada una abre un selector de <b>una</b> lista. Tres secciones, cuatro filas en
+        total, y cada pregunta con su renglón.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la capa del día crece a <b><span data-mide="m-dia3">—</span> pt</b> (era
+        532,9) — sigue cabiendo bajo el tope de 658,3, medido en el dibujo de abajo. <b>Lo
+        paga:</b> el selector de una lista mide <b><span data-mide="m-sel">—</span> pt</b> con las
+        filas ricas, y cambiar solo la bunga de los niños ya no pasa por la pregunta de los
+        mayores.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">S3</span><span class="op-nombre">Una tarjeta, tres grupos dentro</span></div>
+      <p class="op-idea">
+        Los tres rótulos dentro de una sola tarjeta, sin partirla: más compacto, menos aire.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> «que quede claro que son tres cosas» es justo lo que una tarjeta única
+        difumina — los rótulos de sección de la app viven <b>fuera</b> de las tarjetas
+        (Planes, Gastos), y aquí dentro serían una figura nueva para ahorrar ~24 pt.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">S4</span><span class="op-nombre">S2, con las bungas arriba</span></div>
+      <p class="op-idea">
+        Lo mismo que S2 pero en orden «Las bungas · La cena · El plan»: quién acoge se decide antes
+        que el menú.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> contradice a «Hoy» y a la fila de Días, donde el titular es la cena cuando
+        la hay — la primera pregunta del día sigue siendo qué se come. El orden de las
+        pantallas hermanas gana.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ LA PROPUESTA, DIBUJADA ══════════════ -->
+  <div class="parte">C2 + V2 + S2, dibujadas · y el selector doble de S1, medido</div>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa ancha" id="m-dia3">
+          <span class="m-x">×</span>
+          <div class="m-t">domingo, 9 de agosto</div>
+          <div class="sec-h" style="margin-top:10px">La cena</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8" /><path d="M7 3.5v5.5M11 3.5v5.5" /><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3" /></svg></div>
+              <div class="txt"><div class="n">Paella mixta y cinco cosas más</div><div class="s">seis platos</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">Las bungas</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Mayores · El del ruido</div><div class="s">la de los Pérez</div></div>
+            </div>
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Niños · El del fondo</div><div class="s">la de los Solteros</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">El plan</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+              <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+            </div>
+          </div>
+          <div class="nota" style="margin-top:12px">
+            Los planes se <b>votan</b> en Planes; aquí se colocan.
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">S2 · el día en tres secciones · <span data-mide="m-dia3">—</span> pt</p>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa ancha" id="m-sel">
+          <div class="m-t">Bunga mayores</div>
+          <div class="pista">domingo, 9 de agosto</div>
+          <div class="eleccion nota-debajo" style="margin-top:12px">
+            <div class="elec-op"><span class="et" style="flex:1">Ninguna</span></div>
+            <div class="elec-op"><span class="et">García · El de la piscina</span><span class="no">Curro, Marta y Fran</span></div>
+            <div class="elec-op"><span class="et">Pérez · El del ruido</span><span class="no">Ana y Luis</span>
+              <span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></svg></span></div>
+            <div class="elec-op"><span class="et">Solteros · El del fondo</span><span class="no">Pablo</span></div>
+          </div>
+          <div class="salida">
+            <div class="btn fantasma azul">Cancelar</div>
+            <div class="btn">Listo</div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">C2 + V2 + B2 · una lista, borrador, los dos verbos · <span data-mide="m-sel">—</span> pt</p>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa ancha" id="m-doble">
+          <div class="m-t">Las bungas</div>
+          <div class="pista">domingo, 9 de agosto</div>
+          <span class="etiq">Bunga mayores</span>
+          <div class="eleccion nota-debajo">
+            <div class="elec-op"><span class="et" style="flex:1">Ninguna</span></div>
+            <div class="elec-op"><span class="et">García · El de la piscina</span><span class="no">Curro, Marta y Fran</span></div>
+            <div class="elec-op"><span class="et">Pérez · El del ruido</span><span class="no">Ana y Luis</span>
+              <span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></svg></span></div>
+            <div class="elec-op"><span class="et">Solteros · El del fondo</span><span class="no">Pablo</span></div>
+          </div>
+          <span class="etiq">Bunga niños</span>
+          <div class="eleccion nota-debajo">
+            <div class="elec-op"><span class="et" style="flex:1">Ninguna</span></div>
+            <div class="elec-op"><span class="et">García · El de la piscina</span><span class="no">Curro, Marta y Fran</span></div>
+            <div class="elec-op"><span class="et">Pérez · El del ruido</span><span class="no">Ana y Luis</span></div>
+            <div class="elec-op"><span class="et">Solteros · El del fondo</span><span class="no">Pablo</span>
+              <span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></svg></span></div>
+          </div>
+          <div class="salida">
+            <div class="btn fantasma azul">Cancelar</div>
+            <div class="btn">Listo</div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">S1, medido: las dos listas con fila rica · <span data-mide="m-doble">—</span> pt — el tope es 658,3</p>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>El día en tres secciones:</b> <span data-mide="m-dia3">—</span> pt (era 532,9; tope 658,3)</span>
+    <span><b>Selector de una lista:</b> <span data-mide="m-sel">—</span> pt</span>
+    <span><b>Selector doble con fila rica:</b> <span data-mide="m-doble">—</span> pt — no cabe</span>
+  </p>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · qué dice la fila de una bunga</div>
+  <p class="parte-intro">
+    Los datos que hay: la bunga tiene alias y familia; la familia tiene nombre, color y su gente.
+    Las personas cuelgan de la <b>familia</b>, así que «quién duerme ahí» es la gente de la familia
+    dueña; una bunga sin familia se queda con su alias. Las cuatro, dibujadas con el Demo.
+  </p>
+
+  <div class="tira-b">
+    <div class="ficha-b">
+      <div class="rotulo">B1 · familia y alias, una línea</div>
+      <div class="eleccion simple">
+        <div class="elec-op"><span class="et">García</span><span class="no">El de la piscina</span></div>
+        <div class="elec-op" id="fila-b1"><span class="et">Pérez</span><span class="no">El del ruido</span></div>
+        <div class="elec-op"><span class="et">Solteros</span><span class="no">El del fondo</span></div>
+      </div>
+    </div>
+    <div class="ficha-b">
+      <div class="rotulo">B2 · familia · alias, y su gente debajo</div>
+      <div class="eleccion nota-debajo">
+        <div class="elec-op"><span class="et">García · El de la piscina</span><span class="no">Curro, Marta y Fran</span></div>
+        <div class="elec-op" id="fila-b2"><span class="et">Pérez · El del ruido</span><span class="no">Ana y Luis</span></div>
+        <div class="elec-op"><span class="et">Solteros · El del fondo</span><span class="no">Pablo</span></div>
+      </div>
+    </div>
+    <div class="ficha-b">
+      <div class="rotulo">B3 · el alias manda, la familia en su pastilla</div>
+      <div class="eleccion nota-debajo">
+        <div class="elec-op"><span class="et">El de la piscina <span class="alias" style="background:#E5544B">Ga</span></span><span class="no">Curro, Marta y Fran</span></div>
+        <div class="elec-op"><span class="et">El del ruido <span class="alias" style="background:#2E9E6B">Pé</span></span><span class="no">Ana y Luis</span></div>
+        <div class="elec-op"><span class="et">El del fondo <span class="alias" style="background:#1FA6D6">So</span></span><span class="no">Pablo</span></div>
+      </div>
+    </div>
+    <div class="ficha-b">
+      <div class="rotulo">B4 · familia y recuento</div>
+      <div class="eleccion simple">
+        <div class="elec-op"><span class="et">García · El de la piscina</span><span class="no">3 personas</span></div>
+        <div class="elec-op"><span class="et">Pérez · El del ruido</span><span class="no">2 personas</span></div>
+        <div class="elec-op"><span class="et">Solteros · El del fondo</span><span class="no">1 persona</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B1</span><span class="op-nombre">Familia y alias, una línea</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> es la más corta (<span data-mide="fila-b1">—</span> pt por fila, caben las
+        dos listas de S1) pero «algún dato» se queda en el alias, que es lo que ya había — solo
+        cambia el orden.
+      </p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">B2</span><span class="op-nombre">Familia · alias, y su gente debajo</span><span class="etq rec">la que propongo</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> fila de <span data-mide="fila-b2">—</span> pt — es lo que descarta el
+        selector doble (S1). <b>Lo paga:</b> «¿cuál era la de Ana y Luis?» se contesta sin saberse
+        los motes, que es exactamente el «más fácil» del encargo. Los nombres usan el apodo si lo
+        hay («Fran, el adolescente» sale como Fran).
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B3</span><span class="op-nombre">El alias manda, la familia en su pastilla de color</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> la pastilla de dos letras (la firma de Ideas, <code>lib/alias.js</code>)
+        identifica la familia por color, pero pide conocer los alias de dos letras — y este
+        selector existe justo para quien no se los sabe. Bonita para quien ya vive en la app,
+        opaca para el resto.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">B4</span><span class="op-nombre">Familia y recuento</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> «2 personas» no distingue a los Pérez de otra familia de dos: el número no
+        identifica, y aquí el dato está para identificar. Útil solo si el grupo creciera mucho.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CINCO ══════════════ -->
+  <div class="parte">Parte cinco · si «buscador» quería decir buscar: la lupa</div>
+  <p class="parte-intro">
+    Por si el encargo pedía además <b>buscar</b> dentro del elegidor de platos y planes. El
+    catálogo del Demo son seis platos; el de verdad crecerá.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">L1</span><span class="op-nombre">Sin buscador</span><span class="etq base">lo de hoy</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> nada mientras el catálogo sea corto; con cuarenta platos, marcar la cena es
+        hacer scroll entre aperitivos.
+      </p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">L2</span><span class="op-nombre">La lupa de «Entre», cuando la lista pasa de diez</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La figura de §14.27: una lupa que comparte renglón con el título; al tocarla sale el campo
+        y al escribir la lista se filtra. Solo aparece con más de diez filas, y <b>no roba el
+        foco</b> al abrir (§14.24).
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> cero puntos cuando no hace falta; la figura ya existe y se copia entera.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">L3</span><span class="op-nombre">Campo de buscar siempre visible</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> 50 pt fijos de campo en todos los elegidores, también en el de tres bungas
+        donde no hay nada que buscar — y la tentación del foco automático, que saca el teclado y
+        se come media capa.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte seis · las combinaciones</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>C2</span><span>V2</span><span>S2</span><span>B2</span><span>L2</span></div>
+    <p>
+      <b>Los elegidores centrados, uno cada vez y sobre un borrador</b>: la capa del día se aparta,
+      el elegidor lleva el día en su cabecera, «Listo» escribe todo junto y «Cancelar», el fondo y
+      la X descartan — la regla cabe en una frase: dentro de un elegidor, nada es definitivo hasta
+      «Listo». <b>El día queda en tres secciones</b> con las bungas en dos filas, así cada selector
+      es una lista y cabe con la <b>fila rica</b> —familia · alias, y su gente debajo—, que es lo
+      que hace fácil acertar la bunga sin saberse los motes. Y la <b>lupa de «Entre»</b> aparece
+      sola cuando una lista pasa de diez.
+    </p>
+    <p>
+      <b>Si prefieres las dos bungas en una pantalla:</b>
+      <span class="receta" style="display:inline"><span>S1</span><span>+B1</span></span> — cabe,
+      medido, pero la fila vuelve a ser el alias con la familia al lado y se pierde la gente, que
+      era el dato que identifica.
+    </p>
+    <p>
+      Esto revisa una decisión de <code>dia-abierto.html</code> con dos semanas de vida —H1, cada
+      toque escribe— y la hoja lo dice con esas palabras en C2: la memoria del día no cambia, la
+      del elegidor pasa a borrador porque un «Cancelar» sin borrador es un verbo que miente.
+      Nada toca la base ni la API: todo es <code>app/</code> (<code>DiasScreen.jsx</code>,
+      <code>Hoja.jsx</code> o un <code>Elegidor.jsx</code> nuevo, y sus tests), cero migraciones.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Elegida C2 + V2 + S2 + B1, con L3 en platos y planes y L1 en bungas</b> («B1 c2 v2 s2
+      l1 y l3 — implementa y merges», 8 de agosto de 2026): el buscador va donde el encargo
+      original lo pedía —platos y planes— y las tres bungas se quedan sin él; la fila del
+      selector se queda con B1 en vez de la B2 propuesta. Esta hoja vive en
+      <code>docs/diseño/elegidores.html</code> —al lado de <code>dia-abierto.html</code>— y el
+      código la cita por sus códigos: <code>CapaDeDia</code>, los <code>Elegidor*</code> y
+      <code>Buscador</code> en <code>DiasScreen.jsx</code>, <code>filtraOpciones</code> en
+      <code>lib/dias.js</code>, y SPECS §14.31.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // Vuelca las medidas reales de las maquetas en el texto al servirse la hoja:
+  // las cifras no pueden desfasarse del dibujo.
+  const alto = (id) => {
+    const el = document.getElementById(id)
+    return el ? Math.round(el.getBoundingClientRect().height * 10) / 10 : null
+  }
+  const pon = (clave, valor) => {
+    if (valor == null) return
+    document.querySelectorAll(`[data-mide="${clave}"]`).forEach((el) => {
+      el.textContent = String(valor).replace('.', ',')
+    })
+  }
+  for (const id of ['m-ahora', 'm-dia3', 'm-sel', 'm-doble', 'fila-b1', 'fila-b2']) pon(id, alto(id))
+</script>

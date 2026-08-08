@@ -97,6 +97,16 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   pulsación dentro de su hoja, y en la hoja de planes marcar pone y desmarcar quita. En «Hoy»
   el titular **titula lo que hay** (`titularDeHoy`): sin cena manda el plan del día, no un
   «Sin cena montada» encima de la playa confirmada.
+- **Los elegidores del día: al centro, con borrador y buscador** (SPECS §14.31,
+  `docs/diseño/elegidores.html` · C2·V2·S2·B1·L3+L1): revisa el «cada toque escribe» de §14.30
+  **solo dentro de un elegidor** —trabaja sobre un borrador: «Listo» escribe todo junto,
+  «Cancelar» y el fondo descartan, porque un «Cancelar» sin borrador es un verbo que miente—;
+  el elegidor **sustituye** a la capa del día (capa sobre capa se lee como marco doble) y lleva
+  el día en su cabecera; el día son **tres secciones** —cena, bungas con dos filas, plan— y cada
+  bunga abre su lista de una, donde **la familia manda** y el alias queda de seña (el selector
+  doble con fila rica medía 815,8 pt y el tope de una capa es 658,3); platos y planes llevan
+  **buscador siempre visible** (`filtraOpciones`, sin tildes y sin robar el foco), las bungas
+  no. `HojaDeMarcar` se retiró con su único consumidor.
 - **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,
