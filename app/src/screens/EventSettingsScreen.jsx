@@ -610,11 +610,16 @@ export function EditorEvento({ event, onCerrar }) {
  * desde el móvil: vive dentro del Worker, y de aquí solo sale «aplica la
  * siguiente».
  *
- * Si esta instalación no habla con la API, no hay sesión o no eres
- * administrador, el bloque no existe: ofrecer un botón que va a fallar al
- * pulsarlo es peor que no ofrecerlo.
+ * **Y siempre dice en cuál de los cuatro estados está**, que es la corrección de
+ * §14.37-bis. El bloque tenía tres formas distintas de no pintar nada —no
+ * administras, todavía no ha contestado, o la base ya está al día— y una cuarta
+ * que tampoco pintaba nada porque se tragaba su error. Desde el móvil las cuatro
+ * se ven igual: no se ve nada. Y quien entra justo a lanzar una migración se
+ * queda mirando el hueco donde debería estar el botón sin poder saber cuál de
+ * las cuatro le ha tocado. Ahora cada una tiene su renglón; el único silencio
+ * que queda es el del primer instante, antes de que conteste la API.
  */
-function MigracionesBloque() {
+function MigracionesBloque({ esAdmin = false }) {
   // null = todavía no se sabe (o no hay API): no se pinta nada.
   const [pendientes, setPendientes] = useState(null)
   const [pasos, setPasos] = useState(null)
@@ -627,12 +632,13 @@ function MigracionesBloque() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!esAdmin) return undefined
     let vivo = true
     leerMigraciones()
       .then((r) => { if (vivo) setPendientes(r.migraciones.filter((m) => m.pendiente).map((m) => m.id)) })
       .catch((e) => { if (vivo) setError(String(e.message ?? e)) })
     return () => { vivo = false }
-  }, [])
+  }, [esAdmin])
 
   async function ponerAlDia() {
     if (ocupado) return
@@ -666,6 +672,12 @@ function MigracionesBloque() {
     setOcupado(false)
   }
 
+  // Quien no administra no ve un botón que le iba a devolver un 403 al pulsarlo,
+  // pero sí ve **por qué** no lo ve: si no, buscar el botón que le han dicho que
+  // está aquí es una búsqueda sin final.
+  if (!esAdmin) {
+    return <div className="pista">La base de datos la pone al día quien administra el grupo.</div>
+  }
   if (error) {
     return (
       <pre className="traza mal" role="status">
@@ -674,7 +686,6 @@ function MigracionesBloque() {
     )
   }
   if (pendientes === null) return null
-  if (!pendientes.length && !pasos) return null
 
   return (
     <>
@@ -839,7 +850,7 @@ function AppSection({ esAdmin = false }) {
           a tiempo—, y eso desde fuera se ve igual que «no se ha bajado». */}
       {paquetes && <ListaDePaquetes paquetes={paquetes} />}
 
-      {esAdmin && <MigracionesBloque />}
+      <MigracionesBloque esAdmin={esAdmin} />
     </div>
   )
 }

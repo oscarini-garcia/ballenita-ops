@@ -3371,7 +3371,32 @@ corriente lo deja sin significar nada el día que sí falle algo. Lo decide
 «no he podido preguntarlo» se ven exactamente igual —no se ve nada—, y quien
 entra justo a lanzar una migración se queda buscando un botón que no existe. Es
 el principio de §14.9-bis en el sitio donde faltaba: ahora el motivo sale con su
-estado HTTP. El bloque sigue siendo solo para administradores.
+estado HTTP.
+
+### 14.37-bis Un hueco no es una respuesta
+
+El arreglo de arriba se quedó corto y lo dijo la pantalla: con el error ya
+contado, el bloque **seguía sin pintar nada**. Porque no eran dos estados sino
+cuatro, y tres se veían igual — como un hueco:
+
+| | Se veía | Ahora dice |
+|---|---|---|
+| No administras | nada | «La base de datos la pone al día quien administra el grupo» |
+| Todavía no ha contestado | nada | nada (dura un instante, y es el único silencio que queda) |
+| La base está al día | nada | «La base de datos está al día» |
+| No se ha podido preguntar | nada → el error (§14.37) | el motivo con su estado HTTP |
+
+El de «al día» se escondía a propósito, para no poner un renglón donde no hay
+nada que hacer. Sale caro: quien viene a lanzar una migración porque se lo han
+dicho no puede distinguir «ya está» de «no te toca» de «no ha cargado», y las
+tres se arreglan de forma distinta. Un renglón de más en un acordeón que se abre
+para diagnosticar es más barato que una pregunta sin respuesta desde el móvil.
+
+El de «no administras» es el que se resistía: el bloque ni se montaba
+(`{esAdmin && <MigracionesBloque />}`), así que el componente no podía hablar. Lo
+que se mueve es **dónde se decide**: el bloque se monta siempre y decide dentro,
+que es donde puede explicarlo. La consulta a la API sigue sin salir si no
+administras — un 403 no se pide para tirarlo.
 
 ## 15. Registro de decisiones
 

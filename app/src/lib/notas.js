@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.33.0',
+    fecha: '2026-08-08',
+    titulo: 'La base de datos dice en qué estado está',
+    lineas: [
+      'En «La app», el bloque de migraciones ya no se queda en blanco: dice si está al día, si va por detrás, si no ha podido preguntar o si esto lo hace quien administra.',
+      'Eran cuatro situaciones distintas que se veían igual —como un hueco— y se arreglan de forma distinta.',
+    ],
+  },
+  {
     version: '0.32.0',
     fecha: '2026-08-08',
     titulo: 'La ballena de la barra es la de la pantalla de inicio',

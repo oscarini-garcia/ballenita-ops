@@ -114,19 +114,23 @@ describe('poner la base al día', () => {
     expect(traza).toHaveClass('mal')
   })
 
-  it('con la base al día no sale nada, y sin administrar tampoco se pregunta', async () => {
+  it('con la base al día lo dice, y no ofrece el botón', async () => {
+    // Antes esto no pintaba nada, igual que «no administras» y que «no he podido
+    // preguntar»: tres silencios distintos que desde el móvil son el mismo hueco.
     entrarComo('administrador')
     leerMigraciones.mockResolvedValue({ migraciones: [{ id: '0010_mejoras', pendiente: false }] })
-    const { unmount } = pintar()
-    await waitFor(() => expect(leerMigraciones).toHaveBeenCalled())
+    pintar()
+    expect(await screen.findByText('La base de datos está al día.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Poner la base al día' })).not.toBeInTheDocument()
     expect(screen.queryByText(/por detrás del código/)).not.toBeInTheDocument()
-    unmount()
+  })
 
-    // Quien no administra ni siquiera pregunta a la API.
+  it('quien no administra ve por qué no ve el botón, y no se pregunta a la API', async () => {
     leerMigraciones.mockClear()
     entrarComo('miembro')
     pintar()
+    expect(await screen.findByText(/la pone al día quien administra/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Poner la base al día' })).not.toBeInTheDocument()
     await new Promise((r) => setTimeout(r, 50))
     expect(leerMigraciones).not.toHaveBeenCalled()
   })
