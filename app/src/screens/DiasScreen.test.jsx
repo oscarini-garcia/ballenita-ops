@@ -97,12 +97,37 @@ describe('DiasScreen', () => {
     await abrirDia('domingo, 9 de agosto')
     await screen.findByRole('heading', { name: /domingo, 9 de agosto/i })
     expect(screen.getByText('La cena')).toBeInTheDocument()
-    expect(screen.getByText('Las bungas')).toBeInTheDocument()
+    // «Los bungas», en masculino: es como habla el grupo («El del ruido»).
+    expect(screen.getByText('Los bungas')).toBeInTheDocument()
     expect(screen.getByText('El plan')).toBeInTheDocument()
-    expect(screen.getByText('la de los Pérez')).toBeInTheDocument()
+    expect(screen.getByText('el de los Pérez')).toBeInTheDocument()
     expect(screen.queryByText(/Guardar la cena/)).toBeNull()
     expect(screen.queryByText(/Montar la cena/)).toBeNull()
     expect(screen.queryByRole('button', { name: 'quitar' })).toBeNull()
+  })
+
+  /** E1 + K4 + G1 (dia-estado.html): el icono de cada renglón es el semáforo. */
+  it('el semáforo del día: verde lo elegido, ámbar lo pendiente', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    // El día 9 tiene cena y bungas puestos, y ningún plan: tres verdes y un ámbar.
+    await abrirDia('domingo, 9 de agosto')
+    await screen.findByRole('heading', { name: /domingo, 9 de agosto/i })
+    expect(document.querySelectorAll('.modal .ico.verde')).toHaveLength(3)
+    expect(document.querySelectorAll('.modal .ico.ambar')).toHaveLength(1)
+  })
+
+  it('un día vacío no grita: cuatro renglones en ámbar y ninguno en rojo', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('martes, 11 de agosto')
+    await screen.findByRole('heading', { name: /martes, 11 de agosto/i })
+    expect(document.querySelectorAll('.modal .ico.ambar')).toHaveLength(4)
+    expect(document.querySelectorAll('.modal .ico.verde')).toHaveLength(0)
   })
 
   /** C2: el elegidor trabaja sobre un borrador — nada escribe hasta «Listo». */
@@ -180,6 +205,8 @@ describe('DiasScreen', () => {
     await abrirDia('viernes, 14 de agosto')
     await userEvent.click(await screen.findByRole('button', { name: /^Mayores toca para elegir/ }))
     expect(await screen.findByRole('heading', { name: 'Bunga mayores' })).toBeInTheDocument()
+    // Quitar también es elegir, y en masculino: «Ninguno», no «Ninguna».
+    expect(screen.getByRole('button', { name: 'Ninguno' })).toBeInTheDocument()
     // La fila dice la familia, con el alias de seña (B1).
     await userEvent.click(screen.getByRole('button', { name: 'Pérez El del ruido' }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))

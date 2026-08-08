@@ -3047,15 +3047,15 @@ como el día ya no se ve, lo lleva en su cabecera: «Bunga mayores» y debajo
 descarta y vuelve al día; sin elegidor, cierra el día, que con C2 no tiene nada
 que perder. Los dos verbos van abajo y en azul (§14.27-bis), con `.salida`.
 
-**S2 · el día en tres secciones.** «La cena» (una fila: los platos), «Las
+**S2 · el día en tres secciones.** «La cena» (una fila: los platos), «Los
 bungas» (**dos filas**: mayores y niños, cada una con su casa y de quién es —
-«Mayores · El del ruido / la de los Pérez»—) y «El plan». Cada bunga abre su
+«Mayores · El del ruido / el de los Pérez»—) y «El plan». Cada bunga abre su
 selector de **una** lista: el doble con la fila rica medía **815,8 pt** en la
 hoja y el tope de una capa es 658,3 — no cabía, y fue lo que decidió partirlo.
 
-**B1 · la familia manda en la fila.** El selector de una bunga la nombra por su
-familia, con el alias de seña a la derecha («Pérez · El del ruido»); una bunga
-sin familia dueña se queda con su alias. «Ninguna» encabeza la lista, porque
+**B1 · la familia manda en la fila.** El selector de un bunga lo nombra por su
+familia, con el alias de seña a la derecha («Pérez · El del ruido»); un bunga
+sin familia dueña se queda con su alias. «Ninguno» encabeza la lista, porque
 quitar también es elegir.
 
 **L3 + L1 · el buscador.** Platos y planes llevan **campo de buscar siempre a
@@ -3070,6 +3070,44 @@ tipo nuevo pasa por ahí.
 Con esto `HojaDeMarcar` se quedó sin su único consumidor y **se retira**;
 `Hoja` y `HojaDeEleccion` siguen siendo la figura de elegir de Ajustes y
 Gastos. Nada toca la base ni la API: todo es `app/`, cero migraciones.
+
+### 14.32 El semáforo del día, y el género del bunga
+
+Decidido en `docs/diseño/dia-estado.html` · **E1 · K4 · G1 · D1**.
+
+**E1 · el icono tiñe.** El estado de cada renglón del día abierto va en su
+pastilla de 34 × 34, la figura exacta de la fila elegida de Planes
+(`.ico.verde`): cero puntos de sitio nuevos, el estado va en tinta y montado en
+un dibujo — como dibujo el listón de contraste es 3 : 1, como texto habría sido
+4,5 y el rojo de la app no llega (3,51 en oscuro sobre su pastilla). Las otras
+tres figuras —el punto suelto, el subtítulo teñido y la pastilla escrita de
+87,7 pt— están costadas en la hoja.
+
+**K4 · verde · ámbar.** El encargo pedía rojo, y la hoja lo dibujó para verlo:
+un día sin montar abría con **cuatro renglones rojos**, con el mismo rojo que
+la app usa para **deuda y borrar** — el único color con carga además del verde
+y las categorías (`iconos.html` · I4)—. El punto de sincronización ya reparte
+el semáforo: **amarillo con cola** —pendiente—, rojo sin red —roto—, y un
+renglón vacío está pendiente, no roto. `.ico.ambar` usa `--gold` (el de
+`.pill.fx`, sin estrenar color): **4,06 : 1** en oscuro y **3,70 : 1** en claro
+como dibujo. Si el ámbar se queda corto visto en el móvil, pasar a rojo (K1) es
+cambiar una variable.
+
+**G1 · cada renglón, el suyo.** Cuatro estados independientes: la cena en verde
+con **al menos un plato** —montada y vacía sigue pendiente—, cada bunga con el
+suyo puesto, el plan con al menos uno colocado. Se ve **qué** falta, no solo
+que falta algo.
+
+**D1 · la lista de Días, quieta.** Su resumen ya distingue el día lleno del
+vacío con palabras; teñir los números eran ocho avisos ocupando la pantalla
+tres semanas antes del viaje (D2 y D3, descartadas en la hoja).
+
+**Y el género del bunga.** El grupo dice «el bunga» —los alias son «El del
+ruido» y «El del fondo», y Gente dice «+ Bunga nuevo…»— y §14.31 se escribió en
+femenino. Corregido en la app y en este spec: **«Ninguno»** en el selector,
+**«el de los Pérez»**, **«toca para cambiarlo»**, **«toca para elegir el
+bunga»**, la sección **«Los bungas»** y «Sin bungas repartidos todavía» en el
+titular de Hoy.
 
 ## 15. Registro de decisiones
 

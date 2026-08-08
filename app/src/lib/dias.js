@@ -208,7 +208,7 @@ export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bun
       .filter(Boolean).join(' · ')
     return {
       grande: titularDeCena(cena, platos),
-      pequeno: bungas || 'Sin bungas repartidas todavía',
+      pequeno: bungas || 'Sin bungas repartidos todavía',
     }
   }
   const deCena = cena ? 'cena sin platos apuntados' : 'sin cena montada todavía'
