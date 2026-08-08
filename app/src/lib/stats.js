@@ -35,7 +35,12 @@ export function computeStats({
   for (const [id, count] of dishCount) if (!topDish || count > topDish.count) topDish = { id, name: dishName[id] ?? '—', count }
 
   // Balance de anfitrión: cuántas veces cada bunga acogió mayores / niños (§6.4).
-  const host = new Map(bungas.map((b) => [b.id, { bungaId: b.id, name: b.alias || b.name, mayores: 0, ninos: 0 }]))
+  // Lleva su **familia dueña**: el balance se lee como el selector del bunga
+  // —la familia manda y el alias queda de seña (§14.31 · B1)—, y quién acoge es
+  // una casa, pero a quién le toca es una familia.
+  const host = new Map(bungas.map((b) => [b.id, {
+    bungaId: b.id, name: b.alias || b.name, familyId: b.familyId ?? null, mayores: 0, ninos: 0,
+  }]))
   for (const c of dinners) {
     if (c.bungaMayoresId && host.has(c.bungaMayoresId)) host.get(c.bungaMayoresId).mayores++
     if (c.bungaNinosId && host.has(c.bungaNinosId)) host.get(c.bungaNinosId).ninos++

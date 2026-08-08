@@ -117,7 +117,8 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 - **Números crece y el semáforo llega a la lista** (SPECS §14.33, `docs/diseño/numeros.html`):
   la casilla del número de cada día tiñe —verde el completo (cena con platos, dos bungas y
   plan), ámbar el resto— y «hoy» pasa a un aro del acento; el selector del bunga lleva la
-  pastilla de color de la familia (`Alias.jsx`); en Números el balance de anfitrión va
+  pastilla de color de la familia (`Alias.jsx`) —y el balance de Números **enseña sus bungas
+  igual**, que a quién le toca acoger es a una familia—; en Números el balance de anfitrión va
   primero, y entran cuatro fichas —día más caro (por día **local**), «Así vais a acabar»
   (solo durante el viaje), días con plan, racha de cenas— y dos retratos al pique (el
   entusiasta 👍 y el indeciso 🤷, con los empates dichos). Todo en `computeStats`, local y

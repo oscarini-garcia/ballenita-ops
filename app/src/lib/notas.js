@@ -16,6 +16,14 @@
  */
 export const NOTAS = [
   {
+    version: '0.28.0',
+    fecha: '2026-08-08',
+    titulo: 'El balance dice de qué familia es cada bunga',
+    lineas: [
+      'En Números, cada bunga del balance se lee como en su selector: la familia con su pastilla de color, y el alias debajo.',
+    ],
+  },
+  {
     version: '0.27.0',
     fecha: '2026-08-08',
     titulo: 'La app cuenta qué cambió',
