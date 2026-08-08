@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import BalancesScreen from './BalancesScreen.jsx'
 import {
@@ -33,6 +33,20 @@ async function sembrar() {
 const filaCon = (texto) =>
   [...document.querySelectorAll('.card .row')].find((f) => f.textContent.includes(texto))
 
+/**
+ * La fila, **esperándola**. La pantalla monta cuatro consultas vivas —gastos,
+ * familias, personas y pagos— que **resuelven por separado**: con los gastos
+ * dentro y las familias todavía no, el encabezado ya está pintado y las filas
+ * dicen «— → —». Buscar la fila en cuanto aparece el encabezado es una carrera
+ * contra la consulta de familias, y se pierde una de cada veinte veces (es lo
+ * que tumbó el flujo del OTA de la v0.29.0).
+ */
+const esperaFila = (texto) => waitFor(() => {
+  const f = filaCon(texto)
+  expect(f, `la fila «${texto}»`).toBeTruthy()
+  return f
+})
+
 describe('BalancesScreen', () => {
   beforeEach(async () => {
     for (const t of ['events', 'families', 'persons', 'expenses', 'settlements', 'outbox']) await db[t].clear()
@@ -44,20 +58,34 @@ describe('BalancesScreen', () => {
     render(<BalancesScreen eventId={eventId} event={event} />)
     await screen.findByText('Saldo por familia')
 
-    const perez = filaCon('Pérez')
+    const perez = await esperaFila('Pérez')
     expect(perez.querySelector('.alias').textContent).toBe('PE')
     // La casilla del emoji se fue: el color vive ahora en la pastilla.
     expect(perez.querySelector('.av')).toBeNull()
   })
 
+  /**
+   * Los importes se comprueban **sin el céntimo**, y no es pereza: el céntimo
+   * que sobra al repartir cae en una familia u otra según el orden de los ids
+   * (`splitCents`), y los ids son de cliente —`crypto.randomUUID()`—, así que
+   * cambian en cada ejecución. Una primera versión de esta prueba afirmaba
+   * «91,85» y pasó en local; en CI salió 91,86 una vez y 91,84 otra, y tumbó
+   * el flujo del OTA. Lo estable —y lo que de verdad importa— es el signo, la
+   * cifra y que las cuentas cuadren.
+   */
   it('cuenta los saldos de verdad, y quién debe y a quién le deben', async () => {
     const { eventId, event } = await sembrar()
     render(<BalancesScreen eventId={eventId} event={event} />)
     await screen.findByText('Saldo por familia')
 
-    expect(filaCon('García').textContent).toContain('debe')
-    expect(filaCon('García').querySelector('.amt').textContent).toMatch(/91,85/)
-    expect(filaCon('Pérez').querySelector('.amt').textContent).toMatch(/\+70,5/)
+    const garcia = await esperaFila('García')
+    expect(garcia.textContent).toContain('debe')
+    expect(garcia.querySelector('.amt').textContent).toMatch(/91,8\d/)
+    expect(filaCon('Pérez').querySelector('.amt').textContent).toMatch(/\+70,5\d/)
+
+    // Y las cuentas cuadran: de tres familias, una debe y a dos les deben.
+    expect(document.querySelectorAll('.card .row .amt.owe')).toHaveLength(1)
+    expect(document.querySelectorAll('.card .row .amt.owed')).toHaveLength(2)
   })
 
   /** R2: dos líneas, quién paga a quién arriba y el importe debajo. */
@@ -69,8 +97,7 @@ describe('BalancesScreen', () => {
     expect(screen.queryByText('transferencia pendiente')).toBeNull()
     expect(screen.queryByText(/Cómo saldar/)).toBeNull()
 
-    const fila = filaCon('García → Pérez')
-    expect(fila).toBeTruthy()
+    const fila = await esperaFila('García → Pérez')
     // Sin el «€» en el patrón: `Intl` separa la moneda con un espacio duro.
     expect(fila.querySelector('.sub').textContent).toMatch(/70,5\d/)
     // El verbo va al lado y en una palabra, no apilado bajo la cifra.
@@ -82,15 +109,20 @@ describe('BalancesScreen', () => {
     render(<BalancesScreen eventId={eventId} event={event} />)
     await screen.findByText('Quién paga a quién')
 
-    await userEvent.click(filaCon('García → Pérez').querySelector('button'))
+    const fila = await esperaFila('García → Pérez')
+    await userEvent.click(fila.querySelector('button'))
 
     expect(await screen.findByText('Pagos apuntados')).toBeInTheDocument()
-    const apuntados = await settlementsOf(eventId)
-    expect(apuntados).toHaveLength(1)
-    // El céntimo del redondeo cae en una familia u otra según el orden de los
-    // ids, que son de cliente: lo que se comprueba es que apunta el importe de
-    // la transferencia, no un número escrito a mano.
-    expect(apuntados[0].amountCents).toBeGreaterThan(7000)
+    // La base se lee **esperando**: entre el toque y la fila escrita hay una
+    // escritura asíncrona, y leerla a pelo es una carrera contra ella.
+    await waitFor(async () => {
+      const apuntados = await settlementsOf(eventId)
+      expect(apuntados).toHaveLength(1)
+      // El céntimo del redondeo cae en una familia u otra según el orden de los
+      // ids, que son de cliente: lo que se comprueba es que apunta el importe de
+      // la transferencia, no un número escrito a mano.
+      expect(apuntados[0].amountCents).toBeGreaterThan(7000)
+    })
   })
 
   /**
@@ -110,10 +142,10 @@ describe('BalancesScreen', () => {
     render(<BalancesScreen eventId={eventId} event={await getEvent(eventId)} />)
     await screen.findByText('Saldo por familia')
 
-    expect(filaCon('Berta')).toBeTruthy()
+    const berta = await esperaFila('Berta')
     expect(screen.queryByText('Sin familia')).toBeNull()
     // Sin familia dueña no hay color, pero sí sus dos letras.
-    expect(filaCon('Berta').querySelector('.alias').textContent).toBe('BE')
+    expect(berta.querySelector('.alias').textContent).toBe('BE')
   })
 
   it('sin gastos no hay cuentas que echar', async () => {
