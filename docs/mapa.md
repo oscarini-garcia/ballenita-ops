@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.29.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  718 pruebas en 77 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.30.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  735 pruebas en 79 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  176 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -40,6 +40,8 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 | `POST` | `/api/plato/arreglar` | sesión | ordena a saco una lista de ingredientes escrita a mano (IA) |
 | `POST` | `/api/plato/parecidos` | sesión | cinco platos enteros que se le parecen (IA) |
 | `POST` | `/api/idea/mejorar` | sesión | la misma idea, mejor contada por el modelo (IA) |
+| `POST` | `/api/estados/sugerir` | sesión | cinco estados para ponerse, del día que va el viaje (IA) |
+| `POST` | `/api/estados/gracia` | sesión | el estado que has escrito, con más gracia (IA) |
 | `POST` | `/api/recados` | sesión | una tanda de frases para el final de la lista (IA) |
 | `POST` | `/api/importar` | servicio | siembra la base desde un volcado de JSONBin (servicio) |
 | `GET` | `/api/mejoras` | servicio | las mejoras pendientes, para quien hace el trabajo (servicio) |
@@ -120,12 +122,14 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `Fab.jsx` — El botón de crear, con la palabra puesta.
 - `Hoja.jsx` — Una hoja que sube desde el borde de abajo (`docs/diseño/gente-editar.html · F2`).
   ↳ HojaDeEleccion
+- `HojaDeEstado.jsx` — Tu estado, en una capa centrada (`docs/diseño/estado.html` · M2 · I1 · I3).
 - `Icono.jsx` — Los dibujos de la app, en una sola tabla.
   ↳ NOMBRES
 - `Ingredientes.jsx` — Los ingredientes de una receta: **una lista sin cajas y un renglón al pie**.
   ↳ detalleDe, resumenDeLista
 - `LineaDelHorizonte.jsx` — La línea del horizonte: tres puntos bajo la cabecera que son el día.
 - `PadDeImporte.jsx` — La cifra grande y el pad de dieciséis teclas (`docs/diseño/gasto-nuevo.html` · A1, SPECS §14.26).
+- `PastillaDeEstado.jsx` — Tu estado, en la segunda línea de la cabecera (`docs/diseño/estado.html` · A3 · V1).
 - `PieDeVersion.jsx` — La versión que hay puesta, al final del scroll, y el botón de actualizar.
 - `ProgresoModal.jsx` — Lo que está pasando, contado de arriba abajo, mientras dura un proceso largo.
   ↳ ListaDePasos
@@ -164,6 +168,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ enDemo, activarDemo, salirDemo
 - `dias.js` — Los días de un evento, y qué se hace en cada uno.
   ↳ diasDe, numeroYDia, diasEntre, platoQueManda, resumenDeDia, diaQueEnsenaHoy · +9 más
+- `estados.js` — Un estado es **un emoji y una frase corta**: «🍺 de resaca».
+  ↳ partirEstado, cincoAlAzar, quienTieneEstado, ESTADOS_DE_SIEMPRE, estadoEnUnaLinea
 - `evento.js` — Qué se cae fuera al cambiar las fechas de un evento.
   ↳ dentroDeFechas, loQueSeCaeFuera, porDia, enPalabras
 - `fechas.js` — Las dos reglas de un par de fechas «desde – hasta».
@@ -252,7 +258,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`app/src/sync/`**
 
 - `api.js` — Transporte contra la API propia (Worker + D1).
-  ↳ hayApi, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta, registrarPush · +14 más
+  ↳ hayApi, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta, registrarPush · +16 más
 - `engine.js` — El orquestador de la sincronización: cuándo se sube la cola y se baja la instantánea.
   ↳ ultimaSincronizacion, syncNow, useSyncEngine
 - `tables.js` — Tablas que se sincronizan (todo lo que es "hecho" del grupo).
@@ -272,6 +278,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ COCINA_DE_ORIGEN, cocinaDe, renglonDeCocina
 - `encargos.js` — Lo que se le pide al modelo, en un sitio y por escrito.
   ↳ encargosDe, modelosDe, encargosPublicos, ENCARGOS, claveDeEncargo, claveDeModelo · +1 más
+- `estados.js` — Los estados de una persona: «🍺 de resaca», «🏖️ tirado en la toalla».
+  ↳ materialDeEstados, materialDeUnEstado, leerEstados, leerUnEstado, pedirEstados, pedirGracia · +3 más
 - `ia.js` — Los dos servicios de la pantalla de IA: **qué modelos hay** y **si la clave vale**.
   ↳ listarModelos, masCercano, conModeloVigente, probar
 - `idea.js` — El encargo del botón «Mejorarla» del editor de una idea (SPECS §14.24).
@@ -350,7 +358,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.15** Quién entra: la sala de espera, las cuentas y los avisos → `index.js`
 - **§14.16** La IA: la clave vive en el servidor → `api.js`, `cocina.js`, `encargos.js`, `ia.js`, `index.js`, `receta.js`, `repositorio.js`
 - **§14.18** El día es el de aquí, no el de Greenwich → `db.js`
-- **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `cantidades.js`, `db.js`, `idea.js`, `index.js`, `recados.js`, `receta.js`, `tablas.js`
+- **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `cantidades.js`, `db.js`, `estados.js`, `idea.js`, `index.js`, `recados.js`, `receta.js`, `tablas.js`
 - **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `cocina.js`, `db.js`, `index.js`, `receta.js`, `sugerencias.js`, `tablas.js`
 - **§14.21** El día del viaje: qué bungas, qué se cena y qué plan → `db.js`
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
@@ -362,5 +370,6 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`
-- **§14.31** Los elegidores del día: al centro, con borrador y buscador → `StatsScreen.jsx`, `stats.js`
+- **§14.31** Los elegidores del día: al centro, con borrador y buscador → `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
+- **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `api.js`, `estados.js`, `index.js`

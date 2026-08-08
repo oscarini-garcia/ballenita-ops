@@ -17,6 +17,7 @@ import PlanesScreen from './screens/PlanesConAreasScreen.jsx'
 import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
 import Icono from './components/Icono.jsx'
 import SyncDot from './components/SyncDot.jsx'
+import PastillaDeEstado from './components/PastillaDeEstado.jsx'
 import LineaDelHorizonte from './components/LineaDelHorizonte.jsx'
 import ProgresoModal from './components/ProgresoModal.jsx'
 import { sincronizarTodo } from './lib/sincronizarTodo.js'
@@ -244,7 +245,14 @@ export default function App() {
         <WhaleLogo className="logo" />
         <div className="grow">
           <div className="ti">{event.name}</div>
-          <div className="su">{event.lugar || 'Ballena Ops'}</div>
+          {/* La segunda línea deja de decir el camping —que después del primer
+              día es decoración: ya sabes dónde estás— y pasa a ser **tu
+              estado**, que se toca (`docs/diseño/estado.html` · A3 · V1). Es
+              la única de las tres colocaciones que no le quita un punto de
+              ancho al nombre del evento; se paga en alto de la cabecera, de
+              78,8 a 94,1. Sin identidad en este móvil vuelve el lugar: no hay
+              estado de nadie que enseñar. */}
+          <PastillaDeEstado eventId={activeId} lugar={event.lugar} />
         </div>
         {/* En demostración la pastilla **sustituye** al punto, no se suma a él.
             La cabecera tiene sitio para tres cosas y el punto no significa nada

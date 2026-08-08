@@ -3222,6 +3222,63 @@ pastilla en gris de `--ink-faint`. «Pagos apuntados» hereda la misma figura en
 pasado, con el ✓ verde a la derecha: ahí el dibujo dice el estado, no la
 familia.
 
+### 14.36 Tu estado, en la cabecera
+
+Decidido en `docs/diseño/estado.html` · **A3 · V1 · M2 · I1 + I3 · G3**.
+
+**El hallazgo que ordenó el encargo.** El estado de una persona
+(`persons.estado`) ya existía, ya se escribía en Ajustes y ya **sincronizaba a
+todo el grupo** — y no se pintaba en ninguna pantalla. Lo que se veía en la
+ficha de una familia es el estado **de la familia**, otro campo. Así que era un
+dato que viajaba a nueve móviles para nada; de ahí que la vuelta traiga también
+G3, que no estaba en el encargo.
+
+**A3 · la segunda línea de la cabecera.** La línea que decía el lugar —que
+después del primer día es decoración— pasa a ser tu estado, en una pastilla que
+se toca (`PastillaDeEstado`). Es la única de las tres colocaciones dibujadas que
+**no le quita ancho al nombre del evento**: la pastilla al lado del título lo
+dejaba en 146 pt y recortaba «Ballenita 2026», que pide 188,1. Se paga en alto
+—la cabecera pasa de **78,8 a 94,1 pt**— y en que el objetivo se queda en 32,
+por debajo de los 44 de iOS: es una pastilla dentro de una barra, no un botón
+suelto. **Los estados largos caben**: la pastilla recorta con puntos
+suspensivos, y «desaparecido en combate» son 187,4 pt de los 262 de la línea.
+
+**V1 · los dos huecos.** Con identidad y sin estado, la pastilla **invita**
+(«+ tu estado»): un botón que no se ve no se estrena, y por eso el campo
+llevaba años vacío. Sin identidad en este móvil vuelve el lugar — no hay estado
+de nadie que enseñar, y la cabecera no es sitio para pedir que te identifiques.
+
+**M2 · el modal.** Capa centrada con **cinco estados enteros** que se tocan y,
+debajo, dos campos para el tuyo. Enteros y no «emoji por un lado, frase por
+otro» porque un estado se lee de una pieza y porque la tanda de la IA viene
+así. Al abrir salen cinco **al azar de los doce escritos a mano**: la lista
+tiene que traer algo antes de que nadie llame a nadie. Trabaja sobre un
+borrador (§14.31 · C2): «Guardar» escribe, «Cancelar» y el fondo descartan.
+
+**I1 + I3 · la IA, dos botones.** «Otras cinco» pide una tanda
+(`POST /api/estados/sugerir`, encargo `estados`, haiku) y **solo cuando se
+pulsa**: llamar al abrir el modal sería gastar una credencial de pago sin que
+nadie lo pida, que es lo que se descartó para las ideas de plan. «Más gracioso»
+(`POST /api/estados/gracia`, encargo `estadoGracia`, sonnet) coge lo escrito y
+lo devuelve mejor contado — la figura de «Mejorarla» de una idea: **no guarda
+nada**, rellena el campo y hay «Deshacer». Sin clave puesta, los dos botones no
+aparecen. Al modelo le llegan el sitio, el día del viaje y qué se lleva
+apuntado; **los nombres no viajan**, y el propio encargo le prohíbe nombrar a
+nadie en una frase. **La tanda no se guarda ni se comparte**, al revés que los
+recadillos: allí la broma es del viaje y que todos lean la misma es lo bueno;
+aquí un estado es tuyo, y compartir la lista acabaría con nueve personas
+puestas lo mismo.
+
+**G3 · quién anda en qué.** Una tira de caras con su estado en «Hoy», bajo los
+planes, que se desplaza de lado —en pila serían 9 × 44 pt de la única pantalla
+que es «un titular y nada más»—. **Solo salen los que han dicho algo**: una
+tira de caras mudas no cuenta nada.
+
+Un estado se guarda como **una sola cadena** («🍺 de resaca») porque es como se
+lee y como ya se escribía; partirlo en dos columnas pediría una migración para
+no ganar nada. `lib/estados.js` lo parte y lo junta, y sabe que la «a» de «a mi
+bola» no es un emoji.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

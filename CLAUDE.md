@@ -131,6 +131,14 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   sobraba estructura, no tamaño. Quien no tiene familia sale con su nombre, no como «Sin
   familia». La hoja se corrigió antes de escribir el spec: su maqueta **doblaba** el titular
   donde `theme.css` lo **recorta**, y por eso midió 119,4 en vez de 93,5.
+- **Tu estado vive en la cabecera, y el del grupo en Hoy** (SPECS §14.36,
+  `docs/diseño/estado.html` · A3·V1·M2·I1+I3·G3): la segunda línea de la barra deja el lugar
+  y pasa a ser **tu estado**, tocable (`PastillaDeEstado`) —es la única colocación que no
+  recorta el nombre del evento, y cuesta 15,3 pt de alto—; sin estado **invita**, sin
+  identidad vuelve el lugar. El modal es capa centrada con cinco estados enteros, «Otras
+  cinco» (IA, solo al pulsar) y «Más gracioso» sobre lo tuyo, que no guarda nada. Y la tira
+  de «Hoy» enseña **quién anda en qué**: el estado sincronizaba desde siempre y no se pintaba
+  en ninguna pantalla.
 - **Cada versión se describe a sí misma** (SPECS §14.34, figura de `meeting-ops-air`):
   `lib/notas.js` lleva unas líneas **a mano** por versión —lo que se nota en pantalla, no qué
   módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de

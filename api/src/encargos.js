@@ -27,6 +27,7 @@ import { INSTRUCCION as CANTIDADES } from './cantidades.js';
 import { INSTRUCCION_ARREGLAR, INSTRUCCION_PARECIDOS } from './receta.js';
 import { INSTRUCCION_MEJORAR } from './idea.js';
 import { INSTRUCCION as RECADOS, POR_TANDA } from './recados.js';
+import { INSTRUCCION_TANDA, INSTRUCCION_GRACIA, POR_TANDA as ESTADOS_POR_TANDA } from './estados.js';
 
 export const ENCARGOS = [
   {
@@ -74,6 +75,23 @@ export const ENCARGOS = [
     // Doce frases de camping no piden el modelo grande, y es lo que más veces
     // se pide del catálogo: una tanda cada dos horas mientras dura el viaje.
     modelo: 'claude-haiku-4-5',
+  },
+  {
+    id: 'estados',
+    titulo: 'Proponer estados para ponerse',
+    pista: `Los que salen al pulsar «Otras ${ESTADOS_POR_TANDA}» en el modal de tu estado: un emoji y una frase muy corta —«de resaca», «poniéndome crema»—. Se le da dónde estáis, qué día del viaje va y qué se lleva apuntado; los nombres no viajan, y el encargo dice expresamente que una frase no nombre a nadie. Espera un JSON con «estados», y dentro «emoji» y «texto»: si reescribes esto, conserva esa parte o el botón dejará de traer nada. La tanda **no se guarda ni se comparte** —un estado es tuyo—. Vacío, vuelve el encargo de origen.`,
+    origen: INSTRUCCION_TANDA,
+    // Cinco frases de camping no piden el modelo grande, como los recadillos.
+    modelo: 'claude-haiku-4-5',
+  },
+  {
+    id: 'estadoGracia',
+    titulo: 'Darle gracia al estado que has escrito',
+    pista: 'El botón «Más gracioso» del modal de tu estado: coge lo que has escrito y devuelve **el mismo** estado mejor contado, no otro distinto. Puede cambiar el emoji. Espera un JSON con «emoji» y «texto». Lo que vuelve no se guarda solo: rellena el campo y Guardar sigue siendo el botón de siempre. Vacío, vuelve el encargo de origen.',
+    origen: INSTRUCCION_GRACIA,
+    // Igual que «Mejorar la redacción de una idea»: contar con gracia pide
+    // criterio, y este botón se pulsa poco.
+    modelo: 'claude-sonnet-4-5',
   },
 ];
 

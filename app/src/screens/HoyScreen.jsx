@@ -1,8 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { dinnersOf, plansOf, bungasOf, listDishes } from '../db.js'
+import { dinnersOf, plansOf, bungasOf, personsOf, listDishes } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import PieDeVersion from '../components/PieDeVersion.jsx'
 import Recado from '../components/Recado.jsx'
+import { estadoEnUnaLinea, partirEstado, quienTieneEstado } from '../lib/estados.js'
 import {
   diasDe, diaQueEnsenaHoy, rotuloDelDia, titularDeHoy, fmtDiaCorto,
 } from '../lib/dias.js'
@@ -31,6 +32,7 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   const planes = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
+  const personas = useLiveQuery(() => personsOf(eventId), [eventId], [])
 
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
   const cual = diaQueEnsenaHoy(dias)
@@ -53,6 +55,7 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   const porId = Object.fromEntries(platos.map((p) => [p.id, p]))
   const susPlatos = (cena?.platoIds ?? []).map((id) => porId[id]).filter(Boolean)
   const nombreBunga = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : null }
+  const conEstado = quienTieneEstado(personas)
 
   const { grande, pequeno } = titularDeHoy({
     cena,
@@ -95,6 +98,31 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
           </button>
         ))}
       </div>
+
+      {/* Quién anda en qué (§14.36 · G3): la tira de caras con su estado, bajo
+          los planes. Es lo que convierte el campo en algo que se usa — hasta
+          ahora el estado sincronizaba a los nueve móviles y no se pintaba en
+          ninguna pantalla. Solo salen los que han dicho algo: una tira de nueve
+          caras mudas no cuenta nada, y esta pantalla es para lo que **hay**. */}
+      {conEstado.length > 0 && (
+        <>
+          <div className="sec-h">Quién anda en qué</div>
+          <div className="tira-estados">
+            {conEstado.map((p) => {
+              const { emoji, texto } = partirEstado(p.estado)
+              return (
+                <div className="est" key={p.id}>
+                  <span className="cara" aria-hidden>{emoji || p.avatar || '🙂'}</span>
+                  <span className="quien">
+                    <span className="n">{p.apodo || p.name}</span>
+                    <span className="q">{texto || estadoEnUnaLinea({ emoji, texto })}</span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
 
       {/* El recado del día, encima de la versión (SPECS §14.25). */}
       <Recado evento={event} />

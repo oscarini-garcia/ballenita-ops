@@ -1,0 +1,660 @@
+<title>Ballena Ops — Tu estado se sincroniza con todo el grupo y no lo ve nadie</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-tarjeta: #ffffff; --abc-linea-suave: #dde6ea; --abc-fondo: #f1f5f7;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+  .coste code { font-family: var(--mono); font-size: 12.5px; }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── El teléfono, a 390 pt. line-height 1.45 = el de body en theme.css. ── */
+  .tira { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45; outline: 1px solid var(--ab-linea); outline-offset: -1px;
+    background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea-suave); }
+  .t-body { padding: 14px 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* La ficha suelta: un trozo de pantalla a su ancho real (362 de cuerpo). */
+  /* La ficha suelta lleva su propia tinta: sin esto hereda la del papel de la
+     hoja —oscura— y el nombre queda casi invisible sobre la tarjeta. */
+  .caja { width: 362px; flex: none; font-family: var(--sans); line-height: 1.45;
+    color: var(--ab-ink); }
+  .caja > .rot { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); margin-bottom: 6px; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; color: var(--ab-faint); }
+  .claro .sec-h { color: var(--abc-faint); }
+
+  .card { border-radius: 9px; background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave);
+    padding: 0 12px; }
+  .claro .card { background: var(--abc-tarjeta); border-color: var(--abc-linea-suave); }
+
+
+  .row { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .row + .row { border-top: 1px solid var(--ab-linea-suave); }
+  .row .main { flex: 1; min-width: 0; }
+  .row .n { font-size: var(--t-row); font-weight: 550; }
+  .row .sub { font-size: var(--t-sub); color: var(--ab-soft); }
+
+  /* La cabecera de verdad, con sus medidas de theme.css. */
+  .appbar { background: var(--ab-cromo, #081821); color: var(--ab-ink); display: flex;
+    align-items: center; gap: 11px; padding: 14px 16px 12px; }
+  .logo { width: 30px; height: 30px; flex: none; background: #8fbdd1; border-radius: 7px; }
+  .grow { flex: 1 1 auto; min-width: 0; }
+  .ti { font-weight: 650; font-size: var(--t-title); letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .su { font-size: var(--t-micro); opacity: .78; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; }
+  .dot { flex: none; min-width: 44px; min-height: 44px; display: flex; align-items: center;
+    justify-content: center; }
+  .dot i { width: 12px; height: 12px; border-radius: 50%; background: #35b37e; display: block;
+    box-shadow: 0 0 0 4px rgba(53,179,126,.14); }
+  .horizonte { height: 4px; background: rgba(230,238,243,.26); position: relative; }
+  .horizonte i { position: absolute; inset: 0 auto 0 0; width: 38%;
+    background: linear-gradient(90deg, #e08b5a, #f7c34f); }
+
+  /* Las tres maneras de meter el estado. */
+  .chip-est { flex: none; background: rgba(255,255,255,.14); border-radius: 999px;
+    padding: 6px 11px; font-size: var(--t-micro); max-width: 150px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; min-height: 32px; display: flex;
+    align-items: center; gap: 5px; }
+  .emoji-btn { flex: none; min-width: 44px; min-height: 44px; display: flex; align-items: center;
+    justify-content: center; }
+  .emoji-btn b { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,.14); font-size: 17px; }
+  .su-btn { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,.12);
+    border: none; color: inherit; font: inherit; font-size: var(--t-micro); border-radius: 999px;
+    padding: 4px 9px; margin-top: 2px; max-width: 100%; min-height: 32px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* El modal centrado. */
+  .velo { background: rgba(4,18,26,.68); display: flex; align-items: center; justify-content: center;
+    padding: 12px 14px; }
+  .capa { width: 100%; background: var(--ab-papel-capa); border: 1.5px solid var(--ab-linea-capa);
+    border-radius: 12px; padding: 18px 16px 22px; box-shadow: 0 18px 44px rgba(4,18,26,.34);
+    color: var(--ab-ink); }
+  .m-t { margin: 4px 0 2px; font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; }
+  .etiq { display: block; font-size: var(--t-label); font-weight: 700; margin: 12px 2px 5px;
+    color: var(--ab-soft); }
+  .campo { width: 100%; background: var(--ab-tarjeta); border: 1px solid var(--ab-linea);
+    border-radius: 7px; padding: 12px; font-size: var(--t-body); color: var(--ab-ink); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--ab-linea); background: var(--ab-tarjeta); border-radius: 999px;
+    padding: 9px 14px; font-size: var(--t-sub); font-weight: 550; min-height: 38px;
+    display: inline-flex; align-items: center; gap: 6px; color: var(--ab-soft); }
+  .chip.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #fff; }
+  .chip.emo { min-height: 38px; width: 44px; justify-content: center; padding: 0; font-size: var(--t-body); }
+  .btn { border: none; border-radius: 8px; padding: 12px 16px; font-family: inherit; font-weight: 600;
+    font-size: var(--t-row); min-height: 44px; background: var(--ab-acento); color: #fff; }
+  .btn.ghost { background: transparent; border: 1px solid var(--ab-linea); color: var(--ab-acento-txt);
+    font-weight: 550; }
+  .btn.sm { padding: 8px 12px; font-size: var(--t-sub); min-height: 38px; border-radius: 7px; }
+  .salida { display: flex; gap: 10px; margin-top: 14px; }
+  .salida > * { flex: 1; }
+  .apunte { font-size: var(--t-label); color: var(--ab-faint); }
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: 9px; padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+  .sug { display: flex; flex-direction: column; border: 1px solid var(--ab-linea-suave);
+    border-radius: 9px; overflow: hidden; background: var(--ab-tarjeta); margin-top: 6px; }
+  .sug > div { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 14px;
+    border-bottom: 1px solid var(--ab-linea-suave); font-size: var(--t-row); }
+  .sug > div:last-child { border-bottom: none; }
+  .sug .e { font-size: var(--t-body); }
+
+  .pie { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.comp td.mal { color: var(--coral); font-weight: 600; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre code { font-family: var(--mono); font-size: 12.5px; }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · el estado en la cabecera</div>
+    <h1>Tu estado se sincroniza con todo el grupo y no lo ve nadie — ni tú</h1>
+    <p class="entradilla">
+      El encargo: el <b>estado de quien está identificado</b> en la barra de arriba, que al
+      tocarlo abra un <b>modal centrado con Guardar y Cancelar</b> para cambiar emoji y texto, y
+      que la <b>IA proponga cinco</b> —siempre emoji y luego una frase corta con gracia—.
+    </p>
+    <p class="entradilla">
+      Mirando el código antes de dibujar aparece algo que cambia la conversación: el estado de
+      una persona <b>ya existe, ya se escribe y ya sincroniza</b> (`persons.estado`) — y <b>no se
+      pinta en ninguna pantalla</b>. Lo que se ve en la ficha de una familia es el estado
+      <b>de la familia</b>, que es otro campo. Así que hoy escribes «🍺 de resaca», viaja a los
+      nueve móviles del grupo… y no lo lee nadie. La cabecera lo arregla <b>para ti</b>; a quién
+      le sirve de verdad es al resto, y eso es la parte cinco.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.29.0 (<code>main</code>, dd64c4a)</span>
+      <span><b>Medida:</b> 390 pt · cabecera de 78,8</span>
+      <span><b>Paleta:</b> Abisal Sobrio</span>
+      <span><b>Contenido:</b> el Demo</span>
+    </div>
+  </div>
+
+  <div class="defectos">
+    <h2>Lo decidido en el encargo · no se vota</h2>
+    <p>
+      <b>1 · El modal es centrado y sale por Guardar o Cancelar</b>, la figura de los elegidores
+      del día (§14.31 · C2): trabaja sobre un borrador y el fondo descarta.<br>
+      <b>2 · Un estado es siempre emoji y luego texto corto.</b> Es lo que ya hay guardado
+      —«🍺 de resaca»— y lo que la IA tiene que devolver.<br>
+      <b>3 · La IA propone cinco de una tanda</b>, la figura de las ideas de plan y de los
+      recadillos: lo caro no es el texto, es contarle el contexto.<br>
+      <b>4 · Al modelo no le viajan los nombres</b> (§14.19-bis): el sitio, el día del viaje y
+      qué se lleva hecho, nunca quién es quién.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · dónde cabe el estado en una cabecera de 390 pt</div>
+  <p class="parte-intro">
+    La cabecera son hoy <b>tres cosas</b> (§14.10): la ballena, dónde estás y el punto de
+    sincronización. Meter una cuarta se paga en <b>ancho del título</b> o en <b>alto de la
+    cabecera</b>, y las dos monedas están medidas abajo. El nombre «Ballenita 2026» pide
+    <b>188,1 pt</b>; hoy tiene 262.
+  </p>
+
+  <div class="tira">
+    <div class="tel">
+      <div class="appbar" id="a0">
+        <div class="logo"></div>
+        <div class="grow"><div class="ti" id="ti-a0">Ballenita 2026</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="dot"><i></i></div>
+      </div>
+      <div class="horizonte"><i></i></div>
+      <p class="pie" style="padding:8px 14px 12px">Hoy · <span data-mide="a0">—</span> pt de alto · el título tiene <span data-mide="ti-a0">—</span></p>
+    </div>
+    <div class="tel">
+      <div class="appbar" id="a1">
+        <div class="logo"></div>
+        <div class="grow"><div class="ti" id="ti-a1">Ballenita 2026</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="chip-est">🍺 de resaca</div>
+        <div class="dot"><i></i></div>
+      </div>
+      <div class="horizonte"><i></i></div>
+      <p class="pie" style="padding:8px 14px 12px">A1 · pastilla entera · título <span data-mide="ti-a1">—</span> pt: <b>recorta</b></p>
+    </div>
+    <div class="tel">
+      <div class="appbar" id="a2">
+        <div class="logo"></div>
+        <div class="grow"><div class="ti" id="ti-a2">Ballenita 2026</div><div class="su">Camping La Ballena Alegre</div></div>
+        <div class="emoji-btn"><b>🍺</b></div>
+        <div class="dot"><i></i></div>
+      </div>
+      <div class="horizonte"><i></i></div>
+      <p class="pie" style="padding:8px 14px 12px">A2 · solo el emoji · título <span data-mide="ti-a2">—</span> pt</p>
+    </div>
+    <div class="tel">
+      <div class="appbar" id="a3">
+        <div class="logo"></div>
+        <div class="grow"><div class="ti" id="ti-a3">Ballenita 2026</div><button class="su-btn">🍺 de resaca</button></div>
+        <div class="dot"><i></i></div>
+      </div>
+      <div class="horizonte"><i></i></div>
+      <p class="pie" style="padding:8px 14px 12px">A3 · en la segunda línea · cabecera <span data-mide="a3">—</span> pt</p>
+    </div>
+  </div>
+
+  <div class="tabla-scroll"><table class="comp">
+    <tr><th></th><th>alto de la cabecera</th><th>ancho del título</th><th>«Ballenita 2026» (188,1)</th><th>«Finde en la sierra» (227,7)</th></tr>
+    <tr><td><b>Hoy</b></td><td class="num"><span data-mide="a0">—</span> pt</td><td class="num"><span data-mide="ti-a0">—</span> pt</td><td>cabe</td><td>cabe</td></tr>
+    <tr><td><b>A1</b> pastilla entera</td><td class="num"><span data-mide="a1">—</span> pt</td><td class="num"><span data-mide="ti-a1">—</span> pt</td><td class="mal">recorta</td><td class="mal">recorta</td></tr>
+    <tr><td><b>A2</b> solo el emoji</td><td class="num"><span data-mide="a2">—</span> pt</td><td class="num"><span data-mide="ti-a2">—</span> pt</td><td>cabe</td><td class="mal">recorta</td></tr>
+    <tr><td><b>A3</b> segunda línea</td><td class="num"><span data-mide="a3">—</span> pt</td><td class="num"><span data-mide="ti-a3">—</span> pt</td><td>cabe</td><td>cabe</td></tr>
+  </table></div>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A1</span><span class="op-nombre">La pastilla entera, entre el título y el punto</span><span class="etq no">recorta el evento</span></div>
+      <p class="op-idea">Emoji y texto a la derecha del título, como una pastilla de 32 pt.</p>
+      <p class="coste">
+        <b>Cuesta:</b> deja el título en <span data-mide="ti-a1">—</span> pt y <b>recorta el
+        nombre del evento</b> ya con el más corto del grupo. La cabecera dice dónde estás: pagarlo
+        con eso es cambiar una cosa por otra, no añadir.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A2</span><span class="op-nombre">Solo el emoji, en un botón de 44</span></div>
+      <p class="op-idea">
+        El emoji dentro de un círculo, con su objetivo de 44 pt. El texto vive dentro del modal.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el estado se queda en la mitad —«🍺» sin «de resaca» es un adorno— y el
+        título baja a <span data-mide="ti-a2">—</span>: cabe «Ballenita 2026», no «Finde en la
+        sierra». <b>Lo paga:</b> cero alto y el toque más limpio de los tres.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">A3</span><span class="op-nombre">En la segunda línea, donde hoy está el camping</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La línea de debajo del título deja de decir el lugar —que después del primer día es
+        decoración: ya sabes en qué camping estás— y pasa a ser <b>tu estado, en una pastilla que
+        se toca</b>. El título no pierde un punto.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la cabecera sube de <span data-mide="a0">—</span> a
+        <span data-mide="a3">—</span> pt —eso sale del cuerpo, que es lo que se desplaza— y el
+        objetivo se queda en <b>32 pt</b>, por debajo de los 44 de iOS: es una pastilla dentro de
+        una barra, no un botón suelto, pero conviene decirlo. Y <b>se pierde el nombre del
+        camping</b> de la cabecera; sigue en Ajustes → Evento.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">A4</span><span class="op-nombre">Fuera de la cabecera: una fila en «Hoy»</span></div>
+      <p class="op-idea">
+        El estado no entra arriba; vive en «Hoy», con el de todo el grupo (ver la parte cinco).
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> no es lo pedido —el encargo dice la barra de arriba— y cambiarlo deja de
+        estar a un toque desde cualquier pantalla. Se lista porque es la que resuelve mejor el
+        hallazgo de la entradilla.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · qué se ve cuando no hay estado, o no hay identidad</div>
+  <p class="parte-intro">
+    Dos huecos que hay que dibujar antes de programar: <b>este móvil no ha dicho quién es</b>
+    —la identidad es por dispositivo y puede estar vacía (§14.14)— y <b>quien sí lo ha dicho no
+    tiene estado puesto</b>, que es el caso de todos el primer día.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">V1</span><span class="op-nombre">Sin estado, invita; sin identidad, no sale</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Con identidad y sin estado, la pastilla dice <b>«＋ tu estado»</b> en voz baja. Sin
+        identidad, la segunda línea vuelve a decir el lugar, como hoy — no hay estado de nadie que
+        enseñar, y la cabecera no es sitio para pedir que te identifiques.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> dos estados de la misma pastilla. <b>Lo paga:</b> el hueco se llena solo
+        —una invitación de una palabra es lo que hace que se estrene— y nadie ve un botón que no
+        puede usar.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V2</span><span class="op-nombre">Sin estado no sale nada</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> la función nace escondida: si no hay estado no hay pastilla, y si no hay
+        pastilla nadie descubre que puede poner uno. Es cómo está hoy el campo, y por eso está
+        vacío.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">V3</span><span class="op-nombre">Sin identidad, la pastilla lleva a elegir quién eres</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> mete en la cabecera un atajo a Ajustes que no es un estado, y quien no se
+        ha identificado ya tiene ese aviso donde hace falta —en Planes, para votar—.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · el modal por dentro</div>
+  <p class="parte-intro">
+    Centrado, con Guardar y Cancelar: eso está decidido. Lo que se elige es <b>qué hay dentro</b>,
+    sabiendo que ya existen doce estados de coña escritos a mano y catorce emoji rápidos
+    (`EventSettingsScreen.jsx`), que hoy solo se ven en Ajustes.
+  </p>
+
+  <div class="tira">
+    <div class="tel">
+      <div class="velo" style="padding:20px 14px">
+        <div class="capa" id="m1">
+          <div class="m-t">Tu estado</div>
+          <span class="etiq">El emoji</span>
+          <div class="chips">
+            <span class="chip emo on">🍺</span><span class="chip emo">🏖️</span><span class="chip emo">😴</span>
+            <span class="chip emo">🐳</span><span class="chip emo">🍷</span><span class="chip emo">🤿</span>
+          </div>
+          <span class="etiq">Y la frase</span>
+          <div class="campo">de resaca</div>
+          <div style="margin-top:10px"><span class="btn ghost sm">✨ Dame cinco</span></div>
+          <div class="salida">
+            <span class="btn ghost" style="text-align:center">Cancelar</span>
+            <span class="btn" style="text-align:center">Guardar</span>
+          </div>
+        </div>
+      </div>
+      <p class="pie" style="padding:8px 14px 12px">M1 · emoji, frase y un botón que pide cinco · <span data-mide="m1">—</span> pt</p>
+    </div>
+
+    <div class="tel">
+      <div class="velo" style="padding:20px 14px">
+        <div class="capa" id="m2">
+          <div class="m-t">Tu estado</div>
+          <div class="apunte" style="margin-top:4px">Toca uno, o escríbelo tú.</div>
+          <div class="sug">
+            <div><span class="e">🍺</span> de resaca</div>
+            <div><span class="e">🏖️</span> tirado en la toalla</div>
+            <div><span class="e">🫥</span> desaparecido en combate</div>
+            <div><span class="e">🍤</span> en modo gamba</div>
+            <div><span class="e">🧴</span> poniéndome crema</div>
+          </div>
+          <div style="margin-top:8px"><span class="btn ghost sm">✨ Otras cinco</span></div>
+          <span class="etiq">O el tuyo</span>
+          <div style="display:flex;gap:8px">
+            <div class="campo" style="width:64px;text-align:center">🍺</div>
+            <div class="campo" style="flex:1">de resaca</div>
+          </div>
+          <div class="salida">
+            <span class="btn ghost" style="text-align:center">Cancelar</span>
+            <span class="btn" style="text-align:center">Guardar</span>
+          </div>
+        </div>
+      </div>
+      <p class="pie" style="padding:8px 14px 12px">M2 · cinco enteros que se tocan, y el tuyo debajo · <span data-mide="m2">—</span> pt</p>
+    </div>
+  </div>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">M1</span><span class="op-nombre">Emoji por un lado, frase por otro</span></div>
+      <p class="op-idea">
+        La figura de Ajustes tal cual: una rejilla de emoji, un campo para la frase y un botón que
+        pide cinco a la IA.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> son dos decisiones para una cosa —un estado es «🍺 de resaca», no un emoji
+        y aparte un texto—, y la tanda de la IA no tiene dónde caer: sus cinco vienen enteros, con
+        emoji y frase, y aquí habría que partirlos en dos campos.
+        <b>Lo paga:</b> <span data-mide="m1">—</span> pt, el más corto.
+      </p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">M2</span><span class="op-nombre">Cinco enteros que se tocan, y el tuyo debajo</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Arriba <b>cinco estados enteros</b> —emoji y frase— que se eligen de un toque, con
+        «Otras cinco» al pie; debajo, dos campos para escribir el tuyo. Al abrir salen los
+        <b>escritos a mano</b> (doce, se enseñan cinco al azar); «Otras cinco» es lo que llama a
+        la IA.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> <span data-mide="m2">—</span> pt —cabe de sobra en la ventana— y una lista
+        que hay que rellenar con algo antes de que la IA conteste. <b>Lo paga:</b> el estado se
+        elige como se lee, entero; la IA encaja sin inventar figura; y sin clave puesta el modal
+        sigue funcionando con los de siempre.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · cómo entra la IA</div>
+  <p class="parte-intro">
+    La cañería está hecha: la clave vive en el servidor, el encargo se escribe en Ajustes
+    (§14.16-quater) y el material lo compone el Worker. Esto es una entrada más en el catálogo
+    —<code>estados</code>— y una ruta, <code>POST /api/estados/sugerir</code>. Lo que se decide
+    es <b>cuándo se llama</b>.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">I1</span><span class="op-nombre">Solo cuando se pulsa «Otras cinco»</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        El modal abre con los doce de siempre y la IA no entra hasta que alguien la pide. Con
+        haiku —el modelo de los recadillos— cinco frases cuestan una fracción de céntimo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> un toque más para quien quiere la coña nueva. <b>Lo paga:</b> es la regla
+        de la casa —<code>planes-votar.html</code> · S3 se descartó por llamar sin que nadie lo
+        pidiera: es una credencial de pago—; y sin clave, el botón no aparece en vez de fallar.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I2</span><span class="op-nombre">La tanda se pide al abrir el modal</span><span class="etq no">llama sin pedirlo</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> una llamada cada vez que alguien abre el modal, aunque venga a escribir el
+        suyo. Es exactamente lo que se descartó en Planes.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I3</span><span class="op-nombre">«Hazlo más gracioso» sobre lo que escribes</span></div>
+      <p class="op-idea">La figura de «Mejorarla» (§14.19-ter): coges tu frase y la devuelve con más chispa.</p>
+      <p class="coste">
+        <b>Cuesta:</b> resuelve otra cosa —pulir lo tuyo, no darte ideas— y el encargo pide cinco
+        a escoger. <b>Se suma después</b> sin quitar nada, y es un botón de dos palabras.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">I4</span><span class="op-nombre">La tanda se guarda y vale para todo el grupo</span></div>
+      <p class="op-idea">
+        Como los recadillos: la tanda se cachea en el servidor con su hora y todos los móviles
+        leen la misma durante un rato.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> aquí el ahorro no compensa —una tanda por persona y por día es calderilla—
+        y encima <b>estropea la gracia</b>: nueve personas eligiendo de la misma lista acaban con
+        el mismo estado. Los recadillos se comparten porque son del viaje; un estado es tuyo.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CINCO ══════════════ -->
+  <div class="parte">Parte cinco · y el de los demás, ¿dónde se ve?</div>
+  <p class="parte-intro">
+    Esto no está en el encargo, y lo pongo porque medir el código lo destapó: <b>el estado de una
+    persona sincroniza a todo el grupo y no se pinta en ninguna pantalla</b>. Con la cabecera
+    puesta, cada uno verá el suyo —que ya se sabe—. Que se vea el de los demás es lo que convierte
+    el campo en algo que se usa.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">G1</span><span class="op-nombre">Que siga sin verse</span><span class="etq base">lo de hoy</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> el encargo se cumple y el campo sigue siendo un adorno privado que viaja a
+        nueve móviles para nada.
+      </p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">G2</span><span class="op-nombre">Bajo cada persona, en Ajustes → El grupo</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La ficha de una familia ya enseña <b>el estado de la familia</b> bajo su nombre; la fila de
+        cada persona gana el suyo igual. Cero pantallas nuevas, cero puntos nuevos: la línea de
+        debajo de una persona hoy está vacía.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> hay que entrar en Ajustes para leerlos, que no es donde se está.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">G3</span><span class="op-nombre">Una tira de caras en «Hoy»</span></div>
+      <p class="op-idea">
+        Bajo el titular, los avatares del grupo con su estado — quién está de resaca y quién ya en
+        la playa, de un vistazo al abrir la app.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> «Hoy» es <b>un titular y nada más</b> por decisión (`navegacion.html` · E1),
+        y esto le mete una segunda cosa que compite. Si el estado prende en el grupo, es la
+        siguiente vuelta natural — con su propia hoja.
+      </p>
+    </div>
+  </div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>A3</span><span>V1</span><span>M2</span><span>I1</span><span>+G2</span></div>
+    <p>
+      <b>El estado en la segunda línea de la cabecera</b>, donde hoy está el nombre del camping —el
+      título no pierde un punto y la barra sube de <span data-mide="a0">—</span> a
+      <span data-mide="a3">—</span> pt—; <b>sin estado invita</b> («＋ tu estado») y sin identidad
+      vuelve el lugar. Al tocar, <b>modal centrado con cinco estados enteros</b> que se tocan,
+      «Otras cinco» que llama a la IA <b>solo cuando se pulsa</b>, dos campos para el tuyo, y
+      Guardar / Cancelar. <b>Y de propina G2</b>: el estado de cada uno bajo su nombre en Ajustes →
+      El grupo, que es lo que hace que escribirlo sirva para algo.
+    </p>
+    <p>
+      <b>Si prefieres no tocar el alto de la cabecera:</b>
+      <span class="receta" style="display:inline"><span>A2</span></span> — solo el emoji, en un
+      botón de 44 y con el título en <span data-mide="ti-a2">—</span> pt. El texto vive dentro del
+      modal y el nombre del camping se queda donde está.
+    </p>
+    <p style="font-size:13.5px">
+      Lo único que toca el servidor es la IA: una entrada <code>estados</code> en el catálogo de
+      encargos y <code>POST /api/estados/sugerir</code>. El estado en sí ya existe, ya sincroniza
+      y no necesita migración.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Elegido A3 + M2 + I1 + I3 + G3</b> («A3, para estados largos… implementa y mergea»,
+      8 de agosto de 2026), con <b>V1</b> de la parte dos y <b>más aire antes del botón de la
+      IA</b> —pegado a la lista se tocaba sin querer—. Se implementó también <b>I3</b> junto a
+      I1, y <b>G3</b> en vez del G2 que proponía. Esta hoja vive en
+      <code>docs/diseño/estado.html</code> y el código la cita:
+      <code>PastillaDeEstado</code> y <code>HojaDeEstado</code>, <code>lib/estados.js</code>,
+      <code>api/src/estados.js</code>, y SPECS §14.36.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  const alto = (id) => {
+    const el = document.getElementById(id)
+    return el ? Math.round(el.getBoundingClientRect().height * 10) / 10 : null
+  }
+  const ancho = (id) => {
+    const el = document.getElementById(id)
+    return el ? Math.round(el.getBoundingClientRect().width * 10) / 10 : null
+  }
+  const pon = (clave, valor) => {
+    if (valor == null) return
+    document.querySelectorAll(`[data-mide="${clave}"]`).forEach((el) => {
+      el.textContent = String(valor).replace('.', ',')
+    })
+  }
+  for (const id of ['a0', 'a1', 'a2', 'a3', 'm1', 'm2']) pon(id, alto(id))
+  for (const id of ['ti-a0', 'ti-a1', 'ti-a2', 'ti-a3']) pon(id, ancho(id))
+</script>

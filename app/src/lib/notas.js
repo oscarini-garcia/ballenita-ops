@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.30.0',
+    fecha: '2026-08-08',
+    titulo: 'Tu estado, en la barra de arriba',
+    lineas: [
+      'La segunda línea de la cabecera es tu estado: tócala y lo cambias, con emoji y frase.',
+      'Cinco para elegir de un toque, «Otras cinco» que las pide a la IA y «Más gracioso» para pulir el tuyo.',
+      'Y en Hoy, la tira de quién anda en qué: hasta ahora el estado viajaba a todos los móviles y no se veía en ninguna pantalla.',
+    ],
+  },
+  {
     version: '0.29.0',
     fecha: '2026-08-08',
     titulo: 'Saldos dice quién paga a quién',

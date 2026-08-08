@@ -205,6 +205,31 @@ export const mejorarIdea = ({ titulo, descripcion, enlace }) =>
   }).then((r) => r.idea || null)
 
 /**
+ * Cinco estados para ponerse (§14.36 · I1).
+ *
+ * Solo se llama al pulsar «Otras cinco»: pedirlos al abrir el modal sería
+ * gastar la credencial de pago sin que nadie lo haya pedido. Sin clave puesta
+ * el Worker contesta la lista vacía con `sinClave`, y el botón no se enseña.
+ */
+export const estadosSugeridos = ({ eventId, hoy }) =>
+  peticion('/api/estados/sugerir', {
+    method: 'POST',
+    body: JSON.stringify({ eventId, hoy }),
+  }).then((r) => r.estados || [])
+
+/**
+ * El estado que has escrito, con más gracia (§14.36 · I3).
+ *
+ * La figura de «Mejorarla» de una idea: lo que vuelve **rellena el campo** y no
+ * guarda nada — se puede deshacer y Guardar sigue siendo el botón de siempre.
+ */
+export const estadoConGracia = ({ emoji, texto }) =>
+  peticion('/api/estados/gracia', {
+    method: 'POST',
+    body: JSON.stringify({ emoji, texto }),
+  }).then((r) => r.estado || null)
+
+/**
  * Cinco platos que peguen con este, para ir adelante y atrás (§14.20-bis).
  *
  * Tanda de cinco, como los regalos de `garciadoral-ops`: lo caro es contarle el
