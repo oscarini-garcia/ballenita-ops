@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.31.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  737 pruebas en 79 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.32.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  742 pruebas en 80 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   176 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -138,7 +138,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `SubNav.jsx` — Control segmentado que vive bajo la cabecera, dentro de una pestaña, para dividir una sección en dos (p. ej. Dinero → Gastos / Saldos).
 - `SyncDot.jsx` — Punto de estado de la sincronización: color + ayuda + si conviene animar.
   ↳ enCambios, estadoSync
-- `WhaleLogo.jsx` — La marca, dibujada.
+- `WhaleLogo.jsx` — La marca: **el icono de la app**, el mismo que se toca en la pantalla de inicio.
 
 **`app/src/lib/`**
 
@@ -240,7 +240,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `DiasScreen.jsx` — «Días»: la lista de días del evento, con un resumen de cada uno.
 - `DineroScreen.jsx` — «Dinero» une las dos caras de lo económico: metes el gasto y ves quién debe a quién sin cambiar de pestaña.
 - `EventSettingsScreen.jsx` — Lo que la lista terminada se queda en pantalla antes de recargar, para poder leerla.
-  ↳ motivoDelOta, EditorEvento
+  ↳ motivoDelOta, EditorEvento, otaFueBien
 - `EventsScreen.jsx` — La lista de eventos: cuál está activo, y crear o editar uno.
 - `ExpensesScreen.jsx` — «19:40» — desempata dos gastos de la misma categoría el mismo día.
 - `FichaDeGasto.jsx` — La ficha de un gasto (SPECS §14.26 · `docs/diseño/gasto-nuevo.html`, combinación A1 · B3 · C1 · D2 · E2).

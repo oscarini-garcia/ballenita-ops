@@ -100,6 +100,20 @@ describe('poner la base al día', () => {
     expect(screen.getByRole('button', { name: 'Poner la base al día' })).toBeInTheDocument()
   })
 
+  it('si no se puede ni preguntar, se dice: el silencio se leía como «está al día»', async () => {
+    // La consulta se tragaba su error y el bloque no aparecía. Desde el móvil,
+    // «no hay nada que aplicar» y «no he podido preguntarlo» se ven igual —no se
+    // ve nada—, y quien viene justo a lanzar una migración se queda buscando un
+    // botón que no existe.
+    entrarComo('administrador')
+    leerMigraciones.mockRejectedValue(new Error('HTTP 401: sesión caducada'))
+    pintar()
+
+    const traza = await screen.findByText(/No se ha podido preguntar por las migraciones/)
+    expect(traza).toHaveTextContent('HTTP 401: sesión caducada')
+    expect(traza).toHaveClass('mal')
+  })
+
   it('con la base al día no sale nada, y sin administrar tampoco se pregunta', async () => {
     entrarComo('administrador')
     leerMigraciones.mockResolvedValue({ migraciones: [{ id: '0010_mejoras', pendiente: false }] })
