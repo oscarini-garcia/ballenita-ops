@@ -58,6 +58,17 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   `dirty`—, y «cambios sin subir» dice lo mismo con uno que con veinte. Ahora `pendientes`
   es el número, sale en el punto, en su rótulo y en su renglón, con tope de 99 en el punto
   (la cabecera es de 390 pt) y sin pintarse dentro de una tarjeta, donde no cabe y sobra.
+- **`fetch` no tiene plazo, y por eso los avisos se quedaban girando** (SPECS §14.17-ter,
+  `sync/api.js` · `PLAZO_API`): «Encender» se quedaba en «Pidiendo…» para siempre, y el
+  eslabón que se colgaba no era ninguno de los tres que este apartado había mirado —Apple,
+  el binario, el permiso— sino el cuarto, el `POST /api/push`, que no se nombraba en ningún
+  sitio. Una dirección que no responde deja una promesa que **ni se cumple ni se rompe**.
+  Toda petición sale con corte de 20 s; `register()` ya no se espera delante de su propia
+  carrera (figura de `garciadoral-ops`: una promesa contestada desde donde llegue la
+  respuesta —token, error o reloj—); y los cuatro eslabones se pintan con `ListaDePasos`,
+  porque se arreglan en cuatro sitios distintos y se veían igual. El entitlement se
+  **escribe** en vez de avisarse (`scripts/entitlements.mjs`): un `App.entitlements` sin
+  `CODE_SIGN_ENTITLEMENTS` no se firma, y eso es indistinguible de no tenerlo.
 - **Una receta lleva cantidades, y de ahí sale la compra** (SPECS §14.20,
   `docs/diseño/cenas-cantidades.html` · G2·A1·C1·D5·E2·F1): el plato dice **para cuántas
   raciones** es (`raciones`) y cada ingrediente **cuánto**; estirarlo a la gente que hay es

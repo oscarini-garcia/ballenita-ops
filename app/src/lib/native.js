@@ -246,10 +246,36 @@ async function conPlazo(promesa, ms = PLAZOS.puente) {
   } finally { clearTimeout(reloj) }
 }
 
-export async function registerPush() {
+/**
+ * Los cuatro eslabones del registro, en el orden en que se recorren. La pantalla
+ * los pinta con estas claves (`screens/CuentasSection.jsx`): «se ha colgado» sin
+ * decir dónde no se puede arreglar, y son cuatro sitios distintos con cuatro
+ * arreglos distintos. `servidor` no es de aquí —lo añade `lib/push.js`—, pero se
+ * nombra en el mismo sitio para que el orden esté escrito una sola vez.
+ */
+export const PASOS_DE_PUSH = ['plugin', 'permiso', 'apple', 'servidor']
+
+/**
+ * El identificador de APNs de este aparato, o `null`.
+ *
+ * `alPaso` recibe la clave de cada eslabón **al empezarlo**, para que quien
+ * llame pueda enseñar en qué va. No devuelve nada y nunca se espera: si quien
+ * escucha rompe, eso no es asunto del registro.
+ */
+export async function registerPush({ alPaso } = {}) {
   if (!isNative()) return null
+  const paso = (clave) => { try { alPaso?.(clave) } catch { /* pintar no puede romper esto */ } }
+
+  paso('plugin')
   const PushNotifications = await plugin()
+
+  paso('permiso')
   const estado = await conPlazo(PushNotifications.checkPermissions())
+  // Denegado se contesta aquí y no se vuelve a preguntar. iOS enseña su hoja una
+  // sola vez en la vida de la instalación: `requestPermissions()` con el permiso
+  // ya denegado devuelve «denied» sin abrir nada, y pedirlo otra vez solo sirve
+  // para que el paso parezca que espera algo que nunca va a pasar.
+  if (estado.receive === 'denied') return null
   // Quince segundos: la hoja de iOS aparece en el acto o no aparece nunca, y
   // contestarla son dos toques. Si se agota, el diagnóstico es el mismo que el
   // de `plugin()` —falta la parte nativa— y por eso `conPlazo` lanza
@@ -259,6 +285,8 @@ export async function registerPush() {
     ? estado
     : await conPlazo(PushNotifications.requestPermissions(), PLAZOS.permiso)
   if (permiso.receive !== 'granted') return null
+
+  paso('apple')
 
   // El token no vuelve de `register()`: llega por un evento, y puede tardar.
   //
@@ -280,7 +308,10 @@ export async function registerPush() {
   let dar
   let fallar
   const llegada = new Promise((resolve, reject) => { dar = resolve; fallar = reject })
-  const asas = await Promise.all([
+  // **Con plazo, como todo lo que cruza el puente.** `addListener` es una
+  // llamada nativa más, y un `await` sin carrera sobre una llamada nativa es la
+  // única forma que tiene este módulo de quedarse quieto para siempre.
+  const asas = await conPlazo(Promise.all([
     PushNotifications.addListener('registration', ({ value }) => dar(value)),
     // Lo que dice Apple aquí es el diagnóstico entero —«no valid
     // 'aps-environment' entitlement string found in application's signature» es
@@ -289,11 +320,21 @@ export async function registerPush() {
     PushNotifications.addListener('registrationError', (e) => {
       fallar(new Error(`Apple rechazó el registro: ${e?.error || e?.message || 'sin motivo'}`))
     }),
-  ])
+  ]))
   let reloj
   try {
     const plazo = new Promise((acaba) => { reloj = setTimeout(() => acaba(null), PLAZOS.registro) })
-    await PushNotifications.register()
+    // **`register()` no se espera**, y esta línea es la corrección: estaba
+    // `await` justo delante de la carrera, así que el reloj corría y no lo miraba
+    // nadie —si la llamada no volvía, no se llegaba nunca al `Promise.race` y la
+    // pantalla se quedaba «Pidiendo…» sin final—. Lo que interesa de `register()`
+    // no es cuándo vuelve, que es en el acto y sin dato, sino lo que llega
+    // después por el evento; y si rompe, rompe por el mismo sitio que un
+    // `registrationError`. Es la figura de `garciadoral-ops`, donde una sola
+    // promesa se contesta desde donde llegue la respuesta: token, error o reloj.
+    Promise.resolve(PushNotifications.register()).catch((e) => {
+      fallar(new Error(`No se pudo pedir el registro a Apple: ${e?.message ?? e}`))
+    })
     return await Promise.race([llegada, plazo])
   } finally {
     clearTimeout(reloj)

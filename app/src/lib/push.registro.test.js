@@ -74,4 +74,76 @@ describe('el registro ante Apple', () => {
     PLAZOS.registro = 20
     expect(await registerPush()).toBe(null)
   })
+
+  /**
+   * El caso de «se me queda colgado»: `register()` estaba **esperado** justo
+   * delante de la carrera, así que el reloj corría sin que lo mirara nadie. Una
+   * llamada que no vuelve dejaba la pantalla en «Pidiendo…» para siempre, que es
+   * el único desenlace que no se puede contar ni arreglar desde el teléfono.
+   */
+  it('un register() que no vuelve nunca no cuelga la pantalla', async () => {
+    const { registerPush, PLAZOS } = await conPuente(base({
+      register: () => new Promise(() => {}),
+      addListener: async (evento, fn) => {
+        if (evento === 'registration') setTimeout(() => fn({ value: 'tok' }), 5)
+        return { remove: async () => {} }
+      },
+    }))
+    PLAZOS.registro = 50
+    // El token llega por su evento aunque `register()` siga sin contestar.
+    expect(await registerPush()).toBe('tok')
+  })
+
+  it('y si además no llega el evento, se acaba en su plazo y sin token', async () => {
+    const { registerPush, PLAZOS } = await conPuente(base({ register: () => new Promise(() => {}) }))
+    PLAZOS.registro = 20
+    expect(await registerPush()).toBe(null)
+  })
+
+  it('un register() que rompe se cuenta con sus palabras', async () => {
+    const { registerPush } = await conPuente(base({
+      register: async () => { throw new Error('el puente no contesta') },
+    }))
+    await expect(registerPush()).rejects.toThrow(/el puente no contesta/)
+  })
+
+  it('un puente que no devuelve los escuchas tampoco cuelga', async () => {
+    const { registerPush, PLAZOS, SIN_PLUGIN } = await conPuente(base({
+      addListener: () => new Promise(() => {}),
+    }))
+    PLAZOS.puente = 20
+    await expect(registerPush()).rejects.toThrow(SIN_PLUGIN)
+  })
+
+  it('con el permiso denegado no se vuelve a preguntar: iOS solo enseña su hoja una vez', async () => {
+    const pedidos = []
+    const { registerPush } = await conPuente(base({
+      checkPermissions: async () => ({ receive: 'denied' }),
+      requestPermissions: async () => { pedidos.push('pedido'); return { receive: 'denied' } },
+    }))
+    expect(await registerPush()).toBe(null)
+    expect(pedidos).toEqual([])
+  })
+
+  it('cada eslabón se anuncia al empezarlo, que es lo que se pinta', async () => {
+    const vistos = []
+    const { registerPush } = await conPuente(base({
+      addListener: async (evento, fn) => {
+        if (evento === 'registration') setTimeout(() => fn({ value: 'tok' }), 0)
+        return { remove: async () => {} }
+      },
+    }))
+    await registerPush({ alPaso: (c) => vistos.push(c) })
+    expect(vistos).toEqual(['plugin', 'permiso', 'apple'])
+  })
+
+  it('si quien pinta rompe, el registro sigue: pintar no es parte del registro', async () => {
+    const { registerPush } = await conPuente(base({
+      addListener: async (evento, fn) => {
+        if (evento === 'registration') setTimeout(() => fn({ value: 'tok' }), 0)
+        return { remove: async () => {} }
+      },
+    }))
+    expect(await registerPush({ alPaso: () => { throw new Error('la pantalla se fue') } })).toBe('tok')
+  })
 })

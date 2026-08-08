@@ -10,6 +10,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { conAvisosDeRegistro } from './appdelegate.mjs'
+import { ENTITLEMENTS_NUEVO, conEntitlementEnProyecto, conPermisoDeAvisos } from './entitlements.mjs'
 
 const IOS_APP = 'ios/App/App'
 
@@ -220,23 +221,47 @@ if (existsSync(plistPath)) {
 // Va en `development`: es lo que corresponde a lo que se archiva y sube, porque
 // **Xcode la cambia sola a `production` al exportar** el archivo para la App
 // Store. Poner `production` a mano rompería las pruebas en el propio móvil.
+//
+// **Y si el fichero no existe, se escribe.** Antes se avisaba y ya: «activa Push
+// Notifications en Xcode». Pero `ios/` no se versiona, así que la primera pasada
+// tras un `cap add ios` es exactamente el caso en el que no existe, y dejarlo en
+// un aviso de consola es dejar los avisos apagados hasta que alguien se acuerde
+// de leerlo. Es lo que hace `garciadoral-ops`, y de ahí viene esto.
 const entPath = join(IOS_APP, 'App.entitlements')
-if (existsSync(entPath)) {
-  const ent = readFileSync(entPath, 'utf8')
-  if (ent.includes('aps-environment')) {
-    console.log('[patch-ios] El permiso de avisos ya estaba declarado.')
-  } else {
-    const cierre = ent.lastIndexOf('</dict>')
-    if (cierre === -1) {
-      console.warn('[patch-ios] ⚠ App.entitlements no tiene la forma esperada; activa «Push Notifications» en Xcode.')
-    } else {
-      const declaracion = '\t<key>aps-environment</key>\n\t<string>development</string>\n'
-      writeFileSync(entPath, ent.slice(0, cierre) + declaracion + ent.slice(cierre))
-      console.log('[patch-ios] Permiso de avisos (aps-environment) declarado ✅')
-    }
-  }
+if (!existsSync(entPath)) {
+  writeFileSync(entPath, ENTITLEMENTS_NUEVO)
+  console.log('[patch-ios] App.entitlements escrito con el permiso de avisos ✅')
 } else {
-  console.warn('[patch-ios] ⚠ No encuentro App.entitlements. Activa «Push Notifications» en Xcode → Signing & Capabilities.')
+  const { fuente, cambiado, yaEstaba } = conPermisoDeAvisos(readFileSync(entPath, 'utf8'))
+  if (yaEstaba) {
+    console.log('[patch-ios] El permiso de avisos ya estaba declarado.')
+  } else if (cambiado) {
+    writeFileSync(entPath, fuente)
+    console.log('[patch-ios] Permiso de avisos (aps-environment) declarado ✅')
+  } else {
+    console.warn('[patch-ios] ⚠ App.entitlements no tiene la forma esperada; activa «Push Notifications» en Xcode.')
+  }
+}
+
+// 5-bis-bis) Que el proyecto sepa que ese fichero es suyo.
+//
+// Un `App.entitlements` que existe en disco y no está en `CODE_SIGN_ENTITLEMENTS`
+// **no se firma**, y entonces es como si no estuviera: el binario sale sin
+// `aps-environment` y Apple contesta «no valid aps-environment entitlement
+// string found in application's signature». Lo escribe Xcode al marcar la
+// capacidad a mano; regenerando `ios/`, no lo escribe nadie. Ver
+// `entitlements.mjs`.
+if (existsSync(pbxPath)) {
+  const { fuente, cambiado, yaEstaba } = conEntitlementEnProyecto(readFileSync(pbxPath, 'utf8'))
+  if (yaEstaba) {
+    console.log('[patch-ios] El permiso de avisos ya estaba declarado en el proyecto.')
+  } else if (cambiado) {
+    writeFileSync(pbxPath, fuente)
+    console.log('[patch-ios] Entitlement de avisos declarado en el proyecto ✅')
+  } else {
+    console.warn('[patch-ios] ⚠ No he encontrado dónde declarar el entitlement en el proyecto.')
+    console.warn('[patch-ios]   Ponlo a mano: target App → Signing & Capabilities → + Push Notifications.')
+  }
 }
 
 // 5-ter) El puente entre APNs y el plugin, que vive en AppDelegate.swift.

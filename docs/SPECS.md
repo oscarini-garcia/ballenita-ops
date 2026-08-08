@@ -1300,6 +1300,50 @@ firmado. Volver así habría sido volver al mismo sitio.
   **un binario nuevo con su revisión**. El entitlement `aps-environment` lo
   repone `patch-ios.mjs` en cada pasada, porque `cap sync` regenera el proyecto.
 
+### 14.17-ter «Se queda colgado en Pidiendo…»
+
+Es el peor desenlace posible de los cinco que tiene encender los avisos, porque
+es el único que **no dice nada**: ni sale, ni falla, ni se puede contar. Y el
+sitio donde se quedaba no era ninguno de los que este apartado había mirado
+—Apple, el binario, el permiso—, sino el cuarto y último, el que no se nombraba.
+
+- **✅ `fetch` no tiene plazo, y ahora la API sí** (`sync/api.js`, `PLAZO_API` =
+  20 s). Esa es la causa: con el permiso ya dado y el identificador ya en la
+  mano, lo que quedaba era el `POST /api/push`, y una dirección que no responde
+  —red de hotel, DNS, el Worker sin publicar— deja una promesa que **ni se cumple
+  ni se rompe**. Dentro de un `await` sin carrera eso es un botón girando para
+  siempre. Toda petición sale con corte, y al agotarse se dice con esas palabras
+  («la API no contestó en 20 s»), que es lo que separa «la API no contestó» de
+  «la API contestó que no» (§14.9-bis). Veinte segundos son de sobra para un
+  Worker, arranque en frío incluido, y bastante menos que la paciencia de nadie.
+- **✅ `register()` ya no se espera** (`lib/native.js`). Estaba con `await` justo
+  delante del `Promise.race`, así que el reloj de los ocho segundos corría y **no
+  lo miraba nadie**: una llamada nativa que no volviera dejaba lo mismo, la
+  pantalla quieta. Lo que interesa de `register()` no es cuándo vuelve —en el
+  acto, y sin dato— sino lo que llega después por el evento; y si rompe, rompe
+  por el mismo sitio que un `registrationError`. Es la figura de
+  `garciadoral-ops`: **una sola promesa que se contesta desde donde llegue la
+  respuesta**, token, error o reloj. Las asas de los escuchas llevan también su
+  plazo, porque cruzan el puente igual que todo lo demás.
+- **✅ Con el permiso denegado no se vuelve a preguntar.** iOS enseña su hoja una
+  sola vez en la vida de la instalación: pedirlo otra vez devuelve «denied» sin
+  abrir nada, y solo servía para que el paso pareciera esperar algo.
+- **✅ Y se dice en cuál de los cuatro se ha quedado** (`ListaDePasos`, la misma
+  figura que Sincronización y Actualizar): *la parte nativa · el permiso de iOS ·
+  el identificador de Apple · el servidor*. Son cuatro sitios distintos con
+  cuatro arreglos distintos —reinstalar, Ajustes de iOS, el entitlement del
+  binario, la dirección de `config.json`— y hasta ahora los cuatro se veían
+  igual. El renglón del fallo **se toca para copiar el informe**; un «no valid
+  `aps-environment` entitlement string found» no se transcribe a mano desde un
+  teléfono.
+- **✅ El entitlement se escribe, no se avisa** (`scripts/entitlements.mjs`, de
+  `garciadoral-ops`). Eran dos cosas y aquí solo se hacía media: `patch-ios.mjs`
+  añadía `aps-environment` **si el fichero ya existía** y se limitaba a avisar por
+  consola si no —justo el caso de la primera pasada tras un `cap add ios`—, y no
+  declaraba `CODE_SIGN_ENTITLEMENTS` en el proyecto. Un `App.entitlements` que
+  existe en disco y no está declarado en el target **no se firma**: mismo
+  silencio, misma respuesta de Apple, y encima el fichero ahí para desmentirlo.
+
 ### 14.18 El día es el de aquí, no el de Greenwich
 
 `toISOString().slice(0, 10)` sobre una fecha construida en local **resta las dos

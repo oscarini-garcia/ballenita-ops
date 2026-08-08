@@ -59,4 +59,23 @@ describe('asegurarPush', () => {
     const apuntar = async () => { throw new Error('500 al guardar') }
     expect(await asegurarPush({ apuntar })).toEqual({ estado: 'error', motivo: '500 al guardar' })
   })
+
+  /**
+   * El cuarto eslabón es el que se colgaba, y hasta ahora ni se nombraba: para
+   * quien miraba el móvil, «pedirle el identificador a Apple» y «apuntarlo en el
+   * servidor» eran el mismo botón girando.
+   */
+  it('el paso del servidor se anuncia, y va detrás de los de Apple', async () => {
+    const vistos = []
+    const alPaso = (c) => vistos.push(c)
+    const registrar = async ({ alPaso: aviso }) => { aviso('apple'); return 'tok_de_apple' }
+    await asegurarPush({ registrar, alPaso, apuntar: async () => ({ ok: true }) })
+    expect(vistos).toEqual(['apple', 'servidor'])
+  })
+
+  it('sin token no se anuncia el servidor: no se llega a llamarlo', async () => {
+    const vistos = []
+    await asegurarPush({ registrar: async () => null, alPaso: (c) => vistos.push(c) })
+    expect(vistos).toEqual([])
+  })
 })

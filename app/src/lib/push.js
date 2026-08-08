@@ -32,17 +32,22 @@ import { registrarPush } from '../sync/api.js'
 
 const porque = (e) => String(e?.message ?? e)
 
-export async function asegurarPush({ registrar = registerPush, apuntar = registrarPush } = {}) {
+export async function asegurarPush({ registrar = registerPush, apuntar = registrarPush, alPaso } = {}) {
   if (!isNative()) return { estado: 'no-aplica' }
+  const paso = (clave) => { try { alPaso?.(clave) } catch { /* pintar no puede romper esto */ } }
   const permiso = await estadoDePush()
   if (permiso !== 'granted') return { estado: permiso }
   let token
   try {
-    token = await registrar()
+    token = await registrar({ alPaso })
   } catch (e) {
     return { estado: 'error', motivo: porque(e) }
   }
   if (!token) return { estado: 'sin-token' }
+  // El cuarto eslabón, y el que se colgaba: `fetch` no tiene plazo, así que una
+  // API que no contesta dejaba esto esperando sin final. El plazo vive donde
+  // vive la llamada (`sync/api.js`), no aquí.
+  paso('servidor')
   try {
     await apuntar(token, true)
   } catch (e) {

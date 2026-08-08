@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.33.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  743 pruebas en 80 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.34.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  768 pruebas en 83 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   176 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -187,7 +187,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `money.js` — Todo el dinero se maneja en CÉNTIMOS enteros para no arrastrar errores de coma flotante.
   ↳ eurosToCents, centsToEuros, formatCents
 - `native.js` — Puente con las capacidades nativas (Capacitor).
-  ↳ urlDelManifiestoOta, isNative, tap, share, checkForOtaUpdate, versionInstalada · +6 más
+  ↳ urlDelManifiestoOta, isNative, tap, share, checkForOtaUpdate, versionInstalada · +7 más
 - `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
   ↳ NOTAS
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
@@ -258,7 +258,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`app/src/sync/`**
 
 - `api.js` — Transporte contra la API propia (Worker + D1).
-  ↳ hayApi, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta, registrarPush · +16 más
+  ↳ hayApi, PLAZO_API, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta · +17 más
 - `engine.js` — El orquestador de la sincronización: cuándo se sube la cola y se baja la instantánea.
   ↳ ultimaSincronizacion, syncNow, useSyncEngine
 - `tables.js` — Tablas que se sincronizan (todo lo que es "hecho" del grupo).
@@ -322,6 +322,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `appdelegate.mjs` — El puente entre APNs y el plugin de avisos, que vive en `AppDelegate.swift`.
   ↳ conAvisosDeRegistro, MARCA
+- `entitlements.mjs` — El permiso de avisos del binario, que son **dos** cosas y no una.
+  ↳ conPermisoDeAvisos, conEntitlementEnProyecto, APS_ENVIRONMENT, ENTITLEMENTS_NUEVO
 - `iconos-web.mjs` — Los iconos de la web y de la PWA, sacados de `assets/icon.png`.
 - `patch-ios.mjs` — Aplica al proyecto iOS generado por Capacitor lo que no cabe en la web: el fix del rebote (rubber-band) del scroll, la declaración de que esto es una app de iPhone, el cumplimiento de expor…
 
@@ -350,7 +352,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14** Arquitectura técnica (PWA) → `db.js`, `ids.js`
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
-- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `ProgresoModal.jsx`, `avatares.js`, `db.js`, `ia.js`, `index.js`, `native.js`, `personas.js`, `primeraBajada.js`, `salida.js`, `tablas.js`, `tables.js`
+- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `ProgresoModal.jsx`, `api.js`, `avatares.js`, `db.js`, `ia.js`, `index.js`, `native.js`, `personas.js`, `primeraBajada.js`, `salida.js`, `tablas.js`, `tables.js`
 - **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `scrollLock.js`, `stats.js`
 - **§14.11** Tipografía: un número y toda la escala → `BalancesScreen.jsx`
 - **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
