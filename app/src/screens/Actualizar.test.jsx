@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { motivoDelOta } from './EventSettingsScreen.jsx'
+import { motivoDelOta, otaFueBien } from './EventSettingsScreen.jsx'
 
 /**
  * Cuando el OTA no trae nada, se dice qué ha pasado (§14.9-bis).
@@ -41,5 +41,28 @@ describe('por qué no ha actualizado', () => {
     expect(motivoDelOta({ status: 'error', error: 'Load failed' })).toMatch(/Load failed/)
     // Sin motivo tampoco se calla: callarlo es lo que se está arreglando.
     expect(motivoDelOta({ status: 'error' })).toMatch(/sin motivo/)
+  })
+})
+
+/**
+ * Y de qué color se dice.
+ *
+ * Los tres desenlaces normales se pintaban en rojo porque la variable que los
+ * guardaba se llamaba `fallo`. «Ya tienes el último paquete» en rojo dice lo
+ * contrario de lo que ha pasado, y gasta en la respuesta corriente del botón el
+ * color que aquí es deuda y borrar. Los nombres de las pruebas de arriba ya
+ * decían «no es un fallo» desde el primer día; lo que faltaba era el píxel.
+ */
+describe('si fue bien o no', () => {
+  it('los tres desenlaces normales no son fallo', () => {
+    expect(otaFueBien({ status: 'up-to-date', version: '0.31.0' })).toBe(true)
+    expect(otaFueBien({ status: 'armed', version: '0.31.0' })).toBe(true)
+    expect(otaFueBien({ status: 'skip' })).toBe(true)
+  })
+
+  it('y lo que no trajo el paquete, sí', () => {
+    expect(otaFueBien({ status: 'no-manifest' })).toBe(false)
+    expect(otaFueBien({ status: 'error', error: 'Load failed' })).toBe(false)
+    expect(otaFueBien()).toBe(false)
   })
 })

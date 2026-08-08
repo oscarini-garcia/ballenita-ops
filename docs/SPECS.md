@@ -2168,8 +2168,19 @@ lo demás va con contorno. Antes iban todos llenos del mismo cian saturado, y un
 pantalla con cinco botones cantando no dice cuál es el bueno.
 
 **La marca también se dibuja.** `WhaleLogo` era un emoji de ballena sobre un
-cuadrado con una «B» de marca de agua tan apagada que no se leía; ahora es el
-mismo trazo que el resto y se recolorea con `--whale`.
+cuadrado con una «B» de marca de agua tan apagada que no se leía; pasó a ser el
+mismo trazo que el resto, recoloreado con `--whale`.
+
+**Y desde §14.37, la marca de dentro es el icono de fuera.** El trazo se retiró:
+`WhaleLogo` sirve `public/icon-192.png` —el de 512 en la puerta, que mide 84 pt y
+a 3× pide 252—, con la esquina redondeada al **22,37 %** del lado, la proporción
+de iOS, para que se lea como la loseta que se toca en la pantalla de inicio.
+Coherencia con los iconos de la interfaz a cambio de que tocaras un dibujo y se
+abriera una app con otro; la cabecera es justo donde se comprueba que has abierto
+lo que querías. Se paga en detalle: a 30 pt el chorro y la «B» no sobreviven y
+queda la ballena sobre su fondo. Ya no hereda el color del tema, a propósito —un
+icono de app no es un icono de interfaz—. `Icono` conserva el trazo `ballena`,
+que sigue siendo el del acordeón de IA en Ajustes.
 
 **El icono de la app sale de un solo sitio.** `app/assets/icon.png` (1024×1024)
 ya alimentaba el binario de iOS vía `npm run assets:ios`; ahora también la web y
@@ -3313,6 +3324,38 @@ nombre, que es lo que había. Todo el orden vive en `quienTieneEstado`, pura.
 Como toda migración, la `0013` **no se aplica sola** (§14.23): hasta que se
 lance desde Ajustes → Actualizar, el Worker no conoce la columna y el «cuándo»
 no sobrevive a una vuelta de sincronización.
+
+### 14.37 La marca es el icono, y el rojo se reserva para lo que falla
+
+Tres cosas que dijo la pantalla de Ajustes → 🐳 La app, ninguna de diseño
+abierto.
+
+**La marca de dentro pasa a ser el icono de fuera.** `WhaleLogo` servía el trazo
+de `Icono` (§14.13); ahora sirve `public/icon-192.png` —el de 512 en la puerta,
+que mide 84 pt y a 3× pide 252—, con la esquina redondeada al **22,37 %** del
+lado, la proporción de iOS. El detalle en el que se pagaba antes era el
+contrario: coherencia con los iconos de la interfaz a cambio de que tocaras un
+dibujo en la pantalla de inicio y se abriera una app con otro. La cabecera es
+justo donde se comprueba que has abierto lo que querías abrir. A 30 pt el chorro
+y la «B» no sobreviven y queda la ballena sobre su fondo: es lo que cuesta. Ya no
+hereda `--whale`, a propósito — un icono de app no es un icono de interfaz.
+
+**«Ya tienes el último paquete» salía en rojo.** De los cinco desenlaces de
+`motivoDelOta`, **tres no son un fallo**: ya la tienes, queda puesta para el
+próximo arranque, y en la web no hay paquete que traer. Los cinco se pintaban
+`traza mal` porque la variable que los guardaba se llamaba `fallo` y el color
+venía detrás del nombre. Leer en rojo la respuesta normal del botón dice lo
+contrario de lo que ha pasado, y aquí el rojo es deuda y borrar: gastarlo en lo
+corriente lo deja sin significar nada el día que sí falle algo. Lo decide
+`otaFueBien`, y los nombres de las pruebas de `Actualizar.test.jsx` ya decían
+«no es un fallo» desde que se escribieron.
+
+**Y el bloque de migraciones se callaba cuando no podía preguntar.**
+`leerMigraciones().catch(() => {})`: desde el móvil, «no hay nada que aplicar» y
+«no he podido preguntarlo» se ven exactamente igual —no se ve nada—, y quien
+entra justo a lanzar una migración se queda buscando un botón que no existe. Es
+el principio de §14.9-bis en el sitio donde faltaba: ahora el motivo sale con su
+estado HTTP. El bloque sigue siendo solo para administradores.
 
 ## 15. Registro de decisiones
 

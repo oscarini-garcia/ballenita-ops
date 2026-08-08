@@ -143,6 +143,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   acrónimo de su familia (`Alias.jsx`); y el orden lo da **`estadoEl`**, que escribe el
   cliente al guardar (migración `0013`) y no `updatedAt`, que se mueve al corregir un apodo.
   Lo de antes de la migración no tiene fecha: va detrás y entre sí por nombre.
+- **La marca es el icono de la app, y el rojo se reserva** (SPECS §14.37): `WhaleLogo` sirve
+  `public/icon-192.png` (el de 512 en la puerta, 84 pt a 3×) con esquina al 22,37 %; tocabas
+  un dibujo en la pantalla de inicio y se abría una app con otro. En Actualizar, tres de los
+  cinco desenlaces del OTA **no son un fallo** (`otaFueBien`) y salían en rojo por llamarse
+  `fallo` la variable; y el bloque de migraciones **se callaba** al no poder preguntar, que
+  desde el móvil se lee igual que «está al día».
 - **Cada versión se describe a sí misma** (SPECS §14.34, figura de `meeting-ops-air`):
   `lib/notas.js` lleva unas líneas **a mano** por versión —lo que se nota en pantalla, no qué
   módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de

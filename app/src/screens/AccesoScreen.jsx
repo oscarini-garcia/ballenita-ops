@@ -276,7 +276,7 @@ export default function AccesoScreen({ configuracion, onEntrar, onLocal, onDemo,
 
   return (
     <div className="acceso">
-      <WhaleLogo className="acceso-logo" />
+      <WhaleLogo className="acceso-logo" grande />
       <h1>Ballena Ops 🐳</h1>
       <p className="acceso-texto">Los gastos, las cenas y los planes del grupo.</p>
 

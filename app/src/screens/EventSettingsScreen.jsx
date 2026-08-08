@@ -72,6 +72,20 @@ export function motivoDelOta(ota = {}) {
 }
 
 /**
+ * De los cinco desenlaces, **tres no son un fallo**: ya la tienes, queda puesta
+ * para el próximo arranque, o esto es la web y aquí no hay paquete que traer.
+ *
+ * La traza los pintaba los cinco en rojo, porque la variable que los guardaba se
+ * llamaba `fallo` y el rojo venía detrás del nombre. Leer en rojo «ya tienes el
+ * último paquete» dice lo contrario de lo que ha pasado, y el rojo en esta app
+ * es deuda y borrar: gastarlo en la respuesta normal del botón lo deja sin
+ * significar nada el día que sí falle algo. Los nombres de las pruebas de
+ * `Actualizar.test.jsx` ya decían «no es un fallo» desde que se escribieron.
+ */
+const OTA_SIN_FALLO = new Set(['up-to-date', 'armed', 'skip'])
+export const otaFueBien = (ota = {}) => OTA_SIN_FALLO.has(ota.status)
+
+/**
  * Los paquetes OTA que hay en el móvil, tal como los ve el plugin.
  *
  * Es un dato para diagnosticar y por eso va crudo: versión, estado y nada más.
@@ -605,12 +619,18 @@ function MigracionesBloque() {
   const [pendientes, setPendientes] = useState(null)
   const [pasos, setPasos] = useState(null)
   const [ocupado, setOcupado] = useState(false)
+  // Por qué no se sabe. La consulta se tragaba su error y el bloque no aparecía:
+  // desde el móvil, «la base está al día» y «no he podido preguntarlo» se ven
+  // exactamente igual —no se ve nada—, y quien viene justo a lanzar una
+  // migración se queda buscando un botón que no existe. Es el mismo principio
+  // del informe de sincronización (§14.9-bis) en el sitio donde faltaba.
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     let vivo = true
     leerMigraciones()
       .then((r) => { if (vivo) setPendientes(r.migraciones.filter((m) => m.pendiente).map((m) => m.id)) })
-      .catch(() => {})
+      .catch((e) => { if (vivo) setError(String(e.message ?? e)) })
     return () => { vivo = false }
   }, [])
 
@@ -646,6 +666,13 @@ function MigracionesBloque() {
     setOcupado(false)
   }
 
+  if (error) {
+    return (
+      <pre className="traza mal" role="status">
+        {`No se ha podido preguntar por las migraciones: ${error}`}
+      </pre>
+    )
+  }
   if (pendientes === null) return null
   if (!pendientes.length && !pasos) return null
 
@@ -678,7 +705,9 @@ function AppSection({ esAdmin = false }) {
   const [terminado, setTerminado] = useState(false)
   // Lo que contestó el paquete OTA cuando no fue «actualizado». Se enseña en vez
   // de tirarse: «no ha actualizado» sin motivo no se puede arreglar desde aquí.
-  const [fallo, setFallo] = useState(null)
+  // Lleva **si fue bien**, que es lo que decide el color: tres de los cinco
+  // desenlaces son normales y salían en rojo.
+  const [respuesta, setRespuesta] = useState(null)
   // La versión del **paquete que se está ejecutando**, que dentro de la app es la
   // que cuenta: la de `package.json` es la que se horneó en el binario.
   const [enCurso, setEnCurso] = useState(null)
@@ -704,7 +733,7 @@ function AppSection({ esAdmin = false }) {
     tap()
     marcarPostActualizacion() // al re-arrancar, la app vuelve aquí en vez de a Hoy
     setTerminado(false)
-    setFallo(null)
+    setRespuesta(null)
     setPaso('checking') // empieza a contar ya, sin esperar al primer aviso
     const inicio = Date.now()
 
@@ -722,7 +751,7 @@ function AppSection({ esAdmin = false }) {
       // de iOS no trae nada— y terminaba con su ✓. La pantalla decía que había
       // actualizado y el teléfono se quedaba en la de antes, sin nada que mirar.
       setPaso(null)
-      setFallo(motivoDelOta(ota))
+      setRespuesta({ texto: motivoDelOta(ota), bien: otaFueBien(ota) })
       return
     }
 
@@ -798,7 +827,9 @@ function AppSection({ esAdmin = false }) {
         </>
       )}
 
-      {fallo && <pre className="traza mal" role="status">{fallo}</pre>}
+      {respuesta && (
+        <pre className={`traza ${respuesta.bien ? 'bien' : 'mal'}`} role="status">{respuesta.texto}</pre>
+      )}
 
       {/* Los paquetes que hay bajados y en qué estado. Cuando la app se queda en
           la versión de antes no había **nada** que mirar: el manifiesto decía
