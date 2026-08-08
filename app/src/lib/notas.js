@@ -20,7 +20,7 @@ export const NOTAS = [
     fecha: '2026-08-08',
     titulo: 'La ballena de la barra es la de la pantalla de inicio',
     lineas: [
-      'La marca de la cabecera, la puerta y la lista de eventos es ahora el icono de la app.',
+      'La marca de la cabecera, la puerta y la lista de eventos es ahora el icono de la app, el mismo que tocas para abrirla.',
       'En «La app», «Ya tienes el último paquete» deja de salir en rojo: de las cinco respuestas, tres son buenas noticias.',
       'Y si no se puede preguntar por las migraciones, lo dice en vez de no enseñar nada.',
     ],

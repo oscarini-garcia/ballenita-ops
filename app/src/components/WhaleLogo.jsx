@@ -1,29 +1,37 @@
 /**
- * La marca: **el icono de la app**, el mismo que hay en la pantalla de inicio.
+ * La marca: **el icono de la app**, el mismo que se toca en la pantalla de
+ * inicio.
  *
- * Antes eran dos dibujos. Fuera, `assets/icon.png` —la ballena sobre la «B»—,
- * del que comen el binario de iOS (`assets:ios`) y los PNG de la web y la PWA
- * (`iconos:web`). Dentro, un trazo de `Icono` sobre la rejilla de 24, elegido
- * para que la marca heredara el color del tema. La coherencia con los iconos de
- * la interfaz salía cara: tocas un dibujo en el móvil y se abre una app con
- * otro, y el de la cabecera es justo el sitio donde se comprueba que has
+ * Antes eran dos dibujos. Dentro, un trazo de `Icono` sobre la rejilla de 24,
+ * elegido para que la marca heredara el color del tema. La coherencia con los
+ * iconos de la interfaz salía cara: tocas un dibujo en el móvil y se abre una
+ * app con otro, y la cabecera es justo el sitio donde se comprueba que has
  * abierto lo que querías abrir.
  *
- * Así que la marca de dentro pasa a ser la de fuera. Se sirve desde `public/`
- * —está en el build como cualquier estático, no viaja por el bundle— y va por
- * `BASE_URL` como la configuración, para que no dependa de dónde esté montada.
- * En pequeño (cabecera y lista de eventos) basta el de 192, que a 30 pt cubre
- * hasta 6×; el grande de la puerta mide 84 y pide el de 512, que a 3× son 252.
+ * **Y no sale de `assets/icon.png`**, que es lo que parecía. Ese fichero —la
+ * ballena sobre la «B»— es el único icono que hay en el repositorio, pero **no
+ * es el que lleva el binario instalado**: quien montó la app usó otro dibujo que
+ * nunca se subió aquí. Así que `assets/marca.png` es ese icono **sacado de una
+ * captura de 202 px**, recortado del marco y con las esquinas devueltas a
+ * cuadrado —el redondeo lo pone `.marca img`, al 22,37 % del lado, que es la
+ * proporción de iOS—.
  *
- * Es un dibujo con su fondo, no un trazo: **ya no se recolorea con `--whale`**,
- * y por eso lleva su esquina redondeada — para que se lea como la loseta que es
- * y no como una foto pegada en la barra.
+ * De ahí el único tamaño: **192 px**, que es todo lo que da el original. Sobra
+ * para la cabecera (30 pt, hasta 6×) y para la lista de eventos; en la puerta,
+ * que mide 84, se queda a un pelo de los 252 que pediría un 3× y se nota un
+ * punto blando. Se arregla solo el día que aparezca el dibujo de verdad: se pone
+ * en `assets/icon.png`, se corre `npm run iconos:web` y esto pasa a comer de sus
+ * PNG como todo lo demás.
+ *
+ * Es un dibujo con su fondo, no un trazo: **no se recolorea con `--whale`**, y
+ * por eso lleva su esquina redondeada — para que se lea como la loseta que es y
+ * no como una foto pegada en la barra.
  */
-export default function WhaleLogo({ className = '', grande = false }) {
+export default function WhaleLogo({ className = '' }) {
   const base = import.meta.env?.BASE_URL ?? '/'
   return (
     <span className={`marca ${className}`}>
-      <img src={`${base}icon-${grande ? 512 : 192}.png`} alt="Ballena Ops" />
+      <img src={`${base}marca-192.png`} alt="Ballena Ops" />
     </span>
   )
 }

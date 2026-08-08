@@ -3331,14 +3331,30 @@ Tres cosas que dijo la pantalla de Ajustes → 🐳 La app, ninguna de diseño
 abierto.
 
 **La marca de dentro pasa a ser el icono de fuera.** `WhaleLogo` servía el trazo
-de `Icono` (§14.13); ahora sirve `public/icon-192.png` —el de 512 en la puerta,
-que mide 84 pt y a 3× pide 252—, con la esquina redondeada al **22,37 %** del
-lado, la proporción de iOS. El detalle en el que se pagaba antes era el
-contrario: coherencia con los iconos de la interfaz a cambio de que tocaras un
-dibujo en la pantalla de inicio y se abriera una app con otro. La cabecera es
-justo donde se comprueba que has abierto lo que querías abrir. A 30 pt el chorro
-y la «B» no sobreviven y queda la ballena sobre su fondo: es lo que cuesta. Ya no
+de `Icono` (§14.13); ahora sirve el icono de la app, con la esquina redondeada al
+**22,37 %** del lado, la proporción de iOS. El detalle en el que se pagaba antes
+era el contrario: coherencia con los iconos de la interfaz a cambio de que
+tocaras un dibujo en la pantalla de inicio y se abriera una app con otro. La
+cabecera es justo donde se comprueba que has abierto lo que querías abrir. Ya no
 hereda `--whale`, a propósito — un icono de app no es un icono de interfaz.
+
+**Y aquí salió el desfase: el icono del binario no está en el repositorio.**
+`assets/icon.png` —la ballena sobre la «B»— es el único que hay, y es de lo que
+comen `assets:ios` e `iconos:web`; pero la app instalada lleva **otro dibujo**
+(la ballena azul con el chorro de colores) que nunca se subió. Se descubrió al
+poner el de `assets/` en la cabecera y no reconocerlo. Las dos consecuencias
+importan más que la marca: **el día que alguien corra `npm run assets:ios` el
+icono de la pantalla de inicio vuelve al viejo**, y `docs/APPSTORE.md` dice que
+el icono sale de ese fichero, que hoy es falso.
+
+Mientras no aparezca el original, `assets/marca.png` es ese icono **sacado de una
+captura de 202 px** —recortado del marco y con las esquinas devueltas a cuadrado—
+y `public/marca-192.png` lo que se sirve. De ahí el tamaño único: 192 px es todo
+lo que da. Sobra para la cabecera (30 pt, hasta 6×) y para la lista de eventos;
+en la puerta, que mide 84, se queda por debajo de los 252 de un 3× y se nota un
+punto blando. **No sustituye a `assets/icon.png`**: un JPEG de 202 px estirado a
+1024 no es un icono de App Store. El día que aparezca el dibujo de verdad se pone
+ahí, `npm run iconos:web` regenera, y esto vuelve a comer de un solo sitio.
 
 **«Ya tienes el último paquete» salía en rojo.** De los cinco desenlaces de
 `motivoDelOta`, **tres no son un fallo**: ya la tienes, queda puesta para el

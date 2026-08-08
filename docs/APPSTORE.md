@@ -173,6 +173,14 @@ Léele la salida: dice qué ha tocado y qué no ha sabido tocar.
 los tamaños. Apple es estricta con esa imagen y el rechazo llega al subir, no al
 compilar:
 
+> ⚠️ **Hoy ese fichero no es el icono que lleva el binario instalado** (SPECS
+> §14.37). En el repositorio está la ballena sobre la «B»; en el teléfono hay
+> otro dibujo —la ballena azul con el chorro de colores— que se usó al montar la
+> app y nunca se subió aquí. Así que **correr `assets:ios` ahora mismo devolvería
+> el icono viejo a la pantalla de inicio**. Antes de archivar un binario, pon el
+> original de 1024 en `app/assets/icon.png` y corre también `npm run iconos:web`,
+> que es lo que vuelve a dejar un solo sitio del que salga todo.
+
 | Requisito | Por qué |
 |---|---|
 | **1024 × 1024** exactos | Es el que va a la ficha; los demás se derivan de él |

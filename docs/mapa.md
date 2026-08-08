@@ -138,7 +138,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `SubNav.jsx` — Control segmentado que vive bajo la cabecera, dentro de una pestaña, para dividir una sección en dos (p. ej. Dinero → Gastos / Saldos).
 - `SyncDot.jsx` — Punto de estado de la sincronización: color + ayuda + si conviene animar.
   ↳ enCambios, estadoSync
-- `WhaleLogo.jsx` — La marca: **el icono de la app**, el mismo que hay en la pantalla de inicio.
+- `WhaleLogo.jsx` — La marca: **el icono de la app**, el mismo que se toca en la pantalla de inicio.
 
 **`app/src/lib/`**
 
