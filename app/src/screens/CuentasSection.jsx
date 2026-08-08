@@ -10,7 +10,7 @@ import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, li
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
-import { SIN_PLUGIN, estadoDePush, isNative, registerPush, tap } from '../lib/native.js'
+import { SIN_PLUGIN, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
 import { asegurarPush } from '../lib/push.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
@@ -341,7 +341,12 @@ export function NotificacionesSection() {
       setPermiso(await estadoDePush())
     } catch (e) {
       const motivo = String(e?.message ?? e)
-      cerrar('fallo', motivo)
+      // Sin plugin, «sin-plugin» en el renglón no informa de nada: lo que hay que
+      // poder copiar es **en qué se basa** —qué plataforma dice el puente y qué
+      // plugins trae—. Si están Haptics y Share pero no PushNotifications, el
+      // binario es anterior al plugin; si no está ninguno, lo que falla es el
+      // puente entero y los avisos son lo de menos.
+      cerrar('fallo', motivo === SIN_PLUGIN ? informeDelPuente() : motivo)
       setPermiso(motivo === SIN_PLUGIN ? SIN_PLUGIN : await estadoDePush())
       if (motivo !== SIN_PLUGIN) setFallo(motivo)
     } finally { setYendo(false) }

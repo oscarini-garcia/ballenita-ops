@@ -1336,6 +1336,27 @@ sitio donde se quedaba no era ninguno de los que este apartado había mirado
   igual. El renglón del fallo **se toca para copiar el informe**; un «no valid
   `aps-environment` entitlement string found» no se transcribe a mano desde un
   teléfono.
+- **✅ Y el renglón contestó: se paraba en el primero.** La lista se estrenó
+  diciendo lo que ninguna de las vueltas anteriores había podido: no fallaba
+  Apple, ni el permiso, ni el servidor —se quedaba en *«Buscando la parte nativa
+  de los avisos»*—. Ese eslabón tenía una espera que sobraba: si el objeto no
+  está en `Capacitor.Plugins`, se caía a `import('@capacitor/push-notifications')`
+  con plazo de seis segundos. Y ese import **no es una segunda opinión**: el
+  JavaScript del paquete viaja dentro del OTA, así que importarlo funciona
+  siempre y el objeto que devuelve llama a una parte nativa que no existe (por
+  eso se colgaba, que es lo que este apartado ya sabía y trataba con un plazo en
+  vez de con la puerta). Dentro de la cáscara **la ausencia es la respuesta**: la
+  parte nativa escribe `Capacitor.Plugins.<nombre>` para cada plugin registrado
+  antes de que corra una línea de la aplicación (`JSExport.swift`, guiones
+  `atDocumentStart`). Así que `plugin()` es ahora **síncrona**: si no está,
+  `SIN_PLUGIN` en el acto. Cambiar una certeza instantánea por seis segundos de
+  espera para acabar dando la respuesta equivocada es el peor de los dos tratos.
+- **✅ El renglón que falla lleva en qué se basa** (`informeDelPuente`).
+  «sin-plugin» copiado al portapapeles no informa de nada; qué plataforma dice el
+  puente y **qué plugins trae** separa las dos causas que desde el móvil se ven
+  igual: con `Haptics` y `Share` pero sin `PushNotifications`, el binario es
+  anterior al plugin y hace falta instalar uno nuevo; sin ninguno, lo que falla
+  es el puente entero y los avisos son lo de menos.
 - **✅ El entitlement se escribe, no se avisa** (`scripts/entitlements.mjs`, de
   `garciadoral-ops`). Eran dos cosas y aquí solo se hacía media: `patch-ios.mjs`
   añadía `aps-environment` **si el fichero ya existía** y se limitaba a avisar por

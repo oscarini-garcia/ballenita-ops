@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.34.1',
+    fecha: '2026-08-08',
+    titulo: 'Los avisos contestan en el acto cuando la app no puede avisar',
+    lineas: [
+      'La lista de pasos hizo su trabajo a la primera: se paraba en el primer renglón, buscando la parte nativa de los avisos.',
+      'Ahí se esperaban seis segundos a una pregunta cuya respuesta ya se sabía. Ahora se contesta al momento, y el renglón se toca para copiar qué se ha visto: qué plataforma dice el puente y qué plugins trae.',
+      'Si dice «esta instalación no puede avisar», hace falta instalar un binario nuevo desde Xcode: eso no lo arregla ningún paquete OTA.',
+    ],
+  },
+  {
     version: '0.34.0',
     fecha: '2026-08-08',
     titulo: 'Encender los avisos ya no se queda girando',
