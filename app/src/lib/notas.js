@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.29.0',
+    fecha: '2026-08-08',
+    titulo: 'Saldos dice quién paga a quién',
+    lineas: [
+      'Cada familia sale con su pastilla de iniciales en color, como en el resto de la app.',
+      'El renglón de saldar son dos líneas —«García → Solteros» y el importe— con «pagado» al lado: la fila baja un 24 % y los nombres dejan de recortarse.',
+      'Quien no está en ninguna familia sale con su nombre, y no como «Sin familia».',
+    ],
+  },
+  {
     version: '0.28.0',
     fecha: '2026-08-08',
     titulo: 'El balance dice de qué familia es cada bunga',

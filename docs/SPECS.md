@@ -3180,6 +3180,48 @@ la memoria de nadie.
   bump se niega desde el otro lado (`tools/bump.py`); aquí la versión se sube
   a mano y la guardia es la que avisa, en `npm test` y en CI.
 
+### 14.35 Saldos: la familia con su pastilla, y quién paga a quién
+
+Decidido en `docs/diseño/saldos.html` · **F3 · R2 · E1**, más los tres arreglos
+que no se eligen.
+
+**F3 · la familia se enseña como en el resto de la app.** El nombre con su
+pastilla de dos letras (`Alias.jsx`) en vez del emoji sobre el color pleno. Las
+iniciales sobre el color no se podían poner, y está medido: **2,81 : 1** en el
+azul de los Solteros con letra blanca y **4,24 : 1** en el rojo de los García
+con letra oscura — habría que elegir la letra por familia, y el color lo elige
+quien crea la familia, así que cualquier color puede tocar. La pastilla mezcla
+—fondo al 20 %, letra al 55 % con la tinta del tema— y da **4,82 a 5,85 : 1**
+en las dos caras sin decidir nada. El emoji no se pierde: sigue en Ajustes →
+El grupo, que es donde se elige y donde se mira quién es quién.
+
+**R2 · el renglón de saldar, en dos líneas.** «García → Solteros» arriba, el
+importe debajo y **«pagado»** al lado en vez de apilado bajo la cifra. La
+sección pasa a llamarse **«Quién paga a quién»**, que es lo que la flecha
+dibuja: dicho una vez en el encabezado, ninguna fila necesita glosarlo — y con
+eso se va «transferencia pendiente», que lo decía por tercera vez después del
+encabezado y del botón. Medido: **de 93,5 a 70,7 pt**, un 24 % menos, **sin
+tocar la letra**. Y arregla un defecto que solo aparece midiendo: con el botón
+apilado al titular le quedaban **233 pt** y «García → Solteros» **salía
+recortado**.
+
+La hoja llegó a decir que la fila de hoy medía 119,4 pt: su maqueta dejaba
+**doblar** el titular donde `theme.css` lo **recorta** (`.row .main .n` es
+`nowrap` con puntos suspensivos). Corregido en la hoja antes de escribir esto,
+con la maqueta comportándose como la app.
+
+**E1 · la letra no se toca.** El encargo pedía «más pequeño» y la respuesta es
+que al renglón le sobraba **estructura**, no tamaño: bajar un escalón de tipo
+(E2) solo gana **4,8 pt** más por fila, y dos (E3) dejarían el botón en 30 pt,
+por debajo del mínimo tocable de 44 (§14.11).
+
+**Y el tercer arreglo:** una persona sin familia es una «familia de uno»
+(`solo:<persona>`, §3.3) y la pantalla las llamaba a **todas** «Sin familia» —
+con dos, no había manera de saber cuál debía qué. Ahora sale con su nombre y su
+pastilla en gris de `--ink-faint`. «Pagos apuntados» hereda la misma figura en
+pasado, con el ✓ verde a la derecha: ahí el dibujo dice el estado, no la
+familia.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

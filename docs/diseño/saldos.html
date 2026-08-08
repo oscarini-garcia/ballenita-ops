@@ -1,0 +1,810 @@
+<title>Ballena Ops — En Saldos una familia es un emoji sobre un color, y «quién paga a quién» se recorta</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1;
+    --ab-owe: #d97b6c; --ab-owed: #6aab8b; --ab-gold: #c9a768;
+    --abc-tarjeta: #ffffff; --abc-linea-suave: #dde6ea; --abc-fondo: #f1f5f7;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280;
+    --abc-owe: #a8443a; --abc-owed: #2f7a5c;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+  .coste code { font-family: var(--mono); font-size: 12.5px; }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── El teléfono, a 390 pt. line-height 1.45 = el de body en theme.css. ── */
+  .tira { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45; outline: 1px solid var(--ab-linea); outline-offset: -1px;
+    background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea-suave); }
+  .t-body { padding: 14px 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* La ficha suelta: un trozo de pantalla a su ancho real (362 de cuerpo). */
+  /* La ficha suelta lleva su propia tinta: sin esto hereda la del papel de la
+     hoja —oscura— y el nombre queda casi invisible sobre la tarjeta. */
+  .caja { width: 362px; flex: none; font-family: var(--sans); line-height: 1.45;
+    color: var(--ab-ink); }
+  .caja > .rot { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); margin-bottom: 6px; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; color: var(--ab-faint); }
+  .claro .sec-h { color: var(--abc-faint); }
+
+  .card { border-radius: 9px; background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave);
+    padding: 0 12px; }
+  .claro .card { background: var(--abc-tarjeta); border-color: var(--abc-linea-suave); }
+
+  .row { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .row + .row { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .row + .row { border-top-color: var(--abc-linea-suave); }
+  .row .main { flex: 1; min-width: 0; }
+  /* Como en theme.css: el titular de una fila **recorta**, no dobla. Sin esta
+     línea la maqueta doblaba donde la app pone puntos suspensivos, y las
+     medidas de la primera versión de esta hoja salieron altas. */
+  .row .n { font-size: var(--t-row); font-weight: 550;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row.dos .n { white-space: normal; }
+  .row .sub { font-size: var(--t-sub); color: var(--ab-soft); }
+  .claro .row .sub { color: var(--abc-soft); }
+  /* R3: la fila deja de ser una línea flexible — el titular ocupa todo el
+     ancho y el importe y el verbo bajan a la segunda. */
+  .row.dos { display: block; }
+  .row.dos .l2 { display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-top: 2px; }
+
+  .amt { font-weight: 620; font-size: var(--t-row); white-space: nowrap;
+    font-variant-numeric: tabular-nums; }
+  .amt.owe { color: var(--ab-owe); } .amt.owed { color: var(--ab-owed); }
+  .claro .amt.owe { color: var(--abc-owe); } .claro .amt.owed { color: var(--abc-owed); }
+
+  /* La casilla de 36 de hoy: el emoji de la familia sobre su color. */
+  .av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid;
+    place-items: center; font-size: var(--t-body); }
+  .av.ini { font-size: var(--t-sub); font-weight: 700; letter-spacing: .04em; }
+  .ico { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .ico svg { width: 20px; height: 20px; }
+
+  /* La pastilla de Alias.jsx, calcada: el color solo tiñe el fondo y la letra se
+     mezcla con la tinta del tema. `--c` es el color de la familia. */
+  .alias { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    border-radius: 5px; padding: 1px 5px; margin: 0 2px 0 5px; display: inline-block;
+    line-height: 1.35; vertical-align: baseline;
+    background: color-mix(in srgb, var(--c) 20%, transparent);
+    color: color-mix(in srgb, var(--c) 55%, var(--ab-ink)); }
+  .claro .alias { color: color-mix(in srgb, var(--c) 55%, var(--abc-ink)); }
+  .alias.grande { font-size: var(--t-sub); padding: 3px 7px; margin: 0; border-radius: 7px; }
+
+  .btn { border: none; border-radius: 7px; padding: 8px 12px; font-family: inherit;
+    font-weight: 550; font-size: var(--t-sub); min-height: 38px; background: var(--ab-acento);
+    color: #fff; white-space: nowrap; }
+  .claro .btn { background: var(--abc-acento); }
+  .btn.ghost { background: transparent; border: 1px solid var(--ab-linea); color: var(--ab-acento-txt); }
+  .btn.cuad { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; }
+  .btn.cuad svg { width: 20px; height: 20px; }
+
+  .flecha { color: var(--ab-faint); font-weight: 400; }
+  .claro .flecha { color: var(--abc-faint); }
+
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: 9px; padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+
+  .pie { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.comp td.mal { color: var(--coral); font-weight: 600; }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre code { font-family: var(--mono); font-size: 12.5px; }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Dinero → Saldos</div>
+    <h1>En Saldos una familia es un emoji sobre un color, y «quién paga a quién» sale recortado</h1>
+    <p class="entradilla">
+      El encargo son tres cosas: la familia con <b>las iniciales en color y el nombre</b>, el
+      renglón de saldar diciendo <b>de quién a quién</b> —sin «transferencia pendiente»—, en
+      <b>dos líneas</b> y <b>más pequeño</b>. Las dos primeras son de una pieza; la tercera abre
+      una pregunta que conviene mirar antes de encoger nada: <b>lo que hace alto ese renglón no
+      es la letra, es el botón</b>, y la letra de esta app está grande a propósito (§14.11).
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.28.0 (<code>main</code>, 3dff23c)</span>
+      <span><b>Medida:</b> 390 pt · cuerpo de 362</span>
+      <span><b>Paleta:</b> Abisal Sobrio</span>
+      <span><b>Contenido:</b> los saldos <b>reales</b> del Demo</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Las cifras salen de correr <code>computeFamilyBalances</code> y <code>simplifyDebts</code>
+      sobre los tres gastos de la semilla: los García deben <b>91,85 €</b>, y se salda con dos
+      transferencias — 70,56 € a los Pérez y 21,29 € a los Solteros. Los altos y los contrastes
+      están medidos en el navegador sobre estas maquetas, con los valores de
+      <code>theme.css</code>.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO QUE NO SE ELIGE ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · tres cosas que se hacen y se cuentan</h2>
+    <p>
+      <b>1 · «transferencia pendiente» se va.</b> Lo pide el encargo y además el renglón lo dice
+      <b>tres veces</b>: la sección se llama «Cómo saldar», la flecha lo dibuja y el botón dice
+      «marcar pagado». Lo que se decide es qué ocupa ese sitio, no si se queda.
+    </p>
+    <p>
+      <b>2 · «Pagos apuntados» hereda la figura que se elija.</b> Es la misma frase en pasado, y
+      hoy repite el mismo «→» con la misma tipografía; dejarlo distinto sería que la lista de lo
+      hecho y la de lo pendiente se leyeran como dos cosas. Su <b>✓ verde se queda</b>: ahí el
+      dibujo dice el estado, no la familia.
+    </p>
+    <p>
+      <b>3 · Una persona sin familia sale como «Sin familia», todas iguales.</b> Un gasto entre
+      alguien que no está colocado en ninguna familia crea una «familia de uno»
+      (<code>solo:&lt;persona&gt;</code>, §3.3) y la pantalla la llama «Sin familia» a secas: con
+      dos, no hay manera de saber cuál debe qué. Con las iniciales encima es peor —no tiene ni
+      color ni alias—, así que se arregla ahora: dirá <b>el nombre de la persona</b>, con la
+      pastilla en gris de <code>--ink-faint</code>.
+    </p>
+  </div>
+
+  <!-- ══════════════ EL AHORA ══════════════ -->
+  <div class="parte">El ahora, dibujado con los saldos del Demo</div>
+
+  <div class="tira">
+    <div class="tel">
+      <div class="t-body" id="ahora">
+        <div class="sec-h">Saldo por familia</div>
+        <div class="card">
+          <div class="row" id="fila-ahora">
+            <div class="av" style="background:#2E9E6B">🍷</div>
+            <div class="main"><div class="n">Pérez</div><div class="sub">le deben</div></div>
+            <div class="amt owed">+70,56 €</div>
+          </div>
+          <div class="row">
+            <div class="av" style="background:#1FA6D6">🎉</div>
+            <div class="main"><div class="n">Solteros</div><div class="sub">le deben</div></div>
+            <div class="amt owed">+21,29 €</div>
+          </div>
+          <div class="row">
+            <div class="av" style="background:#E5544B">🏖️</div>
+            <div class="main"><div class="n">García</div><div class="sub">debe</div></div>
+            <div class="amt owe">−91,85 €</div>
+          </div>
+        </div>
+        <div class="sec-h">Cómo saldar (menos transferencias)</div>
+        <div class="card">
+          <div class="row" id="saldar-ahora">
+            <div class="av" style="background:#E5544B">🏖️</div>
+            <div class="main">
+              <div class="n">García → Pérez</div>
+              <div class="sub">transferencia pendiente</div>
+            </div>
+            <div style="text-align:right">
+              <div class="amt">70,56 €</div>
+              <button class="btn" style="margin-top:4px">marcar pagado</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="av" style="background:#E5544B">🏖️</div>
+            <div class="main">
+              <div class="n">García → Solteros</div>
+              <div class="sub">transferencia pendiente</div>
+            </div>
+            <div style="text-align:right">
+              <div class="amt">21,29 €</div>
+              <button class="btn" style="margin-top:4px">marcar pagado</button>
+            </div>
+          </div>
+        </div>
+        <div class="nota">La app <b>lleva la cuenta</b>, no mueve dinero: haces el Bizum fuera y aquí marcas «pagado».</div>
+      </div>
+      <p class="pie" style="padding:0 14px 12px">
+        Ahora · fila de saldo <span data-mide="fila-ahora">—</span> pt · fila de saldar
+        <span data-mide="saldar-ahora">—</span> pt
+      </p>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>La fila de saldar:</b> <span data-mide="saldar-ahora">—</span> pt, y de eso <b>46</b> son el botón con su margen</span>
+    <span><b>Su hueco de texto:</b> dos líneas de las que la segunda no dice nada</span>
+    <span><b>El emoji:</b> lo elige quien crea la familia (§14.13 lo respeta)</span>
+  </p>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · qué identifica a una familia</div>
+  <p class="parte-intro">
+    «Las iniciales en color» ya existe en la app: es la <b>pastilla de dos letras</b> de
+    <code>lib/alias.js</code>, la que firma una idea, marca a quien vota un plan y nombra el bunga
+    en su selector. Lo que se decide es <b>dónde se pone</b> — y hay un número que decide medio
+    debate.
+  </p>
+
+  <div class="tabla-scroll"><table class="comp">
+    <tr><th>iniciales sobre…</th><th>García</th><th>Pérez</th><th>Solteros</th><th>lectura</th></tr>
+    <tr><td><b>el color pleno</b>, letra blanca</td><td class="num mal">3,68</td><td class="num mal">3,38</td><td class="num mal">2,81</td><td>ninguna llega a 4,5 : 1</td></tr>
+    <tr><td><b>el color pleno</b>, letra oscura</td><td class="num mal">4,24</td><td class="num">4,63</td><td class="num">5,57</td><td>García no llega, y hay que elegir letra por familia</td></tr>
+    <tr><td><b>la pastilla de <code>Alias.jsx</code></b>, cara oscura</td><td class="num">5,12</td><td class="num">5,08</td><td class="num">5,23</td><td>las tres, sin tocar nada</td></tr>
+    <tr><td><b>la pastilla</b>, cara clara</td><td class="num">5,85</td><td class="num">5,34</td><td class="num">4,82</td><td>las tres</td></tr>
+  </table></div>
+  <p class="coste">
+    El color de una familia lo elige quien la crea, así que <b>cualquier color puede tocar</b>:
+    la pastilla resuelve eso mezclando —fondo al 20 %, letra al 55 % con la tinta del tema— y por
+    eso se lee igual en las dos caras sin decidir nada por familia. Es el problema que
+    <code>Alias.jsx</code> ya tenía resuelto.
+  </p>
+
+  <div class="tira">
+    <div class="caja">
+      <div class="rot">F1 · el emoji sobre el color (hoy)</div>
+      <div class="card" style="background:var(--ab-tarjeta);border:1px solid var(--ab-linea-suave)">
+        <div class="row" id="f1">
+          <div class="av" style="background:#2E9E6B">🍷</div>
+          <div class="main"><div class="n">Pérez</div><div class="sub">le deben</div></div>
+          <div class="amt owed">+70,56 €</div>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">F2 · las iniciales sobre el color pleno</div>
+      <div class="card">
+        <div class="row" id="f2">
+          <div class="av ini" style="background:#2E9E6B;color:#fff">PE</div>
+          <div class="main"><div class="n">Pérez</div><div class="sub">le deben</div></div>
+          <div class="amt owed">+70,56 €</div>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">F3 · el nombre con su pastilla, sin casilla</div>
+      <div class="card">
+        <div class="row" id="f3">
+          <div class="main"><div class="n">Pérez<span class="alias" style="--c:#2E9E6B">PE</span></div><div class="sub">le deben</div></div>
+          <div class="amt owed">+70,56 €</div>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">F4 · la pastilla en la casilla de 36</div>
+      <div class="card">
+        <div class="row" id="f4">
+          <div class="av ini" style="background:color-mix(in srgb, #2E9E6B 20%, transparent);color:color-mix(in srgb, #2E9E6B 55%, var(--ab-ink))">PE</div>
+          <div class="main"><div class="n">Pérez</div><div class="sub">le deben</div></div>
+          <div class="amt owed">+70,56 €</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F1</span><span class="op-nombre">El emoji sobre el color</span><span class="etq base">lo de hoy</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> el emoji identifica a la familia solo para quien lo eligió, y no es lo que
+        se pide. <b>Lo paga:</b> es el emoji del usuario, que §14.13 respeta — y que <b>no se
+        pierde</b>: sigue en Ajustes → El grupo, que es donde se elige y donde se mira quién es
+        quién.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F2</span><span class="op-nombre">Las iniciales sobre el color pleno</span><span class="etq no">no pasa el contraste</span></div>
+      <p class="op-idea">
+        La casilla de 36 se queda donde está y cambia el emoji por «PE» en blanco.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la tabla de arriba — <b>2,81 : 1</b> en el azul de los Solteros con letra
+        blanca, y con letra oscura falla el rojo de los García. Elegir la letra por familia se
+        puede calcular, pero es inventar aquí lo que la app ya resolvió a dos pantallas de
+        distancia.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">F3</span><span class="op-nombre">El nombre con su pastilla, sin casilla</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Exactamente como se enseña una familia en el resto de la app: <b>«Pérez PE»</b>, la
+        pastilla pegada al nombre. La casilla de la izquierda desaparece.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la fila pierde su columna de la izquierda y deja de rimar con las de
+        Gastos, que llevan icono de categoría. <b>Lo paga:</b> es la figura que ya existe —una
+        familia se ve igual en Ideas, en un plan votado, en el selector del bunga y ahora
+        aquí—, gana <b>47 pt de ancho</b> para el nombre y es la más corta de las cuatro
+        (<span data-mide="f3">—</span> pt frente a <span data-mide="f1">—</span>), que juega a
+        favor del «más pequeño» de la parte cuatro.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">F4</span><span class="op-nombre">La pastilla dentro de la casilla de 36</span></div>
+      <p class="op-idea">
+        La casilla se queda, con el tratamiento de la pastilla —fondo mezclado— y las iniciales
+        dentro. Contraste resuelto y rejilla intacta.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> inventa una quinta manera de pintar una familia, parecida pero no igual a
+        la pastilla de al lado — dos primos en la misma pantalla se leen como un descuido.
+        <b>Lo paga:</b> las filas siguen alineadas con las del resto de la app.
+      </p>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · el renglón de saldar, entero</div>
+  <p class="parte-intro">
+    Aquí hay un hallazgo que cambia la respuesta, y sale de medir en el navegador antes de
+    enseñar nada: <b>a 390 pt no cabe todo lo que suena bien</b>. Con el botón al lado, el
+    titular dispone de <b><span data-mide="ancho-titular">—</span> pt</b>, y el peor caso del Demo no es «Pérez» sino
+    <b>«Solteros»</b>. La tabla es cada redacción contra ese peor caso, en las dos tallas que
+    se usan.
+  </p>
+
+  <div class="tabla-scroll"><table class="comp">
+    <tr><th>el titular dice…</th><th>Grande</th><th>Enorme</th><th>alto de la fila</th></tr>
+    <tr><td><b>García <span style="opacity:.7">GA</span> → Solteros <span style="opacity:.7">SO</span></b> (con pastillas)</td>
+      <td class="num mal">se recorta</td><td class="num mal">se recorta</td><td class="num">70,7 pt</td></tr>
+    <tr><td><b>García → Solteros</b></td><td class="num">cabe</td><td class="num">cabe</td><td class="num">70,7 · 76,8 pt</td></tr>
+    <tr><td><b>García paga a Solteros</b></td><td class="num">cabe</td><td class="num mal">se recorta</td><td class="num">70,7 pt</td></tr>
+    <tr><td><b>Los García pagan a los Solteros</b></td><td class="num mal">se recorta</td><td class="num mal">se recorta</td><td class="num">70,7 pt</td></tr>
+    <tr><td>la frase entera <b>a todo lo ancho</b>, con el importe y el verbo debajo</td>
+      <td class="num">cabe</td><td class="num mal">dobla</td><td class="num">88 pt</td></tr>
+  </table></div>
+  <p class="coste">
+    Lo que la tabla dice sin rodeos: <b>las pastillas en este renglón cuestan una línea entera</b>
+    —dos nombres y dos pastillas no caben en <span data-mide="ancho-titular">—</span> pt—, y <b>la frase con sujeto y verbo también</b>,
+    salvo que ocupe todo el ancho y el verbo baje. La flecha es lo único que cabe siempre, en las
+    dos tallas. Las pastillas no se pierden: están <b>arriba</b>, en el saldo por familia, que es
+    donde el encargo las pide y donde se aprende de qué color es cada casa.
+  </p>
+
+  <div class="tira">
+    <div class="caja">
+      <div class="rot">R1 · flecha y pastillas</div>
+      <div class="card">
+        <div class="row" id="r1">
+          <div class="main">
+            <div class="n">García<span class="alias" style="--c:#E5544B">GA</span> <span class="flecha">→</span> Solteros<span class="alias" style="--c:#1FA6D6">SO</span></div>
+            <div class="sub">21,29 €</div>
+          </div>
+          <button class="btn ghost">pagado</button>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">R2 · flecha y nombres, verbo al lado</div>
+      <div class="card">
+        <div class="row" id="r2">
+          <div class="main">
+            <div class="n">García <span class="flecha">→</span> Solteros</div>
+            <div class="sub">21,29 €</div>
+          </div>
+          <button class="btn ghost">pagado</button>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">R3 · la frase, y debajo importe y verbo</div>
+      <div class="card">
+        <div class="row dos" id="r3">
+          <div class="n">Los García pagan a los Solteros</div>
+          <div class="l2"><span class="sub">21,29 €</span><button class="btn ghost">pagado</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">R4 · solo las pastillas</div>
+      <div class="card">
+        <div class="row" id="r4">
+          <div class="main">
+            <div class="n"><span class="alias grande" style="--c:#E5544B">GA</span> <span class="flecha">→</span> <span class="alias grande" style="--c:#1FA6D6">SO</span></div>
+            <div class="sub">21,29 €</div>
+          </div>
+          <button class="btn ghost">pagado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Hoy:</b> <span data-mide="saldar-ahora">—</span> pt</span>
+    <span><b>R1:</b> <span data-mide="r1">—</span></span>
+    <span><b>R2:</b> <span data-mide="r2">—</span></span>
+    <span><b>R3:</b> <span data-mide="r3">—</span></span>
+    <span><b>R4:</b> <span data-mide="r4">—</span></span>
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R1</span><span class="op-nombre">La flecha con las pastillas</span><span class="etq no">dobla siempre</span></div>
+      <p class="op-idea">
+        Lo que pide el encargo llevado también aquí: los dos nombres con su pastilla de color.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> las dos pastillas empujan los nombres fuera de los
+        <span data-mide="ancho-titular">—</span> pt del titular y la fila <b>se recorta</b>
+        —«García GA → Solte…»— en Grande y en Enorme. Alto igual que R2, pero con el nombre a
+        medias: el color en los dos sitios se paga en el dato que identifica.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">R2</span><span class="op-nombre">La flecha con los nombres, el verbo al lado</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        <b>«García → Solteros»</b> arriba y <b>«21,29 €»</b> debajo, con «pagado» en contorno a la
+        derecha. Dos líneas exactas. Y para que la flecha no haya que interpretarla, <b>la
+        sección se llama «Quién paga a quién»</b> en vez de «Cómo saldar (menos
+        transferencias)»: lo dice el encabezado una vez, y no cada fila tres veces.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el color no llega a este renglón —vive arriba, en el saldo por familia—.
+        <b>Lo paga:</b> <span data-mide="r2">—</span> pt frente a los
+        <span data-mide="saldar-ahora">—</span> de hoy —un <b>24 % menos</b>— <b>sin tocar la
+        letra</b>, en una línea en las dos tallas y con el verbo escrito.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R3</span><span class="op-nombre">La frase entera, y debajo el importe y el verbo</span></div>
+      <p class="op-idea">
+        «Los García pagan a los Solteros» a todo lo ancho, y en la segunda línea el importe con
+        «pagado» a la derecha. Es la que mejor se lee en voz alta.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> <span data-mide="r3">—</span> pt, y <b>dobla en Enorme</b>; además el
+        verbo pierde su columna y cada fila lo coloca a una altura distinta según lo que mida el
+        importe. <b>Lo paga:</b> nadie pregunta qué significa la flecha.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R4</span><span class="op-nombre">Solo las pastillas</span></div>
+      <p class="op-idea">
+        «GA → SO» en grande, con el color de cada familia y sin nombres.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> hay que saberse los alias de dos letras — y quien mira los saldos es
+        justamente el que no está seguro de quién es quién. <b>Lo paga:</b> es la única que mete
+        el color en el renglón sin gastar una línea (<span data-mide="r4">—</span> pt).
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · «más pequeño»: cuánto, y de qué</div>
+  <p class="parte-intro">
+    Una tensión que prefiero poner encima de la mesa: la letra de esta app está grande <b>a
+    propósito</b> —cuerpo a 17 px y de fábrica en Grande, porque esto se lee en un móvil, al sol,
+    con cuarenta y tantos años (§14.11)—. Y la buena noticia es que <b>el renglón encoge sin
+    encoger la letra</b>: solo con R2 baja de <span data-mide="saldar-ahora">—</span> a
+    <span data-mide="r2">—</span> pt, porque le sobraba <b>estructura</b> —el botón apilado y una
+    línea que no decía nada—, no tamaño.
+  </p>
+
+  <div class="tira">
+    <div class="caja">
+      <div class="rot">E1 · la letra de siempre</div>
+      <div class="card">
+        <div class="row" id="e1">
+          <div class="main"><div class="n">García <span class="flecha">→</span> Solteros</div><div class="sub">21,29 €</div></div>
+          <button class="btn ghost">pagado</button>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">E2 · un escalón abajo</div>
+      <div class="card">
+        <div class="row" id="e2">
+          <div class="main">
+            <div class="n" style="font-size:var(--t-sub)">García <span class="flecha">→</span> Solteros</div>
+            <div class="sub" style="font-size:var(--t-label)">21,29 €</div>
+          </div>
+          <button class="btn ghost" style="font-size:var(--t-label);min-height:34px">pagado</button>
+        </div>
+      </div>
+    </div>
+    <div class="caja">
+      <div class="rot">E3 · dos escalones</div>
+      <div class="card">
+        <div class="row" id="e3">
+          <div class="main">
+            <div class="n" style="font-size:var(--t-label)">García <span class="flecha">→</span> Solteros</div>
+            <div class="sub" style="font-size:var(--t-micro)">21,29 €</div>
+          </div>
+          <button class="btn ghost" style="font-size:var(--t-micro);min-height:30px">pagado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>E1:</b> <span data-mide="e1">—</span> pt</span>
+    <span><b>E2:</b> <span data-mide="e2">—</span> pt (<span data-mide="delta-e2">—</span> menos)</span>
+    <span><b>E3:</b> <span data-mide="e3">—</span> pt</span>
+    <span><b>El mínimo tocable de iOS:</b> 44 pt — E3 lo rompe</span>
+  </p>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">E1</span><span class="op-nombre">La letra de siempre: encoge la fila, no el texto</span><span class="etq rec">la que propongo</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> nada. El <b>24 %</b> ya está ganado por quitar el botón apilado y la
+        línea vacía.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E2</span><span class="op-nombre">Un escalón abajo</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> deja el dinero en la letra pequeña, y gana solo
+        <b><span data-mide="delta-e2">—</span> pt</b> por fila sobre E1. El botón baja a 34 pt,
+        todavía tocable con su margen. Es tuya si al verlo en el móvil lo quieres más apretado.
+      </p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E3</span><span class="op-nombre">Dos escalones</span><span class="etq no">rompe el mínimo</span></div>
+      <p class="coste">
+        <b>Cuesta:</b> el botón se queda en <b>30 pt</b> de alto —por debajo del mínimo de 44 que
+        la app no baja— y el importe cae a 12,9 px. Se lista para descartarla con el número
+        delante.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ LA PROPUESTA ══════════════ -->
+  <div class="parte">Parte cuatro · la propuesta, dibujada entera</div>
+
+  <div class="tira">
+    <div class="tel">
+      <div class="t-body" id="despues">
+        <div class="sec-h">Saldo por familia</div>
+        <div class="card">
+          <div class="row">
+            <div class="main"><div class="n">Pérez<span class="alias" style="--c:#2E9E6B">PE</span></div><div class="sub">le deben</div></div>
+            <div class="amt owed">+70,56 €</div>
+          </div>
+          <div class="row">
+            <div class="main"><div class="n">Solteros<span class="alias" style="--c:#1FA6D6">SO</span></div><div class="sub">le deben</div></div>
+            <div class="amt owed">+21,29 €</div>
+          </div>
+          <div class="row">
+            <div class="main"><div class="n">García<span class="alias" style="--c:#E5544B">GA</span></div><div class="sub">debe</div></div>
+            <div class="amt owe">−91,85 €</div>
+          </div>
+        </div>
+        <div class="sec-h">Quién paga a quién</div>
+        <div class="card">
+          <div class="row">
+            <div class="main"><div class="n">García <span class="flecha">→</span> Pérez</div><div class="sub">70,56 €</div></div>
+            <button class="btn ghost">pagado</button>
+          </div>
+          <div class="row">
+            <div class="main"><div class="n">García <span class="flecha">→</span> Solteros</div><div class="sub">21,29 €</div></div>
+            <button class="btn ghost">pagado</button>
+          </div>
+        </div>
+        <div class="nota">La app <b>lleva la cuenta</b>, no mueve dinero: haces el Bizum fuera y aquí marcas «pagado».</div>
+      </div>
+      <p class="pie" style="padding:0 14px 12px">F3 + R2 + E1 · cara oscura</p>
+    </div>
+
+    <div class="tel claro">
+      <div class="t-body">
+        <div class="sec-h">Saldo por familia</div>
+        <div class="card">
+          <div class="row">
+            <div class="main"><div class="n">Pérez<span class="alias" style="--c:#2E9E6B">PE</span></div><div class="sub">le deben</div></div>
+            <div class="amt owed">+70,56 €</div>
+          </div>
+          <div class="row">
+            <div class="main"><div class="n">García<span class="alias" style="--c:#E5544B">GA</span></div><div class="sub">debe</div></div>
+            <div class="amt owe">−91,85 €</div>
+          </div>
+        </div>
+        <div class="sec-h">Quién paga a quién</div>
+        <div class="card">
+          <div class="row">
+            <div class="main"><div class="n">García <span class="flecha">→</span> Pérez</div><div class="sub">70,56 €</div></div>
+            <button class="btn ghost">pagado</button>
+          </div>
+        </div>
+        <div class="sec-h">Pagos apuntados</div>
+        <div class="card">
+          <div class="row">
+            <div class="main"><div class="n">Solteros <span class="flecha">→</span> Pérez</div><div class="sub">8 ago · 12,00 €</div></div>
+            <div class="amt owed">✓</div>
+          </div>
+        </div>
+      </div>
+      <p class="pie" style="padding:0 14px 12px">La misma, cara clara, con «Pagos apuntados» siguiendo la figura</p>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>La pantalla entera:</b> de <span data-mide="ahora">—</span> a
+      <span data-mide="despues">—</span> pt con el mismo contenido</span>
+    <span><b>La fila de saldar:</b> <span data-mide="saldar-ahora">—</span> →
+      <span data-mide="r2">—</span> pt</span>
+    <span><b>La fila de saldo:</b> <span data-mide="fila-ahora">—</span> pt, igual que hoy</span>
+    <span><b>Letra:</b> sin tocar</span>
+  </p>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>F3</span><span>R2</span><span>E1</span></div>
+    <p>
+      <b>Arriba, la familia con su pastilla pegada al nombre</b> —la misma que firma una idea y
+      nombra el bunga, y la única que aguanta cualquier color que alguien elija: 4,82 : 1 en el
+      peor caso frente al 2,81 de las iniciales sobre el color pleno—.
+      <b>Abajo, «García → Solteros» y el importe debajo</b>, con «pagado» al lado en vez de
+      apilado, y la sección rebautizada <b>«Quién paga a quién»</b>, que es literalmente lo que
+      pediste ver. <b>La letra, sin tocar</b>: la fila baja un 24 % porque le sobraba estructura.
+    </p>
+    <p>
+      <b>Lo que la medición me hizo cambiar de opinión:</b> venía a proponerte la frase entera
+      —«Los García pagan a los Solteros»—, que se lee mejor. No cabe: dobla en Grande con el
+      botón al lado y dobla en Enorme aunque ocupe todo el ancho. Y las pastillas en ese renglón
+      cuestan otra línea. Por eso el color se queda arriba, donde lo pediste, y abajo manda que
+      quepa en dos líneas.
+    </p>
+    <p>
+      <b>Si prefieres la frase pese al alto:</b>
+      <span class="receta" style="display:inline"><span>F3</span><span>R3</span><span>E2</span></span>
+      — con E2 recupera parte de lo que R3 gasta. <b>Y si quieres color también abajo:</b>
+      <span class="receta" style="display:inline"><span>R4</span></span>, las pastillas solas,
+      que es lo único que cabe con color.
+    </p>
+    <p style="font-size:13.5px">
+      Nada de esto toca la base ni la API: los saldos se siguen calculando en local
+      (<code>lib/reparto.js</code>) y no se sincroniza ninguno. Todo es
+      <code>BalancesScreen.jsx</code> y <code>theme.css</code>, más el arreglo de «Sin familia».
+    </p>
+    <p style="font-size:13.5px">
+      <b>No se ha escrito código:</b> lo que sale de esta vuelta es esta hoja. Cuando elijas
+      —vale «las propuestas» o códigos sueltos—, entra en el repo como
+      <code>docs/diseño/saldos.html</code> y la PR la cita por sus códigos.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // Las medidas se toman del dibujo al servirse la hoja: una cifra escrita a
+  // mano se desfasa del dibujo en cuanto se toca un relleno.
+  const alto = (id) => {
+    const el = document.getElementById(id)
+    return el ? Math.round(el.getBoundingClientRect().height * 10) / 10 : null
+  }
+  const pon = (clave, valor) => {
+    if (valor == null) return
+    document.querySelectorAll(`[data-mide="${clave}"]`).forEach((el) => {
+      el.textContent = String(valor).replace('.', ',')
+    })
+  }
+  const anchoMain = document.querySelector('#r2 .main')
+  if (anchoMain) pon('ancho-titular', Math.round(anchoMain.getBoundingClientRect().width))
+  for (const id of ['fila-ahora', 'saldar-ahora', 'f1', 'f3',
+    'r1', 'r2', 'r3', 'r4', 'e1', 'e2', 'e3', 'ahora', 'despues']) pon(id, alto(id))
+  pon('delta-e2', Math.round((alto('e1') - alto('e2')) * 10) / 10)
+</script>

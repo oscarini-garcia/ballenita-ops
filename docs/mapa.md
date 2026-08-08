@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.28.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  712 pruebas en 76 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.29.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  718 pruebas en 77 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -224,7 +224,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `AccesoScreen.jsx` — Puerta de entrada al grupo.
   ↳ CADA
 - `AgendaScreen.jsx` — «Agenda», partida en tres áreas (opciones A1 y B2 de `docs/diseño/navegacion.html`; la tercera llegó después, desde Ajustes).
-- `BalancesScreen.jsx` — Saldos: cuánto debe cada familia y las transferencias que lo saldan.
+- `BalancesScreen.jsx` — Saldos: cuánto debe cada familia y quién paga a quién.
 - `BienvenidaScreen.jsx` — Lo que se ve la primera vez que entras, mientras baja lo del grupo.
 - `CenasScreen.jsx` — Las cenas del viaje: qué se come cada día y en qué bunga, mayores y niños.
 - `ComidasScreen.jsx` — «Comidas», con tres áreas (opciones A1, C1 y D1 de `docs/diseño/navegacion.html`).
@@ -329,7 +329,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 
 - **§3** Gastos — "Modo Splitwise" 💸 → `reparto.js`
 - **§3.2** Cómo se divide el gasto → `reparto.js`
-- **§3.3** Splits predefinidos por familia (el requisito clave) ⭐ → `reparto.js`
+- **§3.3** Splits predefinidos por familia (el requisito clave) ⭐ → `BalancesScreen.jsx`, `reparto.js`
 - **§3.4** Saldos y liquidación → `reparto.js`
 - **§3.6** Multi-moneda (decidido, con letra pequeña) → `money.js`
 - **§4** Planes 🗺️ → `db.js`
@@ -344,6 +344,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
 - **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `ProgresoModal.jsx`, `avatares.js`, `db.js`, `ia.js`, `index.js`, `native.js`, `personas.js`, `primeraBajada.js`, `salida.js`, `tablas.js`, `tables.js`
 - **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `scrollLock.js`, `stats.js`
+- **§14.11** Tipografía: un número y toda la escala → `BalancesScreen.jsx`
 - **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `evento.js`, `reparto-gente.js`
 - **§14.15** Quién entra: la sala de espera, las cuentas y los avisos → `index.js`

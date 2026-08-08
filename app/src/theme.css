@@ -781,6 +781,11 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
   border-radius: 5px; padding: 1px 5px; margin: 0 2px 0 5px; display: inline-block;
   line-height: 1.35; vertical-align: baseline; }
 
+/* La flecha de «quién paga a quién» (docs/diseño/saldos.html · R2): va en la
+   tinta apagada porque es puntuación, no dato — los dos nombres son lo que se
+   lee, y una flecha del mismo peso los separa peor de lo que los une. */
+.flecha { color: var(--ink-faint); font-weight: 400; }
+
 /* ── El renglón de apuntar una idea (· C1 + C3) ──────────────────────────────
    Va bajo el mando de áreas y **no se cierra al guardar**: se vacía y se queda
    enfocado. El modal que había antes medía 455,4 pt de los 508 que quedan sobre
