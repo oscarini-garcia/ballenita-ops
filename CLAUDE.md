@@ -447,21 +447,23 @@ pastilla y su gente dentro, «Sueltos» para lo que no está colocado, y **edici
 —se toca la fila y sube una hoja desde abajo—. Borrar salió de los renglones y vive al lado de Guardar,
 diciendo qué se lleva. **El evento también se edita ahí**, avisando de las cenas y
 planes que se caen al acortar las fechas. Ajustes va en el orden de lo que se toca
-(Aspecto · Evento · El grupo · Quién eres · Estadísticas · Sincronización · La app) y
+(Aspecto · Evento · El grupo · Quién eres · Sincronización · La app) y
 **cada acordeón recuerda si estaba abierto**, que es lo que hacía falta al recargar
 tras actualizar. Decidido en `docs/diseño/gente.html` (G2 · A3) y
 `docs/diseño/gente-editar.html` (E1 · F2 · N2 · N4 · D1).
 **Repaso de UX/UI** (SPECS §14.10–14.12), inspirado en `meeting-ops-air` y
 `garciadoral-ops`: barra de **Agenda · Dinero · Comidas · Planes · Ajustes** con los ajustes
 abajo a la derecha, **Ajustes en acordeón** (`<details>` nativo, todo plegado) que se ha
-comido «Más» —Estadísticas, Quién eres (con tu perfil) y Evento son apartados—, cabecera de
+comido «Más» —Quién eres (con tu perfil) y Evento son apartados—, cabecera de
 tres cosas con el punto verde que **sincroniza todo** (datos + versión de la app) con su
 lista de progreso, tipografía a 17 px ×1,12 de fábrica, y dos temas de máximo contraste.
 **Deslizar una fila de gastos** descubre Editar y Borrar (§14.10-bis), y el botón de crear
 lleva la palabra puesta («+ Gasto»). **Cada sección se parte en áreas** con el mando de
-`SubNav` (§14.10-ter, opciones en `docs/diseño/navegacion.html`): Agenda es Hoy · Días —con
-la lista entera de días, vacíos incluidos, y su modal para editar cada uno— y Comidas es
-Cenas · Platos · Compra, con el catálogo de platos por fin editable. **Un solo tema** (Abisal Sobrio, claro y oscuro),
+`SubNav` (§14.10-ter, opciones en `docs/diseño/navegacion.html`): Agenda es Hoy · Días ·
+Números —los días con su capa para editar cada uno, y **Números es Estadísticas**, que dejó
+Ajustes porque se mira, no se ajusta; el rótulo corto es porque «Estadísticas» mide 121,2 pt
+y la casilla del mando da 103,3— y Comidas es Cenas · Platos · Compra, con el catálogo de
+platos por fin editable. **Un solo tema** (Abisal Sobrio, claro y oscuro),
 **iconos de línea** con tono por categoría, pesos de letra más bajos y un solo botón lleno
 por pantalla (§14.12–14.13).
 

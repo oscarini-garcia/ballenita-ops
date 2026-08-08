@@ -963,7 +963,7 @@ están en [`docs/diseño/navegacion.html`](diseño/navegacion.html). Lo elegido:
 
 | Sección | Áreas | Por qué |
 |---|---|---|
-| **Agenda** | Hoy · Días | El rótulo nombra la sección, no su primera área |
+| **Agenda** | Hoy · Días · Números | El rótulo nombra la sección, no su primera área |
 | **Dinero** | Gastos · Saldos | Sin tocar: ya estaba bien |
 | **Comidas** | Cenas · Platos · Compra | Cabe la comida de mediodía sin retocar la barra |
 | **Planes** | — | |
@@ -1154,8 +1154,13 @@ recorre entera cada vez.
   tocan**: la compra grande es del día antes de salir, y borrar dinero por mover
   una fecha cambiaría los saldos de todos.
 - **El orden de Ajustes es el de lo que se toca**, no el del cableado: Aspecto ·
-  Evento · El grupo · Quién eres · Estadísticas · Sincronización · Tu cuenta ·
-  La app. Primero el viaje, al final la fontanería.
+  Evento · El grupo · Quién eres · Sincronización · Tu cuenta · La app. Primero
+  el viaje, al final la fontanería. **Estadísticas dejó Ajustes** (agosto 2026):
+  se mira, no se ajusta, y lo que se mira del viaje vive en Agenda — es su
+  tercera área, rotulada **«Números»** porque «Estadísticas» mide 121,2 pt y la
+  casilla del mando de tres da 103,3, así que no cabe ni en Grande. La pantalla
+  es la misma (`StatsScreen`, ya sin el modo `suelto` que la metía en un
+  acordeón).
 - **Cada apartado recuerda si estaba abierto** (`localStorage`, por móvil).
   Forzar la última versión recarga la app, y la recarga devolvía todas las
   solapas plegadas: tocabas «actualizar» dentro de «La app» y volvías a una

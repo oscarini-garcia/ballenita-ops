@@ -882,9 +882,9 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 .acordeon-cuerpo { display: flex; flex-direction: column; gap: 11px; padding: 13px 0 15px; }
 .acordeon-cuerpo > .sec-h:first-child { margin-top: 0; }
 
-/* Una columna suelta, para meter una pantalla entera dentro de un apartado
-   (Estadísticas) sin que arrastre el relleno y el scroll de `.body`. */
-.pila { display: flex; flex-direction: column; gap: 12px; }
+/* Aquí vivió `.pila`, la columna que metía Estadísticas dentro de un apartado
+   de Ajustes sin arrastrar el scroll de `.body`. Las estadísticas son ahora la
+   tercera área de Agenda y la clase se fue con su único cliente. */
 
 /* Control segmentado de un campo: dos o tres opciones que se tocan y se ven en
    el acto. Un `select` de tres esconde dos detrás de una rueda de iOS que tapa
