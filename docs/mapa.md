@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.26.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  706 pruebas en 74 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.27.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  709 pruebas en 75 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -182,6 +182,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ eurosToCents, centsToEuros, formatCents
 - `native.js` — Puente con las capacidades nativas (Capacitor).
   ↳ urlDelManifiestoOta, isNative, tap, share, checkForOtaUpdate, versionInstalada · +6 más
+- `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
+  ↳ NOTAS
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
   ↳ EDADES, pesoDe, EMOJIS_PERSONA
 - `planes.js` — Lo que se dice de un plan sin abrirlo: cuántos lo quieren y quién falta.
@@ -359,3 +361,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`
+- **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`

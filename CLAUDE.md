@@ -122,6 +122,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   (solo durante el viaje), días con plan, racha de cenas— y dos retratos al pique (el
   entusiasta 👍 y el indeciso 🤷, con los empates dichos). Todo en `computeStats`, local y
   puro; nada señala fuera del interruptor.
+- **Cada versión se describe a sí misma** (SPECS §14.34, figura de `meeting-ops-air`):
+  `lib/notas.js` lleva unas líneas **a mano** por versión —lo que se nota en pantalla, no qué
+  módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de
+  lado, y `lib/notas.test.js` ata la entrada de arriba a `package.json`: **subir versión sin
+  describirla pone las pruebas en rojo**. Al cerrar una vuelta que sube versión, añade su
+  nota arriba del todo.
 - **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,
