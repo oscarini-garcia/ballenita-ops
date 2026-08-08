@@ -85,50 +85,10 @@ export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, ex
   )
 }
 
-/**
- * La misma hoja, pero para marcar **varias** (`docs/diseño/agenda-dia.html · F1`).
- *
- * Elegir un bunga es elegir uno; elegir los platos de una cena es marcar seis de
- * catorce. Es el mismo mueble —la lista sube desde abajo, el fondo cierra— con
- * la única diferencia de que aquí las filas no se cierran al tocarlas y llevan
- * `aria-pressed` en vez de un tic decorativo.
- *
- * `opciones`: `[{ id, etiqueta, nota }]`. `marcados` es un `Set` de ids.
- * `notaDebajo` como en la de elección: para notas que son frases, no datos.
- * `children` va entre el pie y «Listo»: es donde la hoja de la cena pone su
- * «Quitar la cena de este día» (`docs/diseño/dia-abierto.html` · H1).
+/*
+ * Aquí vivió `HojaDeMarcar` (`agenda-dia.html · F1`), la hoja para marcar
+ * varias. Su único consumidor era el día de Agenda, y sus elegidores pasaron a
+ * la capa centrada con borrador (`elegidores.html` · C2 · V2): se fue con
+ * ellos. Si vuelve a hacer falta marcar varias desde una hoja, está en la
+ * historia de git.
  */
-export function HojaDeMarcar({ titulo, opciones, marcados, onAlternar, onCerrar, vacio, pie, notaDebajo = false, children }) {
-  return (
-    <Hoja titulo={titulo} onCerrar={onCerrar}>
-      {opciones.length === 0 && vacio && <div className="note">{vacio}</div>}
-      {opciones.length > 0 && (
-        <div className={`eleccion${notaDebajo ? ' nota-debajo' : ''}`}>
-          {opciones.map((o) => {
-            const puesto = marcados.has(o.id)
-            return (
-              <button
-                key={o.id}
-                type="button"
-                className="eleccion-op"
-                aria-pressed={puesto}
-                onClick={() => { tap(); onAlternar(o.id) }}
-              >
-                <span className="et">{o.etiqueta}</span>
-                {o.nota && <span className="no">{o.nota}</span>}
-                {puesto && <span className="tic"><Icono nombre="visto" /></span>}
-              </button>
-            )
-          })}
-        </div>
-      )}
-      {pie && <div className="apunte" style={{ marginTop: 10 }}>{pie}</div>}
-      {children}
-      {/* Elegir uno cierra la hoja solo; marcar varios no sabe cuándo has
-          terminado, así que la salida tiene que estar escrita. */}
-      <div style={{ marginTop: 14 }}>
-        <button type="button" className="btn block" onClick={() => { tap(); onCerrar() }}>Listo</button>
-      </div>
-    </Hoja>
-  )
-}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   diasDe, resumenDeDia, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, titularDeHoy,
-  numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal, enLetras,
+  numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal, enLetras, filtraOpciones,
 } from './dias.js'
 import { diaSiguiente, finPara } from './fechas.js'
 
@@ -197,6 +197,34 @@ describe('titularDeHoy', () => {
     expect(enLetras(2)).toBe('dos')
     expect(enLetras(10)).toBe('diez')
     expect(enLetras(11)).toBe('11')
+  })
+})
+
+/** L3 de `docs/diseño/elegidores.html`: el buscador de los elegidores. */
+describe('filtraOpciones', () => {
+  const OPCIONES = [
+    { id: 'd1', etiqueta: 'Paella mixta', nota: 'Principal' },
+    { id: 'd2', etiqueta: 'Sandía', nota: 'Postre' },
+    { id: 'd3', etiqueta: 'Ensalada verde', nota: 'Acompañamiento' },
+  ]
+
+  it('con la caja vacía salen todas: filtra, no esconde', () => {
+    expect(filtraOpciones(OPCIONES, '')).toHaveLength(3)
+    expect(filtraOpciones(OPCIONES, '   ')).toHaveLength(3)
+  })
+
+  it('no le importan las tildes ni las mayúsculas', () => {
+    expect(filtraOpciones(OPCIONES, 'sandia')).toEqual([OPCIONES[1]])
+    expect(filtraOpciones(OPCIONES, 'PAELLA')).toEqual([OPCIONES[0]])
+  })
+
+  it('también mira la nota: buscar «postre» es legítimo', () => {
+    expect(filtraOpciones(OPCIONES, 'postre')).toEqual([OPCIONES[1]])
+  })
+
+  it('sin nada que case, lista vacía y sin quejarse', () => {
+    expect(filtraOpciones(OPCIONES, 'cocido')).toEqual([])
+    expect(filtraOpciones([], 'lo que sea')).toEqual([])
   })
 })
 

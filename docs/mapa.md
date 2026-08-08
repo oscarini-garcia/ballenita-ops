@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.22.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  690 pruebas en 74 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.23.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  697 pruebas en 74 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -119,7 +119,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `Deslizable.jsx` — Una fila que se desliza a la izquierda para descubrir sus verbos.
 - `Fab.jsx` — El botón de crear, con la palabra puesta.
 - `Hoja.jsx` — Una hoja que sube desde el borde de abajo (`docs/diseño/gente-editar.html · F2`).
-  ↳ HojaDeEleccion, HojaDeMarcar
+  ↳ HojaDeEleccion
 - `Icono.jsx` — Los dibujos de la app, en una sola tabla.
   ↳ NOMBRES
 - `Ingredientes.jsx` — Los ingredientes de una receta: **una lista sin cajas y un renglón al pie**.
@@ -163,7 +163,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `demo.js` — Modo de demostración: la app entera, con datos inventados y sin servidor.
   ↳ enDemo, activarDemo, salirDemo
 - `dias.js` — Los días de un evento, y qué se hace en cada uno.
-  ↳ diasDe, numeroYDia, diasEntre, platoQueManda, resumenDeDia, diaQueEnsenaHoy · +8 más
+  ↳ diasDe, numeroYDia, diasEntre, platoQueManda, resumenDeDia, diaQueEnsenaHoy · +9 más
 - `evento.js` — Qué se cae fuera al cambiar las fechas de un evento.
   ↳ dentroDeFechas, loQueSeCaeFuera, porDia, enPalabras
 - `fechas.js` — Las dos reglas de un par de fechas «desde – hasta».
@@ -352,9 +352,10 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.21** El día del viaje: qué bungas, qué se cena y qué plan → `db.js`
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
 - **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`
-- **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
+- **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
 - **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `index.js`, `repositorio.js`
 - **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `importe.js`, `reparto.js`, `tablas.js`
-- **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
+- **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
+- **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`

@@ -388,7 +388,7 @@ label { display: block; font-size: var(--t-label); font-weight: 700; color: var(
    su propio ancho (287 pt de los 356) y un borde de 2. Va `time` con él, que
    todavía no se usa pero es el mismo caso esperando. */
 input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=url],
-input[type=datetime-local], input[type=time], select, textarea {
+input[type=datetime-local], input[type=time], input[type=search], select, textarea {
   width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
   /* Nunca por debajo de 16 px: iOS hace zoom al enfocar el campo si el cuerpo
