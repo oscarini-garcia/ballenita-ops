@@ -114,6 +114,14 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   el rojo que aquí es deuda y borrar — el ámbar es «pendiente», como el amarillo del punto de
   sincronización; pasar a rojo es una variable. Y **el bunga es masculino**: «Ninguno», «el
   de los Pérez», «Los bungas» — §14.31 lo escribió en femenino y §14.32 lo corrige.
+- **Números crece y el semáforo llega a la lista** (SPECS §14.33, `docs/diseño/numeros.html`):
+  la casilla del número de cada día tiñe —verde el completo (cena con platos, dos bungas y
+  plan), ámbar el resto— y «hoy» pasa a un aro del acento; el selector del bunga lleva la
+  pastilla de color de la familia (`Alias.jsx`); en Números el balance de anfitrión va
+  primero, y entran cuatro fichas —día más caro (por día **local**), «Así vais a acabar»
+  (solo durante el viaje), días con plan, racha de cenas— y dos retratos al pique (el
+  entusiasta 👍 y el indeciso 🤷, con los empates dichos). Todo en `computeStats`, local y
+  puro; nada señala fuera del interruptor.
 - **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,

@@ -1,5 +1,7 @@
 // Estadísticas del evento (§7). Función pura sobre los hechos → testeable.
 // Nada aquí "señala" por defecto; las métricas con pique se filtran en la UI (opt-in).
+// Las fichas nuevas se decidieron en `docs/diseño/numeros.html` (T1–T4, T7, T8).
+import { isoLocal, diasDe, diasEntre } from './dias.js'
 
 export function computeStats({
   expenses = [],
@@ -9,6 +11,8 @@ export function computeStats({
   dinners = [],
   plans = [],
   dishes = [],
+  event = null,
+  hoy = null,
 } = {}) {
   const totalCents = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)
   const perPersonAvgCents = persons.length ? Math.round(totalCents / persons.length) : 0
@@ -45,6 +49,63 @@ export function computeStats({
   let topNoVoter = null
   for (const [personId, count] of noCount) if (!topNoVoter || count > topNoVoter.count) topNoVoter = { personId, count }
 
+  // El día más caro (T1): los gastos agrupados por su **día local** — `dateISO`
+  // viaja en UTC y un gasto de la 1:30 de la madrugada caería en el día de
+  // Greenwich, que es el de ayer. Es el mismo mordisco de `isoLocal` (§14.10).
+  const porDia = new Map()
+  for (const e of expenses) {
+    if (!e.dateISO) continue
+    const dia = isoLocal(new Date(e.dateISO))
+    porDia.set(dia, (porDia.get(dia) ?? 0) + (e.amountCents ?? 0))
+  }
+  let topDay = null
+  for (const [dia, cents] of porDia) if (!topDay || cents > topDay.cents) topDay = { dia, cents }
+
+  // «Así vais a acabar» (T2): el gasto proyectado al cierre. Solo existe
+  // durante el viaje — antes no hay días transcurridos y después ya no es un
+  // pronóstico—, y el susto del primer día es el chiste: se corrige solo.
+  let forecastCents = null
+  const inicio = event?.startDate
+  const fin = event?.endDate || event?.startDate
+  if (inicio && hoy && hoy >= inicio && hoy <= fin && totalCents > 0) {
+    const transcurridos = diasEntre(inicio, hoy) + 1
+    const totales = diasEntre(inicio, fin) + 1
+    forecastCents = Math.round((totalCents / transcurridos) * totales)
+  }
+
+  // Días con plan, de los del evento (T3).
+  const diasEvento = diasDe(event ?? {})
+  const conPlan = new Set(plans.map((p) => p.dia).filter((d) => d && diasEvento.includes(d)))
+  const daysWithPlan = { con: conPlan.size, total: diasEvento.length }
+
+  // La racha de cenas (T4): la tirada más larga de noches seguidas con cena.
+  const conCena = [...new Set(dinners.map((c) => c.dia).filter(Boolean))].sort()
+  let dinnerStreak = 0
+  let racha = 0
+  let anterior = null
+  for (const dia of conCena) {
+    racha = anterior && diasEntre(anterior, dia) === 1 ? racha + 1 : 1
+    if (racha > dinnerStreak) dinnerStreak = racha
+    anterior = dia
+  }
+
+  // Los dos retratos del pique (T7 · T8), con los empates dichos: «Ana y
+  // Pablo, empatados» es mejor chiste que elegir a uno por orden de mapa.
+  const retratoDeVoto = (emoji) => {
+    const m = new Map()
+    for (const p of plans) {
+      for (const [personId, v] of Object.entries(p.votos ?? {})) {
+        if (v === emoji) m.set(personId, (m.get(personId) ?? 0) + 1)
+      }
+    }
+    let top = 0
+    for (const c of m.values()) if (c > top) top = c
+    if (!top) return null
+    return { count: top, personIds: [...m.entries()].filter(([, c]) => c === top).map(([id]) => id) }
+  }
+  const topYesVoter = retratoDeVoto('👍')
+  const topShrugVoter = retratoDeVoto('🤷')
+
   return {
     totalCents,
     perPersonAvgCents,
@@ -57,5 +118,11 @@ export function computeStats({
     plansProposed: plans.length,
     plansConfirmed,
     topNoVoter,
+    topDay,
+    forecastCents,
+    daysWithPlan,
+    dinnerStreak,
+    topYesVoter,
+    topShrugVoter,
   }
 }

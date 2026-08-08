@@ -3109,6 +3109,49 @@ femenino. Corregido en la app y en este spec: **«Ninguno»** en el selector,
 bunga»**, la sección **«Los bungas»** y «Sin bungas repartidos todavía» en el
 titular de Hoy.
 
+### 14.33 Números crece, y el semáforo llega a la lista de Días
+
+Decidido en `docs/diseño/numeros.html`: tres encargos directos y una elección
+(T1 · T2 · T3 · T4 en la rejilla, T7 · T8 al pique).
+
+**El semáforo en la lista de Días** (revisa la D1 de `dia-estado.html`, a
+encargo): la casilla del número tiñe con los mismos pares que los iconos del
+día abierto — **verde el día completo, ámbar al que le falta algo**. «Completo»
+son los cuatro estados de G1 en verde: cena con platos, los dos bungas y algo
+de plan. Una consecuencia dibujada antes de hacerla: «hoy» pintaba su casilla
+del mismo verde, y pasa a un **aro del acento** para que el relleno quede libre
+para el semáforo (el titular de hoy sigue en negrita).
+
+**El selector del bunga lleva el color de la familia**: la pastilla de dos
+letras de `lib/alias.js` (`Alias.jsx`, la firma de Ideas y de los votantes de
+un plan) junto al nombre — «Pérez PE · El del ruido». El color solo tiñe el
+fondo y la letra se mezcla con la tinta del tema, como en todas partes.
+
+**En Números, el balance de anfitrión primero**: la sección sube encima de la
+rejilla — es la cuenta que evita discusiones, quién ha acogido ya y a quién le
+toca, y estaba debajo de la media por persona.
+
+**Y cuatro fichas nuevas más dos retratos**, todo calculado en local en
+`computeStats` (`lib/stats.js`, puro y con tests) a partir de hechos que ya
+están en el móvil — nada viaja, nada llama a la IA, cero migraciones—:
+
+- **El día más caro** (T1): los gastos agrupados por su **día local**
+  (`isoLocal` sobre `dateISO`, que viaja en UTC — el gasto de la 1:30 cuenta
+  para la noche en que se pagó, no para el día de Greenwich).
+- **«Así vais a acabar»** (T2): el gasto proyectado al cierre — total entre
+  días transcurridos por días del viaje—. Solo existe **durante** el viaje; el
+  susto del primer día es el chiste y se corrige solo.
+- **Días con plan** (T3): «2 de 8», el contrapunto en cifra del semáforo.
+- **Racha de cenas** (T4): la tirada más larga de noches seguidas con cena.
+- **El entusiasta y el indeciso** (T7 · T8, 🌶️): quién más 👍 reparte y quién
+  más 🤷 acumula, **dentro del interruptor del pique** con el 👎 de siempre —
+  señalan, y nada señala por defecto (§7)—. Los **empates se dicen** («Ana y
+  Pablo, empatados»), que es mejor chiste que elegir a uno por orden de mapa.
+
+Se descartaron T5 (la compra pendiente: la Compra ya lo dice en su área) y T6
+(la bebida por adulto: divertida el día tres, incómoda el día siete); se suman
+con una línea si algún verano apetecen.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas
