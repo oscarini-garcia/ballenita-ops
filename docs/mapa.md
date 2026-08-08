@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.27.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  709 pruebas en 75 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.28.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  712 pruebas en 76 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -344,7 +344,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
 - **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `ProgresoModal.jsx`, `avatares.js`, `db.js`, `ia.js`, `index.js`, `native.js`, `personas.js`, `primeraBajada.js`, `salida.js`, `tablas.js`, `tables.js`
 - **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `scrollLock.js`, `stats.js`
-- **§14.13** Los dibujos, y el único color que informa → `categorias.js`, `personas.js`, `pwa.js`
+- **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `evento.js`, `reparto-gente.js`
 - **§14.15** Quién entra: la sala de espera, las cuentas y los avisos → `index.js`
 - **§14.16** La IA: la clave vive en el servidor → `api.js`, `cocina.js`, `encargos.js`, `ia.js`, `index.js`, `receta.js`, `repositorio.js`
@@ -361,4 +361,5 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`
+- **§14.31** Los elegidores del día: al centro, con borrador y buscador → `StatsScreen.jsx`, `stats.js`
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`

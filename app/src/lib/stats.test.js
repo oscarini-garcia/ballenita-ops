@@ -5,7 +5,9 @@ describe('computeStats', () => {
   const base = {
     persons: [{ id: 'a' }, { id: 'b' }, { id: 'c' }],
     families: [{ id: 'F1' }, { id: 'F2' }],
-    bungas: [{ id: 'b1', name: 'B1' }, { id: 'b2', name: 'B2' }],
+    // `b2` se queda sin familia dueña a propósito: es el caso que el balance
+    // tiene que saber enseñar con su alias, como el selector del bunga.
+    bungas: [{ id: 'b1', name: 'B1', familyId: 'F1' }, { id: 'b2', name: 'B2' }],
     dishes: [{ id: 'd1', name: 'Paella' }, { id: 'd2', name: 'Sandía' }],
     expenses: [
       { amountCents: 3000, category: 'comida', payers: [{ familyId: 'F1', amountCents: 3000 }] },
@@ -40,10 +42,14 @@ describe('computeStats', () => {
     expect(s.topDish).toEqual({ id: 'd1', name: 'Paella', count: 2 })
   })
 
-  it('balance de anfitrión por bunga', () => {
+  it('balance de anfitrión por bunga, con su familia dueña', () => {
     const s = computeStats(base)
     const b1 = s.hostBalance.find((h) => h.bungaId === 'b1')
-    expect(b1).toMatchObject({ mayores: 2, ninos: 0, total: 2 })
+    // La familia viaja con el balance: la pantalla lo enseña como el selector
+    // del bunga —la familia manda y el alias es la seña—, y a quién le toca
+    // acoger es a una familia.
+    expect(b1).toMatchObject({ mayores: 2, ninos: 0, total: 2, familyId: 'F1' })
+    expect(s.hostBalance.find((h) => h.bungaId === 'b2').familyId).toBe(null)
   })
 
   it('planes y el que más vota no', () => {

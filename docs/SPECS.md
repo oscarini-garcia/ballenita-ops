@@ -3129,7 +3129,14 @@ fondo y la letra se mezcla con la tinta del tema, como en todas partes.
 
 **En Números, el balance de anfitrión primero**: la sección sube encima de la
 rejilla — es la cuenta que evita discusiones, quién ha acogido ya y a quién le
-toca, y estaba debajo de la media por persona.
+toca, y estaba debajo de la media por persona. **Y cada bunga se enseña ahí
+como en su selector** (§14.31 · B1, a encargo): la familia manda con su
+pastilla de dos letras y el alias baja a la línea de debajo, junto al recuento
+—«a quién le toca» es a una familia, y «El del ruido» solo lo contesta si te
+sabes los motes—; el bunga sin familia dueña se queda con su alias, como en el
+selector. `hostBalance` lleva por eso el `familyId`. De paso el 🏠 del cromo
+deja su sitio al dibujo de línea de siempre (§14.13), que es además el que ya
+lleva el bunga en el día.
 
 **Y cuatro fichas nuevas más dos retratos**, todo calculado en local en
 `computeStats` (`lib/stats.js`, puro y con tests) a partir de hechos que ya

@@ -11,6 +11,8 @@ import { computeStats } from '../lib/stats.js'
 import { formatCents } from '../lib/money.js'
 import { CATEGORIES } from '../lib/categorias.js'
 import { fmtDiaCorto, hoyISO } from '../lib/dias.js'
+import Icono from '../components/Icono.jsx'
+import Alias from '../components/Alias.jsx'
 
 const catLabel = (id) => CATEGORIES.find((c) => c.id === id)?.label ?? id
 
@@ -56,13 +58,31 @@ export default function StatsScreen({ eventId, event }) {
         <>
           <div className="sec-h">Balance de anfitrión (cenas)</div>
           <div className="card tight">
-            {s.hostBalance.map((h) => (
-              <div className="row" key={h.bungaId}>
-                <div className="av" style={{ background: 'var(--spout-deep)' }}>🏠</div>
-                <div className="main"><div className="n">{h.name}</div><div className="sub">mayores {h.mayores} · niños {h.ninos}</div></div>
-                <div className="pill neutral">{h.total}</div>
-              </div>
-            ))}
+            {/* Cada bunga se enseña **como en su selector** (§14.31 · B1): la
+                familia manda, con su pastilla de dos letras, y el alias del
+                bunga queda de seña en la línea de abajo. Aquí la pregunta es a
+                quién le toca acoger, y a quién le toca es a una familia — «El
+                del ruido» solo lo contesta si te sabes los motes. Un bunga sin
+                familia dueña se queda con su alias, como en el selector.
+                El icono es el mismo dibujo de línea que en el día; el 🏠 de
+                antes era un emoji del cromo, que §14.13 no quiere. */}
+            {s.hostBalance.map((h) => {
+              const f = families.find((x) => x.id === h.familyId)
+              return (
+                <div className="row" key={h.bungaId}>
+                  <div className="ico"><Icono nombre="casa" /></div>
+                  <div className="main">
+                    <div className="n">
+                      {f ? <>{f.name}<Alias familia={f} /></> : h.name}
+                    </div>
+                    <div className="sub">
+                      {f ? `${h.name} · ` : ''}mayores {h.mayores} · niños {h.ninos}
+                    </div>
+                  </div>
+                  <div className="pill neutral">{h.total}</div>
+                </div>
+              )
+            })}
           </div>
         </>
       )}
