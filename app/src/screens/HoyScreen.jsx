@@ -1,8 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { dinnersOf, plansOf, bungasOf, personsOf, listDishes } from '../db.js'
+import { dinnersOf, plansOf, bungasOf, personsOf, familiesOf, listDishes } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import PieDeVersion from '../components/PieDeVersion.jsx'
 import Recado from '../components/Recado.jsx'
+import Alias from '../components/Alias.jsx'
 import { estadoEnUnaLinea, partirEstado, quienTieneEstado } from '../lib/estados.js'
 import {
   diasDe, diaQueEnsenaHoy, rotuloDelDia, titularDeHoy, fmtDiaCorto,
@@ -33,6 +34,7 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   const personas = useLiveQuery(() => personsOf(eventId), [eventId], [])
+  const familias = useLiveQuery(() => familiesOf(eventId), [eventId], [])
 
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
   const cual = diaQueEnsenaHoy(dias)
@@ -103,7 +105,11 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
           los planes. Es lo que convierte el campo en algo que se usa — hasta
           ahora el estado sincronizaba a los nueve móviles y no se pintaba en
           ninguna pantalla. Solo salen los que han dicho algo: una tira de nueve
-          caras mudas no cuenta nada, y esta pantalla es para lo que **hay**. */}
+          caras mudas no cuenta nada, y esta pantalla es para lo que **hay**.
+          Cada nombre lleva **el acrónimo de su familia** en su pastilla
+          (`Alias.jsx`, la de Ideas y la de los votantes): con dos Marías en el
+          grupo, el nombre solo no dice de qué casa es. Y van **por novedad**,
+          lo último puesto primero. */}
       {conEstado.length > 0 && (
         <>
           <div className="sec-h">Quién anda en qué</div>
@@ -114,7 +120,10 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
                 <div className="est" key={p.id}>
                   <span className="cara" aria-hidden>{emoji || p.avatar || '🙂'}</span>
                   <span className="quien">
-                    <span className="n">{p.apodo || p.name}</span>
+                    <span className="n">
+                      {p.apodo || p.name}
+                      <Alias familia={familias.find((f) => f.id === p.familyId)} />
+                    </span>
                     <span className="q">{texto || estadoEnUnaLinea({ emoji, texto })}</span>
                   </span>
                 </div>

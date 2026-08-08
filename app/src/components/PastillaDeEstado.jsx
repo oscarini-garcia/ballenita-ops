@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { personsOf, updatePerson } from '../db.js'
+import { now } from '../lib/ids.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { tap } from '../lib/native.js'
 import HojaDeEstado from './HojaDeEstado.jsx'
@@ -16,9 +17,9 @@ import HojaDeEstado from './HojaDeEstado.jsx'
  * debajo de los 44 de iOS: es una pastilla dentro de una barra, no un botón
  * suelto, y va dicho aquí para que no se descubra midiendo.
  *
- * **Los estados largos caben**: la pastilla ocupa lo que le dan y recorta con
- * puntos suspensivos, así que «desaparecido en combate» —187,4 pt de los 262
- * de la línea— entra entero y uno más largo se corta sin descolocar nada.
+ * **Los estados largos caben** (§14.36-bis): la pastilla admite **dos líneas**
+ * —de 37 letras a 65— y solo crece cuando se usa la segunda: 42 pt con una,
+ * 44,9 con dos. Lo que pase de ahí se recorta, que es el único tope que queda.
  *
  * Los dos huecos (V1): con identidad y sin estado **invita** —«+ tu estado»—,
  * porque un botón que no se ve no se estrena; sin identidad en este móvil
@@ -49,7 +50,13 @@ export default function PastillaDeEstado({ eventId, lugar }) {
           eventId={eventId}
           persona={me}
           onCerrar={() => setAbierto(false)}
-          onGuardar={async (nuevo) => { await updatePerson(me.id, { estado: nuevo }); setAbierto(false) }}
+          onGuardar={async (nuevo) => {
+            // El «cuándo» lo escribe el cliente, como `apuntadaEl` de una idea:
+            // así la tira de «Hoy» ordena por novedad desde el primer pintado y
+            // sin depender de la sincronización. Vaciar el estado lo borra.
+            await updatePerson(me.id, { estado: nuevo, estadoEl: nuevo ? now() : null })
+            setAbierto(false)
+          }}
         />
       )}
     </>
