@@ -3152,6 +3152,27 @@ Se descartaron T5 (la compra pendiente: la Compra ya lo dice en su área) y T6
 (la bebida por adulto: divertida el día tres, incómoda el día siete); se suman
 con una línea si algún verano apetecen.
 
+### 14.34 Cada versión se describe a sí misma
+
+La figura de `meeting-ops-air`, copiada a encargo: **la app cuenta qué cambió
+en cada actualización**, y que lo cuente es una propiedad de los checks, no de
+la memoria de nadie.
+
+- **`lib/notas.js`** lleva unas pocas líneas **escritas a mano** por versión
+  publicada — la más nueva primero, en la voz de la interfaz: lo que cambió en
+  pantalla, no qué módulo se tocó. No se puede derivar del código: el código
+  dice qué es verdad de un build, no qué notaría quien sostiene el móvil.
+- **Ajustes → 🐳 La app** enseña la versión puesta y **las tres de antes** como
+  tarjetas de lado (`.relnotas`), entre la versión en curso y «Comprobar
+  ahora»: la pantalla contesta «¿qué me trajo la actualización?» y no solo
+  «¿cuál tengo puesta?». De lado y no en pila para no empujar el botón fuera
+  de un acordeón que ya es largo.
+- **La guardia** (`lib/notas.test.js`) ata la entrada de arriba al número de
+  `app/package.json`: subir la versión sin describirla —o describirla sin
+  subirla— pone las pruebas en rojo en cada PR. En `meeting-ops-air` además el
+  bump se niega desde el otro lado (`tools/bump.py`); aquí la versión se sube
+  a mano y la guardia es la que avisa, en `npm test` y en CI.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

@@ -11,6 +11,7 @@ import Icono from '../components/Icono.jsx'
 import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
 import { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
+import { NOTAS } from '../lib/notas.js'
 import { COCINA_DE_ORIGEN } from '../lib/cocina.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
 import GrupoSection from './GrupoSection.jsx'
@@ -759,6 +760,21 @@ function AppSection({ esAdmin = false }) {
         {isNative()
           ? 'El paquete nuevo se descarga aquí y se aplica al volver a abrir la app.'
           : 'Estás en la versión web, que se actualiza sola al recargar.'}
+      </div>
+
+      {/* Qué cambió, una tarjeta por versión y de lado (SPECS §14.34, la
+          figura de `meeting-ops-air`): la que llevas puesta y las tres de
+          antes. La prosa vive en `lib/notas.js`, escrita a mano en cada vuelta
+          y atada a la versión por su test — así esta pantalla contesta «¿qué
+          me trajo la actualización?» y no solo «¿cuál tengo puesta?». */}
+      <div className="relnotas" aria-label="Qué cambió, por versión">
+        {NOTAS.slice(0, 4).map((n) => (
+          <div className="relnota" key={n.version}>
+            <div className="rn-meta tnum">v{n.version} · {n.fecha}</div>
+            <div className="rn-titulo">{n.titulo}</div>
+            {n.lineas.map((l, i) => <p className="rn-linea" key={i}>{l}</p>)}
+          </div>
+        ))}
       </div>
 
       <button className="btn ghost block" disabled={busy} onClick={actualizar}>
