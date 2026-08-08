@@ -68,7 +68,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   respuesta —token, error o reloj—); y los cuatro eslabones se pintan con `ListaDePasos`,
   porque se arreglan en cuatro sitios distintos y se veían igual. El entitlement se
   **escribe** en vez de avisarse (`scripts/entitlements.mjs`): un `App.entitlements` sin
-  `CODE_SIGN_ENTITLEMENTS` no se firma, y eso es indistinguible de no tenerlo.
+  `CODE_SIGN_ENTITLEMENTS` no se firma, y eso es indistinguible de no tenerlo. **Y el
+  renglón contestó a la primera**: se paraba en el primero, `plugin()`, esperando seis
+  segundos a un `import()` que dentro de la cáscara se cuelga y que **no es una segunda
+  opinión** —el JavaScript viaja en el OTA, así que importarlo funciona siempre—. La
+  ausencia en `Capacitor.Plugins` **es** la respuesta (`JSExport.swift` la escribe
+  `atDocumentStart`), así que `plugin()` es síncrona y el renglón lleva `informeDelPuente()`:
+  con `Haptics` y sin `PushNotifications`, el binario es viejo; sin ninguno, falla el puente.
 - **Una receta lleva cantidades, y de ahí sale la compra** (SPECS §14.20,
   `docs/diseño/cenas-cantidades.html` · G2·A1·C1·D5·E2·F1): el plato dice **para cuántas
   raciones** es (`raciones`) y cada ingrediente **cuánto**; estirarlo a la gente que hay es

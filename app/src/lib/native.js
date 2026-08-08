@@ -196,32 +196,56 @@ export async function estadoDelPaquete() {
 export const SIN_PLUGIN = 'sin-plugin'
 
 /**
- * El plugin, o `SIN_PLUGIN` si este binario no lo trae.
+ * El plugin, o `SIN_PLUGIN` si este binario no lo trae. **Sin esperar nada.**
  *
- * **Se coge del puente y no se importa**, y esto costó tres intentos. El
+ * **Se coge del puente y no se importa**, y esto costó cuatro intentos. El
  * `import()` dinámico del paquete se quedaba colgado dentro de la cáscara —en la
- * consola de Xcode se veía llegar el `Haptics` del toque y ninguna llamada más—,
- * y era el único punto del camino sin plazo, así que la pantalla se quedaba en
- * «Pidiendo…» para siempre.
+ * consola de Xcode se veía llegar el `Haptics` del toque y ninguna llamada más—.
+ * Se le puso plazo, y con eso dejó de ser eterno; pero seguía siendo **la
+ * respuesta equivocada esperada durante seis segundos**, que en pantalla es un
+ * renglón en curso sin nada detrás. La cuarta vez el renglón lo dijo: se paraba
+ * aquí, en el primer eslabón, y no en ninguno de los otros tres.
  *
- * `Capacitor.Plugins` ya tiene el objeto: lo registra la parte nativa al
- * arrancar, es exactamente el mismo que devolvería el paquete, y consultarlo no
- * pide ningún fichero a nadie. El `import()` se queda solo como reserva para la
- * web, y con plazo, porque ninguna llamada de este módulo puede no acabarse.
+ * Dentro de la cáscara **la ausencia es la respuesta**. La parte nativa de
+ * Capacitor escribe `Capacitor.Plugins.<nombre>` para cada plugin registrado
+ * antes de que corra una línea de esta aplicación (`JSExport.swift`, guiones de
+ * usuario `atDocumentStart`). Si el objeto no está, el plugin no está en este
+ * binario: es instantáneo, es cierto, y es justo lo que hay que decir —hace
+ * falta instalar un binario nuevo, y eso no se arregla desde el teléfono ni con
+ * un paquete OTA—.
  *
  * Lo que **no** vale para saber si el plugin está: ni el `import()` —el
- * JavaScript viaja dentro del paquete OTA, así que importarlo funciona igual—,
- * ni `Capacitor.isPluginAvailable`, que devuelve `true` con que ese JavaScript
- * se haya registrado.
+ * JavaScript viaja dentro del paquete OTA, así que importarlo funciona igual, y
+ * el objeto que devuelve llama a una parte nativa que no existe—, ni
+ * `Capacitor.isPluginAvailable`, que devuelve `true` con que ese JavaScript se
+ * haya registrado.
  */
-async function plugin() {
+function plugin() {
   const delPuente = Capacitor?.Plugins?.PushNotifications
-  if (delPuente) return delPuente
+  if (!delPuente) throw new Error(SIN_PLUGIN)
+  return delPuente
+}
+
+/**
+ * Qué se ve desde aquí, para el renglón que se copia.
+ *
+ * Cuando falta el plugin, «esta instalación no puede avisar» es la conclusión;
+ * esto es en qué se basa. Los nombres de lo que **sí** trae el puente separan
+ * las dos causas que se ven igual desde el móvil: si están `Haptics` y
+ * `Share` pero no `PushNotifications`, el binario es anterior al plugin; si no
+ * está ninguno, lo que falla es el puente entero y los avisos son lo de menos.
+ */
+export function informeDelPuente() {
   try {
-    const { PushNotifications } = await conPlazo(import('@capacitor/push-notifications'))
-    return PushNotifications
-  } catch {
-    throw new Error(SIN_PLUGIN)
+    const puente = Capacitor?.Plugins
+    return [
+      `plataforma: ${Capacitor?.getPlatform?.() ?? '?'}`,
+      `nativo: ${isNative()}`,
+      `PushNotifications en el puente: ${Boolean(puente?.PushNotifications)}`,
+      `plugins del puente: ${puente ? Object.keys(puente).sort().join(', ') || '(ninguno)' : '(no hay puente)'}`,
+    ].join('\n')
+  } catch (e) {
+    return `no se ha podido mirar el puente: ${e?.message ?? e}`
   }
 }
 
@@ -267,7 +291,7 @@ export async function registerPush({ alPaso } = {}) {
   const paso = (clave) => { try { alPaso?.(clave) } catch { /* pintar no puede romper esto */ } }
 
   paso('plugin')
-  const PushNotifications = await plugin()
+  const PushNotifications = plugin()
 
   paso('permiso')
   const estado = await conPlazo(PushNotifications.checkPermissions())
@@ -353,7 +377,7 @@ export async function registerPush({ alPaso } = {}) {
 export async function estadoDePush() {
   if (!isNative()) return 'no-aplica'
   try {
-    const PushNotifications = await plugin()
+    const PushNotifications = plugin()
     const { receive } = await conPlazo(PushNotifications.checkPermissions())
     return receive // 'granted' · 'denied' · 'prompt' · 'prompt-with-rationale'
   } catch (e) {
