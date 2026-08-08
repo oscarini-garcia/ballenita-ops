@@ -94,13 +94,16 @@ export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, ex
  * `aria-pressed` en vez de un tic decorativo.
  *
  * `opciones`: `[{ id, etiqueta, nota }]`. `marcados` es un `Set` de ids.
+ * `notaDebajo` como en la de elección: para notas que son frases, no datos.
+ * `children` va entre el pie y «Listo»: es donde la hoja de la cena pone su
+ * «Quitar la cena de este día» (`docs/diseño/dia-abierto.html` · H1).
  */
-export function HojaDeMarcar({ titulo, opciones, marcados, onAlternar, onCerrar, vacio, pie }) {
+export function HojaDeMarcar({ titulo, opciones, marcados, onAlternar, onCerrar, vacio, pie, notaDebajo = false, children }) {
   return (
     <Hoja titulo={titulo} onCerrar={onCerrar}>
       {opciones.length === 0 && vacio && <div className="note">{vacio}</div>}
       {opciones.length > 0 && (
-        <div className="eleccion">
+        <div className={`eleccion${notaDebajo ? ' nota-debajo' : ''}`}>
           {opciones.map((o) => {
             const puesto = marcados.has(o.id)
             return (
@@ -120,6 +123,7 @@ export function HojaDeMarcar({ titulo, opciones, marcados, onAlternar, onCerrar,
         </div>
       )}
       {pie && <div className="apunte" style={{ marginTop: 10 }}>{pie}</div>}
+      {children}
       {/* Elegir uno cierra la hoja solo; marcar varios no sabe cuándo has
           terminado, así que la salida tiene que estar escrita. */}
       <div style={{ marginTop: 14 }}>

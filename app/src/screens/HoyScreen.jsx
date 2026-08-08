@@ -4,16 +4,22 @@ import Icono from '../components/Icono.jsx'
 import PieDeVersion from '../components/PieDeVersion.jsx'
 import Recado from '../components/Recado.jsx'
 import {
-  diasDe, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, fmtDiaCorto,
+  diasDe, diaQueEnsenaHoy, rotuloDelDia, titularDeHoy, fmtDiaCorto,
 } from '../lib/dias.js'
 
 /**
  * «Hoy»: qué pasa hoy, contestado sin que haya que leer.
  *
- * Opción **E1** de `docs/diseño/navegacion.html`: el titular de la cena y los
+ * Opción **E1** de `docs/diseño/navegacion.html`: un solo titular grande y los
  * planes del día, y nada más. Ni el dinero, ni la compra, ni lo que hay que
  * decidir — todo eso tiene su sección y aquí solo competiría con la pregunta con
  * la que se abre la app.
+ *
+ * El titular **titula lo que hay** (`docs/diseño/dia-abierto.html` · P2,
+ * `titularDeHoy`): antes era siempre la cena, y el día de la playa confirmada
+ * abría con «Sin cena montada» — el plan de verdad quedaba 127 pt más abajo, en
+ * letra de fila, mientras la lista de Días titulaba ese mismo día «Playa de la
+ * Cala».
  *
  * Y opción **F3** para los otros trescientos cincuenta y siete días del año: si
  * hoy no cae dentro del evento, enseña el día más próximo **diciendo lo que es**
@@ -48,8 +54,13 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   const susPlatos = (cena?.platoIds ?? []).map((id) => porId[id]).filter(Boolean)
   const nombreBunga = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : null }
 
-  const mayores = nombreBunga(cena?.bungaMayoresId)
-  const ninos = nombreBunga(cena?.bungaNinosId)
+  const { grande, pequeno } = titularDeHoy({
+    cena,
+    platos: susPlatos,
+    planes: delDia,
+    bungaMayores: nombreBunga(cena?.bungaMayoresId),
+    bungaNinos: nombreBunga(cena?.bungaNinosId),
+  })
 
   return (
     <div className="body">
@@ -57,13 +68,8 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
           tarjeta deja de ser un titular y hay que leer para saber qué pasa. */}
       <div className="titular">
         <div className="l">{rotuloDelDia(cual, { hayCena: !!cena })}</div>
-        <div className="g">{titularDeCena(cena, susPlatos)}</div>
-        <div className="p">
-          {cena
-            ? [mayores && `Mayores en ${mayores}`, ninos && `niños en ${ninos}`].filter(Boolean).join(' · ')
-              || 'Sin bungas repartidas todavía'
-            : 'Nadie ha dicho dónde se cena'}
-        </div>
+        <div className="g">{grande}</div>
+        <div className="p">{pequeno}</div>
       </div>
 
       <div className="sec-h">{cual.estado === 'hoy' ? 'Planes de hoy' : `Planes del ${fmtDiaCorto(cual.dia)}`}</div>

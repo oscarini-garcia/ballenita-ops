@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DiasScreen from './DiasScreen.jsx'
 import {
@@ -23,7 +23,7 @@ async function sembrar() {
   })
   await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado' })
   await addPlan(eventId, { titulo: 'Noche de juegos de mesa', votos: { [curro]: '👍' } })
-  return { eventId, event: await getEvent(eventId) }
+  return { eventId, event: await getEvent(eventId), ruido }
 }
 
 const abrirDia = async (nombre) =>
@@ -84,20 +84,25 @@ describe('DiasScreen', () => {
       .toBeInTheDocument()
   })
 
-  /** B4: los dos textos libres ya no se piden en ninguna parte. */
-  it('la cena ya no pregunta qué se hace ni las cantidades', async () => {
+  /**
+   * H1: los verbos de guardar se fueron —«Guardar la cena» guardaba también las
+   * bungas y no tocaba los planes, que ya se guardaban solos— y con ellos el
+   * borrador que moría al cerrar. Cada toque escribe.
+   */
+  it('el día abierto no lleva verbo de guardar: cada toque escribe', async () => {
     const { eventId, event } = await sembrar()
     render(<DiasScreen eventId={eventId} event={event} />)
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
     await screen.findByRole('heading', { name: /domingo, 9 de agosto/i })
-    expect(screen.queryByText('Qué se hace')).toBeNull()
-    expect(screen.queryByText('Cantidades')).toBeNull()
+    expect(screen.queryByText(/Guardar la cena/)).toBeNull()
+    expect(screen.queryByText(/Montar la cena/)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'quitar' })).toBeNull()
   })
 
-  /** F1 + G1: los platos se marcan en su hoja, y no hay «plato al vuelo». */
-  it('monta la cena de un día que no la tenía, eligiendo los platos en su hoja', async () => {
+  /** M2 + R2: la cena nace sola al marcar el primer plato, sin ningún botón. */
+  it('monta la cena de un día que no la tenía, marcando un plato en su hoja', async () => {
     const { eventId, event } = await sembrar()
     render(<DiasScreen eventId={eventId} event={event} />)
     await screen.findByText('Paella mixta')
@@ -105,15 +110,32 @@ describe('DiasScreen', () => {
     await abrirDia('martes, 11 de agosto')
     expect(screen.queryByText(/al vuelo/i)).toBeNull()
 
-    await userEvent.click(await screen.findByRole('button', { name: /elige los platos/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /Sin cena montada/ }))
     await userEvent.click(await screen.findByRole('button', { name: /^Paella mixta/ }))
-    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Montar la cena' }))
 
-    const cenas = await dinnersOf(eventId)
-    const nueva = cenas.find((c) => c.dia === '2026-08-11')
-    expect(nueva).toBeTruthy()
-    expect(nueva.platoIds).toHaveLength(1)
+    // Sin «Listo» y sin «Montar la cena»: el toque ya escribió (H1).
+    await waitFor(async () => {
+      const nueva = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-11')
+      expect(nueva).toBeTruthy()
+      expect(nueva.platoIds).toHaveLength(1)
+    })
+  })
+
+  it('dos toques rápidos no crean dos cenas el mismo día', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('martes, 11 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /Sin cena montada/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^Paella mixta/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^Sandía/ }))
+
+    await waitFor(async () => {
+      const delDia = (await dinnersOf(eventId)).filter((c) => c.dia === '2026-08-11')
+      expect(delDia).toHaveLength(1)
+      expect(delDia[0].platoIds).toHaveLength(2)
+    })
   })
 
   it('el renglón de la cena dice lo que se cena, no «2 platos»', async () => {
@@ -122,22 +144,79 @@ describe('DiasScreen', () => {
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
-    expect(await screen.findByRole('button', { name: 'Paella mixta y una cosa más' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ })).toBeInTheDocument()
   })
 
-  /** C2: la hoja de planes libres, con los votos y quién falta. */
-  it('coloca en el día un plan libre, elegido en su hoja', async () => {
+  /** R2: las bungas se eligen en su hoja, no en dos selectores nativos. */
+  it('elige la bunga de mayores en su hoja, y también nace la cena si no había', async () => {
+    const { eventId, event, ruido } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('viernes, 14 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /Sin bungas repartidas/ }))
+    // Las dos listas enseñan las mismas bungas: la primera aparición es la de
+    // mayores, que es la lista de arriba.
+    await userEvent.click((await screen.findAllByRole('button', { name: 'El del ruido' }))[0])
+
+    await waitFor(async () => {
+      const nueva = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-14')
+      expect(nueva?.bungaMayoresId).toBe(ruido)
+    })
+  })
+
+  /** H1: quitar la cena vive en su hoja y pide segunda pulsación. */
+  it('quitar la cena pide segunda pulsación, y se lleva platos y bungas', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('domingo, 9 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Quitar la cena de este día' }))
+    // Primera pulsación: todavía no ha pasado nada.
+    expect((await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09')).toBeTruthy()
+    await userEvent.click(await screen.findByRole('button', { name: 'Sí, quitarla' }))
+
+    await waitFor(async () => {
+      expect((await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09')).toBeUndefined()
+    })
+  })
+
+  /** R2: los planes se marcan —marcar pone, desmarcar quita— con votos y quién falta. */
+  it('coloca en el día un plan libre, marcándolo en su hoja', async () => {
     const { eventId, event } = await sembrar()
     render(<DiasScreen eventId={eventId} event={event} />)
     await screen.findByText('Playa de la Cala')
 
     await abrirDia('miércoles, 12 de agosto')
-    await userEvent.click(await screen.findByRole('button', { name: /Añadir un plan \(1 libre\)/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /Nada apuntado/ }))
     expect(await screen.findByText('1 👍 · falta por votar Ana')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /Noche de juegos de mesa/ }))
 
-    const planes = await plansOf(eventId)
-    expect(planes.find((p) => p.titulo === 'Noche de juegos de mesa').dia).toBe('2026-08-12')
+    await waitFor(async () => {
+      const planes = await plansOf(eventId)
+      expect(planes.find((p) => p.titulo === 'Noche de juegos de mesa').dia).toBe('2026-08-12')
+    })
+  })
+
+  it('desmarcar un plan puesto lo devuelve a libres, sin verbo en la fila', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Playa de la Cala')
+
+    await abrirDia('lunes, 10 de agosto')
+    // El renglón del plan enseña el que está puesto; su hoja lo trae marcado.
+    // «Confirmado» distingue el renglón de la capa de la fila del día 10 de la
+    // lista de detrás, cuyo rótulo también nombra la playa.
+    await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala Confirmado/ }))
+    const puesto = await screen.findByRole('button', { name: /Playa de la Cala/, pressed: true })
+    await userEvent.click(puesto)
+
+    await waitFor(async () => {
+      const planes = await plansOf(eventId)
+      expect(planes.find((p) => p.titulo === 'Playa de la Cala').dia).toBeNull()
+    })
   })
 
   /**
@@ -152,20 +231,22 @@ describe('DiasScreen', () => {
     await screen.findByText('Playa de la Cala')
 
     await abrirDia('jueves, 13 de agosto')
-    await userEvent.click(await screen.findByRole('button', { name: /Añadir un plan \(2 libres\)/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /2 planes libres por traer/ }))
     expect(await screen.findByText(/fuera del viaje/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /Feria de Ronda/ }))
 
-    const planes = await plansOf(eventId)
-    expect(planes.find((p) => p.titulo === 'Feria de Ronda').dia).toBe('2026-08-13')
+    await waitFor(async () => {
+      const planes = await plansOf(eventId)
+      expect(planes.find((p) => p.titulo === 'Feria de Ronda').dia).toBe('2026-08-13')
+    })
   })
 
-  it('sin planes libres el botón lo dice y no abre una hoja vacía', async () => {
+  it('sin planes que traer, el renglón lo dice y no abre una hoja vacía', async () => {
     const eventId = await createEvent({ name: 'Solo', startDate: '2026-08-08', endDate: '2026-08-09' })
     render(<DiasScreen eventId={eventId} event={await getEvent(eventId)} />)
 
     await abrirDia('sábado, 8 de agosto')
-    expect(await screen.findByRole('button', { name: 'No queda ningún plan libre' })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /ningún plan libre/ })).toBeDisabled()
   })
 
   it('sin fechas en el evento, lo dice y manda a Ajustes', async () => {

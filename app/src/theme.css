@@ -1065,6 +1065,13 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    fecha y recortar no pierde nada. */
 .fila-plato .main .n { white-space: normal; }
 
+/* Los renglones del día abierto (docs/diseño/dia-abierto.html · R2): en la capa
+   centrada el titular dispone de 257 pt frente a los 313 de una hoja a lo
+   ancho, y «Paella mixta y cinco cosas más» dobla a dos líneas. Doblar es mejor
+   que recortar justo lo que se viene a leer — el coste está medido y dicho en
+   la hoja (M2). */
+.fila-capa .main .n { white-space: normal; }
+
 /* ── Platos ────────────────────────────────────────────────────────────────
    El favorito es una estrella que se toca, y ocupa el sitio del avatar. */
 .estrella { width: 36px; height: 36px; flex: none; display: grid; place-items: center;

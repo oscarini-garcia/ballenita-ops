@@ -1,0 +1,916 @@
+<title>Ballena Ops — Un día y un plan se abren en dos muebles distintos, y el del día lo llama todo «la cena»</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-papel-capa: #1a3d4f; --ab-linea-capa: #3a6a82;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280; --abc-cromo: #ffffff;
+    --abc-owe: #a8443a; --abc-papel-capa: #ffffff; --abc-linea-capa: #a9bfc9;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+  .coste code { font-family: var(--mono); font-size: 12.5px; }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── El teléfono, a 390 pt ───────────────────────────────────────────────
+     El marco va en `outline` y no en `border`: un borde se comería 2 pt del
+     ancho y las medidas de dentro dejarían de ser las de un iPhone de 390. */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  /* line-height 1.45: el de `body` en theme.css. Heredar el 1,55 del papel de
+     esta hoja engordaba cada renglón de la maqueta unos puntos y las medidas
+     mentían. */
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45;
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+  .tarj.junta { padding: 0 12px; }
+  /* Dentro de una capa, la tarjeta usa el papel del fondo (§14.26-bis: --foam-2
+     baja un escalón). */
+  .capa .tarj, .sheet .tarj { background: var(--ab-tarjeta); }
+  .claro .capa .tarj, .claro .sheet .tarj { background: var(--abc-tarjeta); }
+
+  /* 11 px arriba y abajo, como la `.row` real: con el interlineado de la app
+     (1,45) la fila de dos líneas sale a ~70,7, que es lo medido en theme.css. */
+  .fila { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .oscuro .pil { background: var(--ab-linea-suave); color: var(--ab-soft); }
+  .claro .pil { background: var(--abc-linea-suave); color: var(--abc-soft); }
+  .pil.ok { background: rgba(53,179,126,.20); color: #4fd39b; }
+  .claro .pil.ok { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  /* ── El modal pegado abajo (el `.modal` real de theme.css) ────────────── */
+  .velo-alto { flex: 1; min-height: 84px; background: rgba(4,18,26,.68); }
+  .sheet { background: var(--ab-papel-capa); border: 1.5px solid var(--ab-linea-capa); border-bottom: none;
+    border-radius: 12px 12px 0 0; padding: 16px 16px 26px; }
+  .claro .sheet { background: var(--abc-papel-capa); border-color: var(--abc-linea-capa); }
+
+  /* ── La capa centrada (el `.modal.center` real) ───────────────────────── */
+  .velo-centro { flex: 1; background: rgba(4,18,26,.68); display: flex; align-items: center;
+    justify-content: center; padding: 12px 14px; min-height: 120px; }
+  .capa { width: 90%; max-width: 460px; background: var(--ab-papel-capa);
+    border: 1.5px solid var(--ab-linea-capa); border-radius: 12px; padding: 18px 16px 22px;
+    box-shadow: 0 18px 44px rgba(4,18,26,.34); }
+  .claro .capa { background: var(--abc-papel-capa); border-color: var(--abc-linea-capa); }
+  .capa.ancha { width: 100%; }
+
+  .m-x { float: right; font-size: 26px; line-height: 1; color: var(--ab-faint); min-width: 44px;
+    text-align: right; }
+  .claro .m-x { color: var(--abc-faint); }
+  .m-t { margin: 4px 0 2px; font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; }
+  .m-t::first-letter { text-transform: uppercase; }
+
+  .etiq { display: block; font-size: var(--t-label); font-weight: 700; margin: 12px 2px 5px; }
+  .oscuro .etiq { color: var(--ab-soft); } .claro .etiq { color: var(--abc-soft); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .selec { width: 100%; background: var(--ab-tarjeta); border: 1px solid var(--ab-linea);
+    border-radius: 7px; padding: 12px 12px; font-size: var(--t-body); display: flex;
+    justify-content: space-between; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+  .selec span:last-child { color: var(--ab-faint); font-size: 12px; }
+  .claro .selec { background: var(--abc-tarjeta); border-color: var(--abc-linea); }
+  .claro .selec span:last-child { color: var(--abc-faint); }
+
+  .pastilla { display: block; width: 100%; border: none; border-radius: 8px; min-height: 44px;
+    background: color-mix(in srgb, var(--ab-acento) 13%, transparent); color: var(--ab-acento-txt);
+    font-family: inherit; font-size: var(--t-body); font-weight: 550; padding: 11px 13px;
+    text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .claro .pastilla { background: color-mix(in srgb, var(--abc-acento) 13%, transparent);
+    color: var(--abc-acento-txt); }
+  .pastilla.vacia { background: none; border: 1px dashed var(--ab-linea); color: var(--ab-faint);
+    font-weight: 550; }
+  .claro .pastilla.vacia { border-color: var(--abc-linea); color: var(--abc-faint); }
+
+  .btn { display: block; width: 100%; border: none; border-radius: 8px; padding: 12px 16px;
+    font-family: inherit; font-weight: 600; font-size: var(--t-row); min-height: 44px;
+    background: var(--ab-acento); color: #fff; text-align: center; }
+  .claro .btn { background: var(--abc-acento); }
+  .btn.fantasma { background: transparent; border: 1px solid var(--ab-linea); padding: 8px 12px;
+    font-size: var(--t-sub); min-height: 38px; border-radius: 7px; font-weight: 550; }
+  .claro .btn.fantasma { border-color: var(--abc-linea); }
+  .btn.fantasma.rojo { color: var(--ab-owe); }
+  .claro .btn.fantasma.rojo { color: var(--abc-owe); }
+  .btn.fantasma.azul { color: var(--ab-acento-txt); }
+  .claro .btn.fantasma.azul { color: var(--abc-acento-txt); }
+
+  .apunte { font-size: var(--t-label); font-weight: 500; }
+  .oscuro .apunte { color: var(--ab-faint); } .claro .apunte { color: var(--abc-faint); }
+
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: 9px; padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+  .claro .nota { border-color: var(--abc-linea); color: var(--abc-soft);
+    background: color-mix(in srgb, var(--abc-acento) 7%, var(--abc-tarjeta)); }
+  .claro .nota b { color: var(--abc-ink); }
+
+  .pista { font-size: var(--t-sub); }
+  .oscuro .pista { color: var(--ab-faint); } .claro .pista { color: var(--abc-faint); }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 9px 14px; font-size: var(--t-sub); font-weight: 550;
+    border: 1px solid var(--ab-linea); background: var(--ab-tarjeta); color: var(--ab-soft);
+    font-family: inherit; min-height: 38px; display: inline-flex; align-items: center; }
+  .claro .chip { border-color: var(--abc-linea); background: var(--abc-tarjeta); color: var(--abc-soft); }
+  .chip.on { border-color: var(--ab-acento); background: var(--ab-acento); color: #fff; }
+  .claro .chip.on { border-color: var(--abc-acento); background: var(--abc-acento); }
+
+  .votantes { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+  .vfila { display: flex; align-items: flex-start; gap: 10px; min-height: 34px; padding: 4px 0; }
+  .vvoto { width: 26px; flex: none; font-size: var(--t-row); }
+  .vcuenta { width: 22px; flex: none; text-align: right; font-size: var(--t-row); font-weight: 620;
+    font-variant-numeric: tabular-nums; }
+  .vcuenta.cero { font-weight: 550; }
+  .oscuro .vcuenta.cero { color: var(--ab-faint); } .claro .vcuenta.cero { color: var(--abc-faint); }
+  .vnombres { flex: 1; min-width: 0; font-size: var(--t-row); line-height: 1.4; display: flex;
+    flex-wrap: wrap; gap: 2px 14px; }
+  .votante { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+  .alias { font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 3px 6px; color: #fff; }
+
+  /* ── La hoja que sube desde abajo (elegir y marcar) ───────────────────── */
+  .hoja-abajo { background: var(--ab-papel-capa); border: 1.5px solid var(--ab-linea-capa);
+    border-bottom: none; border-radius: 12px 12px 0 0; padding: 10px 16px 26px; }
+  .claro .hoja-abajo { background: var(--abc-papel-capa); border-color: var(--abc-linea-capa); }
+  .hoja-asa { display: block; width: 38px; height: 5px; border-radius: 999px;
+    background: var(--ab-linea); margin: 2px auto 10px; }
+  .claro .hoja-asa { background: var(--abc-linea); }
+  .eleccion { display: flex; flex-direction: column; margin-top: 6px; border: 1px solid var(--ab-linea-suave);
+    border-radius: 9px; overflow: hidden; background: var(--ab-tarjeta); }
+  .claro .eleccion { border-color: var(--abc-linea-suave); background: var(--abc-tarjeta); }
+  .elec-op { display: flex; flex-wrap: wrap; align-items: center; row-gap: 2px; gap: 10px;
+    min-height: 48px; padding: 10px 14px; border-bottom: 1px solid var(--ab-linea-suave);
+    font-size: var(--t-row); }
+  .claro .elec-op { border-bottom-color: var(--abc-linea-suave); }
+  .elec-op:last-child { border-bottom: none; }
+  .elec-op .et { flex: 1 0 100%; font-weight: 550; }
+  .elec-op .no { font-size: var(--t-label); }
+  .oscuro .elec-op .no { color: var(--ab-faint); } .claro .elec-op .no { color: var(--abc-faint); }
+  .elec-op .tic { margin-left: auto; color: var(--ab-acento-txt); }
+  .claro .elec-op .tic { color: var(--abc-acento-txt); }
+  .elec-op .tic svg { width: 20px; height: 20px; display: block; }
+
+  .titular { border-radius: 9px; padding: 14px; }
+  .oscuro .titular { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .titular { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+  .titular .l { font-size: var(--t-micro); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .oscuro .titular .l { color: var(--ab-acento-txt); } .claro .titular .l { color: var(--abc-acento-txt); }
+  .titular .g { font-size: var(--t-body); font-weight: 650; letter-spacing: -.01em; margin-top: 4px; }
+  .titular .p { font-size: var(--t-sub); margin-top: 3px; }
+  .oscuro .titular .p { color: var(--ab-soft); } .claro .titular .p { color: var(--abc-soft); }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  .tabla-scroll { overflow-x: auto; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre code { font-family: var(--mono); font-size: 12.5px; }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Agenda, el día abierto</div>
+    <h1>Un día y un plan se abren en dos muebles distintos, y el del día lo llama todo «la cena»</h1>
+    <p class="entradilla">
+      Un plan se abre como una <b>capa centrada que se toca</b> (<code>plan-voto.html</code> · P1):
+      filas, votos al toque, el verbo de administrar escondido dentro y una nota que dice dónde vive
+      lo demás. Un día se abre como un <b>formulario pegado abajo</b> con seis controles de
+      <b>cuatro figuras distintas</b> —dos selectores nativos, dos pastillas, un botón lleno y uno
+      fantasma— y el verbo dice <b>«Guardar la cena»</b> debajo de la lista de planes del día.
+    </p>
+    <p class="entradilla">
+      Y guarda solo la mitad: <b>poner o quitar un plan escribe en el acto</b>, pero las bungas y
+      los platos viven en un borrador que <b>muere si se cierra sin pulsar el botón</b>. El encargo
+      es que Agenda se parezca a Planes —el mueble, los botones donde toca— y que el día deje de
+      llamarse cena, porque es más que la cena: es el plan del día.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.21.0 (<code>main</code>, e9f8945)</span>
+      <span><b>Medida:</b> 390 pt · ventana de 844</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Contenido:</b> el Demo (9 y 10 de agosto)</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Las medidas de esta hoja están tomadas en el navegador sobre estas maquetas, dibujadas con los
+      valores reales de <code>theme.css</code>; donde una hoja anterior ya midió la app construida,
+      se cita esa cifra con su fuente.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO QUE NO SE ELIGE ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · tres arreglos que no se eligen</h2>
+    <p>
+      Los tres son defectos, no gustos: se arreglan con cualquier opción de las partes siguientes.
+      Se listan porque cambian todos los dibujos.
+    </p>
+    <p>
+      <b>1 · El verbo miente.</b> «Montar la cena» guarda también las bungas, y con la cena ya
+      montada el botón dice «Guardar la cena» justo debajo del bloque «Los planes de este día» — al
+      que <b>no toca</b>, porque los planes ya se guardaron solos. El verbo que quede dirá lo que
+      hace; cuál queda lo deciden las partes dos y tres.
+    </p>
+    <p>
+      <b>2 · Un verbo dentro de la fila.</b> Cada plan puesto lleva un «quitar» pequeño a la
+      derecha. Planes acaba de retirar los verbos de las filas —la fila entera se toca,
+      <code>planes-votar.html</code> · 10— y aquí la figura vuelve. Se va de la fila.
+    </p>
+    <p>
+      <b>3 · Dos memorias detrás de una ventana.</b> Esta tabla es el fallo medido en el código
+      (<code>DiasScreen.jsx</code>): la mitad de lo que se toca ya está guardado al cerrarse y la
+      otra mitad se pierde en silencio. Se unifica; <b>en qué dirección</b> es la parte dos.
+    </p>
+    <div class="tabla-scroll"><table class="comp">
+      <tr><th>Lo que has tocado</th><th>Cierras con la X o el fondo</th></tr>
+      <tr><td>Cambiar la bunga de mayores o de niños</td><td><b>Se pierde</b>, sin decirlo</td></tr>
+      <tr><td>Marcar o desmarcar platos</td><td><b>Se pierde</b>, sin decirlo</td></tr>
+      <tr><td>Poner un plan en el día</td><td><b>Ya estaba guardado</b></td></tr>
+      <tr><td>Quitar un plan del día</td><td><b>Ya estaba guardado</b></td></tr>
+    </table></div>
+  </div>
+
+  <!-- ══════════════ EL PROBLEMA, DIBUJADO ══════════════ -->
+  <div class="parte">Los dos muebles, uno al lado del otro</div>
+  <p class="parte-intro">
+    A la izquierda, el día 9 del Demo abierto tal y como está en v0.21.0. A la derecha, un plan
+    abierto en Planes, que es la vara del encargo. Son las dos únicas cosas de la app que se abren
+    <b>para leerse y tocarse</b>, y no comparten ni la posición, ni las figuras, ni la memoria.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="velo-alto"></div>
+      <div class="sheet" id="m-ahora">
+        <span class="m-x">×</span>
+        <div class="m-t">domingo, 9 de agosto</div>
+        <div class="sec-h">La cena</div>
+        <div class="grid2">
+          <div>
+            <span class="etiq">Bunga mayores</span>
+            <div class="selec"><span>El del ruido</span><span>▾</span></div>
+          </div>
+          <div>
+            <span class="etiq">Bunga niños</span>
+            <div class="selec"><span>El del fondo</span><span>▾</span></div>
+          </div>
+        </div>
+        <span class="etiq">Qué se cena</span>
+        <div class="pastilla">Paella mixta y cinco cosas más</div>
+        <div class="sec-h" style="margin-top:18px">Los planes de este día</div>
+        <div class="apunte" style="margin-top:6px">Ninguno todavía.</div>
+        <div class="pastilla vacia" style="margin-top:8px">+ Añadir un plan (1 libre)</div>
+        <div style="margin-top:16px"><div class="btn">Guardar la cena</div></div>
+        <div style="margin-top:10px"><div class="btn fantasma rojo">Quitar la cena de este día</div></div>
+      </div>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa" id="m-plan">
+          <span class="m-x">×</span>
+          <div class="m-t">Playa de la Cala</div>
+          <div class="pista">lun, 10 ago</div>
+          <span class="etiq">Tu voto</span>
+          <div class="chips">
+            <span class="chip on">👍</span><span class="chip">🤷</span><span class="chip">👎</span>
+          </div>
+          <span class="etiq">Quién ha votado</span>
+          <div class="votantes">
+            <div class="vfila"><span class="vvoto">👍</span><span class="vcuenta">3</span>
+              <span class="vnombres">
+                <span class="votante"><span>🏖️</span>Curro<span class="alias" style="background:#E5544B">Ga</span></span>
+                <span class="votante"><span>🍷</span>Ana<span class="alias" style="background:#2E9E6B">Pé</span></span>
+                <span class="votante"><span>🎉</span>Pablo<span class="alias" style="background:#1FA6D6">So</span></span>
+              </span></div>
+            <div class="vfila"><span class="vvoto">🤷</span><span class="vcuenta cero">0</span>
+              <span class="vnombres"><span class="pista">nadie</span></span></div>
+            <div class="vfila"><span class="vvoto">👎</span><span class="vcuenta cero">0</span>
+              <span class="vnombres"><span class="pista">nadie</span></span></div>
+          </div>
+          <div class="nota" style="margin-top:12px">
+            El día se pone en <b>Agenda</b>, tocando el día del viaje. Aquí solo se vota.
+          </div>
+          <div style="margin-top:10px"><div class="btn fantasma azul">Devolver a ideas</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="medida" id="med-antes">
+    <span><b>El día abierto:</b> <span data-mide="m-ahora">—</span> pt así, con el día 9 —que no
+      tiene ningún plan puesto—; con el día lleno, <code>agenda-dia.html</code> midió 679,8 en la
+      app</span>
+    <span><b>El plan abierto:</b> <span data-mide="m-plan">—</span> pt</span>
+    <span><b>Controles en el día:</b> 6, de 4 figuras distintas</span>
+    <span><b>Controles en el plan:</b> los 3 chips y un verbo</span>
+  </p>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · el mueble: cómo se abre un día</div>
+  <p class="parte-intro">
+    La lista de Días no se toca: filas de 70,7 pt, la fila entera abre, como en Planes
+    (<code>agenda-dia.html</code> · A1). Lo que se decide es qué pasa al tocarla.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">M1</span><span class="op-nombre">La hoja pegada abajo</span><span class="etq base">lo de hoy</span></div>
+      <p class="op-idea">
+        El día sigue subiendo desde el borde de abajo, a lo ancho de la pantalla (390 pt), y las
+        hojas de elegir suben del mismo borde, una encima de otra.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> es el único sitio de la app donde algo que se abre <b>para leerse</b> queda
+        abajo — la hoja de abajo es la figura de <b>editar y elegir</b> (<code>gente-editar.html</code>
+        · F2), y el día abierto es sobre todo un resumen que se toca. Además dos hojas del mismo
+        borde apiladas se leen como una que ha crecido, no como dos capas.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">M2</span><span class="op-nombre">Una capa centrada, como el plan abierto</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        El día se abre en el <b>mismo mueble que un plan</b>: capa centrada con su papel, su canto y
+        su velo (<code>plan-voto.html</code> · P1). Dentro, renglones que se tocan; las hojas de
+        elegir siguen subiendo desde abajo, ahora <b>sobre</b> la capa, que es la combinación que
+        ya usa toda la app (un modal y su hoja).
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> los renglones quedan más lejos del pulgar — <code>plan-voto.html</code> midió
+        ese precio en 200,3 pt y lo pagó a cambio de que la capa se lea como capa. Y la capa es más
+        estrecha que la hoja de ahora, incluso con la variante <code>formulario</code> (362 pt de
+        los 390, la del editor de receta): al titular de una fila le quedan <b>257 pt frente a
+        313</b>, y «Paella mixta y cinco cosas más» <b>dobla a dos líneas</b> — medido en el dibujo
+        de abajo, la fila de la cena pasa de 70,7 a 96,7.
+        <b>Lo paga:</b> un solo mueble para las dos cosas hermanas de la app.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">M3</span><span class="op-nombre">El día es una pantalla</span></div>
+      <p class="op-idea">
+        Tocar la fila navega a una pantalla del día, con Agenda detrás y una flecha para volver.
+        Sitio infinito, sin velo ni capa.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la app <b>no tiene navegación en pila</b> — todo es una pestaña, un modal o
+        una hoja—, así que esto estrena la figura «volver» para una sola pantalla, y el día abierto
+        no la necesita: sus tres cosas caben en una capa sin scroll.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">M4</span><span class="op-nombre">La fila se despliega en la lista</span></div>
+      <p class="op-idea">
+        Sin modal: el día tocado se abre en acordeón dentro de la propia lista, como los apartados
+        de Ajustes, y empuja los días de debajo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> editar dentro de una fila de una lista de ocho — el acordeón de Ajustes se
+        <b>lee</b>, aquí se tocaría—, y al abrir el día 9 los otros siete saltan de sitio. La lista
+        de Días perdería justo lo que la hace buena: los ocho días de una vez.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · la memoria: cuándo se guarda</div>
+  <p class="parte-intro">
+    La tabla de arriba se arregla en una de dos direcciones: todo escribe al toque, o nada escribe
+    hasta un verbo. Hoy es mitad y mitad, que es la peor de las tres.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">H1</span><span class="op-nombre">Todo al toque, como votar</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Cada elección escribe al soltarla: la bunga al elegirla en su hoja, el plato al marcarlo, el
+        plan al ponerlo. <b>No hay botón de guardar</b>; la X solo cierra, y cerrar nunca pierde
+        nada. La cena <b>nace sola</b> con el primer plato o la primera bunga, y «quitar la cena»
+        es un verbo dentro de su hoja, con segunda pulsación, como «Devolver a ideas».
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> no hay «cancelar» — el arrepentimiento se toca otra vez, que es exactamente
+        cómo funciona un voto—; y marcar seis platos son seis entradas en la cola de cambios, que
+        la cola sube en un solo <code>POST /api/cambios</code> igual que hoy.
+        <b>Lo paga:</b> la memoria de Planes, una sola, y la tabla de arriba entera en verde.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">H2</span><span class="op-nombre">Todo borrador: Cancelar · Listo</span></div>
+      <p class="op-idea">
+        La figura de la hoja de «Entre» (§14.27): el día abre un borrador, nada escribe hasta
+        «Listo», y «Cancelar», el fondo y deslizar descartan — también los planes, que hoy escriben
+        al momento.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> dos verbos permanentes al pie, y poner un plan pasa de un toque a dos
+        («ponerlo» y «Listo»). La hoja de «Entre» se ganó el borrador porque reparte dinero y un
+        error cuesta céntimos; aquí lo que se toca es qué se cena, y el error se corrige tocando
+        otra vez. El peaje diario no compra nada.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">H3</span><span class="op-nombre">Mitad y mitad</span><span class="etq base">lo de hoy</span></div>
+      <p class="op-idea">
+        Los planes al toque, la cena con botón. Es lo que hay, y está en esta lista porque es una
+        opción de verdad: no tocar nada.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> la tabla del bloque amarillo: dos memorias que se aprenden a golpes, una
+        pérdida silenciosa por cierre, y el verbo obligado a existir solo para la mitad de la
+        ventana.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">H4</span><span class="op-nombre">Al toque, pero cada hoja escribe con su «Listo»</span></div>
+      <p class="op-idea">
+        Los renglones del día escriben al toque, pero dentro de la hoja de platos se marca en local
+        y el «Listo» escribe todo junto: una entrada en la cola por visita, no seis.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> reabre la pregunta que este encargo cierra, un piso más abajo: ¿y si la hoja
+        se cierra por el fondo, guarda o descarta? La cola de cambios ya agrupa la subida, así que
+        el ahorro es de entradas en una tabla local, no de peticiones.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · los renglones del día abierto</div>
+  <p class="parte-intro">
+    Qué hay dentro del mueble. Hoy son cuatro figuras distintas para tres preguntas; la vara es la
+    fila de Planes: icono, titular, línea de debajo, y la fila entera se toca.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R1</span><span class="op-nombre">El formulario de hoy</span><span class="etq base">lo de hoy</span></div>
+      <p class="op-idea">
+        Dos selectores nativos para las bungas, una pastilla para los platos, la lista de planes con
+        su pastilla a rayas, y los dos botones del pie.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> los selectores nativos traen la rueda de iOS que tapa media pantalla — el
+        motivo por el que <code>agenda-dia.html</code> · C1 los descartó <b>para los planes</b>
+        vale igual para las bungas, y ahí se quedaron—; y cuatro figuras para tres preguntas es lo
+        que hace que la ventana se lea como un formulario y no como el día.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">R2</span><span class="op-nombre">Renglones gemelos que abren hojas</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Dos grupos como los de Planes. <b>«La cena»</b>: una fila con los platos («Paella mixta y
+        cinco cosas más» · seis platos) que abre la hoja de marcar, y una fila con las bungas
+        («Mayores en El del ruido» · niños en El del fondo) que abre una hoja con las dos
+        elecciones. <b>«El plan»</b>: una fila con lo puesto que abre una <b>hoja de marcar
+        planes</b> — los del día marcados, los libres debajo con sus votos y quién falta; marcar
+        pone, desmarcar quita. La misma figura tres veces; el «quitar» de la fila desaparece
+        porque quitar es desmarcar.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> quitar un plan pasa de un toque a dos (abrir la hoja y desmarcar).
+        <b>Lo paga:</b> una sola figura que ya existe (<code>HojaDeMarcar</code>, la de los
+        platos), cero controles nuevos, y el día abierto cabe sin scroll — medido abajo.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R3</span><span class="op-nombre">R2, y los planes puestos como filas de Planes</span></div>
+      <p class="op-idea">
+        Igual que R2, pero cada plan puesto es una fila con su pastilla de votos que abre <b>la capa
+        de votar</b> — la misma de Planes — con un verbo más: «Quitar de este día». Se vota sin
+        cambiar de pestaña.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> una capa sobre otra capa —la figura que la app no tiene; hoja sobre capa sí—,
+        y la capa de votar necesita saber desde dónde se abrió para enseñar o no su verbo nuevo.
+        <b>Lo paga:</b> los votos a un toque desde Agenda. Es un buen <b>añadido posterior</b> si
+        se echa de menos, no el primer paso.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R4</span><span class="op-nombre">Dos renglones: la cena entera y el plan</span></div>
+      <p class="op-idea">
+        Solo dos filas: «La cena» (platos y bungas juntos en el titular, y su hoja lo pregunta todo)
+        y «El plan». Lo más corto posible.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> las bungas se entierran un piso —para cambiar dónde cenan los niños hay que
+        pasar por la hoja de la cena entera— y el titular de la fila tiene que decir tres cosas
+        («Paella mixta y cinco más, mayores en El del ruido, niños en…») que no caben: se recorta
+        justo lo que se venía a leer.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ LA PROPUESTA, DIBUJADA ══════════════ -->
+  <div class="parte">M2 + H1 + R2, dibujadas juntas</div>
+  <p class="parte-intro">
+    El día 9 del Demo en las dos caras, y el día 10 con la hoja de planes subida. Sin botón de
+    guardar: la nota del pie dice la regla, como la nota del plan abierto dice la suya.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa ancha" id="m-desp">
+          <span class="m-x">×</span>
+          <div class="m-t">domingo, 9 de agosto</div>
+          <div class="sec-h" style="margin-top:10px">La cena</div>
+          <div class="tarj junta" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8" /><path d="M7 3.5v5.5M11 3.5v5.5" /><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3" /></svg></div>
+              <div class="txt"><div class="n">Paella mixta y cinco cosas más</div><div class="s">seis platos</div></div>
+            </div>
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Mayores en El del ruido</div><div class="s">niños en El del fondo</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">El plan</div>
+          <div class="tarj junta" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+              <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+            </div>
+          </div>
+          <div class="nota" style="margin-top:12px">
+            Cada toque queda guardado. Los planes se <b>votan</b> en Planes; aquí se colocan.
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">M2 + R2 · el día 9, cara oscura</p>
+    </div>
+
+    <div class="tel claro">
+      <div class="velo-centro">
+        <div class="capa ancha" id="m-desp-c">
+          <span class="m-x">×</span>
+          <div class="m-t">domingo, 9 de agosto</div>
+          <div class="sec-h" style="margin-top:10px">La cena</div>
+          <div class="tarj junta" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8" /><path d="M7 3.5v5.5M11 3.5v5.5" /><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3" /></svg></div>
+              <div class="txt"><div class="n">Paella mixta y cinco cosas más</div><div class="s">seis platos</div></div>
+            </div>
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Mayores en El del ruido</div><div class="s">niños en El del fondo</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">El plan</div>
+          <div class="tarj junta" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+              <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+            </div>
+          </div>
+          <div class="nota" style="margin-top:12px">
+            Cada toque queda guardado. Los planes se <b>votan</b> en Planes; aquí se colocan.
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">La misma capa, cara clara</p>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="velo-alto" style="min-height:150px"></div>
+      <div class="hoja-abajo" id="m-hoja">
+        <span class="hoja-asa"></span>
+        <div class="m-t" style="font-size:var(--t-title)">Los planes de este día</div>
+        <div class="eleccion">
+          <div class="elec-op"><span class="et">Playa de la Cala</span><span class="no">confirmado · 3 👍</span>
+            <span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></svg></span></div>
+          <div class="elec-op"><span class="et">Noche de juegos de mesa</span><span class="no">0 👍 · sin votos todavía</span></div>
+        </div>
+        <div class="apunte" style="margin-top:10px">Marcar pone el plan en este día; desmarcar lo devuelve a libres.</div>
+        <div style="margin-top:14px"><div class="btn">Listo</div></div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">La hoja de marcar planes, sobre el día 10 · R2 + H1</p>
+    </div>
+  </div>
+
+  <p class="medida" id="med-desp">
+    <span><b>La capa del día:</b> <span data-mide="m-desp">—</span> pt — cabe entera y sin scroll
+      (el tope de una capa es 658,3 en una ventana de 844)</span>
+    <span><b>Controles:</b> 6 → 0 (tres renglones que se tocan)</span>
+    <span><b>Figuras:</b> 4 → 1</span>
+    <span><b>El titular de la cena:</b> <span data-mide="ancho-n">—</span> pt de ancho y dobla
+      (<span data-mide="alto-n">—</span> pt de alto) — el coste de M2 dicho en su ficha</span>
+  </p>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · las palabras: qué manda cuando no hay cena</div>
+  <p class="parte-intro">
+    «Hoy» titula siempre con la cena. El lunes 10 del Demo tiene la playa <b>confirmada</b> y el
+    titular grande dice «Sin cena montada»: el día está debajo, en letra de fila. La lista de Días
+    ya hace lo contrario —sin cena, titula con el plan (<code>resumenDeDia</code>)—, así que hoy
+    dos pantallas hermanas contestan distinto a la misma pregunta.
+  </p>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="t-body" id="m-hoy-ahora">
+        <div class="titular">
+          <div class="l">lun, 10 ago · hoy</div>
+          <div class="g" id="hoy-g-ahora">Sin cena montada</div>
+          <div class="p">Nadie ha dicho dónde se cena</div>
+        </div>
+        <div class="sec-h">Planes de hoy</div>
+        <div class="tarj junta">
+          <div class="fila">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+            <div class="txt"><div class="n" id="hoy-plan-ahora">Playa de la Cala</div><div class="s">Confirmado · Cala del sur</div></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">Ahora · el titular es la cena aunque el día sea la playa</p>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="t-body">
+        <div class="titular">
+          <div class="l">lun, 10 ago · hoy</div>
+          <div class="g">Playa de la Cala</div>
+          <div class="p">Confirmado, en Cala del sur · sin cena montada todavía</div>
+        </div>
+        <div class="sec-h">Planes de hoy</div>
+        <div class="tarj junta">
+          <div class="fila">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+            <div class="txt"><div class="n">Playa de la Cala</div><div class="s">Confirmado · Cala del sur</div></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">P2 · titula lo que hay; la cena baja al renglón pequeño</p>
+    </div>
+  </div>
+
+  <p class="medida">
+    <span><b>Ahora, del titular al día de verdad:</b> <span data-mide="dist-hoy">—</span> pt hacia
+      abajo, en letra de fila</span>
+    <span><b>Con P2:</b> 0 — el titular es el día</span>
+  </p>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P1</span><span class="op-nombre">La cena manda siempre</span><span class="etq base">lo de hoy</span></div>
+      <p class="op-idea">
+        El titular grande de «Hoy» es <code>titularDeCena</code>, haya lo que haya. Los planes,
+        debajo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el dibujo de arriba: un día cuyo plan está confirmado abre la app diciendo lo
+        que <b>no</b> hay. Y contradice a Días, que ese mismo día titula «Playa de la Cala».
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">P2</span><span class="op-nombre">Titula lo que hay</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La regla de <code>resumenDeDia</code>, subida a «Hoy»: la cena con platos manda; sin cena,
+        manda el plan del día; sin nada, «Día libre». Lo que no manda baja al renglón pequeño
+        («sin cena montada todavía»). Una función para las dos pantallas, como
+        <code>quienFaltaPorVotar</code> lo es para Planes y Agenda.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el titular deja de ser fijo — dos días seguidos pueden titular cosas de tipo
+        distinto. <b>Lo paga:</b> «Hoy» contesta la pregunta con la que se abre la app, y las dos
+        pantallas hermanas dicen lo mismo.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P3</span><span class="op-nombre">El día en una frase</span></div>
+      <p class="op-idea">
+        El titular junta las dos cosas: «Paella mixta, y playa de la Cala». Todo el día en el
+        renglón grande.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> «Paella mixta y cinco cosas más, y playa de la Cala» son dos titulares
+        pegados que doblan a tres líneas en Enorme; la frase compuesta hay que <b>leerla</b>, y el
+        titular estaba para no leer.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">P4</span><span class="op-nombre">Dos titulares del mismo peso</span></div>
+      <p class="op-idea">
+        La tarjeta grande se parte en dos medianas: la cena y el plan, siempre las dos, cada una con
+        su renglón.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> deja de haber titular — la razón de «Hoy» es una sola cosa grande
+        (<code>navegacion.html</code> · E1); dos tarjetas del mismo peso es volver a leer para
+        saber qué pasa.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte cinco · las combinaciones</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>M2</span><span>H1</span><span>R2</span><span>P2</span></div>
+    <p>
+      <b>El día se abre en el mueble de un plan</b> (M2): capa centrada, tres renglones gemelos
+      —los platos, las bungas, el plan— y cada uno abre su hoja desde abajo (R2). <b>Todo escribe
+      al toque</b> (H1): se van «Guardar la cena», «Montar la cena» y el «quitar» de la fila, y
+      cerrar nunca pierde nada. <b>Y «Hoy» titula lo que hay</b> (P2), con la regla que Días ya
+      usa. Los tres defectos del bloque amarillo caen solos: sin verbo global no hay verbo que
+      mienta, sin fila con verbo no hay verbo en la fila, y con una memoria no hay dos.
+    </p>
+    <p>
+      <b>Si quieres votar desde Agenda:</b> <span class="receta" style="display:inline"><span>R3</span></span>
+      se añade después sobre R2 —los planes puestos como filas que abren la capa de votar— sin
+      deshacer nada de lo anterior.
+    </p>
+    <p>
+      <b>La conservadora:</b> <span class="receta" style="display:inline"><span>M1</span><span>H2</span><span>R1</span><span>P2</span></span>
+      — el mueble y el formulario se quedan, se unifica la memoria con «Cancelar · Listo» y se
+      arreglan las palabras. Arregla la tabla y el titular, y deja los dos muebles distintos, que
+      es la mitad del encargo.
+    </p>
+    <p style="font-size:13.5px">
+      Ninguna opción toca la base ni la API: todo es <code>app/</code> —<code>DiasScreen.jsx</code>,
+      <code>HoyScreen.jsx</code>, <code>lib/dias.js</code> y sus tests—, cero migraciones. La hoja
+      de bungas reutiliza <code>HojaDeEleccion</code> y la de planes <code>HojaDeMarcar</code>, las
+      dos ya escritas.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Elegida M2 + H1 + R2 + P2</b> («dale y mergea», 8 de agosto de 2026). Esta hoja vive en
+      <code>docs/diseño/dia-abierto.html</code>, al lado de <code>agenda-dia.html</code> —que
+      decidió la vuelta anterior de este modal— y el código la cita por sus códigos:
+      <code>CapaDeDia</code> y <code>HojaDeBungas</code> en <code>DiasScreen.jsx</code>,
+      <code>titularDeHoy</code> en <code>lib/dias.js</code>, <code>.fila-capa</code> en
+      <code>theme.css</code>, y SPECS §14.30.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // Vuelca las medidas reales de las maquetas en los renglones `.medida`.
+  // Se ejecuta también al servirse la hoja: las cifras nunca se desfasan del dibujo.
+  const alto = (id) => {
+    const el = document.getElementById(id)
+    return el ? Math.round(el.getBoundingClientRect().height * 10) / 10 : null
+  }
+  const pon = (clave, valor) => {
+    document.querySelectorAll(`[data-mide="${clave}"]`).forEach((el) => {
+      el.textContent = String(valor).replace('.', ',')
+    })
+  }
+  pon('m-ahora', alto('m-ahora'))
+  pon('m-plan', alto('m-plan'))
+  pon('m-desp', alto('m-desp'))
+  const n = document.querySelector('#m-desp .fila .txt .n')
+  if (n) {
+    pon('ancho-n', Math.round(n.getBoundingClientRect().width * 10) / 10)
+    pon('alto-n', Math.round(n.getBoundingClientRect().height * 10) / 10)
+  }
+  const g = document.getElementById('hoy-g-ahora')
+  const p = document.getElementById('hoy-plan-ahora')
+  if (g && p) pon('dist-hoy', Math.round((p.getBoundingClientRect().top - g.getBoundingClientRect().top) * 10) / 10)
+</script>
