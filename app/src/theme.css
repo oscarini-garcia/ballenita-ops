@@ -726,6 +726,13 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    que separa los dos grupos de un vistazo sin leer el encabezado. */
 .ico.verde { background: color-mix(in srgb, var(--owed) 16%, transparent); color: var(--owed); }
 
+/* El semáforo del día abierto (docs/diseño/dia-estado.html · E1 · K4 · G1): el
+   icono de cada renglón dice si ya hay algo elegido —el verde de arriba— o si
+   sigue pendiente, en el ámbar del punto de sincronización. Pendiente, no roto:
+   el rojo de esta app es deuda y borrar, y un día sin montar no es un fallo.
+   Como dibujo da 4,06:1 en oscuro y 3,70:1 en claro (el listón es 3). */
+.ico.ambar { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--gold); }
+
 /* Una línea por voto, con **los nombres** de quien lo ha puesto. Eran avatares,
    y un emoji en gris a 17,9 pt no identifica a nadie: quien no eligió el suyo
    sale con la carita de fábrica y dos personas se pintan igual.

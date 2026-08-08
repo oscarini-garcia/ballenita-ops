@@ -1,0 +1,670 @@
+<title>Ballena Ops — Un día abierto no dice qué falta sin leerse los cuatro renglones</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-gold: #c9a768; --ab-papel-capa: #1a3d4f; --ab-linea-capa: #3a6a82;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280;
+    --abc-owe: #a8443a; --abc-gold: #8a6c2c; --abc-papel-capa: #ffffff; --abc-linea-capa: #a9bfc9;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+  .coste code { font-family: var(--mono); font-size: 12.5px; }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.pedida { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── El teléfono, a 390 pt. line-height 1.45 = el de body en theme.css. ── */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45;
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 0 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+
+  .fila { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  /* Los cuatro estados a examen. Los valores son los de theme.css: el verde de
+     Planes tal cual; el rojo con --owe; el ámbar con --gold como .pill.fx. */
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+  .ico.rojo { background: color-mix(in srgb, var(--ab-owe) 20%, transparent); color: var(--ab-owe); }
+  .claro .ico.rojo { background: color-mix(in srgb, var(--abc-owe) 14%, transparent); color: var(--abc-owe); }
+  .ico.ambar { background: color-mix(in srgb, var(--ab-gold) 22%, transparent); color: var(--ab-gold); }
+  .claro .ico.ambar { background: color-mix(in srgb, var(--abc-gold) 20%, transparent); color: var(--abc-gold); }
+  .ico.rayas { background: none; border: 1.5px dashed var(--ab-linea); color: var(--ab-faint); }
+  .claro .ico.rayas { border-color: var(--abc-linea); color: var(--abc-faint); }
+
+  .velo-centro { flex: 1; background: rgba(4,18,26,.68); display: flex; align-items: center;
+    justify-content: center; padding: 12px 14px; min-height: 120px; }
+  .capa { width: 100%; max-width: 460px; background: var(--ab-papel-capa);
+    border: 1.5px solid var(--ab-linea-capa); border-radius: 12px; padding: 18px 16px 22px;
+    box-shadow: 0 18px 44px rgba(4,18,26,.34); }
+  .claro .capa { background: var(--abc-papel-capa); border-color: var(--abc-linea-capa); }
+
+  .m-x { float: right; font-size: 26px; line-height: 1; color: var(--ab-faint); min-width: 44px;
+    text-align: right; }
+  .claro .m-x { color: var(--abc-faint); }
+  .m-t { margin: 4px 0 2px; font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; }
+  .m-t::first-letter { text-transform: uppercase; }
+
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: 9px; padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+  .claro .nota { border-color: var(--abc-linea); color: var(--abc-soft);
+    background: color-mix(in srgb, var(--abc-acento) 7%, var(--abc-tarjeta)); }
+  .claro .nota b { color: var(--abc-ink); }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .pil.rojo { background: color-mix(in srgb, var(--ab-owe) 20%, transparent); color: var(--ab-owe); }
+  .punto-e { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  .punto-e.rojo { background: var(--ab-owe); }
+  .s.rojo-txt { color: var(--ab-owe); }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabla-scroll { overflow-x: auto; }
+
+  /* Las cuatro fichas de la parte uno: el renglón del plan, solo, en cada figura. */
+  .tira-b { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .ficha-b { width: 340px; flex: none; font-family: var(--sans); line-height: 1.45;
+    background: var(--ab-papel-capa); color: var(--ab-ink); border: 1.5px solid var(--ab-linea-capa);
+    border-radius: 12px; padding: 12px 14px 14px; }
+  .ficha-b .rotulo { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ab-faint); margin-bottom: 8px; }
+  .ficha-b .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre code { font-family: var(--mono); font-size: 12.5px; }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Agenda, el estado del día</div>
+    <h1>Un día abierto no dice qué falta sin leerse los cuatro renglones</h1>
+    <p class="entradilla">
+      El encargo: en el día, <b>verde cuando ya hay selecciones y rojo cuando no</b>. La materia
+      prima ya existe — el verde de «elegido» es una figura de Planes (<code>.ico.verde</code> en
+      la fila con día) y el semáforo también (el punto de sincronización es verde · amarillo ·
+      rojo) —. Lo que hay que decidir es <b>dónde se pinta</b> el estado, <b>cuánto grita el
+      vacío</b> —el rojo de esta app significa deuda y borrar, y un día libre no es un fallo—,
+      <b>qué cuenta como elegido</b> y si la lista de Días lo enseña también.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.23.0 (<code>main</code>, 07c4afc)</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, contrastes medidos en las dos caras</span>
+      <span><b>Contenido:</b> el Demo (días 9 y 11)</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Los contrastes de esta hoja están calculados con la fórmula de WCAG sobre los valores reales
+      de <code>theme.css</code>, componiendo la transparencia de la pastilla sobre la tarjeta; como
+      dibujo el listón es 3 : 1, como texto 4,5 : 1.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO QUE NO SE ELIGE ══════════════ -->
+  <div class="defectos">
+    <h2>Antes de las opciones · un arreglo que no se elige</h2>
+    <p>
+      <b>El bunga es masculino y §14.31 lo escribió en femenino.</b> El grupo dice «el bunga» —los
+      alias son «El del ruido» y «El del fondo», y el botón de Gente dice «+ Bunga nuevo…»— y en la
+      vuelta anterior se me colaron <code>Ninguna</code> en el selector, <code>la de los
+      Pérez</code> en el renglón y <code>toca para cambiarla</code> / <code>toca para elegir la
+      bunga</code> en los subtítulos, más las mismas frases en el spec. Se corrige todo con la
+      opción que elijas, en la misma PR: <b>«Ninguno»</b>, <b>«el de los Pérez»</b>, <b>«toca para
+      cambiarlo»</b> y <b>«toca para elegir el bunga»</b>. Los dibujos de esta hoja ya van
+      corregidos.
+    </p>
+  </div>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · dónde se pinta el estado</div>
+  <p class="parte-intro">
+    El mismo renglón —el plan del día 11, vacío— dibujado con las cuatro figuras. Tres cuestan
+    <b>cero puntos</b> de sitio; la cuarta se paga en ancho.
+  </p>
+
+  <div class="tira-b">
+    <div class="ficha-b">
+      <div class="rotulo">E1 · el icono tiñe (la figura de Planes)</div>
+      <div class="tarj">
+        <div class="fila">
+          <div class="ico rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+          <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ficha-b">
+      <div class="rotulo">E2 · un punto al final del renglón</div>
+      <div class="tarj">
+        <div class="fila">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+          <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+          <span class="punto-e rojo"></span>
+        </div>
+      </div>
+    </div>
+    <div class="ficha-b">
+      <div class="rotulo">E3 · el subtítulo se tiñe</div>
+      <div class="tarj">
+        <div class="fila">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+          <div class="txt"><div class="n">Nada apuntado</div><div class="s rojo-txt">1 plan libre por traer</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ficha-b">
+      <div class="rotulo">E4 · una pastilla escrita</div>
+      <div class="tarj">
+        <div class="fila">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+          <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+          <span class="pil rojo" id="pil-e4">sin elegir</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">E1</span><span class="op-nombre">El icono tiñe</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La pastilla de 34 × 34 que ya encabeza cada renglón cambia de color con el estado. Es
+        <b>exactamente</b> lo que hace Planes con la fila elegida (<code>.ico.verde</code>): figura
+        conocida, cero puntos de sitio y el color va montado en un dibujo, no en el texto.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> nada de sitio; el matiz es que el color del icono pasa a significar — hoy es
+        decorativo (el azul del acento) y habrá que sostenerlo en los cuatro renglones siempre,
+        no a veces.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E2</span><span class="op-nombre">Un punto al final del renglón</span></div>
+      <p class="op-idea">
+        Un lunar de 11 pt a la derecha, como el punto de sincronización de la cabecera.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> estrena un objeto — el punto de la app vive en el cromo y significa «estado
+        de la sincronización»; repetido en cuatro renglones de una capa se lee como cuatro
+        sincronizaciones. Y a 11 pt es lo más pequeño de la fila, para el dato que se viene a ver.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E3</span><span class="op-nombre">El subtítulo se tiñe</span></div>
+      <p class="op-idea">
+        La línea de debajo —que ya dice qué falta, «toca para elegir los platos»— se pinta del
+        color del estado.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> texto largo en rojo se lee como mensaje de error, y el rojo como texto exige
+        4,5 : 1 — en la cara oscura el rojo de la app da <b>3,51 : 1</b> sobre su pastilla y
+        habría que inventar otro rojo solo para esto. El icono lo esquiva: como dibujo, el listón
+        es 3 : 1.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">E4</span><span class="op-nombre">Una pastilla escrita</span></div>
+      <p class="op-idea">
+        «sin elegir» / «listo» a la derecha de cada renglón, como la pastilla de votos de Planes.
+      </p>
+      <p class="coste">
+        <b>Cuesta, medido:</b> <span data-mide="pil-e4">—</span> pt de ancho por renglón que se
+        restan del titular, para escribir lo que el subtítulo ya dice con más letras. Cuatro veces.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · cuánto grita el vacío</div>
+  <p class="parte-intro">
+    El verde de «ya elegido» no se discute: es el de Planes, <b>5,40 : 1</b> en oscuro y 4,38 en
+    claro. La pregunta es el otro lado del par. El rojo de esta app es el de los saldos que se
+    deben y el de «Borrar» —es el único color con significado además del verde y las categorías de
+    gasto (<code>iconos.html</code> · I4)—, y el punto de sincronización ya reparte el semáforo
+    así: <b>amarillo con cola</b> —pendiente—, <b>rojo sin red</b> —roto—. Un día sin planes está
+    pendiente, no roto.
+  </p>
+
+  <div class="tabla-scroll"><table class="comp">
+    <tr><th>par</th><th>vacío, cara oscura</th><th>vacío, cara clara</th><th>qué dice el vacío</th></tr>
+    <tr><td><b>K1</b> verde · rojo</td><td class="num">3,51 : 1</td><td class="num">4,81 : 1</td><td>«aquí hay un fallo»</td></tr>
+    <tr><td><b>K2</b> verde · neutro</td><td class="num">4,68 : 1</td><td class="num">5,74 : 1</td><td>nada — solo lo hecho se señala</td></tr>
+    <tr><td><b>K3</b> verde · trazo a rayas</td><td class="num">—</td><td class="num">—</td><td>«aquí hay un hueco»</td></tr>
+    <tr><td><b>K4</b> verde · ámbar</td><td class="num">4,06 : 1</td><td class="num">3,80 : 1</td><td>«esto está pendiente»</td></tr>
+  </table></div>
+
+  <div class="tira-tel">
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa">
+          <span class="m-x">×</span>
+          <div class="m-t">martes, 11 de agosto</div>
+          <div class="sec-h" style="margin-top:10px">La cena</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8" /><path d="M7 3.5v5.5M11 3.5v5.5" /><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3" /></svg></div>
+              <div class="txt"><div class="n">Sin cena montada</div><div class="s">toca para elegir los platos</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">Las bungas</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Mayores</div><div class="s">toca para elegir el bunga</div></div>
+            </div>
+            <div class="fila">
+              <div class="ico rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Niños</div><div class="s">toca para elegir el bunga</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">El plan</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico rojo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+              <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">K1 · el día 11 vacío: cuatro renglones en rojo</p>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa">
+          <span class="m-x">×</span>
+          <div class="m-t">martes, 11 de agosto</div>
+          <div class="sec-h" style="margin-top:10px">La cena</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico ambar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8" /><path d="M7 3.5v5.5M11 3.5v5.5" /><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3" /></svg></div>
+              <div class="txt"><div class="n">Sin cena montada</div><div class="s">toca para elegir los platos</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">Las bungas</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico ambar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Mayores</div><div class="s">toca para elegir el bunga</div></div>
+            </div>
+            <div class="fila">
+              <div class="ico ambar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Niños</div><div class="s">toca para elegir el bunga</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">El plan</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico ambar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+              <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">K4 · el mismo día en ámbar: pendiente, no roto</p>
+    </div>
+
+    <div class="tel oscuro">
+      <div class="velo-centro">
+        <div class="capa">
+          <span class="m-x">×</span>
+          <div class="m-t">domingo, 9 de agosto</div>
+          <div class="sec-h" style="margin-top:10px">La cena</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8" /><path d="M7 3.5v5.5M11 3.5v5.5" /><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3" /></svg></div>
+              <div class="txt"><div class="n">Paella mixta y cinco cosas más</div><div class="s">seis platos</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">Las bungas</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Mayores · El del ruido</div><div class="s">el de los Pérez</div></div>
+            </div>
+            <div class="fila">
+              <div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5" /><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6" /><path d="M10 20.4v-5.2h4v5.2" /></svg></div>
+              <div class="txt"><div class="n">Niños · El del fondo</div><div class="s">el de los Solteros</div></div>
+            </div>
+          </div>
+          <div class="sec-h" style="margin-top:12px">El plan</div>
+          <div class="tarj" style="margin-top:6px">
+            <div class="fila">
+              <div class="ico ambar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg></div>
+              <div class="txt"><div class="n">Nada apuntado</div><div class="s">1 plan libre por traer</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel" style="padding:0 14px 10px">E1 + K4 · el día 9: lo elegido en verde, lo pendiente en ámbar</p>
+    </div>
+  </div>
+
+  <div class="grupo">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K1</span><span class="op-nombre">Verde · rojo</span><span class="etq pedida">lo pedido</span></div>
+      <p class="op-idea">
+        Elegido en verde, vacío en rojo. El semáforo de dos luces, literal.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el rojo de esta app significa <b>deuda y borrar</b> — es el único color con
+        carga además del verde y las categorías—, y un día recién abierto sale con <b>cuatro
+        renglones rojos</b> (dibujado arriba): tres semanas antes del viaje, cada día del
+        calendario abre gritando. Un día libre no es un fallo, y el que quiere serlo —«Día
+        libre»— también saldría rojo.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K2</span><span class="op-nombre">Verde · neutro</span></div>
+      <p class="op-idea">
+        Solo lo hecho se señala: lo elegido en verde y lo vacío se queda con el azul decorativo de
+        hoy. La mitad del encargo hace todo el trabajo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el vacío no se distingue de «aquí no hay estado» — que es justo lo que el
+        encargo pide señalar. Es la opción de mínimos, no la respuesta.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K3</span><span class="op-nombre">Verde · trazo a rayas</span></div>
+      <p class="op-idea">
+        El vacío se dibuja como hueco: la pastilla del icono pierde el relleno y queda un aro a
+        rayas, la figura que ya usa la app para «aquí falta algo» (la pastilla vacía de antes, el
+        borde de <code>.note</code>).
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> sin color, de un vistazo con la capa entera se ve peor que el ámbar — el
+        hueco hay que mirarlo, el color se ve con el rabillo—. A cambio no gasta ningún
+        significado nuevo.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">K4</span><span class="op-nombre">Verde · ámbar</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        El par del propio semáforo de la app: el punto de sincronización usa <b>amarillo para «hay
+        cola pendiente»</b> y rojo para «sin red». Un renglón vacío está pendiente, no roto. El
+        ámbar es <code>--gold</code>, que ya existe (<code>.pill.fx</code>) y no estrena color.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> no es literalmente lo pedido — el vacío avisa en vez de gritar—. Contraste
+        4,06 : 1 y 3,80 : 1 como dibujo (el listón es 3). Si tras verlo en el móvil lo quieres más
+        duro, pasar de K4 a K1 es cambiar una variable.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · qué cuenta como «elegido»</div>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">G1</span><span class="op-nombre">Cada renglón, el suyo</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        Cuatro estados independientes: la cena en verde con <b>al menos un plato</b> —una cena
+        montada sin platos sigue pendiente—, cada bunga con la suya puesta, el plan con al menos
+        uno colocado. Es lo que hace útil el vistazo: se ve <b>qué</b> falta, no solo que falta
+        algo.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> nada nuevo — los cuatro datos ya están en la capa; solo se pintan.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">G2</span><span class="op-nombre">La sección entera, un estado</span></div>
+      <p class="op-idea">
+        Tres estados, uno por sección: las bungas en verde solo con las dos puestas.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> «mayores sí, niños no» se pinta igual que «ninguno», y ese medio-hecho es
+        justo el caso frecuente. Con dos filas ya separadas (§14.31 · S2), agrupar el estado va
+        contra lo que se acaba de partir.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">G3</span><span class="op-nombre">El día entero, un estado en la cabecera</span></div>
+      <p class="op-idea">
+        Un solo punto junto al título: verde con todo elegido.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> no dice qué falta —hay que leer igual— y «todo elegido» incluye el plan,
+        con lo que un día de cena en casa sin plan nunca se pone verde. Pierde el vistazo que se
+        venía a ganar.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CUATRO ══════════════ -->
+  <div class="parte">Parte cuatro · ¿y la lista de Días?</div>
+  <p class="parte-intro">
+    El encargo dice «en el día», pero la pregunta de al lado es inevitable: la fila de un día en la
+    lista ya dice «nada apuntado» con palabras — ¿se pinta también?
+  </p>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">D1</span><span class="op-nombre">Solo en el día abierto</span><span class="etq rec">la que propongo</span></div>
+      <p class="op-idea">
+        La lista se queda como está: su resumen ya distingue el día lleno del vacío con el titular
+        y «nada apuntado».
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> el vistazo de columna —¿qué días cojean?— sigue siendo de leer. Es el
+        statu quo de la lista, con el color solo donde se edita.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D2</span><span class="op-nombre">También en Días: el número tiñe</span></div>
+      <p class="op-idea">
+        La casilla del número de cada fila toma el color del estado del día.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> tres semanas antes del viaje son <b>ocho números del color del vacío</b>
+        ocupando la pantalla entera — con K1, ocho en rojo—. Y el número ya trabaja: es como se
+        encuentra el día.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">D3</span><span class="op-nombre">En Días, solo el verde</span></div>
+      <p class="op-idea">
+        La fila del día completo (cena con platos y bungas puestas) marca su número en verde; el
+        resto se queda como hoy. Lo hecho se celebra, lo vacío no grita ocho veces.
+      </p>
+      <p class="coste">
+        <b>Cuesta:</b> «completo» necesita una definición que el día abierto no necesita —¿cuenta
+        el plan?—, y dos pantallas con dos reglas distintas del mismo verde se leen como un fallo.
+        Si se quiere columna, mejor D2 con K4.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ COMBINACIONES ══════════════ -->
+  <div class="parte">Parte cinco · las combinaciones</div>
+
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>E1</span><span>K4</span><span>G1</span><span>D1</span></div>
+    <p>
+      <b>El icono de cada renglón como semáforo</b>: verde con algo elegido —el verde de Planes,
+      5,40 : 1—, <b>ámbar cuando falta</b> —el amarillo de «pendiente» que la app ya usa en el
+      punto de sincronización, con <code>--gold</code>, sin estrenar color—, cada renglón el suyo,
+      y la lista de Días quieta. Cero puntos de sitio nuevos: el estado va en tinta.
+    </p>
+    <p>
+      <b>Lo pedido, literal:</b> <span class="receta" style="display:inline"><span>E1</span><span>K1</span><span>G1</span><span>D1</span></span>
+      — idéntica salvo el rojo. Está dibujada arriba con el día 11 vacío para que se vea lo que
+      cuesta: cuatro renglones en rojo en un día que simplemente aún no se ha montado, con el
+      mismo rojo que la app usa para deber dinero y para borrar. Si la prefieres, es tuya y es un
+      cambio de una variable — y pasar de una a otra después, también.
+    </p>
+    <p style="font-size:13.5px">
+      El arreglo del género del bunga va en la misma PR sea cual sea la elección. Nada toca la
+      base ni la API: todo es <code>app/</code> (<code>DiasScreen.jsx</code>, <code>theme.css</code>
+      y sus tests), cero migraciones.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Elegida E1 + K4 + G1 + D1</b> («Dale y mergea», 8 de agosto de 2026), con el arreglo del
+      género en la misma PR: «Ninguno», «el de los Pérez», «toca para cambiarlo», «toca para
+      elegir el bunga» y la sección «Los bungas». Esta hoja vive en
+      <code>docs/diseño/dia-estado.html</code> —al lado de <code>elegidores.html</code>— y el
+      código la cita: <code>.ico.ambar</code> en <code>theme.css</code>, el semáforo en
+      <code>CapaDeDia</code> (<code>DiasScreen.jsx</code>) y SPECS §14.32.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // Vuelca las medidas reales de las maquetas en el texto al servirse la hoja.
+  const el = document.getElementById('pil-e4')
+  if (el) {
+    const ancho = Math.round(el.getBoundingClientRect().width * 10) / 10
+    document.querySelectorAll('[data-mide="pil-e4"]').forEach((s) => {
+      s.textContent = String(ancho).replace('.', ',')
+    })
+  }
+</script>

@@ -118,9 +118,9 @@ const etiquetaCategoria = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.labe
 
 /**
  * El día, abierto en el mueble de un plan: la capa centrada de
- * `plan-voto.html` · P1, en **tres secciones** —la cena, las bungas, el plan—
+ * `plan-voto.html` · P1, en **tres secciones** —la cena, los bungas, el plan—
  * con un renglón por pregunta (`docs/diseño/elegidores.html` · S2, que revisa
- * el R2 de `dia-abierto.html`: las bungas salen de «La cena» y llevan dos
+ * el R2 de `dia-abierto.html`: los bungas salen de «La cena» y llevan dos
  * filas, para que cada selector sea una sola lista).
  *
  * **Cada renglón abre su elegidor en la misma capa** (V2): el día se aparta y
@@ -177,13 +177,15 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
     return `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
   }
 
-  // El renglón de una bunga dice la casa y de quién es (elegidores.html · S2).
+  // El renglón de un bunga dice la casa y de quién es (elegidores.html · S2).
+  // En masculino, que es como habla el grupo: «El del ruido», «+ Bunga nuevo…».
   const filaBunga = (id, quien) => {
     const b = bungas.find((x) => x.id === id)
     const f = b && familias.find((x) => x.id === b.familyId)
     return {
+      elegido: Boolean(b),
       n: b ? `${quien} · ${b.alias || b.name}` : quien,
-      s: b ? (f ? `la de los ${f.name}` : 'toca para cambiarla') : 'toca para elegir la bunga',
+      s: b ? (f ? `el de los ${f.name}` : 'toca para cambiarlo') : 'toca para elegir el bunga',
     }
   }
   const may = filaBunga(cena?.bungaMayoresId, 'Mayores')
@@ -209,10 +211,13 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
             <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
             <h2 className="modal-dia-t">{fmtDiaLargo(dia)}</h2>
 
+            {/* El semáforo (dia-estado.html · E1 · K4 · G1): cada icono dice si
+                su renglón ya tiene algo elegido. Verde de Planes; el vacío en
+                ámbar —pendiente—, no en rojo, que aquí significa deuda. */}
             <div className="sec-h" style={{ marginTop: 10 }}>La cena</div>
             <div className="card tight" style={{ marginTop: 6 }}>
               <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('platos') }}>
-                <div className="ico"><Icono nombre="restaurante" /></div>
+                <div className={`ico ${nPlatos ? 'verde' : 'ambar'}`}><Icono nombre="restaurante" /></div>
                 <div className="main">
                   <div className="n">{titularDeCena(cena ?? null, elegidos)}</div>
                   <div className="sub">{subCena}</div>
@@ -220,17 +225,17 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
               </button>
             </div>
 
-            <div className="sec-h" style={{ marginTop: 6 }}>Las bungas</div>
+            <div className="sec-h" style={{ marginTop: 6 }}>Los bungas</div>
             <div className="card tight" style={{ marginTop: 6 }}>
               <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('mayores') }}>
-                <div className="ico"><Icono nombre="casa" /></div>
+                <div className={`ico ${may.elegido ? 'verde' : 'ambar'}`}><Icono nombre="casa" /></div>
                 <div className="main">
                   <div className="n">{may.n}</div>
                   <div className="sub">{may.s}</div>
                 </div>
               </button>
               <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('ninos') }}>
-                <div className="ico"><Icono nombre="casa" /></div>
+                <div className={`ico ${nin.elegido ? 'verde' : 'ambar'}`}><Icono nombre="casa" /></div>
                 <div className="main">
                   <div className="n">{nin.n}</div>
                   <div className="sub">{nin.s}</div>
@@ -245,7 +250,7 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
                 disabled={sinNadaQueTraer}
                 onClick={() => { tap(); setEligiendo('planes') }}
               >
-                <div className="ico"><Icono nombre="plan" /></div>
+                <div className={`ico ${delDia.length ? 'verde' : 'ambar'}`}><Icono nombre="plan" /></div>
                 <div className="main">
                   <div className="n">
                     {delDia.length === 0 ? 'Nada apuntado'
@@ -449,16 +454,16 @@ function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCance
 }
 
 /**
- * Una bunga, una lista (`elegidores.html` · S2 · B1): la familia manda y el
- * alias queda de seña — «¿cuál era la de los Pérez?» se contesta sin saberse
- * los motes—. Una bunga sin familia dueña se queda con su alias. Sin buscador
+ * Un bunga, una lista (`elegidores.html` · S2 · B1): la familia manda y el
+ * alias queda de seña — «¿cuál era el de los Pérez?» se contesta sin saberse
+ * los motes—. Un bunga sin familia dueña se queda con su alias. Sin buscador
  * (L1): tres casas no se buscan.
  */
 function ElegidorDeBunga({ titulo, dia, bungas, familias, inicial, onCancelar, onListo }) {
   const [valor, setValor] = useState(inicial)
 
   const opciones = [
-    { id: null, etiqueta: 'Ninguna', nota: null },
+    { id: null, etiqueta: 'Ninguno', nota: null },
     ...bungas.map((b) => {
       const f = familias.find((x) => x.id === b.familyId)
       return f

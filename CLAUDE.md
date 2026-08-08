@@ -107,6 +107,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   doble con fila rica medía 815,8 pt y el tope de una capa es 658,3); platos y planes llevan
   **buscador siempre visible** (`filtraOpciones`, sin tildes y sin robar el foco), las bungas
   no. `HojaDeMarcar` se retiró con su único consumidor.
+- **El día lleva semáforo, y el vacío no grita** (SPECS §14.32, `docs/diseño/dia-estado.html`
+  · E1·K4·G1·D1): el icono de cada renglón del día tiñe —verde de Planes con algo elegido,
+  **ámbar** (`--gold`, `.ico.ambar`) cuando falta—, cada renglón el suyo y la lista de Días
+  quieta. Se pidió rojo y la hoja lo dibujó: cuatro renglones rojos en un día sin montar, con
+  el rojo que aquí es deuda y borrar — el ámbar es «pendiente», como el amarillo del punto de
+  sincronización; pasar a rojo es una variable. Y **el bunga es masculino**: «Ninguno», «el
+  de los Pérez», «Los bungas» — §14.31 lo escribió en femenino y §14.32 lo corrige.
 - **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,
