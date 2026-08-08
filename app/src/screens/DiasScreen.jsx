@@ -7,6 +7,7 @@ import {
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
+import Alias from '../components/Alias.jsx'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
 import {
@@ -73,6 +74,16 @@ export default function DiasScreen({ eventId, event }) {
           })
           const { numero, semana } = numeroYDia(dia)
           const esHoy = dia === hoy
+          /**
+           * El semáforo llega a la lista (`numeros.html`, que revisa la D1 de
+           * `dia-estado.html` a encargo): verde el día **completo** —cena con
+           * platos, los dos bungas y algo de plan, los cuatro estados de G1—,
+           * ámbar al que le falta algo.
+           */
+          const completo = Boolean(
+            cena && (cena.platoIds?.length ?? 0) > 0
+            && cena.bungaMayoresId && cena.bungaNinosId && susPlanes.length > 0,
+          )
           return (
             <div className={`row fila-dia${esHoy ? ' es-hoy' : ''}`} key={dia}>
               {/* En pantalla el día es un número y tres letras; a quien no ve se
@@ -83,7 +94,7 @@ export default function DiasScreen({ eventId, event }) {
                 aria-label={`${fmtDiaLargo(dia)}: ${titulo}, ${detalle}`}
                 onClick={() => { tap(); setAbierto(dia) }}
               >
-                <span className="dia-num" aria-hidden>
+                <span className={`dia-num ${completo ? 'verde' : 'ambar'}`} aria-hidden>
                   <b>{numero}</b><span>{semana}</span>
                 </span>
                 <span className="main">
@@ -463,12 +474,12 @@ function ElegidorDeBunga({ titulo, dia, bungas, familias, inicial, onCancelar, o
   const [valor, setValor] = useState(inicial)
 
   const opciones = [
-    { id: null, etiqueta: 'Ninguno', nota: null },
+    { id: null, etiqueta: 'Ninguno', familia: null, nota: null },
     ...bungas.map((b) => {
       const f = familias.find((x) => x.id === b.familyId)
       return f
-        ? { id: b.id, etiqueta: f.name, nota: b.alias || b.name }
-        : { id: b.id, etiqueta: b.alias || b.name, nota: null }
+        ? { id: b.id, etiqueta: f.name, familia: f, nota: b.alias || b.name }
+        : { id: b.id, etiqueta: b.alias || b.name, familia: null, nota: null }
     }),
   ]
 
@@ -477,12 +488,14 @@ function ElegidorDeBunga({ titulo, dia, bungas, familias, inicial, onCancelar, o
       <div className="eleccion" style={{ marginTop: 12 }}>
         {opciones.map((o) => (
           <button
-            key={o.id ?? 'ninguna'}
+            key={o.id ?? 'ninguno'}
             type="button"
             className="eleccion-op"
             onClick={() => { tap(); setValor(o.id) }}
           >
-            <span className="et">{o.etiqueta}</span>
+            {/* La pastilla de dos letras con el color de la familia
+                (numeros.html · decidido 2): la firma de Ideas, aquí de seña. */}
+            <span className="et">{o.etiqueta} {o.familia && <Alias familia={o.familia} />}</span>
             {o.nota && <span className="no">{o.nota}</span>}
             {(o.id ?? null) === (valor ?? null) && <span className="tic"><Icono nombre="visto" /></span>}
           </button>

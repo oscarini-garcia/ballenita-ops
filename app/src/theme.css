@@ -1047,7 +1047,15 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
   background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink-soft); }
 .dia-num b { font-size: var(--t-row); font-weight: 650; }
 .dia-num span { font-size: var(--t-micro); opacity: .8; }
-.fila-dia.es-hoy .dia-num { background: color-mix(in srgb, var(--owed) 18%, transparent); color: var(--owed); }
+/* El semáforo llega a la lista (docs/diseño/numeros.html, que revisa la D1 de
+   dia-estado.html a encargo): verde el día completo —cena con platos, los dos
+   bungas y algo de plan—, ámbar al que le falta algo. Mismos pares que los
+   iconos del día abierto (§14.32). */
+.dia-num.verde { background: color-mix(in srgb, var(--owed) 18%, transparent); color: var(--owed); }
+.dia-num.ambar { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--gold); }
+/* «Hoy» pintaba su casilla del mismo verde que ahora significa «completo»: con
+   el relleno ocupado por el semáforo, pasa a un aro del acento. */
+.fila-dia.es-hoy .dia-num { box-shadow: 0 0 0 1.5px var(--spout); }
 .fila-dia.es-hoy .dia-abre .n { font-weight: 650; }
 
 /* El verbo de una fila cuando no hay deslizamiento detrás: 44 × 44, que es el

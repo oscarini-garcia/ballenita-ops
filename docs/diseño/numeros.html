@@ -1,0 +1,432 @@
+<title>Ballena Ops — Números cuenta seis fichas y el viaje da para más</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1;
+    --ab-owed: #6aab8b; --ab-gold: #c9a768; --ab-papel-capa: #1a3d4f; --ab-linea-capa: #3a6a82;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { font-family: var(--mono); font-size: 12.5px;
+    background: color-mix(in srgb, var(--oro) 14%, transparent); border-radius: 4px; padding: 1px 5px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+  .parte-intro code { font-family: var(--mono); font-size: 12.5px; }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+  .coste code { font-family: var(--mono); font-size: 12.5px; }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.pica { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 66ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+  .op-idea code { font-family: var(--mono); font-size: 12.5px; }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── El teléfono, a 390 pt. line-height 1.45 = el de body en theme.css. ── */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45; outline: 1px solid var(--ab-linea); outline-offset: -1px;
+    display: flex; flex-direction: column; background: var(--ab-fondo); color: var(--ab-ink); }
+  .t-body { padding: 14px 14px 22px; display: flex; flex-direction: column; gap: 12px; }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; color: var(--ab-faint);
+    display: flex; justify-content: space-between; align-items: center; }
+
+  .tarj { border-radius: 9px; background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave);
+    padding: 0 12px; }
+  .fila { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); color: var(--ab-soft); }
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    background: color-mix(in srgb, var(--ab-acento) 14%, transparent); color: var(--ab-acento-txt);
+    white-space: nowrap; }
+
+  /* La casilla del número de un día, con el semáforo puesto. */
+  .dia-num { width: 36px; flex: none; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; line-height: 1.05; border-radius: 8px; padding: 4px 0;
+    background: color-mix(in srgb, var(--ab-ink) 6%, transparent); color: var(--ab-soft); }
+  .dia-num b { font-size: var(--t-row); font-weight: 650; }
+  .dia-num span { font-size: var(--t-micro); opacity: .8; }
+  .dia-num.verde { background: color-mix(in srgb, var(--ab-owed) 18%, transparent); color: var(--ab-owed); }
+  .dia-num.ambar { background: color-mix(in srgb, var(--ab-gold) 22%, transparent); color: var(--ab-gold); }
+  .dia-num.hoy { box-shadow: 0 0 0 1.5px var(--ab-acento); }
+
+  /* Las fichas de Números (la rejilla de dos columnas). */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tile { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); border-radius: 9px;
+    padding: 12px; }
+  .tile .v { font-size: var(--t-body); font-weight: 700; letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums; }
+  .tile .l { font-size: var(--t-label); color: var(--ab-faint); margin-top: 2px; }
+  .tile.nueva { outline: 1.5px dashed var(--ab-acento); outline-offset: -1.5px; }
+
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: 9px; padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+
+  .alias { font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 3px 6px; }
+  .eleccion { display: flex; flex-direction: column; margin-top: 6px; border: 1px solid var(--ab-linea-suave);
+    border-radius: 9px; overflow: hidden; background: var(--ab-tarjeta); }
+  .elec-op { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 14px;
+    border-bottom: 1px solid var(--ab-linea-suave); font-size: var(--t-row); }
+  .elec-op:last-child { border-bottom: none; }
+  .elec-op .et { flex: 1; font-weight: 550; display: flex; align-items: center; gap: 8px; }
+  .elec-op .no { font-size: var(--t-label); color: var(--ab-faint); }
+  .elec-op .tic { color: var(--ab-acento-txt); }
+  .elec-op .tic svg { width: 20px; height: 20px; display: block; }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 6px 0 0; }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 68ch; }
+  .cierre b { color: var(--tinta); }
+  .cierre code { font-family: var(--mono); font-size: 12.5px; }
+  .receta { font-family: var(--mono); font-size: 14px; color: var(--tinta); line-height: 1.9; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · Números, y tres encargos decididos</div>
+    <h1>Números cuenta seis fichas y el viaje da para más — sabiendo qué señala a alguien</h1>
+    <p class="entradilla">
+      Tres cosas del encargo van <b>decididas</b> y no se votan: el semáforo en la lista de Días,
+      el color de la familia en el selector del bunga y el balance de anfitrión primero en
+      Números. Lo que sí se elige es <b>qué datos nuevos se cuentan</b>. La regla de la casa ya
+      está escrita (§7): <b>nada señala a nadie por defecto</b> — lo que apunte a una persona va
+      detrás del interruptor «Con pique 🌶️» que ya existe, junto al 👎 de siempre.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.25.0 (<code>main</code>, 4e3f903)</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, cara oscura</span>
+      <span><b>Contenido:</b> el Demo, con sus cifras de verdad</span>
+    </div>
+    <p class="entradilla" style="font-size:14.5px">
+      Todo dato propuesto se calcula <b>en local</b> en <code>lib/stats.js</code> —puro, con
+      tests— a partir de hechos que ya existen: nada viaja, nada llama a la IA, cero migraciones.
+      Las cifras de los dibujos son las del Demo calculadas a mano.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO DECIDIDO ══════════════ -->
+  <div class="defectos">
+    <h2>Lo decidido en el encargo · va con la elección, no se vota</h2>
+    <p>
+      <b>1 · La lista de Días con semáforo.</b> Revisa la D1 de <code>dia-estado.html</code> a
+      encargo: la casilla del número tiñe — <b>verde el día completo, ámbar al que le falta
+      algo</b>—. «Completo» son los cuatro estados de G1 en verde: cena con platos, los dos
+      bungas y algo de plan; si prefieres que el plan no cuente (una cena en casa sin plan como
+      día completo), dilo y es una línea. Dos consecuencias que se hacen y se cuentan: el Demo
+      no tiene hoy <b>ningún día completo</b> —al 9 le falta el plan—, y «hoy», que ya pintaba su
+      casilla del mismo verde, pasa a un <b>aro azul</b> para que el relleno quede libre para el
+      semáforo.
+    </p>
+    <p>
+      <b>2 · El color de la familia en el selector del bunga.</b> La pastilla de dos letras de
+      <code>lib/alias.js</code> —la firma de Ideas y de los votantes de un plan— junto al nombre:
+      «Pérez <span class="alias" style="background:#d6ece2;color:#20543c">Pé</span> · El del
+      ruido». El color solo tiñe el fondo y la letra se mezcla con la tinta del tema, como hace
+      <code>Alias.jsx</code> en todas partes.
+    </p>
+    <p>
+      <b>3 · En Números, el balance primero.</b> La sección «Balance de anfitrión (cenas)» sube
+      encima de la rejilla de fichas: es la cuenta que evita discusiones —quién ha acogido ya y a
+      quién le toca— y estaba debajo de la media por persona.
+    </p>
+  </div>
+
+  <!-- ══════════════ LO DECIDIDO, DIBUJADO ══════════════ -->
+  <div class="parte">Lo decidido, dibujado con el Demo</div>
+
+  <div class="tira-tel">
+    <div class="tel">
+      <div class="t-body">
+        <div class="tarj">
+          <div class="fila">
+            <div class="dia-num ambar hoy"><b>8</b><span>sáb</span></div>
+            <div class="txt"><div class="n">Llegada</div><div class="s">nada apuntado</div></div>
+          </div>
+          <div class="fila">
+            <div class="dia-num ambar"><b>9</b><span>dom</span></div>
+            <div class="txt"><div class="n">Paella mixta</div><div class="s">6 platos · sin planes</div></div>
+          </div>
+          <div class="fila">
+            <div class="dia-num ambar"><b>10</b><span>lun</span></div>
+            <div class="txt"><div class="n">Playa de la Cala</div><div class="s">sin cena · 1 plan</div></div>
+          </div>
+          <div class="fila">
+            <div class="dia-num ambar"><b>11</b><span>mar</span></div>
+            <div class="txt"><div class="n">Día libre</div><div class="s">nada apuntado</div></div>
+          </div>
+          <div class="fila">
+            <div class="dia-num ambar"><b>12</b><span>mié</span></div>
+            <div class="txt"><div class="n">Excursión a las cuevas</div><div class="s">sin cena · 1 plan</div></div>
+          </div>
+        </div>
+        <p class="pie-tel">El Demo, tal cual: ningún día completo todavía — al 9 le falta el plan.
+        «Hoy» (sáb 8) lleva el aro azul; el relleno es del semáforo.</p>
+      </div>
+    </div>
+
+    <div class="tel">
+      <div class="t-body">
+        <div class="tarj">
+          <div class="fila">
+            <div class="dia-num ambar hoy"><b>8</b><span>sáb</span></div>
+            <div class="txt"><div class="n">Llegada</div><div class="s">nada apuntado</div></div>
+          </div>
+          <div class="fila">
+            <div class="dia-num verde"><b>9</b><span>dom</span></div>
+            <div class="txt"><div class="n">Paella mixta</div><div class="s">6 platos · 1 plan</div></div>
+          </div>
+          <div class="fila">
+            <div class="dia-num ambar"><b>10</b><span>lun</span></div>
+            <div class="txt"><div class="n">Playa de la Cala</div><div class="s">sin cena · 1 plan</div></div>
+          </div>
+        </div>
+        <p class="pie-tel">Hipótesis para ver el par: si la noche de juegos cayera en el 9, sería
+        el primer día en verde.</p>
+
+        <div class="sec-h" style="margin-top:8px">El selector del bunga, con su familia</div>
+        <div class="eleccion">
+          <div class="elec-op"><span class="et">Ninguno</span></div>
+          <div class="elec-op"><span class="et">García <span class="alias" style="background:rgba(229,84,75,.2);color:#f0b0aa">Ga</span></span><span class="no">El de la piscina</span></div>
+          <div class="elec-op"><span class="et">Pérez <span class="alias" style="background:rgba(46,158,107,.2);color:#9fd4bb">Pé</span></span><span class="no">El del ruido</span>
+            <span class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6" /></svg></span></div>
+          <div class="elec-op"><span class="et">Solteros <span class="alias" style="background:rgba(31,166,214,.2);color:#9bd4ec">So</span></span><span class="no">El del fondo</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tel">
+      <div class="t-body">
+        <div class="sec-h">Balance de anfitrión (cenas)</div>
+        <div class="tarj">
+          <div class="fila">
+            <div class="txt"><div class="n">El del ruido</div><div class="s">mayores 1 · niños 0</div></div>
+            <span class="pil">1</span>
+          </div>
+          <div class="fila">
+            <div class="txt"><div class="n">El del fondo</div><div class="s">mayores 0 · niños 1</div></div>
+            <span class="pil">1</span>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="tile"><div class="v">232,30 €</div><div class="l">Gasto total</div></div>
+          <div class="tile"><div class="v">38,72 €</div><div class="l">Por persona (media)</div></div>
+          <div class="tile nueva"><div class="v">232,30 € · sáb 8</div><div class="l">El día más caro</div></div>
+          <div class="tile nueva"><div class="v">~1.858 €</div><div class="l">Así vais a acabar</div></div>
+          <div class="tile nueva"><div class="v">2 de 8</div><div class="l">Días con plan</div></div>
+          <div class="tile nueva"><div class="v">1 noche</div><div class="l">Racha de cenas</div></div>
+        </div>
+        <div class="sec-h" style="margin-top:4px">Con pique 🌶️</div>
+        <div class="tarj" style="padding:12px">
+          <div class="s" style="font-size:var(--t-sub);color:var(--ab-soft)">🏆 <b style="color:var(--ab-ink)">Curro</b> es el que más 👍 reparte (2 planes). Un entusiasta.</div>
+          <div class="s" style="font-size:var(--t-sub);color:var(--ab-soft);margin-top:8px">🤷 <b style="color:var(--ab-ink)">Ana y Pablo</b> van empatados a encogimientos de hombros (1).</div>
+        </div>
+        <p class="pie-tel">Números con el balance primero; las fichas nuevas llevan el trazo a
+        rayas solo en este dibujo, para distinguirlas.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ LAS OPCIONES ══════════════ -->
+  <div class="parte">Qué más se cuenta · elige las que quieras</div>
+  <p class="parte-intro">
+    Ocho candidatas, cada una con su cifra del Demo y con la etiqueta 🌶️ si señala a alguien —esas
+    van dentro del interruptor, nunca en la rejilla—. Se eligen sueltas: vale «todas», «las que no
+    pican», o códigos.
+  </p>
+
+  <div class="grupo">
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">T1</span><span class="op-nombre">El día más caro</span><span class="etq rec">propuesta</span></div>
+      <p class="op-idea">
+        La suma de gastos por día (<code>dateISO</code>): <b>«232,30 € · sáb 8»</b>. La compra
+        grande siempre gana el primer día, y verlo destronado a mitad de viaje es media
+        conversación de sobremesa.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">T2</span><span class="op-nombre">Así vais a acabar</span><span class="etq rec">propuesta</span></div>
+      <p class="op-idea">
+        El total proyectado al cierre: gasto ÷ días transcurridos × días del viaje. El Demo, con
+        todo gastado el primer día: <b>«~1.858 €»</b> — el susto es el chiste, y se corrige solo
+        según pasan los días. Solo se enseña <b>durante</b> el viaje: antes no hay días
+        transcurridos y después ya no es pronóstico.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">T3</span><span class="op-nombre">Días con plan</span><span class="etq rec">propuesta</span></div>
+      <p class="op-idea">
+        Cuántos días del evento tienen al menos un plan puesto: <b>«2 de 8»</b>. Es el
+        contrapunto del semáforo de Días: la misma pregunta, contestada en una cifra.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">T4</span><span class="op-nombre">Racha de cenas</span><span class="etq rec">propuesta</span></div>
+      <p class="op-idea">
+        Noches <b>seguidas</b> con cena montada, contando desde el primer día: <b>«1 noche»</b>.
+        Una cifra que pica a rellenar la agenda sin regañar a nadie.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">T5</span><span class="op-nombre">La compra pendiente</span></div>
+      <p class="op-idea">
+        Lo que queda sin comprar en la lista (<code>shopItems</code> sin marcar):
+        <b>«4 cosas»</b>. Útil más que divertida; la Compra ya lo dice en su área, así que aquí
+        sería repetirlo — por eso no va en la propuesta.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">T6</span><span class="op-nombre">La bebida, por adulto</span></div>
+      <p class="op-idea">
+        El total de la categoría bebida entre los adultos del reparto: <b>«4,05 €»</b>. Divertida
+        el día tres, incómoda el día siete — apunta a la categoría y no a nadie, pero el chiste
+        se repite poco.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">T7</span><span class="op-nombre">El entusiasta</span><span class="etq rec">propuesta</span><span class="etq pica">🌶️ señala</span></div>
+      <p class="op-idea">
+        Quién más 👍 reparte en los planes: <b>«Curro, 2 planes»</b>. Señala para bien, pero
+        señala: va <b>dentro del pique</b>, junto al 👎 de siempre — que gana un espejo simpático.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">T8</span><span class="op-nombre">El indeciso</span><span class="etq rec">propuesta</span><span class="etq pica">🌶️ señala</span></div>
+      <p class="op-idea">
+        Quién más 🤷 acumula: <b>«Ana y Pablo, empatados a 1»</b>. Completa el trío del pique:
+        el que no dice que no, pero tampoco que sí. Dentro del interruptor.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════ CIERRE ══════════════ -->
+  <div class="cierre">
+    <h2>La que propongo</h2>
+    <div class="receta"><span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>+T7</span><span>+T8 al pique</span></div>
+    <p>
+      <b>Cuatro fichas nuevas en la rejilla</b> —el día más caro, el pronóstico, los días con plan
+      y la racha de cenas: ninguna señala a nadie— y <b>los dos retratos al pique</b>, detrás del
+      interruptor que ya existe, con el 👎 de siempre. T5 repite lo que la Compra ya dice y T6
+      envejece mal; se suman luego con una línea si apetecen.
+    </p>
+    <p>
+      Todo se calcula en <code>computeStats</code> (<code>lib/stats.js</code>, puro y con tests) a
+      partir de gastos, cenas, planes y votos que ya están en el móvil. Nada viaja, nada llama a
+      la IA, cero migraciones. Los tres encargos decididos —el semáforo de Días con «hoy» en aro,
+      el color de familia en el selector, el balance primero— van en la misma PR.
+    </p>
+    <p style="font-size:13.5px">
+      <b>Elegida la propuesta</b> («Mergea», 8 de agosto de 2026): T1 · T2 · T3 · T4 en la
+      rejilla y T7 · T8 al pique, con los tres encargos decididos en la misma PR. Esta hoja
+      vive en <code>docs/diseño/numeros.html</code> y el código la cita:
+      <code>computeStats</code> en <code>lib/stats.js</code>, el semáforo de la lista en
+      <code>DiasScreen.jsx</code> y <code>theme.css</code> (<code>.dia-num.verde/.ambar</code>),
+      la pastilla en <code>ElegidorDeBunga</code>, y SPECS §14.33.
+    </p>
+  </div>
+
+</div>
+</div>

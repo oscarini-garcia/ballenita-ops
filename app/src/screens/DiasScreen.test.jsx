@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import DiasScreen from './DiasScreen.jsx'
 import {
   db, createEvent, getEvent, addFamily, addBunga, addPerson, addDish, addDinner, addPlan,
-  dinnersOf, plansOf,
+  updatePlan, dinnersOf, plansOf,
 } from '../db.js'
 
 // Ballenita 2026: 8–15 de agosto, con la cena del día 9 y dos planes. Las
@@ -207,8 +207,9 @@ describe('DiasScreen', () => {
     expect(await screen.findByRole('heading', { name: 'Bunga mayores' })).toBeInTheDocument()
     // Quitar también es elegir, y en masculino: «Ninguno», no «Ninguna».
     expect(screen.getByRole('button', { name: 'Ninguno' })).toBeInTheDocument()
-    // La fila dice la familia, con el alias de seña (B1).
-    await userEvent.click(screen.getByRole('button', { name: 'Pérez El del ruido' }))
+    // La fila dice la familia con su pastilla de dos letras (numeros.html · 2)
+    // y el alias de seña (B1).
+    await userEvent.click(screen.getByRole('button', { name: 'Pérez PE El del ruido' }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
 
     await waitFor(async () => {
@@ -331,6 +332,23 @@ describe('DiasScreen', () => {
 
     await abrirDia('sábado, 8 de agosto')
     expect(await screen.findByRole('button', { name: /ningún plan libre/ })).toBeDisabled()
+  })
+
+  /** El semáforo en la lista (numeros.html · decidido 1, revisa D1 de dia-estado). */
+  it('la lista de Días tiñe el número: verde el día completo, ámbar el resto', async () => {
+    const { eventId, event } = await sembrar()
+    // Con la noche de juegos puesta en el 9, ese día lo tiene todo: cena con
+    // platos, los dos bungas y un plan.
+    const noche = (await plansOf(eventId)).find((p) => p.titulo === 'Noche de juegos de mesa')
+    await updatePlan(noche.id, { dia: '2026-08-09' })
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+    await screen.findByText('Playa de la Cala')
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('.dia-num.verde')).toHaveLength(1)
+      expect(document.querySelectorAll('.dia-num.ambar')).toHaveLength(7)
+    })
   })
 
   it('sin fechas en el evento, lo dice y manda a Ajustes', async () => {
