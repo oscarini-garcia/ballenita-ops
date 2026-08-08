@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.23.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  697 pruebas en 74 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.24.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  698 pruebas en 74 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -221,7 +221,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `AccesoScreen.jsx` — Puerta de entrada al grupo.
   ↳ CADA
-- `AgendaScreen.jsx` — «Agenda», partida en dos áreas (opciones A1 y B2 de `docs/diseño/navegacion.html`).
+- `AgendaScreen.jsx` — «Agenda», partida en tres áreas (opciones A1 y B2 de `docs/diseño/navegacion.html`; la tercera llegó después, desde Ajustes).
 - `BalancesScreen.jsx` — Saldos: cuánto debe cada familia y las transferencias que lo saldan.
 - `BienvenidaScreen.jsx` — Lo que se ve la primera vez que entras, mientras baja lo del grupo.
 - `CenasScreen.jsx` — Las cenas del viaje: qué se come cada día y en qué bunga, mayores y niños.

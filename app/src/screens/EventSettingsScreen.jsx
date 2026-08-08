@@ -13,7 +13,6 @@ import { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
 import { COCINA_DE_ORIGEN } from '../lib/cocina.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
-import StatsScreen from './StatsScreen.jsx'
 import GrupoSection from './GrupoSection.jsx'
 import CuentasSection, { IASection, NotificacionesSection, useCuentas } from './CuentasSection.jsx'
 import Hoja from '../components/Hoja.jsx'
@@ -847,10 +846,6 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
 
       <Acordeon titulo="Quién eres" icono="persona" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
         <QuienEresSection eventId={eventId} persons={persons} />
-      </Acordeon>
-
-      <Acordeon titulo="Estadísticas" icono="grafico">
-        <StatsScreen eventId={eventId} event={event} suelto />
       </Acordeon>
 
       <Acordeon titulo="Sincronización" icono="sincronizar">

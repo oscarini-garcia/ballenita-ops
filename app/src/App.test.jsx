@@ -126,15 +126,28 @@ describe('App — navegación', () => {
     expect(document.querySelector('.appbar .userbadge')).toBeNull()
   })
 
-  it('Ajustes recoge en apartados el aspecto, quién eres, el evento y las estadísticas', async () => {
+  it('Ajustes recoge en apartados el aspecto, quién eres y el evento', async () => {
     await abrirEjemplo()
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
 
-    for (const titulo of ['Sincronización', 'Aspecto', 'Quién eres', 'Evento', 'Estadísticas', 'Actualizar']) {
+    for (const titulo of ['Sincronización', 'Aspecto', 'Quién eres', 'Evento', 'Actualizar']) {
       expect(await screen.findByText(titulo)).toBeInTheDocument()
     }
+    // Las estadísticas ya no son un apartado: se miran, no se ajustan, y viven
+    // en Agenda como tercera área.
+    expect(screen.queryByText('Estadísticas')).toBeNull()
     // Todos plegados: la lista entera se lee de un vistazo y se toca la que toca.
     expect(document.querySelectorAll('.acordeon[open]')).toHaveLength(0)
+  })
+
+  it('las estadísticas son la tercera área de Agenda, con el rótulo «Números»', async () => {
+    await abrirEjemplo()
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[0])
+
+    await userEvent.click(await screen.findByRole('tab', { name: 'Números' }))
+    // El Demo trae gastos, así que hay números que enseñar.
+    expect(await screen.findByText('Gasto total')).toBeInTheDocument()
+    expect(screen.getByText('Quién más adelanta')).toBeInTheDocument()
   })
 
   it('«Quién eres» se ha comido el perfil que estaba en la cabecera', async () => {

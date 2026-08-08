@@ -13,9 +13,9 @@ import { CATEGORIES } from '../lib/categorias.js'
 
 const catLabel = (id) => CATEGORIES.find((c) => c.id === id)?.label ?? id
 
-// `suelto` la pinta sin el `.body` (que es el contenedor que hace scroll): así
-// cabe dentro de un apartado de Ajustes sin arrastrar su relleno ni su scroll.
-export default function StatsScreen({ eventId, event, suelto = false }) {
+// Vivió dentro de un apartado de Ajustes (con un modo `suelto` sin `.body`);
+// desde que es la tercera área de Agenda es una pantalla como las demás.
+export default function StatsScreen({ eventId, event }) {
   const expenses = useLiveQuery(() => expensesOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
@@ -38,7 +38,7 @@ export default function StatsScreen({ eventId, event, suelto = false }) {
   const cur = event.currency
 
   if (expenses.length === 0 && dinners.length === 0 && plans.length === 0) {
-    return <div className={suelto ? 'pila' : 'body'}><div className="empty">
+    return <div className="body"><div className="empty">
       <span className="e">📊</span>Aún no hay nada que contar.<br />
       Añade gastos, cenas o planes.<br />
       Un viaje sin datos es solo un viaje, que tampoco está mal.
@@ -46,7 +46,7 @@ export default function StatsScreen({ eventId, event, suelto = false }) {
   }
 
   return (
-    <div className={suelto ? 'pila' : 'body'}>
+    <div className="body">
       <div className="grid2">
         <Tile v={formatCents(s.totalCents, cur)} l="Gasto total" />
         <Tile v={formatCents(s.perPersonAvgCents, cur)} l="Por persona (media)" />
