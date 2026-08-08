@@ -164,12 +164,44 @@ export function rotuloDelDia({ dia, estado, distancia }, { hayCena = false } = {
  * como un dato, y aquí es una manera de hablar.
  */
 const LETRAS = ['cero', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez']
+export const enLetras = (n) => (n >= 0 && n <= 10 ? LETRAS[n] : String(n))
 export function titularDeCena(cena, platos = []) {
   if (!cena) return 'Sin cena montada'
   const plato = platoQueManda(platos)
   if (!plato) return 'Cena sin platos apuntados'
   const resto = platos.length - 1
   if (resto <= 0) return plato.name
-  const cuantas = resto <= 10 ? LETRAS[resto] : String(resto)
-  return `${plato.name} y ${cuantas} ${resto === 1 ? 'cosa más' : 'cosas más'}`
+  return `${plato.name} y ${enLetras(resto)} ${resto === 1 ? 'cosa más' : 'cosas más'}`
+}
+
+/**
+ * El titular grande de «Hoy» titula **lo que hay**, no siempre la cena
+ * (`docs/diseño/dia-abierto.html` · P2): la cena con platos manda; sin ella,
+ * manda el plan del día; sin nada, «Día libre». Antes el lunes de la playa
+ * confirmada abría la app diciendo «Sin cena montada» —lo que **no** hay— con
+ * el día de verdad 127 pt más abajo, en letra de fila. Es la regla que la fila
+ * de Días ya usaba (`resumenDeDia`): dos pantallas hermanas no contestan
+ * distinto a la misma pregunta. Lo que no manda baja al renglón pequeño.
+ *
+ * Una cena vacía pero montada (con bungas y sin platos) solo manda si tampoco
+ * hay plan: es un hueco reservado, no lo que se hace ese día.
+ */
+export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bungaNinos } = {}) {
+  const conPlatos = (cena?.platoIds?.length ?? 0) > 0
+  if (conPlatos || (cena && planes.length === 0)) {
+    const bungas = [bungaMayores && `Mayores en ${bungaMayores}`, bungaNinos && `niños en ${bungaNinos}`]
+      .filter(Boolean).join(' · ')
+    return {
+      grande: titularDeCena(cena, platos),
+      pequeno: bungas || 'Sin bungas repartidas todavía',
+    }
+  }
+  const deCena = cena ? 'cena sin platos apuntados' : 'sin cena montada todavía'
+  if (planes.length > 0) {
+    const plan = planes[0]
+    const estado = plan.estado === 'confirmado' ? 'Confirmado' : 'A votación'
+    const donde = plan.ubicacion ? `, en ${plan.ubicacion}` : ''
+    return { grande: plan.titulo, pequeno: `${estado}${donde} · ${deCena}` }
+  }
+  return { grande: 'Día libre', pequeno: 'Sin cena montada y sin planes — también hace falta' }
 }

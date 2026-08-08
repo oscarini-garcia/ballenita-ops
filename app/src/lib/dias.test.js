@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
-  diasDe, resumenDeDia, diaQueEnsenaHoy, rotuloDelDia, titularDeCena,
-  numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal,
+  diasDe, resumenDeDia, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, titularDeHoy,
+  numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal, enLetras,
 } from './dias.js'
 import { diaSiguiente, finPara } from './fechas.js'
 
@@ -142,6 +142,61 @@ describe('titularDeCena', () => {
   it('sin cena y con cena vacía dicen cosas distintas', () => {
     expect(titularDeCena(null)).toBe('Sin cena montada')
     expect(titularDeCena({ platoIds: [] }, [])).toBe('Cena sin platos apuntados')
+  })
+})
+
+/**
+ * P2 de `docs/diseño/dia-abierto.html`: el titular de «Hoy» titula lo que hay.
+ * Es la regla que la fila de Días ya usaba (`resumenDeDia`): dos pantallas
+ * hermanas no contestan distinto a la misma pregunta.
+ */
+describe('titularDeHoy', () => {
+  it('la cena con platos manda, y las bungas van al renglón pequeño', () => {
+    const t = titularDeHoy({
+      cena: { platoIds: ['d1', 'd3'] },
+      platos: [PAELLA, SANDIA],
+      planes: [{ titulo: 'Playa de la Cala', estado: 'confirmado' }],
+      bungaMayores: 'El del ruido',
+      bungaNinos: 'El del fondo',
+    })
+    expect(t.grande).toBe('Paella mixta y una cosa más')
+    expect(t.pequeno).toBe('Mayores en El del ruido · niños en El del fondo')
+  })
+
+  it('sin cena, manda el plan del día, y la cena baja al renglón pequeño', () => {
+    const t = titularDeHoy({
+      planes: [{ titulo: 'Playa de la Cala', estado: 'confirmado', ubicacion: 'Cala del sur' }],
+    })
+    expect(t.grande).toBe('Playa de la Cala')
+    expect(t.pequeno).toBe('Confirmado, en Cala del sur · sin cena montada todavía')
+  })
+
+  it('una cena vacía no le quita el titular a un plan de verdad', () => {
+    const t = titularDeHoy({
+      cena: { platoIds: [] },
+      planes: [{ titulo: 'Torneo de petanca' }],
+    })
+    expect(t.grande).toBe('Torneo de petanca')
+    expect(t.pequeno).toBe('A votación · cena sin platos apuntados')
+  })
+
+  it('una cena vacía sin plan sí manda: es un hueco reservado', () => {
+    const t = titularDeHoy({ cena: { platoIds: [] }, bungaMayores: 'El del ruido' })
+    expect(t.grande).toBe('Cena sin platos apuntados')
+    expect(t.pequeno).toBe('Mayores en El del ruido')
+  })
+
+  it('sin nada, el día es libre y lo dice sin quejarse', () => {
+    expect(titularDeHoy({})).toEqual({
+      grande: 'Día libre',
+      pequeno: 'Sin cena montada y sin planes — también hace falta',
+    })
+  })
+
+  it('enLetras cuenta hasta diez y luego cifra', () => {
+    expect(enLetras(2)).toBe('dos')
+    expect(enLetras(10)).toBe('diez')
+    expect(enLetras(11)).toBe('11')
   })
 })
 

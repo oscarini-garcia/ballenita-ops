@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.21.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  679 pruebas en 74 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.22.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  690 pruebas en 74 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   166 pruebas en 18 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -163,7 +163,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `demo.js` — Modo de demostración: la app entera, con datos inventados y sin servidor.
   ↳ enDemo, activarDemo, salirDemo
 - `dias.js` — Los días de un evento, y qué se hace en cada uno.
-  ↳ diasDe, numeroYDia, diasEntre, platoQueManda, resumenDeDia, diaQueEnsenaHoy · +6 más
+  ↳ diasDe, numeroYDia, diasEntre, platoQueManda, resumenDeDia, diaQueEnsenaHoy · +8 más
 - `evento.js` — Qué se cae fuera al cambiar las fechas de un evento.
   ↳ dentroDeFechas, loQueSeCaeFuera, porDia, enPalabras
 - `fechas.js` — Las dos reglas de un par de fechas «desde – hasta».

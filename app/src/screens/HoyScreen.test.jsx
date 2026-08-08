@@ -58,12 +58,28 @@ describe('HoyScreen', () => {
     expect(screen.getByText('un día libre, que también hace falta')).toBeInTheDocument()
   })
 
+  /**
+   * P2 (`docs/diseño/dia-abierto.html`): el titular titula **lo que hay**. El
+   * lunes de la playa confirmada decía «Sin cena montada» en grande — lo que
+   * **no** hay — con el día de verdad 127 pt más abajo, en letra de fila.
+   */
+  it('sin cena, el titular es el plan del día, y la cena baja al renglón pequeño', async () => {
+    const { eventId, event } = await sembrar()
+    hoyEs('2026-08-10')
+    render(<HoyScreen eventId={eventId} event={event} />)
+
+    // Dos veces: el titular y la fila de la lista de planes.
+    expect(await screen.findAllByText('Playa de la Cala')).toHaveLength(2)
+    expect(screen.getByText('Confirmado · sin cena montada todavía')).toBeInTheDocument()
+    expect(screen.queryByText('Sin cena montada')).toBeNull()
+  })
+
   it('enseña los planes del día', async () => {
     const { eventId, event } = await sembrar()
     hoyEs('2026-08-10')
     render(<HoyScreen eventId={eventId} event={event} />)
 
-    expect(await screen.findByText('Playa de la Cala')).toBeInTheDocument()
+    expect(await screen.findAllByText('Playa de la Cala')).toHaveLength(2)
     expect(screen.getByText('Confirmado')).toBeInTheDocument()
   })
 
@@ -84,13 +100,13 @@ describe('HoyScreen', () => {
     expect(await screen.findByText(/el último día, hace 5 días/)).toBeInTheDocument()
   })
 
-  it('sin cena montada lo dice, y no inventa una', async () => {
+  it('un día sin cena y sin plan es un día libre, no una queja', async () => {
     const { eventId, event } = await sembrar()
     hoyEs('2026-08-11')
     render(<HoyScreen eventId={eventId} event={event} />)
 
-    expect(await screen.findByText('Sin cena montada')).toBeInTheDocument()
-    expect(screen.getByText('Nadie ha dicho dónde se cena')).toBeInTheDocument()
+    expect(await screen.findByText('Día libre')).toBeInTheDocument()
+    expect(screen.getByText('Sin cena montada y sin planes — también hace falta')).toBeInTheDocument()
   })
 
   it('sin fechas en el evento manda a ponerlas', async () => {

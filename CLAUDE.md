@@ -88,6 +88,15 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   se eligen en otra —con los votos y quién falta—, «Qué se hace» y «Cantidades» se retiraron
   (las columnas siguen en D1) y «Plato nuevo al vuelo» volvió a Comidas → Platos. **Libre**
   incluye lo que se cayó fuera de las fechas, que antes desaparecía del modal.
+- **El día se abre como un plan, y cada toque escribe** (SPECS §14.30,
+  `docs/diseño/dia-abierto.html` · M2·H1·R2·P2): el día era el único formulario pegado abajo
+  —seis controles de cuatro figuras— que guardaba la mitad con un botón que decía «Guardar la
+  cena» y perdía la otra mitad al cerrar. Ahora es la **capa centrada de un plan** con tres
+  renglones gemelos —platos, bungas, plan— que abren hojas (`HojaDeMarcar`, `HojaDeBungas`);
+  **no hay botón de guardar**: la cena nace sola con el primer toque, quitarla pide segunda
+  pulsación dentro de su hoja, y en la hoja de planes marcar pone y desmarcar quita. En «Hoy»
+  el titular **titula lo que hay** (`titularDeHoy`): sin cena manda el plan del día, no un
+  «Sin cena montada» encima de la playa confirmada.
 - **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,

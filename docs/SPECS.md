@@ -2943,6 +2943,75 @@ tres tallas de letra y en las dos caras**, el peor contraste de las tres es
 de Apple mide 1.106 pt en «Enorme» y **se desplaza**: 262 px de scroll, con el
 principio y el final alcanzables.
 
+### 14.30 El día abierto: el mueble de un plan, y cada toque escribe
+
+Decidido en `docs/diseño/dia-abierto.html` · **M2 · H1 · R2 · P2**, más los tres
+arreglos que no se eligen. Supera a §14.21 en lo que toca al modal del día; la
+lista de Días (filas de 70,7, la fila entera abre) no se toca.
+
+**Lo que estaba mal, medido.** Un plan y un día son las dos únicas cosas de la app
+que se abren **para leerse y tocarse**, y no compartían ni la posición, ni las
+figuras, ni la memoria. El plan es una capa centrada desde `plan-voto.html` · P1;
+el día era un formulario pegado abajo con **seis controles de cuatro figuras
+distintas** —dos selectores nativos, dos pastillas, un botón lleno y uno
+fantasma—. La mitad de la ventana escribía al toque —poner y quitar planes— y la
+otra mitad vivía en un borrador que **moría al cerrar sin pulsar el botón**
+—bungas y platos—, sin decirlo. El verbo decía «Guardar la cena» justo debajo del
+bloque de planes: guardaba también las bungas y no tocaba los planes, que ya se
+habían guardado solos. Y en «Hoy» el titular era siempre la cena: el lunes de la
+playa confirmada abría con «Sin cena montada» —lo que **no** hay— con el día de
+verdad 127 pt más abajo en letra de fila, mientras la lista de Días titulaba ese
+mismo día «Playa de la Cala» (`resumenDeDia` ya titulaba lo que hay).
+
+**M2 · el mueble.** El día se abre en el mismo mueble que un plan: `modal center
+formulario` (la variante ancha del editor de receta, 362 pt de los 390), papel,
+canto y velo de §14.26-bis. Las hojas de elegir siguen subiendo desde abajo,
+ahora **sobre** la capa —la combinación de toda la app—, en vez de hoja sobre
+hoja del mismo borde. Cuesta lo ya pagado en `plan-voto.html` (renglones a 200,3
+pt del pulgar) y una estrechez medida: al titular de una fila le quedan **257 pt
+frente a 313**, «Paella mixta y cinco cosas más» dobla a dos líneas y la fila de
+la cena pasa de 70,7 a 96,7 (`.fila-capa` deja doblar; recortar perdía justo lo
+que se viene a leer). La capa del día 9 del Demo mide **532,9 pt**: cabe entera
+sin scroll (el tope de una capa es 658,3 en una ventana de 844).
+
+**H1 · la memoria.** Todo escribe al toque, como votar: la bunga al elegirla, el
+plato al marcarlo, el plan al ponerlo. **No hay botón de guardar** y cerrar nunca
+pierde nada. La cena **nace sola** con el primer plato o la primera bunga —con
+guarda para que dos toques más rápidos que la consulta viva no críen dos cenas
+(`cenaRef` en `CapaDeDia`)— y quitarla es un verbo dentro de su hoja con segunda
+pulsación, como «Devolver a ideas»: dice que se lleva platos y bungas y que los
+planes se quedan. Marcar seis platos son seis entradas en la cola de cambios, que
+suben en un solo `POST /api/cambios` como siempre. La nota del pie dice la regla
+—«Cada toque queda guardado. Los planes se **votan** en Planes; aquí se
+colocan»—, como la nota del plan abierto dice la suya.
+
+**R2 · los renglones.** Dos grupos como los de Planes. **«La cena»**: una fila
+con los platos (titular `titularDeCena`, debajo «dos platos») que abre la hoja de
+marcar de siempre, y una fila con las bungas («Mayores en El del ruido» · «niños
+en El del fondo») que abre una hoja con las dos listas (`HojaDeBungas`): los dos
+selectores nativos se van —la rueda de iOS que tapa media pantalla, el motivo por
+el que `agenda-dia.html` · C1 los descartó para los planes, valía igual para las
+bungas—. **«El plan»**: una fila con lo puesto que abre una **hoja de marcar
+planes** (`HojaDeMarcar` con `notaDebajo`): los del día marcados, los libres
+debajo con sus votos y quién falta (`lib/planes.js`), los caídos fuera de fechas
+con su «era el mié, 12 ago» (§14.10-quater). Marcar pone, desmarcar quita, así
+que el «quitar» que vivía dentro de la fila —la figura que Planes acababa de
+retirar— sobra. La misma figura tres veces, cero controles nuevos.
+
+**P2 · las palabras.** El titular de «Hoy» titula **lo que hay**
+(`titularDeHoy`, `lib/dias.js`): la cena con platos manda; sin ella, manda el
+plan del día y la cena baja al renglón pequeño («Confirmado, en Cala del sur ·
+sin cena montada todavía»); sin nada, «Día libre». Una cena vacía pero montada
+solo manda si tampoco hay plan: es un hueco reservado, no lo que se hace ese
+día. Es la regla que `resumenDeDia` ya usaba en Días: dos pantallas hermanas
+contestan igual a la misma pregunta.
+
+Las opciones descartadas —el día como pantalla con «volver» (M3), el acordeón en
+la lista (M4), el borrador con «Cancelar · Listo» (H2), los planes puestos como
+filas que abren la capa de votar (R3, que queda como añadido posible sobre R2)—
+están argumentadas en la hoja. Nada de esto toca la base ni la API: todo es
+`app/` y cero migraciones.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   dinnersOf, addDinner, updateDinner, removeDinner,
@@ -7,11 +7,11 @@ import {
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
-import { HojaDeEleccion, HojaDeMarcar } from '../components/Hoja.jsx'
+import Hoja, { HojaDeMarcar } from '../components/Hoja.jsx'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
 import {
-  diasDe, resumenDeDia, numeroYDia, fmtDiaLargo, fmtDiaCorto, hoyISO, titularDeCena,
+  diasDe, resumenDeDia, numeroYDia, fmtDiaLargo, fmtDiaCorto, hoyISO, titularDeCena, enLetras,
 } from '../lib/dias.js'
 
 /**
@@ -96,7 +96,7 @@ export default function DiasScreen({ eventId, event }) {
       </div>
 
       {abierto && (
-        <ModalDia
+        <CapaDeDia
           eventId={eventId}
           event={event}
           dia={abierto}
@@ -115,126 +115,156 @@ export default function DiasScreen({ eventId, event }) {
 const etiquetaCategoria = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 
 /**
- * El día, en su modal: **qué bungas, qué se cena y qué plan**.
+ * El día, abierto **en el mismo mueble que un plan**: la capa centrada de
+ * `plan-voto.html` · P1, con tres renglones gemelos que abren hojas
+ * (`docs/diseño/dia-abierto.html` · M2 · R2). Antes era un formulario pegado
+ * abajo con seis controles de cuatro figuras distintas —dos selectores nativos,
+ * dos pastillas y dos botones— y las dos únicas cosas de la app que se abren
+ * para leerse y tocarse no compartían ni la posición ni las figuras.
  *
- * Un día no es una fila de la base —existe porque el evento tiene esas fechas—,
- * así que aquí no se crea ni se borra un día: se dice quién hace de anfitrión,
- * qué se cena y qué planes caen en él. Decidido en `docs/diseño/agenda-dia.html`
- * (B4 · F1 · G1 · C2 · D2 · E1); antes esto eran seis chips de platos, una
- * tarjeta para inventarse un plato al vuelo, dos textos largos y una alfombra de
- * nueve chips de planes: **1.773,8 pt** de modal, con el rótulo de los planes a
- * 994,8 del principio, o sea 218,8 por debajo de lo que se ve al abrir. Ahora son
- * cuatro renglones y **679,8 pt**: se abre y está todo.
+ * **Todo escribe al toque, como votar** (H1): la bunga al elegirla, el plato al
+ * marcarlo, el plan al ponerlo. No hay botón de guardar —«Guardar la cena»
+ * guardaba también las bungas y no tocaba los planes, que ya se guardaban
+ * solos— y cerrar nunca pierde nada: antes los platos y las bungas vivían en un
+ * borrador que moría con la X mientras los planes ya estaban escritos, dos
+ * memorias detrás de una ventana. La cena **nace sola** con el primer plato o
+ * la primera bunga, y quitarla es un verbo dentro de su hoja, con segunda
+ * pulsación, como «Devolver a ideas».
  *
- * Las dos hojas no se comportan igual, y no es un descuido: los platos se
- * **marcan** —varios— y se guardan con el botón, como hasta ahora; un plan se
- * **elige** —uno— y se coloca en el acto, porque un plan no es de la cena y ya
- * se quitaba así.
+ * Los tres renglones abren la misma figura: los platos y los planes se
+ * **marcan** (`HojaDeMarcar` — en la de planes, marcar pone el plan en el día y
+ * desmarcar lo devuelve a libres, así que el «quitar» que vivía dentro de la
+ * fila sobra), y las bungas se **eligen** en una hoja con las dos listas.
  */
-function ModalDia({ eventId, event, dia, cena, planes, bungas, personas, platos, onClose }) {
+function CapaDeDia({ eventId, event, dia, cena, planes, bungas, personas, platos, onClose }) {
   useBloqueoDeScroll()
-  const [mayores, setMayores] = useState(cena?.bungaMayoresId ?? bungas[0]?.id ?? '')
-  const [ninos, setNinos] = useState(cena?.bungaNinosId ?? bungas[1]?.id ?? bungas[0]?.id ?? '')
-  const [platoIds, setPlatoIds] = useState(() => new Set(cena?.platoIds ?? []))
   const [eligiendo, setEligiendo] = useState(null)
+  const [quitando, setQuitando] = useState(false)
+  // La cena recién nacida, antes de que la consulta viva la traiga: sin esto,
+  // dos toques rápidos crearían dos cenas el mismo día.
+  const cenaRef = useRef(null)
+  // El espejo local de lo marcado y lo elegido: la interfaz responde al dedo,
+  // no a la vuelta de la consulta, y cada toque escribe además en la base.
+  const [platoIds, setPlatoIds] = useState(() => new Set(cena?.platoIds ?? []))
+  const [mayores, setMayores] = useState(cena?.bungaMayoresId ?? null)
+  const [ninos, setNinos] = useState(cena?.bungaNinosId ?? null)
 
   const porId = Object.fromEntries(platos.map((p) => [p.id, p]))
   const elegidos = [...platoIds].map((id) => porId[id]).filter(Boolean)
   const delDia = planes.filter((p) => p.dia === dia)
   /**
    * Libres son los que no tienen día **y los que se quedaron fuera de las
-   * fechas** (§14.10-quater · opción D2). Un plan cuyo día se cayó al acortar el
-   * viaje no estaba ni en una lista ni en la otra: desaparecía del modal
-   * mientras en Planes seguía apartado y marcado. Lo que cae fuera se aparta, no
-   * se esconde.
+   * fechas** (§14.10-quater · opción D2): lo que cae fuera se aparta, no se
+   * esconde.
    */
   const libres = planes.filter((p) => !p.dia || !dentroDeFechas(p.dia, event))
+  const nombreBunga = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : null }
 
-  function alternarPlato(id) {
-    const s = new Set(platoIds); s.has(id) ? s.delete(id) : s.add(id); setPlatoIds(s)
+  const hayCena = Boolean(cena || cenaRef.current)
+
+  async function escribeCena(campos) {
+    const id = cena?.id ?? cenaRef.current
+    if (id) await updateDinner(id, campos)
+    else cenaRef.current = await addDinner(eventId, { dia, ...campos })
   }
 
-  async function guardar() {
-    const campos = {
-      bungaMayoresId: mayores || null,
-      bungaNinosId: ninos || null,
-      platoIds: [...platoIds],
-    }
-    if (cena) await updateDinner(cena.id, campos)
-    else await addDinner(eventId, { dia, ...campos })
-    onClose()
+  function alternarPlato(id) {
+    const s = new Set(platoIds)
+    s.has(id) ? s.delete(id) : s.add(id)
+    setPlatoIds(s)
+    escribeCena({ platoIds: [...s] })
+  }
+
+  function ponBunga(campo, id) {
+    if (campo === 'bungaMayoresId') setMayores(id)
+    else setNinos(id)
+    escribeCena({ [campo]: id })
+  }
+
+  function alternarPlan(id) {
+    const p = planes.find((x) => x.id === id)
+    updatePlan(id, { dia: p?.dia === dia ? null : dia })
   }
 
   async function quitarCena() {
-    if (cena) await removeDinner(cena.id)
-    onClose()
+    const id = cena?.id ?? cenaRef.current
+    if (id) await removeDinner(id)
+    cenaRef.current = null
+    setPlatoIds(new Set())
+    setMayores(null)
+    setNinos(null)
+    setQuitando(false)
+    setEligiendo(null)
   }
 
-  const notaDePlan = (p) => (p.dia
-    ? `era el ${fmtDiaCorto(p.dia)}, fuera del viaje`
-    : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`)
+  const notaDePlan = (p) => {
+    if (p.dia === dia) {
+      return p.estado === 'confirmado' ? 'Confirmado'
+        : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
+    }
+    if (p.dia) return `era el ${fmtDiaCorto(p.dia)}, fuera del viaje`
+    return `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
+  }
+
+  const nMay = nombreBunga(mayores)
+  const nNin = nombreBunga(ninos)
+  // «un plato», no «una plato»: la letra de LETRAS es femenina («una cosa más»).
+  const subCena = platoIds.size
+    ? (platoIds.size === 1 ? 'un plato' : `${enLetras(platoIds.size)} platos`)
+    : 'toca para elegir los platos'
+  const subPlanes = libres.length
+    ? `${libres.length} ${libres.length === 1 ? 'plan libre' : 'planes libres'} por traer`
+    : 'ningún plan libre — nacen en Planes'
+  const sinNadaQueTraer = delDia.length === 0 && libres.length === 0
 
   return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-bg center" onClick={onClose}>
+      <div className="modal center formulario" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
         <h2 className="modal-dia-t">{fmtDiaLargo(dia)}</h2>
 
-        <div className="sec-h">La cena</div>
-        <div className="grid2">
-          <div>
-            <label htmlFor="bunga-mayores">Bunga mayores</label>
-            <select id="bunga-mayores" value={mayores} onChange={(e) => setMayores(e.target.value)}>
-              <option value="">—</option>
-              {bungas.map((b) => <option key={b.id} value={b.id}>{b.alias || b.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="bunga-ninos">Bunga niños</label>
-            <select id="bunga-ninos" value={ninos} onChange={(e) => setNinos(e.target.value)}>
-              <option value="">—</option>
-              {bungas.map((b) => <option key={b.id} value={b.id}>{b.alias || b.name}</option>)}
-            </select>
-          </div>
+        <div className="sec-h" style={{ marginTop: 10 }}>La cena</div>
+        <div className="card tight" style={{ marginTop: 6 }}>
+          <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('platos') }}>
+            <div className="ico"><Icono nombre="restaurante" /></div>
+            <div className="main">
+              <div className="n">{titularDeCena(hayCena ? { platoIds: [...platoIds] } : null, elegidos)}</div>
+              <div className="sub">{subCena}</div>
+            </div>
+          </button>
+          <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('bungas') }}>
+            <div className="ico"><Icono nombre="casa" /></div>
+            <div className="main">
+              <div className="n">{nMay ? `Mayores en ${nMay}` : 'Sin bungas repartidas'}</div>
+              <div className="sub">
+                {nNin ? `niños en ${nNin}` : (nMay ? 'niños sin bunga' : '¿dónde cenan mayores y niños?')}
+              </div>
+            </div>
+          </button>
         </div>
 
-        <label>Qué se cena</label>
-        <button
-          type="button"
-          className={`pastilla grande${elegidos.length ? '' : ' vacia'}`}
-          onClick={() => { tap(); setEligiendo('platos') }}
-        >
-          {elegidos.length ? titularDeCena(cena ?? {}, elegidos) : '— elige los platos —'}
-        </button>
-
-        <div className="sec-h" style={{ marginTop: 18 }}>Los planes de este día</div>
-        {delDia.length === 0 && <div className="apunte">Ninguno todavía.</div>}
-        {delDia.map((p) => (
-          <div className="row" key={p.id}>
+        <div className="sec-h" style={{ marginTop: 6 }}>El plan</div>
+        <div className="card tight" style={{ marginTop: 6 }}>
+          <button
+            className="row fila-boton fila-capa"
+            disabled={sinNadaQueTraer}
+            onClick={() => { tap(); setEligiendo('planes') }}
+          >
             <div className="ico"><Icono nombre="plan" /></div>
-            <div className="main"><div className="n">{p.titulo}</div></div>
-            <button className="btn sm ghost" onClick={() => updatePlan(p.id, { dia: null })}>quitar</button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="pastilla grande vacia"
-          disabled={libres.length === 0}
-          onClick={() => { tap(); setEligiendo('planes') }}
-        >
-          {libres.length === 0
-            ? 'No queda ningún plan libre'
-            : `+ Añadir un plan (${libres.length} ${libres.length === 1 ? 'libre' : 'libres'})`}
-        </button>
-
-        <div style={{ marginTop: 16 }}>
-          <button className="btn block" onClick={guardar}>{cena ? 'Guardar la cena' : 'Montar la cena'}</button>
+            <div className="main">
+              <div className="n">
+                {delDia.length === 0 ? 'Nada apuntado'
+                  : delDia.length === 1 ? delDia[0].titulo
+                    : `${delDia[0].titulo} y ${delDia.length === 2 ? 'otro más' : `${enLetras(delDia.length - 1)} más`}`}
+              </div>
+              <div className="sub">{delDia.length === 1 ? notaDePlan(delDia[0]) : subPlanes}</div>
+            </div>
+          </button>
         </div>
-        {cena && (
-          <div style={{ marginTop: 10 }}>
-            <button className="btn sm ghost danger-texto block" onClick={quitarCena}>Quitar la cena de este día</button>
-          </div>
-        )}
+
+        <div className="note" style={{ marginTop: 12 }}>
+          Cada toque queda guardado. Los planes se <b>votan</b> en Planes; aquí se colocan.
+        </div>
 
         {eligiendo === 'platos' && (
           <HojaDeMarcar
@@ -246,23 +276,95 @@ function ModalDia({ eventId, event, dia, cena, planes, bungas, personas, platos,
             }))}
             marcados={platoIds}
             onAlternar={alternarPlato}
-            onCerrar={() => setEligiendo(null)}
+            onCerrar={() => { setQuitando(false); setEligiendo(null) }}
             vacio="El catálogo está vacío. Los platos se crean en Comidas → Platos."
-            pie="Los platos se crean y se corrigen en Comidas → Platos."
+            pie="Cada plato se guarda al marcarlo. Se crean y se corrigen en Comidas → Platos."
+          >
+            {hayCena && (quitando ? (
+              <div style={{ marginTop: 10 }}>
+                <div className="note">
+                  Se lleva los platos y las bungas de este día. Los planes se quedan.
+                </div>
+                <div className="chips" style={{ marginTop: 8 }}>
+                  <button type="button" className="btn sm danger" onClick={() => { tap(); quitarCena() }}>Sí, quitarla</button>
+                  <button type="button" className="btn sm ghost" onClick={() => setQuitando(false)}>Dejarla</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginTop: 10 }}>
+                <button
+                  type="button"
+                  className="btn sm ghost danger-texto block"
+                  onClick={() => { tap(); setQuitando(true) }}
+                >
+                  Quitar la cena de este día
+                </button>
+              </div>
+            ))}
+          </HojaDeMarcar>
+        )}
+
+        {eligiendo === 'bungas' && (
+          <HojaDeBungas
+            bungas={bungas}
+            mayores={mayores}
+            ninos={ninos}
+            onElegir={ponBunga}
+            onCerrar={() => setEligiendo(null)}
           />
         )}
 
         {eligiendo === 'planes' && (
-          <HojaDeEleccion
-            titulo="Planes libres"
-            opciones={libres.map((p) => ({ id: p.id, etiqueta: p.titulo, nota: notaDePlan(p) }))}
-            valor={null}
+          <HojaDeMarcar
+            titulo="Los planes de este día"
             notaDebajo
-            onElegir={async (id) => { await updatePlan(id, { dia }); setEligiendo(null) }}
+            opciones={[...delDia, ...libres].map((p) => ({ id: p.id, etiqueta: p.titulo, nota: notaDePlan(p) }))}
+            marcados={new Set(delDia.map((p) => p.id))}
+            onAlternar={alternarPlan}
             onCerrar={() => setEligiendo(null)}
+            pie="Marcar pone el plan en este día; desmarcar lo devuelve a libres."
           />
         )}
       </div>
     </div>
+  )
+}
+
+/**
+ * Las dos bungas de la cena, en una hoja con las dos listas (R2). Sustituye a
+ * los dos selectores nativos: la rueda de iOS tapa media pantalla —el motivo
+ * por el que `agenda-dia.html` · C1 la descartó para los planes valía igual
+ * aquí— y la hoja es la figura de elegir de toda la app. Cada elección escribe
+ * al soltarla (H1) y la hoja no se cierra: son dos preguntas y se contestan
+ * seguidas; «Listo» es la salida escrita, como en la de marcar.
+ */
+function HojaDeBungas({ bungas, mayores, ninos, onElegir, onCerrar }) {
+  const lista = (valor, campo) => (
+    <div className="eleccion">
+      {[{ id: null, etiqueta: 'Ninguna' }, ...bungas.map((b) => ({ id: b.id, etiqueta: b.alias || b.name }))]
+        .map((o) => (
+          <button
+            key={o.id ?? 'ninguna'}
+            type="button"
+            className="eleccion-op"
+            onClick={() => { tap(); onElegir(campo, o.id) }}
+          >
+            <span className="et">{o.etiqueta}</span>
+            {(o.id ?? null) === (valor ?? null) && <span className="tic"><Icono nombre="visto" /></span>}
+          </button>
+        ))}
+    </div>
+  )
+  return (
+    <Hoja titulo="Dónde se cena" onCerrar={onCerrar}>
+      <label>Bunga mayores</label>
+      {lista(mayores, 'bungaMayoresId')}
+      <label>Bunga niños</label>
+      {lista(ninos, 'bungaNinosId')}
+      <div className="apunte" style={{ marginTop: 10 }}>Cada elección se guarda al tocarla.</div>
+      <div style={{ marginTop: 14 }}>
+        <button type="button" className="btn block" onClick={() => { tap(); onCerrar() }}>Listo</button>
+      </div>
+    </Hoja>
   )
 }
