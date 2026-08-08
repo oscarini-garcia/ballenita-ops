@@ -37,6 +37,8 @@
  *   POST /api/plato/arreglar   · ordena a saco una lista de ingredientes escrita a mano (IA)
  *   POST /api/plato/parecidos  · cinco platos enteros que se le parecen (IA)
  *   POST /api/recados      · una tanda de frases para el final de la lista (IA)
+ *   POST /api/estados/sugerir · cinco estados para ponerse, del día que va el viaje (IA)
+ *   POST /api/estados/gracia  · el estado que has escrito, con más gracia (IA)
  */
 
 import { verificarTokenDeApple } from './apple.js';
@@ -64,6 +66,7 @@ import { claveDeEncargo, claveDeModelo, esEncargoConocido } from './encargos.js'
 import { materialDelPlato, pedirCantidades } from './cantidades.js';
 import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
 import { materialDeLaIdea, pedirMejora } from './idea.js';
+import { materialDeEstados, materialDeUnEstado, pedirEstados, pedirGracia } from './estados.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 import { aplicarMigracion, estadoDeMigraciones } from './migrador.js';
 
@@ -730,6 +733,85 @@ async function mejorarLaIdea(peticion, env) {
 }
 
 /**
+ * La tanda de estados para ponerse (SPECS §14.36, `docs/diseño/estado.html` · I1).
+ *
+ * Se pide **solo cuando alguien pulsa** «Otras cinco»: llamar al abrir el modal
+ * sería gastar una credencial de pago sin que nadie lo haya pedido, que es lo
+ * que se descartó en su día para las ideas de plan. Y **no se guarda**: al revés
+ * que los recadillos, un estado es tuyo y compartir la tanda haría que nueve
+ * personas se pusieran el mismo.
+ */
+async function estadosSugeridos(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { eventId, hoy = new Date().toISOString().slice(0, 10) } = await peticion.json();
+  if (!eventId) return json({ error: 'falta el evento' }, 400);
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ estados: [], sinClave: true });
+
+  const evento = await env.DB.prepare('SELECT * FROM events WHERE id = ? AND borrado = 0').bind(eventId).first();
+  if (!evento) return json({ error: 'ese evento no existe' }, 404);
+
+  const cuantos = async (tabla, mas = '') => {
+    const fila = await env.DB
+      .prepare(`SELECT COUNT(*) AS n FROM ${tabla} WHERE eventId = ? AND borrado = 0${mas}`)
+      .bind(eventId).first();
+    return fila?.n ?? 0;
+  };
+  const material = materialDeEstados({
+    evento,
+    hoy,
+    cuentas: {
+      gastos: await cuantos('expenses'),
+      cenas: await cuantos('dinners'),
+      planes: await cuantos('plans'),
+    },
+  });
+
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.estados,
+      hacer: (m) => pedirEstados({ clave, modelo: m, material, instruccion: encargos.estados }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('estados')]: m }),
+    });
+    return json({ estados: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
+/**
+ * «Más gracioso»: el estado que has escrito, mejor contado (§14.36 · I3).
+ *
+ * La figura de «Mejorarla» de una idea: lo que vuelve **no se guarda**, rellena
+ * el campo y Guardar sigue siendo el botón de siempre.
+ */
+async function estadoConGracia(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { emoji = '', texto = '' } = await peticion.json();
+  if (!String(texto).trim()) return json({ error: 'no hay estado al que dar gracia' }, 400);
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDeUnEstado({ emoji, texto });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.estadoGracia,
+      hacer: (m) => pedirGracia({ clave, modelo: m, material, instruccion: encargos.estadoGracia }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('estadoGracia')]: m }),
+    });
+    return json({ estado: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
+/**
  * La tanda de recadillos del viaje (SPECS §14.25).
  *
  * Tiene una diferencia con los otros servicios de IA y es la que decide lo que
@@ -952,6 +1034,8 @@ const RUTAS = [
   ['POST', '/api/plato/arreglar', arreglarLaLista],
   ['POST', '/api/plato/parecidos', platosParecidos],
   ['POST', '/api/idea/mejorar', mejorarLaIdea],
+  ['POST', '/api/estados/sugerir', estadosSugeridos],
+  ['POST', '/api/estados/gracia', estadoConGracia],
   ['POST', '/api/recados', recadosDelViaje],
   ['POST', '/api/importar', importar],
   ['GET', '/api/mejoras', mejorasPendientes],

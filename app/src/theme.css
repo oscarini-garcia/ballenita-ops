@@ -221,6 +221,52 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .appbar .su { font-size: var(--t-micro); color: var(--appbar-ink); opacity: .78;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ── Tu estado en la cabecera (docs/diseño/estado.html · A3 · V1) ───────────
+   Sustituye a `.su` cuando este móvil sabe quién eres. Es la única de las tres
+   colocaciones dibujadas que no le quita ancho al nombre del evento —la
+   pastilla al lado del título lo dejaba en 146 pt y recortaba «Ballenita
+   2026», que pide 188,1—; se paga en alto, de 78,8 a 94,1.
+
+   `max-width: 100%` con recorte es lo que hace que **los estados largos
+   quepan**: «desaparecido en combate» son 187,4 pt de los 262 de la línea, y
+   uno más largo se corta con puntos suspensivos sin descolocar la barra. */
+.su-estado { display: inline-flex; align-items: center; gap: 5px; margin-top: 2px;
+  max-width: 100%; min-height: 32px; padding: 4px 9px; border: none; border-radius: 999px;
+  background: rgba(255, 255, 255, .12); color: var(--appbar-ink); font: inherit;
+  font-size: var(--t-micro); cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.su-estado:active { transform: translateY(1px); }
+/* Sin estado invita en voz baja: un botón que no se ve no se estrena nunca. */
+.su-estado.vacia { background: none; border: 1px dashed rgba(255, 255, 255, .28);
+  opacity: .82; }
+
+/* El emoji dentro de una fila de elección: el estado se lee de una pieza. */
+.est-emoji { font-size: var(--t-body); }
+
+/* El botón de la IA, con aire por delante: pegado a la lista se toca sin
+   querer al elegir el último de los cinco. */
+.tras-lista { margin-top: 14px; }
+
+/* Los dos campos del estado: el emoji es una casilla y la frase se lleva el
+   resto. Un `grid` y no dos anchos a ojo, que con la escala en Enorme bailan. */
+.estado-campos { display: grid; grid-template-columns: 68px 1fr; gap: 8px; }
+.estado-campos .estado-emoji { text-align: center; }
+
+/* ── Quién anda en qué (§14.36 · G3) ───────────────────────────────────────
+   La tira de caras con su estado, en «Hoy». Se desplaza de lado porque el
+   grupo son nueve y la pantalla 390: en pila costaría 9 × 44 pt de la única
+   pantalla que tiene un titular y nada más. */
+.tira-estados { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch; }
+.tira-estados .est { flex: none; display: flex; align-items: center; gap: 8px;
+  background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: 999px;
+  padding: 6px 12px 6px 8px; max-width: 240px; }
+.tira-estados .cara { font-size: var(--t-body); line-height: 1; flex: none; }
+.tira-estados .quien { min-width: 0; display: flex; flex-direction: column; }
+.tira-estados .quien .n { font-size: var(--t-label); font-weight: 650; line-height: 1.2; }
+.tira-estados .quien .q { font-size: var(--t-label); color: var(--ink-soft); line-height: 1.25;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* Botón redondeado genérico de la cabecera. */
 .appbar .iconbtn { flex: none; background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink);
   border-radius: 8px; padding: 7px 9px; font-size: var(--t-body); line-height: 1; cursor: pointer; }

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import HoyScreen from './HoyScreen.jsx'
-import { db, createEvent, getEvent, addBunga, addDish, addDinner, addPlan } from '../db.js'
+import { db, createEvent, getEvent, addBunga, addPerson, addDish, addDinner, addPlan } from '../db.js'
 
 async function sembrar() {
   const eventId = await createEvent({
@@ -36,7 +36,7 @@ function hoyEs(iso) {
 
 describe('HoyScreen', () => {
   beforeEach(async () => {
-    for (const t of ['events', 'bungas', 'dishes', 'dinners', 'plans', 'outbox']) await db[t].clear()
+    for (const t of ['events', 'bungas', 'persons', 'dishes', 'dinners', 'plans', 'outbox']) await db[t].clear()
   })
   afterEach(() => { vi.useRealTimers() })
 
@@ -107,6 +107,35 @@ describe('HoyScreen', () => {
 
     expect(await screen.findByText('Día libre')).toBeInTheDocument()
     expect(screen.getByText('Sin cena montada y sin planes — también hace falta')).toBeInTheDocument()
+  })
+
+  /**
+   * G3 de `docs/diseño/estado.html`: la tira de caras con su estado. Hasta
+   * ahora el estado de una persona sincronizaba a los nueve móviles y no se
+   * pintaba en ninguna pantalla.
+   */
+  it('enseña quién anda en qué, y solo a los que han dicho algo', async () => {
+    const { eventId, event } = await sembrar()
+    await addPerson(eventId, { name: 'Curro', edad: 'adulto', estado: '🍺 de resaca' })
+    await addPerson(eventId, { name: 'Ana', edad: 'adulto', estado: '' })
+    hoyEs('2026-08-09')
+    render(<HoyScreen eventId={eventId} event={event} />)
+
+    expect(await screen.findByText('Quién anda en qué')).toBeInTheDocument()
+    expect(screen.getByText('Curro')).toBeInTheDocument()
+    expect(screen.getByText('de resaca')).toBeInTheDocument()
+    // Quien no ha puesto estado no sale: una tira de caras mudas no cuenta nada.
+    expect(screen.queryByText('Ana')).toBeNull()
+  })
+
+  it('sin nadie con estado, la tira no aparece', async () => {
+    const { eventId, event } = await sembrar()
+    await addPerson(eventId, { name: 'Curro', edad: 'adulto' })
+    hoyEs('2026-08-09')
+    render(<HoyScreen eventId={eventId} event={event} />)
+
+    await screen.findByText('Paella mixta y cinco cosas más')
+    expect(screen.queryByText('Quién anda en qué')).toBeNull()
   })
 
   it('sin fechas en el evento manda a ponerlas', async () => {
