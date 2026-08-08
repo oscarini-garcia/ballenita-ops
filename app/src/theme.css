@@ -230,11 +230,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
    `max-width: 100%` con recorte es lo que hace que **los estados largos
    quepan**: «desaparecido en combate» son 187,4 pt de los 262 de la línea, y
    uno más largo se corta con puntos suspensivos sin descolocar la barra. */
-.su-estado { display: inline-flex; align-items: center; gap: 5px; margin-top: 2px;
-  max-width: 100%; min-height: 32px; padding: 4px 9px; border: none; border-radius: 999px;
+/* Cabe **más estado** (§14.36-bis): la pastilla dejó de recortar en una línea y
+   admite dos — de **37 letras a 65**, 1,76 veces lo que entraba—. Crece solo
+   cuando hace falta: con un estado de una línea mide los 42 pt de siempre y la
+   cabecera no se mueve; con dos pasa a 44,9, así que el coste real de esto son
+   **2,9 pt** y solo los días que alguien se enrolla. Píldora y no rectángulo
+   aunque doble, con `border-radius` grande: sigue leyéndose como una pastilla.
+   Lo que pase de dos líneas sí se recorta, que es el único tope que queda. */
+.su-estado { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  max-width: 100%; min-height: 32px; padding: 5px 11px; border: none; border-radius: 16px;
   background: rgba(255, 255, 255, .12); color: var(--appbar-ink); font: inherit;
-  font-size: var(--t-micro); cursor: pointer;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  font-size: var(--t-micro); line-height: 1.3; text-align: left; cursor: pointer;
+  overflow: hidden; }
 .su-estado:active { transform: translateY(1px); }
 /* Sin estado invita en voz baja: un botón que no se ve no se estrena nunca. */
 .su-estado.vacia { background: none; border: 1px dashed rgba(255, 255, 255, .28);
@@ -263,7 +270,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 6px 12px 6px 8px; max-width: 240px; }
 .tira-estados .cara { font-size: var(--t-body); line-height: 1; flex: none; }
 .tira-estados .quien { min-width: 0; display: flex; flex-direction: column; }
-.tira-estados .quien .n { font-size: var(--t-label); font-weight: 650; line-height: 1.2; }
+.tira-estados .quien .n { font-size: var(--t-label); font-weight: 650; line-height: 1.2;
+  display: flex; align-items: center; }
+/* La pastilla de la familia, aquí más pegada: en una fila de idea va suelta,
+   pero dentro de una pastilla ya estrecha, 5 pt de margen se notan. */
+.tira-estados .quien .n .alias { margin: 0 0 0 4px; }
 .tira-estados .quien .q { font-size: var(--t-label); color: var(--ink-soft); line-height: 1.25;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

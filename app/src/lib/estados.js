@@ -65,11 +65,26 @@ export function cincoAlAzar(lista = ESTADOS_DE_SIEMPRE, cuantos = 5) {
  * Quién tiene estado puesto, para la tira de «Hoy» (§14.36 · G3).
  *
  * Solo los que han dicho algo: una tira con nueve caras mudas no cuenta nada, y
- * la de «Hoy» está para lo que **hay**, no para lo que falta. Se ordenan por
- * nombre para que no bailen entre recargas.
+ * la de «Hoy» está para lo que **hay**, no para lo que falta.
+ *
+ * **Por novedad**, el más reciente primero: la tira se mira dos veces al día y
+ * ordenada por nombre lo nuevo no se distinguía de lo de anteayer. El «cuándo»
+ * es `estadoEl`, que escribe el cliente al guardar (migración 0013) — y no
+ * `updatedAt`, que se mueve con cualquier cambio de la persona y subiría al
+ * principio a quien solo se ha corregido el apodo. Quien todavía no tenga
+ * `estadoEl` —los estados escritos antes de esto— va detrás de los fechados, y
+ * entre ellos por nombre, que es lo que había.
  */
 export function quienTieneEstado(personas = []) {
+  const porNombre = (a, b) => (a.apodo || a.name || '').localeCompare(b.apodo || b.name || '', 'es')
   return personas
     .filter((p) => String(p.estado ?? '').trim())
-    .sort((a, b) => (a.apodo || a.name || '').localeCompare(b.apodo || b.name || '', 'es'))
+    .sort((a, b) => {
+      const ea = a.estadoEl ?? ''
+      const eb = b.estadoEl ?? ''
+      if (ea && eb) return eb.localeCompare(ea) || porNombre(a, b)
+      if (ea) return -1
+      if (eb) return 1
+      return porNombre(a, b)
+    })
 }

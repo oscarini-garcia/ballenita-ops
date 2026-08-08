@@ -3279,6 +3279,41 @@ lee y como ya se escribía; partirlo en dos columnas pediría una migración par
 no ganar nada. `lib/estados.js` lo parte y lo junta, y sabe que la «a» de «a mi
 bola» no es un emoji.
 
+### 14.36-bis Lo que dijo el móvil de la tira de estados
+
+Tres correcciones al usarlo, ninguna de diseño abierto.
+
+**La pastilla admite dos líneas.** A3 se dibujó recortando en una, y en una
+caben **37 letras** — «desaparecido en combate» entra, pero cualquier frase
+escrita del tirón se corta a la mitad, que en un campo cuya gracia es la coña es
+cortar justo el remate. Con `-webkit-line-clamp: 2` caben **65**, 1,76 veces lo
+que entraba, y **solo crece cuando se usa la segunda línea**: 42 pt con una,
+44,9 con dos. El coste real son **2,9 pt de cabecera** los días que alguien se
+enrolla, y sigue siendo una píldora —`border-radius` grande— y no un rectángulo.
+Lo que pase de dos líneas se recorta: ese es el único tope que queda.
+
+**Cada nombre de la tira lleva el acrónimo de su familia.** La misma pastilla de
+`Alias.jsx` que firma una idea y a un votante, pegada al nombre (4 pt de margen
+en vez de los 5 de una fila suelta: dentro de una pastilla ya estrecha se
+notan). Sin ella, dos nombres iguales en el grupo son dos caras sin apellido; y
+la tira se lee de lejos, que es cuando el color de la casa hace más que el
+nombre.
+
+**Y van por novedad**, lo último puesto primero. Ordenada por nombre, lo que
+alguien acaba de escribir salía donde le tocara por alfabeto y no se distinguía
+de lo de anteayer, con lo que la tira dejaba de tener por qué mirarse dos veces.
+El «cuándo» es **`estadoEl`** (migración `0013`), que **escribe el cliente** al
+guardar —como `apuntadaEl` de una idea—, así que la tira ordena bien desde el
+primer pintado y sin esperar a sincronizar. No es `updatedAt`: ese se mueve con
+cualquier cambio de la persona y pondría en cabeza a quien solo se ha corregido
+el apodo. Vaciar el estado borra también la fecha. Los estados escritos **antes**
+de la migración no tienen fecha: van detrás de los fechados y entre ellos por
+nombre, que es lo que había. Todo el orden vive en `quienTieneEstado`, pura.
+
+Como toda migración, la `0013` **no se aplica sola** (§14.23): hasta que se
+lance desde Ajustes → Actualizar, el Worker no conoce la columna y el «cuándo»
+no sobrevive a una vuelta de sincronización.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

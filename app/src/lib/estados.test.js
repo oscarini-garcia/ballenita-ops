@@ -46,14 +46,32 @@ describe('cincoAlAzar', () => {
 })
 
 describe('quienTieneEstado', () => {
-  it('solo los que han dicho algo, y por nombre para que no bailen', () => {
+  it('solo los que han dicho algo', () => {
     const gente = [
       { id: '1', name: 'Pablo', estado: '🍺 de resaca' },
       { id: '2', name: 'Ana', estado: '' },
       { id: '3', name: 'Curro', estado: '   ' },
       { id: '4', name: 'Marta', apodo: 'Martita', estado: '🤿 buceando' },
     ]
-    expect(quienTieneEstado(gente).map((p) => p.id)).toEqual(['4', '1'])
+    expect(quienTieneEstado(gente).map((p) => p.id).sort()).toEqual(['1', '4'])
+  })
+
+  it('por novedad: lo último puesto va primero', () => {
+    const gente = [
+      { id: 'viejo', name: 'Ana', estado: '🍺 x', estadoEl: '2026-08-08T09:00:00.000Z' },
+      { id: 'nuevo', name: 'Pablo', estado: '🤿 y', estadoEl: '2026-08-08T18:00:00.000Z' },
+      { id: 'medio', name: 'Curro', estado: '🍷 z', estadoEl: '2026-08-08T12:00:00.000Z' },
+    ]
+    expect(quienTieneEstado(gente).map((p) => p.id)).toEqual(['nuevo', 'medio', 'viejo'])
+  })
+
+  it('los de antes de la migración van detrás, y entre ellos por nombre', () => {
+    const gente = [
+      { id: 'sinFecha1', name: 'Pablo', estado: '🍺 x' },
+      { id: 'conFecha', name: 'Zoe', estado: '🤿 y', estadoEl: '2026-08-08T09:00:00.000Z' },
+      { id: 'sinFecha2', name: 'Ana', estado: '🍷 z' },
+    ]
+    expect(quienTieneEstado(gente).map((p) => p.id)).toEqual(['conFecha', 'sinFecha2', 'sinFecha1'])
   })
 
   it('sin gente no revienta', () => {

@@ -1,0 +1,21 @@
+-- Cuándo se puso el estado de una persona (SPECS §14.36).
+--
+-- **`persons.estadoEl`** — la hora a la que alguien escribió su estado. Hasta
+-- ahora se guardaba el estado y no cuándo, y la tira de «Quién anda en qué» de
+-- «Hoy» se ordenaba por nombre: leída dos veces al día, lo nuevo no se
+-- distinguía de lo de anteayer.
+--
+-- No vale `updatedAt`, que es lo que ya había: esa se mueve con **cualquier**
+-- cambio de la persona —el apodo, el emoji, la foto—, así que quien corrige su
+-- apodo saltaría al principio de la tira con un estado de hace tres días. Son
+-- dos hechos distintos y por eso son dos columnas.
+--
+-- La escribe **el cliente** al guardar, como `planIdeas.apuntadaEl` (0008): así
+-- está desde el primer pintado y funciona sin API, que es como va la web.
+--
+-- Como las demás, no se toca `0001_esquema.sql`: aplicar todas las migraciones
+-- en orden tiene que reproducir producción (`test/d1.js`).
+--
+--   npm run migrar:remoto13
+
+ALTER TABLE persons ADD COLUMN estadoEl TEXT;

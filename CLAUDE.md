@@ -138,7 +138,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   identidad vuelve el lugar. El modal es capa centrada con cinco estados enteros, «Otras
   cinco» (IA, solo al pulsar) y «Más gracioso» sobre lo tuyo, que no guarda nada. Y la tira
   de «Hoy» enseña **quién anda en qué**: el estado sincronizaba desde siempre y no se pintaba
-  en ninguna pantalla.
+  en ninguna pantalla. **La pastilla admite dos líneas y la tira va por novedad** (§14.36-bis):
+  de 37 letras a 65, creciendo 2,9 pt **solo** cuando se usa la segunda; cada nombre lleva el
+  acrónimo de su familia (`Alias.jsx`); y el orden lo da **`estadoEl`**, que escribe el
+  cliente al guardar (migración `0013`) y no `updatedAt`, que se mueve al corregir un apodo.
+  Lo de antes de la migración no tiene fecha: va detrás y entre sí por nombre.
 - **Cada versión se describe a sí misma** (SPECS §14.34, figura de `meeting-ops-air`):
   `lib/notas.js` lleva unas líneas **a mano** por versión —lo que se nota en pantalla, no qué
   módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de

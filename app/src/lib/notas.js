@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.31.0',
+    fecha: '2026-08-08',
+    titulo: 'El estado, con más sitio y mejor ordenado',
+    lineas: [
+      'La pastilla de la cabecera admite dos líneas: caben 65 letras en vez de 37, y solo crece si hacen falta.',
+      'En «Quién anda en qué», cada nombre lleva el acrónimo de su familia en su pastilla de color.',
+      'Y la tira va por novedad: lo último que alguien ha puesto sale primero.',
+    ],
+  },
+  {
     version: '0.30.0',
     fecha: '2026-08-08',
     titulo: 'Tu estado, en la barra de arriba',
