@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.34.0',
+    fecha: '2026-08-08',
+    titulo: 'Encender los avisos ya no se queda girando',
+    lineas: [
+      'El botón «Encender» podía quedarse en «Pidiendo…» para siempre: el permiso estaba dado y lo que no volvía era la llamada al servidor, que no tenía plazo. Ahora ninguna llamada a la API espera más de 20 segundos, y si se agota lo dice.',
+      'Y mientras dura se ve en qué va: la parte nativa, el permiso de iOS, el identificador de Apple y el servidor. Si se rompe uno, el renglón se toca para copiar lo que contestó.',
+      'Con el permiso denegado ya no se vuelve a preguntar: iOS solo enseña su hoja una vez.',
+    ],
+  },
+  {
     version: '0.33.0',
     fecha: '2026-08-08',
     titulo: 'La base de datos dice en qué estado está',

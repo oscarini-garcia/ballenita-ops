@@ -4,6 +4,7 @@ import { personsOf, familiesOf, olvidarTodo } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import Campo from '../components/Campo.jsx'
+import { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, listarModelosIA, probarIA, registrarPush, probarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
@@ -249,6 +250,42 @@ export default function CuentasSection({ eventId, sincronizar }) {
 }
 
 /**
+ * Cada eslabón del registro, con las palabras que se leen mientras dura.
+ *
+ * Son cuatro sitios distintos con cuatro arreglos distintos —el binario, iOS,
+ * Apple y la API—, y hasta ahora los cuatro se veían igual: un botón que ponía
+ * «Pidiendo…». Las claves las nombra `lib/native.js` (`PASOS_DE_PUSH`).
+ */
+const PASOS_DE_PUSH = {
+  plugin: 'Buscando la parte nativa de los avisos',
+  permiso: 'Preguntándole a iOS por el permiso',
+  apple: 'Pidiéndole el identificador a Apple',
+  servidor: 'Apuntándolo en el servidor',
+}
+
+/**
+ * Una lista de pasos que se va escribiendo sola.
+ *
+ * `empujar` cierra el anterior y abre el siguiente; `cerrar` remata el último
+ * con lo que haya pasado. El informe del fallo va en el renglón, que se toca
+ * para copiarlo (SPECS §14.9-bis): un mensaje de Apple no se transcribe a mano.
+ */
+function listaDePasos(setPasos) {
+  const lista = []
+  return {
+    empujar(clave) {
+      if (lista.length) lista[lista.length - 1].estado = 'hecho'
+      lista.push({ texto: PASOS_DE_PUSH[clave] ?? clave, estado: 'curso' })
+      setPasos([...lista])
+    },
+    cerrar(estado, informe) {
+      if (lista.length) Object.assign(lista[lista.length - 1], { estado, informe })
+      setPasos([...lista])
+    },
+  }
+}
+
+/**
  * Lo que está esperando a que alguien haga algo (`lib/avisos.js`).
  *
  * Hoy solo hay una clase de aviso —alguien ha entrado y todavía no es nadie— y
@@ -266,6 +303,10 @@ export function NotificacionesSection() {
   const [fallo, setFallo] = useState(null)
   // Resultado de la prueba: null · 'yendo' · lo que contestó el servidor.
   const [prueba, setPrueba] = useState(null)
+  // En qué eslabón va, y en cuál se quedó. Se queda puesto al terminar: lo que
+  // ha pasado se relee, como en Sincronización.
+  const [pasos, setPasos] = useState([])
+  const [aviso, setAviso] = useState(null)
 
   useEffect(() => { estadoDePush().then(setPermiso) }, [])
 
@@ -278,18 +319,29 @@ export function NotificacionesSection() {
     tap()
     setYendo(true)
     setFallo(null)
+    setAviso(null)
+    const { empujar, cerrar } = listaDePasos(setPasos)
     try {
-      const token = await registerPush()
-      if (token) await registrarPush(token, true)
-      else if ((await estadoDePush()) !== 'denied') {
+      const token = await registerPush({ alPaso: empujar })
+      if (token) {
+        empujar('servidor')
+        await registrarPush(token, true)
+        cerrar('hecho')
+      } else if ((await estadoDePush()) === 'denied') {
+        // Un «no» no es un fallo: es una respuesta, y la de arriba ya lo cuenta.
+        cerrar('aviso')
+      } else {
         // Permiso concedido y aun así ningún token: eso es cosa de APNs —falta
         // el permiso `aps-environment` en el binario, o no hay red—, y callarlo
         // deja el botón como si no hiciera nada.
-        setFallo('Permiso dado, pero Apple no ha devuelto ningún identificador para este móvil. Suele ser que al binario le falta el permiso de avisos.')
+        const motivo = 'Permiso dado, pero Apple no ha devuelto ningún identificador para este móvil. Suele ser que al binario le falta el permiso de avisos.'
+        cerrar('fallo', motivo)
+        setFallo(motivo)
       }
       setPermiso(await estadoDePush())
     } catch (e) {
       const motivo = String(e?.message ?? e)
+      cerrar('fallo', motivo)
       setPermiso(motivo === SIN_PLUGIN ? SIN_PLUGIN : await estadoDePush())
       if (motivo !== SIN_PLUGIN) setFallo(motivo)
     } finally { setYendo(false) }
@@ -303,21 +355,32 @@ export function NotificacionesSection() {
   async function probar() {
     tap()
     setPrueba('yendo')
+    setAviso(null)
+    const { empujar, cerrar } = listaDePasos(setPasos)
     try {
       // Antes de mandar, que este móvil esté apuntado. Sin esto la respuesta era
       // «enciende los avisos y vuelve a probar» con los avisos ya encendidos y
       // sin ningún botón que encender: un callejón sin salida. Ver `lib/push.js`.
-      const { estado, motivo } = await asegurarPush()
+      const { estado, motivo } = await asegurarPush({ alPaso: empujar })
       // Lo que contestó Apple sale **tal cual**: «no valid 'aps-environment'
       // entitlement string found» dice qué le falta al binario, y traducirlo a
       // «no se pudo» deja el fallo sin arreglar y sin explicar.
-      if (estado === 'error') { setPrueba({ enviados: 0, motivo }); return }
+      if (estado === 'error') { cerrar('fallo', motivo); setPrueba({ enviados: 0, motivo }); return }
       if (estado === 'sin-token') {
-        setPrueba({ enviados: 0, motivo: 'Permiso dado, y Apple no contesta ni con identificador ni con error. Suele ser que no hay red.' })
+        const sinToken = 'Permiso dado, y Apple no contesta ni con identificador ni con error. Suele ser que no hay red.'
+        cerrar('fallo', sinToken)
+        setPrueba({ enviados: 0, motivo: sinToken })
         return
       }
-      setPrueba(await probarPush())
-    } catch (e) { setPrueba({ enviados: 0, motivo: String(e.message ?? e) }) }
+      empujar('Mandando el aviso')
+      const salida = await probarPush()
+      cerrar(salida?.enviados > 0 ? 'hecho' : 'fallo', salida?.motivo)
+      setPrueba(salida)
+    } catch (e) {
+      const motivo = String(e.message ?? e)
+      cerrar('fallo', motivo)
+      setPrueba({ enviados: 0, motivo })
+    }
   }
 
   return (
@@ -348,6 +411,11 @@ export function NotificacionesSection() {
               )}
             </div>
           </div>
+          {/* En qué eslabón va, y en cuál se quedó. Es lo que faltaba: cuatro
+              sitios distintos con cuatro arreglos distintos se veían como un
+              botón girando. El renglón del fallo se toca para copiarlo. */}
+          {pasos.length > 0 && <ListaDePasos pasos={pasos} onCopiado={setAviso} />}
+          {aviso && <div className="note" role="status">{aviso}</div>}
           {permiso === 'granted' && (
             <>
               <button className="btn ghost block" disabled={prueba === 'yendo'} onClick={probar}>

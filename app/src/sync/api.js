@@ -49,6 +49,33 @@ class SesionCaducada extends Error {
   }
 }
 
+/**
+ * Lo que se le da a la API para contestar antes de darla por perdida.
+ *
+ * **`fetch` no tiene plazo**, y esa es la frase entera: si la dirección de
+ * `config.json` no responde —red de hotel, DNS, el Worker sin publicar— la
+ * promesa no se cumple ni se rompe, se queda. Dentro de un `await` sin carrera,
+ * eso es un botón girando para siempre, y desde el móvil «tarda» y «se ha
+ * colgado» se ven exactamente igual. Es lo que dejaba «Pidiendo…» puesto en
+ * Notificaciones: el permiso ya estaba dado y el identificador ya estaba pedido;
+ * lo que no volvía era el `POST /api/push`.
+ *
+ * Veinte segundos son de sobra para cualquier respuesta de un Worker —incluida
+ * la primera, con arranque en frío— y bastante menos que la paciencia de nadie.
+ * Al agotarse **se dice con esas palabras**, que es lo que separa «la API no
+ * contestó» de «la API contestó que no» (SPECS §14.9-bis).
+ */
+export const PLAZO_API = 20000
+
+/** Un corte a los `PLAZO_API` ms, o nada si el motor no sabe hacerlos. */
+function corte(ms = PLAZO_API) {
+  try {
+    return AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined
+  } catch {
+    return undefined
+  }
+}
+
 async function peticion(camino, opciones = {}) {
   const configuracion = await cargarConfiguracion()
   if (!estaConfigurada(configuracion)) throw new Error('sin API configurada')
@@ -56,16 +83,29 @@ async function peticion(camino, opciones = {}) {
   const sesion = leerSesion()
   if (!sesion?.token) throw new SesionCaducada()
 
-  const respuesta = await fetch(`${configuracion.api}${camino}`, {
-    ...opciones,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${sesion.token}`,
-      'X-Dispositivo': idDeDispositivo(),
-      'X-Plataforma': opciones.plataforma || 'web',
-      ...(opciones.headers || {}),
-    },
-  })
+  let respuesta
+  try {
+    respuesta = await fetch(`${configuracion.api}${camino}`, {
+      ...opciones,
+      signal: opciones.signal ?? corte(),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sesion.token}`,
+        'X-Dispositivo': idDeDispositivo(),
+        'X-Plataforma': opciones.plataforma || 'web',
+        ...(opciones.headers || {}),
+      },
+    })
+  } catch (e) {
+    // Un corte no es un fallo de la API: es que no hubo API. Se distingue por el
+    // nombre del error, que es lo único que traen `TimeoutError` y `AbortError`.
+    if (e?.name === 'TimeoutError' || e?.name === 'AbortError') {
+      const error = new Error(`la API no contestó en ${Math.round(PLAZO_API / 1000)} s (${camino})`)
+      error.plazoAgotado = true
+      throw error
+    }
+    throw e
+  }
 
   if (respuesta.status === 401 || respuesta.status === 403) {
     // El token ya no vale (caducó, o la cuenta se desactivó). Se olvida aquí
