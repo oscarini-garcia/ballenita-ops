@@ -1351,6 +1351,24 @@ sitio donde se quedaba no era ninguno de los que este apartado había mirado
   `atDocumentStart`). Así que `plugin()` es ahora **síncrona**: si no está,
   `SIN_PLUGIN` en el acto. Cambiar una certeza instantánea por seis segundos de
   espera para acabar dando la respuesta equivocada es el peor de los dos tratos.
+- **✅ Y el último eslabón fue TestFlight: `BadDeviceToken`.** Con los avisos ya
+  funcionando desde Xcode, subir por TestFlight los rompió. La causa es de
+  manual y aun así muerde: **TestFlight y la App Store firman `production`**,
+  Xcode firma `development`, y un token de un entorno no vale en el otro. Lo
+  grave no era que no llegara, sino **qué hacía el Worker al enterarse**: Apple
+  contesta `BadDeviceToken`, que es *exactamente* lo mismo que contesta un token
+  de un teléfono que desinstaló la aplicación, así que se daba por muerto y **se
+  borraba de la base**. Mismo síntoma que una desinstalación, causa distinta y
+  ninguna pista — y con eso, una variable mal puesta en `wrangler.toml`
+  desregistraba a todo el grupo, uno por aviso.
+  - **`apns.js` reintenta una vez contra el otro servidor** antes de dar un
+    token por muerto, y solo con `BadDeviceToken`: un `410 Unregistered` sí es
+    una desinstalación y no hay nada que probar. Si el de enfrente lo acepta, el
+    aviso llega y el token se queda donde estaba. Un desajuste cuesta ahora una
+    petición de más, no los avisos de todo el grupo.
+  - **Y se dice** (`entornoCruzado`): la prueba avisa de que salió por el otro
+    lado, porque el reintento no es una solución sino un colchón, y `APNS_ENTORNO`
+    hay que corregirlo igual.
 - **✅ «Mandado» no es «llegado», y eran dos eslabones en uno**
   (`escucharUnAviso`, `SIN_ENTREGA`). Con el registro por fin resuelto, el aviso
   de prueba decía «mandado» y se callaba — y eso es solo un **200 del servidor de

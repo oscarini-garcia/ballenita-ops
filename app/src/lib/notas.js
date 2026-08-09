@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.36.1',
+    fecha: '2026-08-09',
+    titulo: 'Los avisos ya no se pierden al pasar a TestFlight',
+    lineas: [
+      'Un binario de TestFlight pide los avisos por un servidor de Apple distinto al de uno instalado desde Xcode. Con el servidor equivocado, Apple decía «token malo» y el móvil se quedaba desregistrado sin avisar.',
+      'Ahora se prueba el otro servidor antes de dar el aviso por perdido, así que un desajuste ya no borra el registro de nadie — y la prueba te dice si ha pasado.',
+    ],
+  },
+  {
     version: '0.36.0',
     fecha: '2026-08-09',
     titulo: 'Borrar pregunta, y dice qué se lleva por delante',

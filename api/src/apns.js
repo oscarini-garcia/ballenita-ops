@@ -25,10 +25,19 @@
  * donde compartirlo sería `configuracion`; hoy, para una casa de cuatro, sobra.
  *
  * **Un token muerto se borra, no se reintenta.** APNs contesta `410` o
- * `BadDeviceToken` cuando el aparato desinstaló la aplicación o le cambió el
- * token, y eso no se arregla insistiendo: se devuelve `caducado` y quien llama
- * lo quita de la base. El teléfono vuelve a darse de alta solo la próxima vez
- * que abra.
+ * `Unregistered` cuando el aparato desinstaló la aplicación, y eso no se
+ * arregla insistiendo: se devuelve `caducado` y quien llama lo quita de la
+ * base. El teléfono vuelve a darse de alta solo la próxima vez que abra.
+ *
+ * **`BadDeviceToken` es la excepción, y costó una tarde.** Apple contesta lo
+ * mismo cuando el token está muerto que cuando **es de un entorno y se le manda
+ * al otro** —un binario de Xcode firma `development` y da un token de pruebas;
+ * uno de TestFlight o la App Store firma `production`—. Tratarlo como muerto
+ * tenía dos consecuencias y la segunda es la mala: el aviso no llega, y además
+ * **se borra el token de la base**, así que el móvil se queda desregistrado por
+ * una variable mal puesta en el Worker. Ahora se reintenta **una vez contra el
+ * otro servidor** antes de darlo por muerto: si el de enfrente lo acepta, el
+ * aviso llega y el token se queda donde estaba.
  */
 
 const SERVIDORES = {
@@ -69,7 +78,11 @@ export function hayApnsConfigurado(env) {
  *  que diría lo mismo. */
 const topico = (env) => env.APNS_TOPICO || env.APPLE_AUD_IOS || 'com.garciadoral.ballenitaops';
 
-const servidor = (env) => SERVIDORES[env.APNS_ENTORNO] || SERVIDORES.produccion;
+const servidor = (env, elOtro = false) => {
+  const puesto = SERVIDORES[env.APNS_ENTORNO] || SERVIDORES.produccion;
+  if (!elOtro) return puesto;
+  return puesto === SERVIDORES.produccion ? SERVIDORES.pruebas : SERVIDORES.produccion;
+};
 
 // ------------------------------------------------------------ La firma --
 
@@ -160,13 +173,13 @@ function sobre(aviso) {
  * Un aviso a un teléfono. No lanza: un aviso que no llega no puede tumbar la
  * escritura que lo provocó.
  */
-export async function enviarAviso(env, tokenDispositivo, aviso, { reintento = false } = {}) {
+export async function enviarAviso(env, tokenDispositivo, aviso, { reintento = false, elOtro = false } = {}) {
   if (!hayApnsConfigurado(env)) return { ok: false, motivo: 'sin-configurar' };
   if (!tokenDispositivo) return { ok: false, motivo: 'sin-token' };
 
   let respuesta;
   try {
-    respuesta = await fetch(`${servidor(env)}/3/device/${tokenDispositivo}`, {
+    respuesta = await fetch(`${servidor(env, elOtro)}/3/device/${tokenDispositivo}`, {
       method: 'POST',
       headers: {
         authorization: `bearer ${await tokenDeProveedor(env)}`,
@@ -188,7 +201,7 @@ export async function enviarAviso(env, tokenDispositivo, aviso, { reintento = fa
     return { ok: false, motivo: `sin salida: ${String(error?.message || error)}` };
   }
 
-  if (respuesta.status === 200) return { ok: true };
+  if (respuesta.status === 200) return elOtro ? { ok: true, entornoCruzado: true } : { ok: true };
 
   const detalle = await respuesta.json().catch(() => ({}));
   const motivo = detalle.reason || `apns ${respuesta.status}`;
@@ -198,6 +211,20 @@ export async function enviarAviso(env, tokenDispositivo, aviso, { reintento = fa
   if (!reintento && (respuesta.status === 403 || motivo === 'ExpiredProviderToken')) {
     olvidarTokenDeProveedor();
     return enviarAviso(env, tokenDispositivo, aviso, { reintento: true });
+  }
+
+  // El entorno cruzado, que se ve igual que un token muerto. Una segunda
+  // llamada al otro servidor cuesta una petición y evita borrar el registro de
+  // un teléfono que está perfectamente vivo. Solo con `BadDeviceToken`: un
+  // `410 Unregistered` sí es una desinstalación y no hay nada que probar.
+  if (!elOtro && motivo === 'BadDeviceToken') {
+    const segunda = await enviarAviso(env, tokenDispositivo, aviso, { reintento: true, elOtro: true });
+    if (segunda.ok) return segunda;
+    return {
+      ok: false,
+      motivo: 'BadDeviceToken en los dos entornos de APNs',
+      caducado: true,
+    };
   }
 
   return {

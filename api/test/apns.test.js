@@ -80,6 +80,80 @@ test('el sobre lleva lo que Apple necesita para no retrasar el aviso', async () 
   assert.equal(sobre.ir, 'ajustes/cuentas');
 });
 
+/**
+ * El entorno cruzado, que se ve **exactamente igual** que un token muerto.
+ *
+ * Un binario de Xcode firma `development` y da un token de pruebas; uno de
+ * TestFlight o la App Store firma `production`. Mandar uno al servidor del otro
+ * devuelve `BadDeviceToken`, que es lo mismo que devuelve un token de un
+ * teléfono que desinstaló la app — y hasta ahora eso **borraba el registro**:
+ * mismo síntoma que una desinstalación, causa distinta y ninguna pista.
+ */
+test('BadDeviceToken se reintenta contra el otro servidor antes de darlo por muerto', async () => {
+  olvidarTokenDeProveedor();
+  const env = await entorno(); // «pruebas» → el sandbox es el primero
+  const vistos = [];
+  const fetchDeVerdad = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    vistos.push(String(url));
+    if (String(url).includes('sandbox')) {
+      return { status: 400, json: async () => ({ reason: 'BadDeviceToken' }) };
+    }
+    return { status: 200, json: async () => ({}) };
+  };
+  try {
+    const r = await enviarAviso(env, 'de-produccion', { titulo: 'x', cuerpo: 'y' });
+    assert.equal(r.ok, true, 'el aviso sale por el servidor de enfrente');
+    // Y se dice, porque cuesta una petición de más en cada aviso y hay que
+    // corregir `APNS_ENTORNO`.
+    assert.equal(r.entornoCruzado, true);
+    assert.equal(vistos.length, 2);
+    assert.ok(vistos[0].includes('sandbox'));
+    assert.ok(!vistos[1].includes('sandbox'));
+  } finally {
+    globalThis.fetch = fetchDeVerdad;
+  }
+});
+
+test('si los dos servidores lo rechazan, entonces sí está muerto', async () => {
+  olvidarTokenDeProveedor();
+  const env = await entorno();
+  let llamadas = 0;
+  const fetchDeVerdad = globalThis.fetch;
+  globalThis.fetch = async () => {
+    llamadas += 1;
+    return { status: 400, json: async () => ({ reason: 'BadDeviceToken' }) };
+  };
+  try {
+    const r = await enviarAviso(env, 'muerto', { titulo: 'x', cuerpo: 'y' });
+    assert.equal(r.ok, false);
+    assert.equal(r.caducado, true);
+    assert.match(r.motivo, /los dos entornos/);
+    // Dos y no más: no se insiste en bucle contra Apple.
+    assert.equal(llamadas, 2);
+  } finally {
+    globalThis.fetch = fetchDeVerdad;
+  }
+});
+
+test('un 410 no se reintenta: eso sí es una desinstalación', async () => {
+  olvidarTokenDeProveedor();
+  const env = await entorno();
+  let llamadas = 0;
+  const fetchDeVerdad = globalThis.fetch;
+  globalThis.fetch = async () => {
+    llamadas += 1;
+    return { status: 410, json: async () => ({ reason: 'Unregistered' }) };
+  };
+  try {
+    const r = await enviarAviso(env, 'desinstalado', { titulo: 'x', cuerpo: 'y' });
+    assert.equal(r.caducado, true);
+    assert.equal(llamadas, 1);
+  } finally {
+    globalThis.fetch = fetchDeVerdad;
+  }
+});
+
 test('un token muerto se marca como caducado para poder borrarlo', async () => {
   olvidarTokenDeProveedor();
   const env = await entorno();
