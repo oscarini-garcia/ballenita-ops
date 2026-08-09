@@ -4,12 +4,15 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   dinnersOf, addDinner, removeDinner,
   bungasOf, listDishes, addDish, DISH_CATEGORIES,
+  personsOf, shopItemsOf,
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { porDia } from '../lib/evento.js'
 import { tap } from '../lib/native.js'
 import Fab from '../components/Fab.jsx'
 import Recado from '../components/Recado.jsx'
+import Confirmar from '../components/Confirmar.jsx'
+import { queSeLlevaUnaCena } from '../lib/borrados.js'
 
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 const fmtDay = (d) => (d ? new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Sin día')
@@ -18,6 +21,11 @@ export default function CenasScreen({ eventId, event }) {
   const dinners = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const dishes = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
+  // Para poder decir qué se lleva por delante borrar una cena: sus líneas de la
+  // compra no apuntan a ella —salen de sumar todas (§14.20)—, así que hay que
+  // calcular la lista con y sin esta cena. Ver `lib/borrados.js`.
+  const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
+  const compra = useLiveQuery(() => shopItemsOf(eventId), [eventId], [])
   const [open, setOpen] = useState(false)
 
   const bungaName = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : '—' }
@@ -25,6 +33,7 @@ export default function CenasScreen({ eventId, event }) {
   // Por día, y lo que cae fuera de las fechas al final y marcado. Sin esto una
   // cena del 14 en un viaje que empieza el 15 abría la lista como si tal cosa.
   const { dentro, fuera } = porDia(dinners, event)
+  const contexto = { cenas: dinners, platos: dishes, personas: persons, lineas: compra }
 
   return (
     <div className="body">
@@ -37,7 +46,7 @@ export default function CenasScreen({ eventId, event }) {
       )}
 
       {dentro.map((c) => (
-        <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} />
+        <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} contexto={contexto} />
       ))}
 
       {fuera.length > 0 && (
@@ -50,7 +59,7 @@ export default function CenasScreen({ eventId, event }) {
             en <b>Ajustes → Evento</b>.
           </div>
           {fuera.map((c) => (
-            <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} fuera />
+            <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} fuera contexto={contexto} />
           ))}
         </>
       )}
@@ -64,13 +73,23 @@ export default function CenasScreen({ eventId, event }) {
   )
 }
 
-function FichaDeCena({ cena: c, bungaName, dishById, fuera = false }) {
+/**
+ * Una cena, con su verbo de borrar **al fondo y no en la cabecera**.
+ *
+ * Estaba arriba a la derecha, en minúsculas y como `btn sm ghost`: era el verbo
+ * destructivo más barato de pulsar de toda la aplicación —ni rojo, ni detrás de
+ * un gesto, ni al final de un editor— y a la vez el que más se lleva por
+ * delante, porque al borrar una cena **la compra se rehace** y se van sus
+ * líneas. Baja al fondo, donde está el de Grupo, y pregunta antes
+ * (`docs/diseño/borrar-confirmaciones.html` · defecto dos · A2·B2·B3).
+ */
+function FichaDeCena({ cena: c, bungaName, dishById, fuera = false, contexto }) {
+  const [confirmando, setConfirmando] = useState(false)
   return (
     <div className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
         <div className="dia-cena">{fmtDay(c.dia)}</div>
         {fuera && <span className="pill owe">fuera del viaje</span>}
-        <button className="btn sm ghost" onClick={() => removeDinner(c.id)}>borrar</button>
       </div>
 
       <div className="grid2" style={{ marginTop: 8 }}>
@@ -103,6 +122,23 @@ function FichaDeCena({ cena: c, bungaName, dishById, fuera = false }) {
           <b>Los niños comen otra cosa:</b>{' '}
           {c.platoIdsNinos.map((id) => dishById[id]?.name).filter(Boolean).join(' · ') || 'nada apuntado'}
         </div>
+      )}
+
+      {confirmando ? (
+        <Confirmar
+          queSeLleva={queSeLlevaUnaCena(c, { ...contexto, dia: fmtDay(c.dia) })}
+          onDejarlo={() => { tap(); setConfirmando(false) }}
+          onBorrar={async () => { tap(); await removeDinner(c.id) }}
+        />
+      ) : (
+        <button
+          type="button"
+          className="btn sm ghost block"
+          style={{ marginTop: 10 }}
+          onClick={() => { tap(); setConfirmando(true) }}
+        >
+          Borrar la cena
+        </button>
       )}
     </div>
   )

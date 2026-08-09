@@ -50,12 +50,33 @@ describe('la compra que sale de las cenas', () => {
     expect(screen.getByText(/PER 0,4 kg · SOL 0,12 kg/)).toBeInTheDocument()
   })
 
-  it('lo apuntado a mano sigue sin cifra y se borra con su aspa', async () => {
+  it('lo apuntado a mano sigue sin cifra y tiene su propio verbo de borrar', async () => {
     render(<CompraScreen eventId={eventId} event={event} />)
     await userEvent.type(await screen.findByPlaceholderText(/Apunta algo/), 'Hielos')
     await userEvent.click(screen.getByRole('button', { name: 'Añadir' }))
 
     await screen.findByText('Hielos')
-    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Borrar' }).length).toBe(1))
+    // Nombrado por su línea: en la misma columna vive el chevron de las líneas
+    // de cena, y antes eran el mismo control con dos comportamientos.
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Borrar Hielos' }).length).toBe(1))
+  })
+
+  /**
+   * A1 de `docs/diseño/borrar-confirmaciones.html`: aquí no hay cascada que
+   * contar —una línea de la compra no arrastra nada—, así que lo único que hay
+   * que evitar es el toque de más, y la segunda pulsación cuesta 0 pt de alto.
+   */
+  it('borrar a mano pide una segunda pulsación, y la primera no borra nada', async () => {
+    render(<CompraScreen eventId={eventId} event={event} />)
+    await userEvent.type(await screen.findByPlaceholderText(/Apunta algo/), 'Hielos')
+    await userEvent.click(screen.getByRole('button', { name: 'Añadir' }))
+    await screen.findByText('Hielos')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Borrar Hielos' }))
+    // Sigue ahí: lo que ha cambiado es el propio control, que ahora pregunta.
+    expect(screen.getByText('Hielos')).toBeInTheDocument()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Confirmar que se borra Hielos' }))
+    await waitFor(() => expect(screen.queryByText('Hielos')).toBeNull())
   })
 })

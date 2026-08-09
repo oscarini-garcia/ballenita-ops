@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.35.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  790 pruebas en 85 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.36.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  812 pruebas en 87 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   176 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -118,6 +118,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `Alias.jsx` — El alias de una familia, en pastilla y con su color (`docs/diseño/planes-ideas.html` · B3).
 - `BotonIA.jsx` — Un botón que le pregunta algo al modelo, y **dice que está pensando**.
 - `Campo.jsx` — Un campo: su rótulo, el control, y **debajo la línea que lo explica**.
+- `Confirmar.jsx` — La pregunta antes de borrar, en su sitio y diciendo qué se lleva.
 - `Deslizable.jsx` — Una fila que se desliza a la izquierda para descubrir sus verbos.
 - `Fab.jsx` — El botón de crear, con la palabra puesta.
 - `Hoja.jsx` — Una hoja que sube desde el borde de abajo (`docs/diseño/gente-editar.html · F2`).
@@ -154,6 +155,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ leerFoto, guardarFoto, borrarFoto, comprimirFoto
 - `avisos.js` — Lo que está esperando a que alguien haga algo.
   ↳ avisosDeCuentas, avisosPara
+- `borrados.js` — Qué se lleva por delante un borrado, dicho en una frase.
+  ↳ familiasQueTocaUnGasto, queSeLlevaUnGasto, loQueSeCaeDeLaCompra, queSeLlevaUnaCena
 - `categorias.js` — Las cinco categorías de un gasto.
   ↳ CATEGORIES, catOf
 - `cielo.js` — De qué color está el cielo a esta hora.
@@ -358,19 +361,19 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `scrollLock.js`, `stats.js`
 - **§14.11** Tipografía: un número y toda la escala → `BalancesScreen.jsx`
 - **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
-- **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `evento.js`, `reparto-gente.js`
+- **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `Confirmar.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `borrados.js`, `evento.js` · +1 más
 - **§14.15** Quién entra: la sala de espera, las cuentas y los avisos → `index.js`
 - **§14.16** La IA: la clave vive en el servidor → `api.js`, `cocina.js`, `encargos.js`, `ia.js`, `index.js`, `receta.js` · +1 más
 - **§14.18** El día es el de aquí, no el de Greenwich → `db.js`
 - **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx`, `api.js` · +8 más
-- **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `cocina.js` · +5 más
+- **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js` · +6 más
 - **§14.21** El día del viaje: qué bungas, qué se cena y qué plan → `db.js`
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
 - **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`
 - **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
 - **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx` · +3 más
-- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `importe.js`, `reparto.js`, `tablas.js`
-- **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
+- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `borrados.js`, `importe.js`, `reparto.js` · +1 más
+- **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `Confirmar.jsx`, `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`

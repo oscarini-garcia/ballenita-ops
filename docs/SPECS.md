@@ -3531,6 +3531,43 @@ que se mueve es **dónde se decide**: el bloque se monta siempre y decide dentro
 que es donde puede explicarlo. La consulta a la API sigue sin salir si no
 administras — un 403 no se pide para tirarlo.
 
+### 14.38 Borrar pregunta, y la pregunta dice qué se lleva
+
+`docs/diseño/borrar-confirmaciones.html` · **A2 · B2 · B3**, con **A1** en la compra.
+
+Nueve borrados ya confirmaban, y los cuatro de **Grupo** hacían lo que hay que
+hacer: la pregunta **nombra la cascada**. Quedaban tres que no preguntaban nada
+—un gasto, una cena y una línea de la compra— y no eran los tres borrados más
+pequeños: eran los tres que mueven cosas que quien borra **no tiene delante**.
+
+- **✅ Una figura, no tres.** Convivían la segunda pulsación, el bloque en sitio
+  y la confirmación en línea dentro de un modal, sin haber elegido ninguna.
+  `components/Confirmar.jsx` es la elegida —el bloque de Grupo, que ya tenía
+  colores y prueba— y Grupo pasa a usarlo en vez de repetirlo. Gana porque es la
+  única que **puede nombrar la cascada sin tapar la fila que se decide**: una
+  capa centrada esconde justo aquello sobre lo que se pregunta, y §14.27-bis ya
+  cerró esa figura al mover «Entre».
+- **✅ El número es la mitad del mensaje, y el cero no se dice** (`lib/borrados.js`,
+  puro). Un gasto dice el importe, quién pagó y **a cuántas familias les mueve el
+  saldo** —lo que pasa en otra pantalla—; con una sola familia en juego no habla
+  de saldos, porque no hay reparto que rehacer. Una cena dice cuántas **líneas de
+  la compra** se caen con ella y que lo comprado se queda; sin nada que arrastrar,
+  la frase se acaba antes. «Se van 0 líneas» es algo que nadie diría en voz alta.
+- **✅ Las líneas de una cena hay que calcularlas, no leerlas.** Una línea de la
+  compra **no apunta a su cena**: sale de sumar todas (§14.20). Así que se compone
+  la lista dos veces —con esta cena y sin ella— y se mira qué claves quedan
+  huérfanas. Es lo mismo que hará el recálculo después, y por eso la frase no
+  puede mentir.
+- **✅ El verbo de una cena baja al fondo de su tarjeta.** Estaba arriba a la
+  derecha, en minúsculas y como `btn sm ghost`: el verbo destructivo más barato
+  de pulsar de toda la aplicación —ni rojo, ni detrás de un gesto, ni al final de
+  un editor— y a la vez el que más arrastra.
+- **✅ En la compra, segunda pulsación y dos controles distintos** (**A1**). La
+  misma columna era dos cosas según la fila: en una línea de cena **despliega** el
+  reparto, en una escrita a mano **borraba**. Ahora el que destruye lleva su color
+  (`.quitar`) y pregunta rellenándose. Aquí no hay cascada que contar —una línea
+  no arrastra nada—, solo hay que evitar el toque de más, y eso cuesta **0 pt**.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

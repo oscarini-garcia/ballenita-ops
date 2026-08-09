@@ -1,0 +1,579 @@
+<title>Ballena Ops — Tres borrados no preguntan nada, y los tres se llevan cosas que no están en pantalla</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1;
+    --ab-owe: #d97b6c; --ab-owe-bg: #35211c; --ab-gold: #c9a768;
+    --ab-papel-capa: #1a3d4f; --ab-linea-capa: #3a6a82;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+    --r: 9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 64ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code, .op-idea code, .coste code, .parte-intro code, .defectos code, .tabla code {
+    font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 11px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 72ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { background: color-mix(in srgb, var(--oro) 14%, transparent);
+    border-radius: 4px; padding: 1px 5px; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-intro { margin: -20px 0 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .op-cab { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 17px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .op-idea { margin: 0; color: var(--tinta-suave); max-width: 70ch; font-size: 15px; }
+  .op-idea b { color: var(--tinta); }
+
+  .grupo { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── El teléfono, a 390 pt. line-height 1.45 = el de body en theme.css. ── */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel { width: 390px; flex: none; border-radius: 14px; font-family: var(--sans); line-height: 1.45;
+    outline: 1px solid var(--ab-linea); outline-offset: -1px; background: var(--ab-fondo);
+    color: var(--ab-ink); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .tel-pie { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue);
+    text-align: center; width: 390px; flex: none; margin-top: 6px; }
+  .tel-pie b { color: var(--tinta-suave); }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 0 2px; color: var(--ab-faint); }
+
+  .tarj { border-radius: var(--r); padding: 0 12px; background: var(--ab-tarjeta);
+    border: 1px solid var(--ab-linea-suave); }
+  .tarj.p { padding: 12px; }
+
+  .fila { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { font-size: var(--t-row); font-weight: 550; }
+  .fila .s { font-size: var(--t-sub); color: var(--ab-soft); }
+  .amt { font-size: var(--t-row); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .ico { width: 34px; height: 34px; border-radius: var(--r); display: grid; place-items: center;
+    flex: none; font-size: 17px;
+    background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .ico.comida { background: rgba(217,140,60,.22); color: #e0a869; }
+
+  /* El bloque `.confirmar` con los valores reales de theme.css. */
+  .confirmar { margin-top: 10px; border: 1px solid color-mix(in srgb, var(--ab-owe) 45%, transparent);
+    background: var(--ab-owe-bg); border-radius: var(--r); padding: 12px;
+    display: flex; flex-direction: column; gap: 10px; }
+  .que-se-lleva { font-size: var(--t-sub); line-height: 1.45; color: var(--ab-ink); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .btn { border-radius: var(--r); border: 1px solid var(--ab-linea); background: transparent;
+    color: var(--ab-ink); font-size: var(--t-row); font-weight: 550; padding: 11px 14px;
+    text-align: center; font-family: inherit; }
+  .btn.danger { background: var(--ab-owe); border-color: var(--ab-owe); color: #1b0f0c; font-weight: 650; }
+  .btn.sm { font-size: var(--t-sub); padding: 7px 11px; }
+  .btn.ghost { background: transparent; }
+
+  .verbo { display: grid; place-items: center; width: 76px; flex: none; border-radius: var(--r);
+    background: color-mix(in srgb, var(--ab-owe) 22%, transparent); color: var(--ab-owe);
+    font-size: var(--t-sub); font-weight: 600; gap: 2px; }
+  .verbo.seguro { background: var(--ab-owe); color: #1b0f0c; }
+  .desliz { display: flex; gap: 8px; align-items: stretch; }
+  .desliz .tarj { flex: 1; }
+
+  .barra-deshacer { display: flex; align-items: center; gap: 12px; border-radius: var(--r);
+    background: var(--ab-papel-capa); border: 1px solid var(--ab-linea-capa); padding: 11px 13px;
+    font-size: var(--t-sub); color: var(--ab-ink); }
+  .barra-deshacer .crece { flex: 1; }
+  .barra-deshacer .accion { color: var(--ab-acento-txt); font-weight: 650; }
+
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: var(--r); padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+
+  .medida { font-family: var(--mono); font-size: 11px; color: var(--ab-faint);
+    border-top: 1px dashed var(--ab-linea); padding-top: 6px; margin-top: 2px; }
+
+  .tabla { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  .tabla th, .tabla td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--linea);
+    vertical-align: top; }
+  .tabla th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--tinta-tenue); font-weight: 700; }
+  .tabla td b { color: var(--tinta); }
+  .tabla td { color: var(--tinta-suave); }
+  .env { overflow-x: auto; }
+
+  .combi { background: var(--acento-suave); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 10px; }
+  .combi h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .combi p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 72ch; }
+  .combi b { color: var(--tinta); }
+  .cod { font-family: var(--mono); font-weight: 700; color: var(--acento); }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · borrados</div>
+    <h1>Tres borrados no preguntan nada, y los tres se llevan cosas que no están en pantalla</h1>
+    <p class="entradilla">
+      Nueve sitios de la app ya confirman antes de borrar, y los cuatro de <b>Grupo</b> hacen justo lo que
+      hay que hacer: la pregunta <b>nombra la cascada</b>. Quedan tres que no preguntan nada — un gasto, una
+      cena y una línea de la compra — y no son los tres borrados más pequeños: son los tres que mueven cosas
+      que quien borra <b>no tiene delante</b>. Aquí se decide con qué figura se pregunta, porque hoy
+      conviven tres y no se ha elegido ninguna.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como está hoy:</b> v0.35.0</span>
+      <span><b>Ancho:</b> 390 pt</span>
+      <span><b>Tema:</b> Abisal Sobrio oscuro, valores de <code>theme.css</code></span>
+      <span><b>Letra:</b> Grande (17 × 1,12), la de fábrica</span>
+    </div>
+  </div>
+
+  <div class="defectos">
+    <h2>Antes de las opciones · dos arreglos que no se eligen</h2>
+    <p>
+      <b>Uno.</b> En <b>Compra</b>, la misma columna de la derecha es dos cosas distintas según de dónde
+      venga la fila: en una línea que sale de una cena, ese control <b>despliega</b> el reparto
+      (<code>▾</code>); en una escrita a mano, <b>borra</b> (<code>×</code>). Mismo sitio, mismo tamaño,
+      mismo <code>btn sm ghost</code>, y uno de los dos destruye. Se arregla, no se vota.
+    </p>
+    <p>
+      <b>Dos.</b> Una <b>cena</b> se borra con un <code>btn sm ghost</code> en minúsculas —«borrar»—
+      metido en la cabecera de su tarjeta. Es el único verbo destructivo de la app que no está ni en rojo,
+      ni detrás de un gesto, ni al fondo de un editor: es el más barato de pulsar de toda la aplicación y
+      el que más se lleva por delante. Sea cual sea la opción que gane, ese botón cambia de sitio.
+    </p>
+  </div>
+
+  <div class="parte">Parte uno · qué protege un borrado</div>
+  <p class="parte-intro">
+    Las cuatro se dibujan sobre <b>el mismo caso</b> —borrar un gasto de 48,60 € desde la lista de Dinero—
+    para que lo único que cambie sea el tratamiento. Debajo de cada teléfono va lo que mide y lo que cuesta.
+  </p>
+
+  <div class="grupo">
+
+    <div class="opcion">
+      <div class="op-cab">
+        <span class="op-letra">A1</span>
+        <span class="op-nombre">Segunda pulsación en el propio verbo</span>
+        <span class="etq base">ya existe</span>
+      </div>
+      <p class="op-idea">
+        El verbo del deslizado cambia a <b>«¿Seguro?»</b> y hay que volver a tocarlo. Es lo que ya hacen
+        quitar la cena del día abierto y salir de la cuenta. No abre nada, no empuja nada, y por eso
+        <b>no puede decir qué se lleva</b>: en 76 pt de ancho no cabe una frase.
+      </p>
+      <div class="tira-tel">
+        <div>
+          <div class="tel" id="tel-a1">
+            <div class="sec-h">Jueves 14</div>
+            <div class="desliz">
+              <div class="tarj">
+                <div class="fila">
+                  <span class="ico comida">🍽️</span>
+                  <span class="txt">
+                    <span class="n">Cena en el chiringuito</span><br>
+                    <span class="s">Comida · pagó Pérez</span>
+                  </span>
+                  <span class="amt">48,60 €</span>
+                </div>
+              </div>
+              <div class="verbo seguro">¿Seguro?</div>
+            </div>
+          </div>
+          <div class="tel-pie" id="pie-a1"></div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Cuesta:</b> el silencio. Quien borra un gasto no ve nunca que acaba de mover el saldo de otras
+        cuatro familias. <b>Lo paga:</b> el que mira Saldos mañana y no entiende el número.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab">
+        <span class="op-letra">A2</span>
+        <span class="op-nombre">Bloque en su sitio, diciendo qué se lleva</span>
+        <span class="etq rec">recomendada</span>
+        <span class="etq base">ya existe</span>
+      </div>
+      <p class="op-idea">
+        El <code>.confirmar</code> de <b>Grupo</b>, tal cual: canto rojo, una frase que nombra la cascada y
+        dos botones —«Quedarme» / «Sí, borrar»—. Aparece <b>bajo la fila</b>, sin tapar nada, y la fila
+        sigue viéndose mientras se decide, que es lo que hace que la pregunta se pueda contestar.
+      </p>
+      <div class="tira-tel">
+        <div>
+          <div class="tel" id="tel-a2">
+            <div class="sec-h">Jueves 14</div>
+            <div class="tarj">
+              <div class="fila">
+                <span class="ico comida">🍽️</span>
+                <span class="txt">
+                  <span class="n">Cena en el chiringuito</span><br>
+                  <span class="s">Comida · pagó Pérez</span>
+                </span>
+                <span class="amt">48,60 €</span>
+              </div>
+            </div>
+            <div class="confirmar" id="conf-a2">
+              <div class="que-se-lleva">
+                Se borra «Cena en el chiringuito», 48,60 € que pagaron los Pérez.
+                Cambia el saldo de <b>4 familias</b>.
+              </div>
+              <div class="grid2">
+                <button class="btn ghost">Quedarme</button>
+                <button class="btn danger">Sí, borrar</button>
+              </div>
+            </div>
+          </div>
+          <div class="tel-pie" id="pie-a2"></div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Cuesta:</b> el alto del bloque, que empuja la lista hacia abajo mientras está abierto.
+        <b>Lo paga:</b> quien borra, durante los dos segundos que tarda en contestar. Es el único de los
+        cuatro que <b>ya está escrito</b> —clase, colores y prueba incluidos—.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab">
+        <span class="op-letra">A3</span>
+        <span class="op-nombre">Capa centrada con la pregunta</span>
+      </div>
+      <p class="op-idea">
+        Un modal en el centro, como el del voto de un plan. Cabe todo lo que haga falta y no depende del
+        ancho de la fila. Pero <b>tapa justo lo que se está decidiendo</b>: la fila desaparece detrás del
+        velo, y lo que se lee es una descripción de algo que ya no se ve.
+      </p>
+      <div class="tira-tel">
+        <div>
+          <div class="tel" id="tel-a3" style="background:#0b1f2c; position:relative; padding:0;">
+            <div style="padding:12px; opacity:.28;">
+              <div class="sec-h">Jueves 14</div>
+              <div class="tarj" style="margin-top:10px;">
+                <div class="fila">
+                  <span class="ico comida">🍽️</span>
+                  <span class="txt"><span class="n">Cena en el chiringuito</span><br>
+                    <span class="s">Comida · pagó Pérez</span></span>
+                  <span class="amt">48,60 €</span>
+                </div>
+              </div>
+            </div>
+            <div style="position:absolute; inset:0; background:rgba(4,18,26,.68); display:flex;
+                        align-items:center; justify-content:center; padding:14px;">
+              <div style="width:100%; background:var(--ab-papel-capa); border:1.5px solid var(--ab-linea-capa);
+                          border-radius:12px; padding:18px 16px; display:flex; flex-direction:column; gap:12px;">
+                <div style="font-size:var(--t-title); font-weight:650;">¿Borrar el gasto?</div>
+                <div class="que-se-lleva">
+                  Se borra «Cena en el chiringuito», 48,60 €. Cambia el saldo de <b>4 familias</b>.
+                </div>
+                <div class="grid2">
+                  <button class="btn ghost">Quedarme</button>
+                  <button class="btn danger">Sí, borrar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tel-pie" id="pie-a3"></div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Cuesta:</b> el contexto. Y va contra lo que ya se decidió en §14.27-bis, donde «Entre» pasó a
+        capa <em>porque era el único sitio que confirmaba arriba</em>: meter aquí una capa vuelve a abrir
+        una figura que se acababa de cerrar. <b>Lo paga:</b> la coherencia del resto de la app.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab">
+        <span class="op-letra">A4</span>
+        <span class="op-nombre">No preguntar: borrar y ofrecer deshacer</span>
+        <span class="etq no">tiene letra pequeña</span>
+      </div>
+      <p class="op-idea">
+        Se borra en el acto y sale una barra unos segundos: <b>«Gasto borrado · Deshacer»</b>. Es el gesto
+        más rápido de los cuatro y el único que no castiga al que sí quería borrar. La letra pequeña es
+        real: <code>removeRow</code> encola un <b>borrar</b> que el servidor aplica, así que deshacer no es
+        revertir, es <b>volver a crear la fila</b> —con otro <code>id</code>—, y eso rompe lo que apuntara
+        a la vieja. En un gasto no apunta nadie; en una cena sí, y su compra ya se habría rehecho.
+      </p>
+      <div class="tira-tel">
+        <div>
+          <div class="tel" id="tel-a4">
+            <div class="sec-h">Jueves 14</div>
+            <div class="tarj">
+              <div class="fila">
+                <span class="ico">🚗</span>
+                <span class="txt"><span class="n">Gasolina</span><br>
+                  <span class="s">Transporte · pagó Solteros</span></span>
+                <span class="amt">62,10 €</span>
+              </div>
+            </div>
+            <div class="barra-deshacer" id="barra-a4">
+              <span class="crece">Gasto borrado</span>
+              <span class="accion">Deshacer</span>
+            </div>
+          </div>
+          <div class="tel-pie" id="pie-a4"></div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Cuesta:</b> una pieza nueva —la barra, su reloj y el rehacer— y una regla distinta por tabla.
+        <b>Lo paga:</b> quien la mantenga. Y no resuelve el caso que motiva la hoja: la barra dice
+        <em>que</em> se borró, no <b>qué se llevó</b>.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="parte">Parte dos · qué dice la pregunta</div>
+  <p class="parte-intro">
+    Elegido el mueble, queda la frase. Se dibujan sobre <b>la cena</b>, que es el caso con cascada de
+    verdad: al borrarla, la lista de la compra se rehace y se van sus ingredientes — salvo los que ya
+    estén marcados como comprados, que se quedan.
+  </p>
+
+  <div class="grupo">
+
+    <div class="opcion">
+      <div class="op-cab">
+        <span class="op-letra">B1</span>
+        <span class="op-nombre">Solo el nombre</span>
+      </div>
+      <div class="tira-tel">
+        <div>
+          <div class="tel" id="tel-b1">
+            <div class="confirmar" style="margin-top:0;" id="conf-b1">
+              <div class="que-se-lleva">¿Borrar la cena del jueves 14?</div>
+              <div class="grid2">
+                <button class="btn ghost">Quedarme</button>
+                <button class="btn danger">Sí, borrar</button>
+              </div>
+            </div>
+          </div>
+          <div class="tel-pie" id="pie-b1"></div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Cuesta:</b> nada de alto, y todo lo demás. Pregunta por lo que ya se ve y calla lo que no.
+      </p>
+    </div>
+
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab">
+        <span class="op-letra">B2</span>
+        <span class="op-nombre">El nombre y la cascada, con su número</span>
+        <span class="etq rec">recomendada</span>
+      </div>
+      <p class="op-idea">
+        Es lo que ya hacen los cuatro de Grupo: «Se borran los Pérez. Su gente se queda sin familia».
+        El número no es adorno — <b>6 líneas</b> y <b>ninguna línea</b> son dos decisiones distintas.
+      </p>
+      <div class="tira-tel">
+        <div>
+          <div class="tel" id="tel-b2">
+            <div class="confirmar" style="margin-top:0;" id="conf-b2">
+              <div class="que-se-lleva">
+                Se borra la cena del jueves 14 (paella, ensalada). Se van <b>6 líneas de la compra</b>
+                que salían de ella; las 2 que ya están compradas se quedan.
+              </div>
+              <div class="grid2">
+                <button class="btn ghost">Quedarme</button>
+                <button class="btn danger">Sí, borrar</button>
+              </div>
+            </div>
+          </div>
+          <div class="tel-pie" id="pie-b2"></div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Cuesta:</b> contar antes de preguntar —hay que saber cuántas líneas salen de esa cena—, y unos
+        pt de alto sobre B1. <b>Lo paga:</b> el código, una vez. Todo lo que hace falta ya está en
+        <code>lib/compra.js</code>.
+      </p>
+    </div>
+
+    <div class="opcion">
+      <div class="op-cab">
+        <span class="op-letra">B3</span>
+        <span class="op-nombre">La cascada solo cuando la hay</span>
+      </div>
+      <p class="op-idea">
+        Como B2, pero si no arrastra nada la frase se queda en una línea. Es lo que ya hace la persona
+        —«Se borra a Marta» a secas cuando no sale en ningún gasto— y evita el «se van 0 líneas», que es
+        una frase que nadie escribiría a mano.
+      </p>
+      <div class="tira-tel">
+        <div>
+          <div class="tel" id="tel-b3">
+            <div class="confirmar" style="margin-top:0;" id="conf-b3">
+              <div class="que-se-lleva">Se borra la cena del jueves 14 (paella, ensalada).</div>
+              <div class="grid2">
+                <button class="btn ghost">Quedarme</button>
+                <button class="btn danger">Sí, borrar</button>
+              </div>
+            </div>
+          </div>
+          <div class="tel-pie" id="pie-b3"></div>
+        </div>
+      </div>
+      <p class="coste">
+        <b>Cuesta:</b> una rama más en el texto. <b>No es alternativa a B2</b>: es B2 con la frase corta
+        cuando no hay nada que contar.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="parte">Parte tres · dónde se pregunta cada uno</div>
+  <p class="parte-intro">
+    No todos los borrados merecen lo mismo. Lo que decide no es el tamaño de la cosa borrada sino
+    <b>si lo que arrastra está en pantalla</b>.
+  </p>
+
+  <div class="env">
+    <table class="tabla">
+      <thead>
+        <tr><th>Qué se borra</th><th>Qué arrastra</th><th>Se ve al borrarlo</th><th>Propuesta</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Gasto</b><br>Dinero → deslizar</td>
+          <td>Recalcula el saldo de todas las familias</td>
+          <td><b>No.</b> El efecto está en otra pantalla</td>
+          <td><span class="cod">A2 + B2</span></td>
+        </tr>
+        <tr>
+          <td><b>Cena</b><br>Comidas → Cenas</td>
+          <td>La compra se rehace; se van sus líneas no compradas</td>
+          <td><b>No.</b> Está en otra área</td>
+          <td><span class="cod">A2 + B2</span></td>
+        </tr>
+        <tr>
+          <td><b>Línea de la compra</b><br>Comidas → Compra</td>
+          <td>Nada. Pero si es manual, <b>no vuelve</b></td>
+          <td>Sí, es la propia fila</td>
+          <td><span class="cod">A1</span> · segunda pulsación</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="combi">
+    <h2>La combinación que propongo: <span class="cod">A2</span> + <span class="cod">B2</span> + <span class="cod">B3</span>, con <span class="cod">A1</span> en la compra</h2>
+    <p>
+      <b>A2</b> porque ya existe, ya tiene sus colores y su prueba, y es la única figura de las cuatro que
+      puede decir qué se lleva sin tapar lo que se está decidiendo. Elegirla además <b>cierra la
+      duplicidad</b>: hoy conviven tres patrones y esto es la ocasión de quedarse con uno.
+    </p>
+    <p>
+      <b>B2 con B3</b> porque el número es la mitad del mensaje y el «0» no se dice. <b>A1 en la compra</b>
+      porque ahí no hay cascada que contar: lo único que hay que evitar es el toque accidental, y para eso
+      la segunda pulsación cuesta 0 pt.
+    </p>
+    <p>
+      Lo que <b>no</b> propongo es A4: deshacer es mejor gesto, pero con la cola de cambios no es revertir
+      sino volver a crear, y encima no contesta la pregunta que abre esta hoja — qué se llevó por delante.
+    </p>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // Las medidas se escriben solas al abrir la hoja: un número a mano en una
+  // maqueta es un número que se queda viejo en cuanto se toca el CSS.
+  const pt = (el) => `${Math.round(el.getBoundingClientRect().height * 10) / 10} pt`;
+  const poner = (id, texto) => { const e = document.getElementById(id); if (e) e.innerHTML = texto; };
+
+  addEventListener('DOMContentLoaded', () => {
+    // Sin número comparativo a propósito: el mérito de A1 no es medir menos
+    // —la fila deslizada es más estrecha y por eso su texto dobla— sino que
+    // **nada de lo que hay debajo se mueve**.
+    poner('pie-a1', `<b>A1</b> — <b>0 pt</b> añadidos: la lista de debajo no se mueve. El verbo cambia de palabra y ya`);
+    poner('pie-a2', `<b>A2</b> — el bloque añade <b>${pt(document.getElementById('conf-a2'))}</b>; el conjunto queda en ${pt(document.getElementById('tel-a2'))}`);
+    poner('pie-a3', `<b>A3</b> — ${pt(document.getElementById('tel-a3'))}, y la fila que se decide queda detrás del velo`);
+    poner('pie-a4', `<b>A4</b> — la barra ocupa <b>${pt(document.getElementById('barra-a4'))}</b> y se va sola`);
+    poner('pie-b1', `<b>B1</b> — ${pt(document.getElementById('conf-b1'))}`);
+    poner('pie-b2', `<b>B2</b> — ${pt(document.getElementById('conf-b2'))}, o sea <b>${Math.round((document.getElementById('conf-b2').getBoundingClientRect().height - document.getElementById('conf-b1').getBoundingClientRect().height) * 10) / 10} pt</b> más que B1`);
+    poner('pie-b3', `<b>B3</b> — ${pt(document.getElementById('conf-b3'))}`);
+  });
+</script>

@@ -81,6 +81,16 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   un log de compilación con `exit 0` detrás — **un aviso que nadie lee dice lo mismo que no
   haber comprobado nada**—. `scripts/revision-de-avisos.mjs` relee los tres ficheros al
   final, dice el arreglo de cada uno y **falla** si falta alguno.
+- **Borrar pregunta, y la pregunta dice qué se lleva** (SPECS §14.38,
+  `docs/diseño/borrar-confirmaciones.html` · A2·B2·B3·A1): nueve borrados ya confirmaban
+  y tres no —gasto, cena y línea de la compra—, que no eran los más pequeños sino los que
+  mueven **lo que quien borra no tiene delante**. Convivían tres figuras sin haber elegido
+  ninguna: gana el bloque en sitio (`components/Confirmar.jsx`, el de Grupo), porque es la
+  única que nombra la cascada **sin tapar la fila que se decide**. El texto lo compone
+  `lib/borrados.js`, puro: el gasto dice a cuántas familias les mueve el saldo, la cena
+  cuántas líneas de la compra se caen —hay que **calcularlo**, porque una línea no apunta a
+  su cena— y **el cero no se dice**. En la compra, segunda pulsación y control propio: el
+  aspa era el mismo botón que en una línea de cena despliega el reparto.
 - **Una receta lleva cantidades, y de ahí sale la compra** (SPECS §14.20,
   `docs/diseño/cenas-cantidades.html` · G2·A1·C1·D5·E2·F1): el plato dice **para cuántas
   raciones** es (`raciones`) y cada ingrediente **cuánto**; estirarlo a la gente que hay es

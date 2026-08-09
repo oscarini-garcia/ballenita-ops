@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.36.0',
+    fecha: '2026-08-09',
+    titulo: 'Borrar pregunta, y dice qué se lleva por delante',
+    lineas: [
+      'Un gasto ya no se borra con el deslizamiento: pregunta antes, y cuenta a cuántas familias les mueve el saldo — que es lo que pasa en otra pantalla y no se veía.',
+      'Una cena tampoco: su «borrar» baja al fondo de la tarjeta y dice cuántas líneas de la compra se caen con ella, y que lo ya comprado se queda.',
+      'Y en la compra, el aspa de una línea escrita a mano pide una segunda pulsación. Antes era el mismo control que en las líneas de cena despliega el reparto.',
+    ],
+  },
+  {
     version: '0.35.0',
     fecha: '2026-08-09',
     titulo: 'El aviso de prueba espera a que llegue',

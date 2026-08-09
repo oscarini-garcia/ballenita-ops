@@ -1431,6 +1431,17 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
   white-space: nowrap; flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; }
 .compra-cant.falta { font-weight: 500; font-style: italic; color: var(--ink-faint); }
 
+/* Quitar una línea escrita a mano (docs/diseño/borrar-confirmaciones.html · A1).
+   Lleva el color de lo que destruye para no parecer el hermano del chevron que
+   tiene al lado —eran el mismo `btn sm ghost` y uno de los dos borraba—, y la
+   segunda pulsación se anuncia rellenándolo: al pedir confirmación, el control
+   deja de ser el mismo que se acaba de tocar. Ancho mínimo para que la fila no
+   dé un salto al cambiar la papelera por «¿Seguro?». */
+.quitar { color: var(--owe); border-color: color-mix(in srgb, var(--owe) 40%, transparent);
+  min-width: 78px; text-align: center; }
+.quitar.seguro { background: var(--owe); border-color: var(--owe); color: var(--foam-2);
+  font-weight: 650; }
+
 /* Un verbo dentro de una frase —«deshacer»— sin vestirlo de botón: es la salida
    del arreglo con IA (§14.20-bis · R1), y tiene que estar a mano sin gritar. */
 .como-enlace { background: none; border: none; padding: 0; font: inherit;
