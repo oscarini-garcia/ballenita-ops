@@ -197,7 +197,29 @@ test('las claves de config.json se ven leídas de las dos formas', () => {
   assert.doesNotMatch(claves, /sin leer/, 'una clave que el código lee sale marcada como no leída');
 });
 
+/**
+ * El mapa lo inyecta el hook de `SessionStart` en cada sesión, así que su tamaño
+ * es un coste de contexto que se paga siempre. El tope no es un número sagrado:
+ * es lo que obliga a mirar cuando crece.
+ *
+ * Saltó al añadir `revision-de-avisos.mjs` —crecimiento legítimo, un módulo
+ * nuevo— y al mirarlo apareció grasa de verdad: el apartado de qué parte del
+ * spec implementa cada módulo listaba **dieciséis** ficheros en §14.9, que es
+ * media aplicación escrita en una línea. Cortados a seis, con lo que se ahorra
+ * el tope sube a 420: el sitio para unos cuantos módulos más antes de que toque
+ * volver a mirar.
+ */
 test('el mapa cabe en el presupuesto de contexto', () => {
   const lineas = execFileSync('node', [MAPA, '--contexto'], { encoding: 'utf8' }).split('\n').length;
-  assert.ok(lineas < 380, `el mapa se ha ido a ${lineas} líneas; el presupuesto son ~350`);
+  assert.ok(lineas < 420, `el mapa se ha ido a ${lineas} líneas; el presupuesto son ~400`);
+});
+
+test('ningún renglón del spec se lleva media aplicación por delante', () => {
+  const salida = execFileSync('node', [MAPA, '--contexto'], { encoding: 'utf8' });
+  const renglones = salida.split('\n').filter((l) => /^- \*\*§/.test(l));
+  assert.ok(renglones.length > 0, 'el apartado del spec ha desaparecido');
+  for (const renglon of renglones) {
+    const cuantos = (renglon.match(/`/g)?.length ?? 0) / 2;
+    assert.ok(cuantos <= 6, `«${renglon.slice(0, 60)}…» nombra ${cuantos} módulos; el corte son 6`);
+  }
 });

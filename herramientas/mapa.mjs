@@ -603,8 +603,15 @@ function componer() {
   if (spec.length) {
     cuerpo.push('## Qué parte del spec implementa cada módulo', '');
     cuerpo.push('Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.', '');
+    // Se cortan a seis, con el mismo «+N más» que los símbolos de un módulo.
+    // Un apartado transversal como §14.9 llegó a listar dieciséis ficheros, y
+    // «todo toca la sincronización» no es un dato: es la mitad del repositorio
+    // escrita en una línea que nadie lee entera. Los seis primeros dicen por
+    // dónde se entra, que es para lo que se viene a este apartado.
     for (const fila of spec) {
-      cuerpo.push(`- **§${fila.cita}** ${fila.titulo} → ${fila.modulos.map((m) => `\`${m}\``).join(', ')}`);
+      const [pocos, resto] = [fila.modulos.slice(0, 6), fila.modulos.length - 6];
+      const lista = pocos.map((m) => `\`${m}\``).join(', ') + (resto > 0 ? ` · +${resto} más` : '');
+      cuerpo.push(`- **§${fila.cita}** ${fila.titulo} → ${lista}`);
     }
     cuerpo.push('');
   }
