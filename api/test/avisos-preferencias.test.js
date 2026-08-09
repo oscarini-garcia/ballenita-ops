@@ -112,3 +112,27 @@ test('una cuenta sin persona no recibe avisos de cambios: no se sabe qué le toc
 
   assert.deepEqual(await tokensParaAviso(db, { clase: 'dinero' }), []);
 });
+
+/**
+ * El caso que se vio en pantalla: «he cambiado mi estado y no me llega nada».
+ *
+ * Nombrar `c.avisosClases` en el `SELECT` hacía que **toda** la consulta
+ * reventara mientras la migración 0014 no estuviera aplicada — y con ella se
+ * caían hasta los avisos que ya funcionaban, en silencio, porque el `catch` del
+ * Worker se lo tragaba. Sin nombrarla, la columna que falta llega como
+ * `undefined`, que es el caso que ya estaba escrito: lo que no está dicho, está
+ * encendido.
+ */
+test('sin la migración 0014, los avisos siguen saliendo con todo encendido', async () => {
+  const db = baseDePrueba();
+  const cuenta = await nueva(db, { nombre: 'Óscar' });
+  await enlazarCuentaConPersona(db, cuenta.id, 'p1');
+  await conAparato(db, cuenta, 'tok');
+
+  // Se le quita la columna a la base, como estaba antes de aplicarla.
+  await db.prepare('ALTER TABLE cuenta DROP COLUMN avisosClases').run();
+
+  assert.deepEqual(await tokensParaAviso(db, { clase: 'estado' }), ['tok']);
+  assert.deepEqual(await tokensDeAdministradores(db, { clase: 'solicitud' }), ['tok']);
+  assert.deepEqual(await avisosDeCuenta(db, cuenta.id), {});
+});

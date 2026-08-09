@@ -3620,6 +3620,17 @@ nadie más. Ahora avisan de tres, y se puede elegir.
   teléfonos. Lo mismo con el estado: la app manda la fila entera de la persona al
   corregir un apodo, así que se compara con lo que había.
 
+- **✅ Y una columna que falta no puede apagarlo todo.** Nombrar `c.avisosClases`
+  en el `SELECT` hacía que **toda** la consulta reventara mientras la migración
+  `0014` no estuviera aplicada — y con ella se caían hasta los avisos que ya
+  funcionaban, **en silencio**, porque el `catch` del Worker se lo tragaba. Se
+  vio con esas palabras: «he cambiado mi estado y no me llega nada». Ahora las
+  lecturas no la nombran (`c.*`), así que la columna ausente llega como
+  `undefined` y cae en el caso que ya estaba escrito: lo que no está dicho, está
+  encendido. **Escribir** las preferencias sí la necesita, y ahí el error se ve
+  en su sitio. El `catch` deja además de ser mudo: sale por el log del Worker,
+  que es donde se mira cuando alguien dice que no le llega nada.
+
 ### 14.39-bis La hoja de una mejora es un cuaderno, no un renglón
 
 Una mejora admite **2000 letras** (§14.22) y su hoja medía 380 pt de ancho con

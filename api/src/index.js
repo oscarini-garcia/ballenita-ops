@@ -333,8 +333,12 @@ async function recibirCambios(peticion, env) {
   // guardado, y un APNs lento no puede dejar al móvil esperando su sincronía.
   try {
     await avisarDeLosCambios(env, { cambios, resultados, instantanea, cuenta });
-  } catch {
-    /* un aviso que no sale no puede tumbar el cambio que lo provocó */
+  } catch (error) {
+    // Un aviso que no sale no puede tumbar el cambio que lo provocó — pero
+    // tragárselo **en silencio** es lo que ya costó cuatro vueltas en este mismo
+    // apartado. Sale por el log del Worker (`wrangler tail`), que es donde se
+    // mira cuando alguien dice «he cambiado mi estado y no me llega nada».
+    console.error('[avisos] no se ha podido avisar de los cambios:', String(error?.message || error));
   }
 
   return json({ resultados, instantanea });
