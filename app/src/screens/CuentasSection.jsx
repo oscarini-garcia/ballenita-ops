@@ -465,6 +465,16 @@ export function NotificacionesSection() {
                     && `🐳 Ha llegado a este móvil. Con la app abierta iOS no saca el globo aunque el aviso esté entregado: ciérrala del todo y vuelve a probar para verlo en la pantalla de bloqueo.`}
                   {prueba.enviados > 0 && !prueba.llego && `🐳 ${SIN_ENTREGA}`}
                   {!(prueba.enviados > 0) && `🐳 No salió: ${prueba.motivo}`}
+                  {/* Salió, pero por el servidor de enfrente. Ya no rompe nada
+                      —antes borraba el registro del móvil— y aun así hay que
+                      decirlo: cuesta una petición de más en cada aviso. */}
+                  {prueba.entornoCruzado && (
+                    <>
+                      {' '}Ojo: ha salido por el <b>otro</b> servidor de APNs. El binario y{' '}
+                      <code>APNS_ENTORNO</code> no coinciden — TestFlight y la App Store firman
+                      «production»; Xcode, «development».
+                    </>
+                  )}
                 </div>
               )}
             </>

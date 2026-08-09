@@ -452,6 +452,10 @@ async function pruebaDePush(peticion, env) {
     enviados,
     de: tokens.length,
     motivo: enviados > 0 ? null : (resultados.find((r) => !r.ok)?.motivo ?? 'Apple no lo aceptó.'),
+    // Salió, pero por el servidor de enfrente: `APNS_ENTORNO` no coincide con
+    // cómo está firmado el binario. Ya no rompe nada —antes borraba el token—,
+    // pero cuesta una petición de más en cada aviso y hay que corregirlo.
+    entornoCruzado: resultados.some((r) => r.ok && r.entornoCruzado) || undefined,
   });
 }
 

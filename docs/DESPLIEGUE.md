@@ -135,9 +135,21 @@ contenido entero del fichero —con sus dos guardas `-----BEGIN/END PRIVATE
 KEY-----`— es el valor de `APNS_CLAVE_P8`; el *Key ID* de diez caracteres es
 `APNS_CLAVE_ID`, y `APPLE_EQUIPO` es el Team ID.
 
-Mientras pruebes en un móvil conectado a Xcode, el aviso sale por el servidor de
-pruebas de Apple: `APNS_ENTORNO = "pruebas"` en `wrangler.toml`. Con el binario
-de la App Store, quítalo (o ponlo a `produccion`).
+APNs son **dos servidores distintos** y un token de uno no vale en el otro. Lo
+elige `APNS_ENTORNO` en `wrangler.toml`, y tiene que casar con **cómo llegó la
+app al teléfono**:
+
+| Cómo se instaló | `aps-environment` del binario | `APNS_ENTORNO` |
+| --- | --- | --- |
+| A mano desde Xcode | `development` | `pruebas` |
+| TestFlight o App Store | `production` | `produccion` |
+
+Es el fallo que más tiempo cuesta porque **no se parece a su causa**: Apple
+contesta `BadDeviceToken`, que es lo mismo que contesta el token de un teléfono
+que desinstaló la aplicación. `apns.js` lo reintenta contra el otro servidor
+antes de darlo por muerto —así un desajuste ya no borra el registro de nadie— y
+la prueba de Ajustes te dice que ha salido cruzado. Pero eso es un colchón, no
+la solución: el valor hay que corregirlo y **volver a desplegar el Worker**.
 
 #### La capacidad se activa por App ID, y la clave no
 

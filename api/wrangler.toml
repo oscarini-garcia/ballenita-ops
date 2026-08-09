@@ -29,9 +29,17 @@ ORIGENES_PERMITIDOS = "http://localhost:5173"
 # Audiencia admitida del token de Apple: el identificador del paquete de la app.
 # No hay Services ID porque no hay acceso con Apple en la web.
 APPLE_AUD_IOS = "com.garciadoral.ballenitaops"
-# Servidor de APNs: "pruebas" mientras se prueba desde Xcode, "produccion" con el
-# binario de la App Store. Sin claves de APNs no se empuja nada y no pasa nada.
-APNS_ENTORNO = "pruebas"
+# Servidor de APNs. **TestFlight y la App Store firman `production`**, y desde
+# que la app se instala por ahí este es el valor bueno; "pruebas" solo vale para
+# un binario puesto a mano desde Xcode, que firma `development`.
+#
+# Cruzarlos no es un fallo cualquiera: Apple contesta `BadDeviceToken`, que es lo
+# mismo que contesta un token muerto. Hasta ahora eso **borraba el registro del
+# teléfono** — mismo síntoma que una desinstalación, causa distinta y ninguna
+# pista. `apns.js` lo reintenta ya contra el otro servidor antes de darlo por
+# muerto, así que un desajuste aquí cuesta una petición de más, no los avisos de
+# todo el grupo. Sin claves de APNs no se empuja nada y no pasa nada.
+APNS_ENTORNO = "produccion"
 
 # Secretos, que NO van aquí. Se registran con `wrangler secret put`:
 #   SESION_SECRETO  · clave con la que este Worker firma las sesiones

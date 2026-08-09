@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.36.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+- **`app/`** v0.36.1 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
   812 pruebas en 87 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  176 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  179 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -64,7 +64,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 
 - `APNS_CLAVE_ID` — no declarada en `wrangler.toml` (secreto u opcional)
 - `APNS_CLAVE_P8` — no declarada en `wrangler.toml` (secreto u opcional)
-- `APNS_ENTORNO` — `[vars]` = "pruebas"
+- `APNS_ENTORNO` — `[vars]` = "produccion"
 - `APNS_TOPICO` — no declarada en `wrangler.toml` (secreto u opcional)
 - `APPLE_AUD_IOS` — `[vars]` = "com.garciadoral.ballenitaops"
 - `APPLE_AUD_WEB` — no declarada en `wrangler.toml` (secreto u opcional)
