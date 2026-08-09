@@ -16,6 +16,23 @@
  */
 export const NOTAS = [
   {
+    version: '0.38.0',
+    fecha: '2026-08-09',
+    titulo: 'En Comidas, «Platos» pasa a llamarse «Carta»',
+    lineas: [
+      'Es el catálogo de lo que sabéis cocinar, y «Platos» se confundía con los platos de esa cena, que son los que se marcan en Cenas y en el día.',
+    ],
+  },
+  {
+    version: '0.37.1',
+    fecha: '2026-08-09',
+    titulo: 'Los avisos no esperan a la migración para volver a sonar',
+    lineas: [
+      'Con la base todavía sin poner al día, los avisos nuevos tumbaban también a los que ya funcionaban, y sin decir nada.',
+      'Ahora, mientras falte la migración, todo se considera encendido y los avisos salen igual. Elegir cuáles recibir sí necesita aplicarla, en Ajustes → Actualizar.',
+    ],
+  },
+  {
     version: '0.37.0',
     fecha: '2026-08-09',
     titulo: 'Eliges de qué avisarte, y hay dos avisos nuevos',

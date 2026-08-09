@@ -539,7 +539,12 @@ export async function tokensDeCuenta(db, cuentaId) {
 export async function tokensDeAdministradores(db, { clase = null, exceptoCuentaId = null } = {}) {
   const f = await filas(
     db,
-    `SELECT d.tokenPush AS token, c.id AS cuentaId, c.avisosClases AS clases
+    // `c.*` y no `c.avisosClases`: nombrar la columna hace que **toda** la
+    // consulta reviente mientras la migración 0014 no esté aplicada, y con ella
+    // se caían hasta los avisos que ya funcionaban. Sin nombrarla, la columna
+    // que falta llega como `undefined`, que es el caso que ya estaba escrito:
+    // lo que no está dicho, está encendido.
+    `SELECT d.tokenPush AS token, c.*
        FROM dispositivo d
        JOIN cuenta c ON c.id = d.cuentaId
       WHERE c.rol = 'administrador' AND c.activa = 1
@@ -572,7 +577,10 @@ export const quiereLaClase = (crudo, clase) => clasesDeAviso(crudo)[clase] !== f
 
 /** Las que ha apagado, para pintarlas en Ajustes. */
 export async function avisosDeCuenta(db, cuentaId) {
-  const fila = await db.prepare('SELECT avisosClases FROM cuenta WHERE id = ?').bind(cuentaId).first();
+  // Sin nombrar la columna, por lo mismo: leer las preferencias no puede romper
+  // por una migración que todavía no se ha aplicado. Escribirlas sí la necesita,
+  // y ahí el error se ve en su sitio (la pantalla de Ajustes lo enseña).
+  const fila = await db.prepare('SELECT * FROM cuenta WHERE id = ?').bind(cuentaId).first();
   return clasesDeAviso(fila?.avisosClases);
 }
 
@@ -588,11 +596,17 @@ export async function guardarAvisosDeCuenta(db, cuentaId, clases) {
   return apagadas;
 }
 
-/** El filtro común: fuera quien apagó la clase, y fuera quien lo provocó. */
+/**
+ * El filtro común: fuera quien apagó la clase, y fuera quien lo provocó.
+ *
+ * Las filas llegan con `c.*`, así que la cuenta es `id` y sus preferencias son
+ * `avisosClases` —que puede no venir si la migración 0014 no está aplicada, y
+ * entonces `quiereLaClase` contesta que sí, que es lo correcto—.
+ */
 function filtrarPorClase(f, { clase, exceptoCuentaId }) {
   return f
-    .filter((x) => !exceptoCuentaId || x.cuentaId !== exceptoCuentaId)
-    .filter((x) => !clase || quiereLaClase(x.clases, clase))
+    .filter((x) => !exceptoCuentaId || x.id !== exceptoCuentaId)
+    .filter((x) => !clase || quiereLaClase(x.avisosClases, clase))
     .map((x) => x.token);
 }
 
@@ -608,7 +622,7 @@ function filtrarPorClase(f, { clase, exceptoCuentaId }) {
 export async function tokensParaAviso(db, { clase, personIds = null, exceptoCuentaId = null }) {
   const f = await filas(
     db,
-    `SELECT d.tokenPush AS token, c.id AS cuentaId, c.personId AS personId, c.avisosClases AS clases
+    `SELECT d.tokenPush AS token, c.*
        FROM dispositivo d
        JOIN cuenta c ON c.id = d.cuentaId
       WHERE c.activa = 1 AND c.personId IS NOT NULL

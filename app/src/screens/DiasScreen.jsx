@@ -410,7 +410,7 @@ function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCance
     >
       {platos.length === 0 && (
         <div className="note" style={{ marginTop: 10 }}>
-          El catálogo está vacío. Los platos se crean en Comidas → Platos.
+          El catálogo está vacío. Los platos se crean en Comidas → Carta.
         </div>
       )}
       {platos.length > 0 && visibles.length === 0 && (
@@ -434,7 +434,7 @@ function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCance
         </div>
       )}
       <div className="apunte" style={{ marginTop: 10 }}>
-        Los platos se crean y se corrigen en Comidas → Platos.
+        Los platos se crean y se corrigen en Comidas → Carta.
       </div>
       {/* Quitar la cena vive aquí, con segunda pulsación (dia-abierto.html ·
           H1). Es la única salida del elegidor que escribe sin «Listo»: es un
