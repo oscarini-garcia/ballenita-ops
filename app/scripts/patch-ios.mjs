@@ -11,6 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { conAvisosDeRegistro } from './appdelegate.mjs'
 import { ENTITLEMENTS_NUEVO, conEntitlementEnProyecto, conPermisoDeAvisos } from './entitlements.mjs'
+import { lineasDeRevision, revisionDeAvisos } from './revision-de-avisos.mjs'
 
 const IOS_APP = 'ios/App/App'
 
@@ -292,20 +293,42 @@ if (existsSync(adPath)) {
 const sbPath = join(IOS_APP, 'Base.lproj', 'Main.storyboard')
 if (!existsSync(sbPath)) {
   console.warn('[patch-ios] ⚠ No encuentro Main.storyboard. Pon la clase de la vista a "MainViewController" a mano en Xcode (ver docs/IOS.md).')
-  process.exit(0)
+} else {
+  let sb = readFileSync(sbPath, 'utf8')
+  if (sb.includes('customClass="MainViewController"')) {
+    console.log('[patch-ios] Storyboard ya apunta a MainViewController.')
+  } else if (sb.includes('customClass="CAPBridgeViewController" customModule="Capacitor"')) {
+    sb = sb.replace(
+      'customClass="CAPBridgeViewController" customModule="Capacitor"',
+      'customClass="MainViewController" customModuleProvider="target"',
+    )
+    writeFileSync(sbPath, sb)
+    console.log('[patch-ios] Storyboard apuntado a MainViewController. Rebote desactivado ✅')
+  } else {
+    console.warn('[patch-ios] ⚠ No reconozco el view controller del storyboard (¿versión de Capacitor distinta?).')
+    console.warn('[patch-ios]   Ponlo a mano: en Main.storyboard, clase de la vista → "MainViewController". Ver docs/IOS.md.')
+  }
 }
 
-let sb = readFileSync(sbPath, 'utf8')
-if (sb.includes('customClass="MainViewController"')) {
-  console.log('[patch-ios] Storyboard ya apunta a MainViewController.')
-} else if (sb.includes('customClass="CAPBridgeViewController" customModule="Capacitor"')) {
-  sb = sb.replace(
-    'customClass="CAPBridgeViewController" customModule="Capacitor"',
-    'customClass="MainViewController" customModuleProvider="target"',
-  )
-  writeFileSync(sbPath, sb)
-  console.log('[patch-ios] Storyboard apuntado a MainViewController. Rebote desactivado ✅')
-} else {
-  console.warn('[patch-ios] ⚠ No reconozco el view controller del storyboard (¿versión de Capacitor distinta?).')
-  console.warn('[patch-ios]   Ponlo a mano: en Main.storyboard, clase de la vista → "MainViewController". Ver docs/IOS.md.')
-}
+// 7) Y al final, releer y decir si este binario podrá avisar.
+//
+// El `process.exit(0)` del storyboard se retiró para que esto corra siempre:
+// salirse a mitad para ahorrarse tres comprobaciones es lo que dejó el resumen
+// sin imprimir en el único caso raro.
+//
+// Esto nace de un fallo que costó cuatro vueltas y que no era ninguna de las
+// cosas que se miraron: el `AppDelegate` no tenía el reenvío de APNs, así que el
+// permiso se concedía, `register()` devolvía bien y no llegaba **ni token ni
+// error, nunca**. Lo que hizo que durase cuatro vueltas no fue la causa: fue que
+// esto se avisaba con un `console.warn` en medio de un log de compilación, se
+// seguía adelante y se terminaba en verde. Un aviso que nadie lee y un `exit 0`
+// dicen exactamente lo mismo que no haber comprobado nada.
+const revision = revisionDeAvisos({
+  appDelegate: existsSync(adPath) ? readFileSync(adPath, 'utf8') : null,
+  entitlements: existsSync(entPath) ? readFileSync(entPath, 'utf8') : null,
+  proyecto: existsSync(pbxPath) ? readFileSync(pbxPath, 'utf8') : null,
+})
+for (const linea of lineasDeRevision(revision)) console.log(linea)
+// Falla a propósito: archivar un binario que no puede avisar es trabajo perdido
+// que no se descubre hasta tener el teléfono en la mano.
+if (!revision.every((r) => r.bien)) process.exitCode = 1

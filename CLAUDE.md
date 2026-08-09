@@ -75,6 +75,12 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   ausencia en `Capacitor.Plugins` **es** la respuesta (`JSExport.swift` la escribe
   `atDocumentStart`), así que `plugin()` es síncrona y el renglón lleva `informeDelPuente()`:
   con `Haptics` y sin `PushNotifications`, el binario es viejo; sin ninguno, falla el puente.
+  **Al final era el `AppDelegate` sin el reenvío**, y el aviso llevaba dado desde el
+  principio: la copia local iba en la **v0.10.1** y su `patch-ios.mjs` no traía ese paso.
+  Lo que hizo que durase cuatro vueltas no fue la causa sino el `console.warn` en medio de
+  un log de compilación con `exit 0` detrás — **un aviso que nadie lee dice lo mismo que no
+  haber comprobado nada**—. `scripts/revision-de-avisos.mjs` relee los tres ficheros al
+  final, dice el arreglo de cada uno y **falla** si falta alguno.
 - **Una receta lleva cantidades, y de ahí sale la compra** (SPECS §14.20,
   `docs/diseño/cenas-cantidades.html` · G2·A1·C1·D5·E2·F1): el plato dice **para cuántas
   raciones** es (`raciones`) y cada ingrediente **cuánto**; estirarlo a la gente que hay es

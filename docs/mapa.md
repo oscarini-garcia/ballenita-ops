@@ -10,7 +10,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 ## Las dos piezas
 
 - **`app/`** v0.34.3 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  774 pruebas en 83 ficheros · `npm test` → `vitest run`
+  781 pruebas en 84 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   176 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -326,6 +326,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ conPermisoDeAvisos, conEntitlementEnProyecto, APS_ENVIRONMENT, ENTITLEMENTS_NUEVO
 - `iconos-web.mjs` — Los iconos de la web y de la PWA, sacados de `assets/icon.png`.
 - `patch-ios.mjs` — Aplica al proyecto iOS generado por Capacitor lo que no cabe en la web: el fix del rebote (rubber-band) del scroll, la declaración de que esto es una app de iPhone, el cumplimiento de expor…
+- `revision-de-avisos.mjs` — Lo que tiene que estar puesto en el binario para que los avisos existan, leído **después** de haberlo escrito.
+  ↳ revisionDeAvisos, lineasDeRevision
 
 **`herramientas/`**
 

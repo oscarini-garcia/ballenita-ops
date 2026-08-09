@@ -1351,6 +1351,24 @@ sitio donde se quedaba no era ninguno de los que este apartado había mirado
   `atDocumentStart`). Así que `plugin()` es ahora **síncrona**: si no está,
   `SIN_PLUGIN` en el acto. Cambiar una certeza instantánea por seis segundos de
   espera para acabar dando la respuesta equivocada es el peor de los dos tratos.
+- **✅ Era el `AppDelegate`, y el aviso estaba dado desde el principio.** El
+  renglón acabó diciendo que Apple no contestaba nada, y `grep -c
+  didRegisterForRemoteNotifications ios/App/App/AppDelegate.swift` devolvió
+  **`0`**: el reenvío no estaba. El porqué no fue el código sino **la copia
+  local**, que iba en la **v0.10.1** —diez versiones por detrás—, y el
+  `patch-ios.mjs` de aquella versión **no traía ese paso**: en su salida se ve
+  saltar del permiso de avisos al storyboard sin nombrarlo. La causa, entonces,
+  no era ninguna de las cuatro que se miraron, y por eso `sync:ios` daba verde.
+- **✅ Y por eso `patch-ios.mjs` termina revisando y falla si falta algo**
+  (`scripts/revision-de-avisos.mjs`). Lo que hizo que esto durase cuatro vueltas
+  no fue la causa: fue que se avisaba con un `console.warn` **en medio de un log
+  de compilación**, se seguía adelante y se terminaba en verde. **Un aviso que
+  nadie lee y un `exit 0` dicen exactamente lo mismo que no haber comprobado
+  nada.** Ahora relee los tres ficheros al final, imprime los tres renglones con
+  su arreglo debajo, y **sale con error** si alguno falta: archivar un binario
+  que no puede avisar es trabajo perdido que no se descubre hasta tener el
+  teléfono en la mano. El `process.exit(0)` del storyboard se retiró para que el
+  resumen corra siempre.
 - **✅ El silencio de Apple tiene su propia causa, y no la que se decía**
   (`SIN_TOKEN_PORQUE`). Con el primer eslabón resuelto, el renglón pasó a pararse
   en el tercero, y ahí las dos pantallas que lo enseñaban decían **cosas
