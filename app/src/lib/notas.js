@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.35.0',
+    fecha: '2026-08-09',
+    titulo: 'El aviso de prueba espera a que llegue',
+    lineas: [
+      'Antes decía «mandado» y se callaba, y eso solo quiere decir que Apple lo aceptó. Ahora espera doce segundos a que el aviso llegue de vuelta a este móvil y cuenta lo que pasó.',
+      'Si llega, te dice por qué no lo ves: con la app abierta iOS no saca el globo. Ciérrala del todo y prueba otra vez.',
+      'Si no llega, lo primero que nombra es el entorno de APNs, que es la causa que más veces es y la única que no da ningún error.',
+    ],
+  },
+  {
     version: '0.34.3',
     fecha: '2026-08-09',
     titulo: 'El renglón de Apple dice qué ha pasado, no solo dónde',

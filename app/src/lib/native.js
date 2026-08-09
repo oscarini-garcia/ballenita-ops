@@ -258,6 +258,10 @@ export const PLAZOS = {
   // Lo que se espera al identificador de APNs. Llega en menos de un segundo con
   // red; si no llega, es que no va a llegar.
   registro: 8000,
+  // Lo que se le da a un aviso para cruzar Apple y volver. Va holgado a
+  // propósito: aquí no se está diagnosticando el aparato sino la entrega, y APNs
+  // no promete cuándo.
+  aviso: 12000,
 }
 
 async function conPlazo(promesa, ms = PLAZOS.puente) {
@@ -295,6 +299,20 @@ export const PASOS_DE_PUSH = ['plugin', 'permiso', 'apple', 'servidor']
  * `AppDelegate` del binario instalado no reenvía la respuesta de APNs. Es lo que
  * repone `scripts/appdelegate.mjs` en cada `sync:ios`, y no viaja por OTA.
  */
+/**
+ * Que Apple lo acepte y que el teléfono lo reciba son **dos cosas**, y hasta
+ * ahora la prueba solo sabía la primera: «mandado» es un 200 del servidor de
+ * APNs y nada más. El tramo de después no se miraba, y ahí está la causa que más
+ * veces es —el entorno—, que además no da ningún error: APNs contesta que sí y
+ * tira el aviso.
+ */
+export const SIN_ENTREGA = [
+  'Apple lo aceptó y no ha llegado a este móvil en doce segundos.',
+  'Lo primero a mirar es el entorno: un binario instalado desde Xcode firma «development» y el Worker tiene que hablar con el APNs de pruebas (APNS_ENTORNO), mientras que uno de TestFlight o la App Store firma «production».',
+  'Si no coinciden, Apple acepta el envío y no entrega nada.',
+  'Después, el modo concentración y los avisos de la app en los Ajustes de iOS.',
+].join(' ')
+
 export const SIN_TOKEN_PORQUE = [
   'Permiso dado, y Apple no ha contestado ni con identificador ni con error en ocho segundos.',
   'No es un permiso que le falte al binario: eso llega con mensaje, no con silencio.',
@@ -386,6 +404,50 @@ export async function registerPush({ alPaso } = {}) {
   } finally {
     clearTimeout(reloj)
     for (const asa of asas) await asa?.remove?.()
+  }
+}
+
+/**
+ * Un oído puesto a que llegue un aviso, que es el eslabón que faltaba por mirar.
+ *
+ * «Mandado» era todo lo que sabía decir la prueba, y eso es solo que **Apple lo
+ * aceptó**: un 200 del servidor de APNs. Entre eso y que el teléfono lo enseñe
+ * hay un tramo entero que no se estaba mirando, y en el que cabe justo lo que
+ * pasaba —el aviso llega y **con la aplicación abierta iOS no pinta nada**, a
+ * menos que se declaren `presentationOptions` en `capacitor.config.json`, cosa
+ * que es del binario y no viaja por OTA—. Sin esto, «ha llegado y no se ve» y
+ * «no ha llegado» son la misma pantalla, y se arreglan en sitios distintos.
+ *
+ * Se devuelve el oído **antes** de mandar y no una espera después, porque el
+ * aviso puede volver antes que la respuesta del servidor: ponerlo después es la
+ * misma carrera perdida que ya costó el token de APNs.
+ */
+export async function escucharUnAviso(ms = PLAZOS.aviso) {
+  const sordo = { llegada: Promise.resolve(null), soltar: async () => {} }
+  if (!isNative()) return sordo
+  let PushNotifications
+  try {
+    PushNotifications = plugin()
+  } catch {
+    return sordo
+  }
+  let dar
+  const visto = new Promise((cumplir) => { dar = cumplir })
+  let asa
+  try {
+    asa = await conPlazo(Promise.resolve(
+      PushNotifications.addListener('pushNotificationReceived', (n) => dar(n ?? true)),
+    ))
+  } catch {
+    return sordo
+  }
+  let reloj
+  const plazo = new Promise((acaba) => { reloj = setTimeout(() => acaba(null), ms) })
+  return {
+    llegada: Promise.race([visto, plazo]),
+    // Se suelta siempre: un escucha por cada prueba es una fuga con forma de
+    // aviso contado dos veces.
+    soltar: async () => { clearTimeout(reloj); await asa?.remove?.() },
   }
 }
 

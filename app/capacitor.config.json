@@ -13,6 +13,9 @@
     "CapacitorUpdater": {
       "autoUpdate": false,
       "resetWhenUpdate": true
+    },
+    "PushNotifications": {
+      "presentationOptions": ["alert", "sound", "badge"]
     }
   }
 }

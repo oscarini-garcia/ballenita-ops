@@ -10,7 +10,7 @@ import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, li
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
-import { SIN_PLUGIN, SIN_TOKEN_PORQUE, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
+import { SIN_ENTREGA, SIN_PLUGIN, SIN_TOKEN_PORQUE, escucharUnAviso, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
 import { asegurarPush } from '../lib/push.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
@@ -394,10 +394,26 @@ export function NotificacionesSection() {
         setPrueba({ enviados: 0, motivo: SIN_TOKEN_PORQUE })
         return
       }
-      empujar('Mandando el aviso')
-      const salida = await probarPush()
-      cerrar(salida?.enviados > 0 ? 'hecho' : 'fallo', salida?.motivo)
-      setPrueba(salida)
+      // El oído se pone **antes** de mandar: el aviso puede volver antes que la
+      // respuesta del servidor, y ponerlo después es la misma carrera perdida
+      // que ya costó el token de APNs.
+      const oido = await escucharUnAviso()
+      try {
+        empujar('Mandando el aviso')
+        const salida = await probarPush()
+        if (!(salida?.enviados > 0)) {
+          cerrar('fallo', salida?.motivo)
+          setPrueba(salida)
+          return
+        }
+        // Aquí acababa la prueba, y «mandado» es solo que **Apple lo aceptó**.
+        // Lo que pasaba después —llega, y con la app abierta iOS no lo pinta— se
+        // veía igual que no llegar, y se arregla en otro sitio.
+        empujar('Esperando a que llegue a este móvil')
+        const llego = await oido.llegada
+        cerrar(llego ? 'hecho' : 'aviso', llego ? undefined : SIN_ENTREGA)
+        setPrueba({ ...salida, llego: Boolean(llego) })
+      } finally { await oido.soltar() }
     } catch (e) {
       const motivo = String(e.message ?? e)
       cerrar('fallo', motivo)
@@ -445,9 +461,10 @@ export function NotificacionesSection() {
               </button>
               {prueba && prueba !== 'yendo' && (
                 <div className="note" role="status">
-                  {prueba.enviados > 0
-                    ? `🐳 Mandado a ${prueba.enviados === 1 ? 'este móvil' : `${prueba.enviados} aparatos`}. Si no aparece en unos segundos, el aviso salió pero Apple no lo entregó.`
-                    : `🐳 No salió: ${prueba.motivo}`}
+                  {prueba.enviados > 0 && prueba.llego
+                    && `🐳 Ha llegado a este móvil. Con la app abierta iOS no saca el globo aunque el aviso esté entregado: ciérrala del todo y vuelve a probar para verlo en la pantalla de bloqueo.`}
+                  {prueba.enviados > 0 && !prueba.llego && `🐳 ${SIN_ENTREGA}`}
+                  {!(prueba.enviados > 0) && `🐳 No salió: ${prueba.motivo}`}
                 </div>
               )}
             </>
