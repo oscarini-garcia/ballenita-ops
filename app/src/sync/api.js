@@ -158,6 +158,17 @@ export const registrarPush = (token, avisos = true) =>
 export const probarPush = () => peticion('/api/push/prueba', { method: 'POST' })
 
 /**
+ * De qué quiere enterarse esta cuenta (SPECS §14.39). Devuelve el **catálogo
+ * entero** con lo que hay puesto, así que la pantalla no lleva su propia copia
+ * de los nombres: una clase que se llame distinto en los dos sitios se apaga en
+ * uno y sigue sonando en el otro.
+ */
+export const leerAvisos = () => peticion('/api/avisos')
+
+export const guardarAvisos = (clases) =>
+  peticion('/api/avisos', { method: 'POST', body: JSON.stringify({ clases }) })
+
+/**
  * Qué migraciones conoce el código y cuáles le faltan a la base (solo para
  * administradores, SPECS §14.23). El POST aplica **la siguiente** y devuelve lo
  * que queda: se llama en bucle y así el progreso que se pinta es el de verdad.

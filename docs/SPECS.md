@@ -3586,6 +3586,57 @@ pequeños: eran los tres que mueven cosas que quien borra **no tiene delante**.
   (`.quitar`) y pregunta rellenándose. Aquí no hay cascada que contar —una línea
   no arrastra nada—, solo hay que evitar el toque de más, y eso cuesta **0 pt**.
 
+### 14.39 De qué avisarte, y no avisarte de lo tuyo
+
+Los avisos existían desde §14.17 y avisaban de **una sola cosa**: alguien ha
+entrado con Apple y todavía no es nadie. La cañería estaba puesta y no la usaba
+nadie más. Ahora avisan de tres, y se puede elegir.
+
+- **✅ Un interruptor por clase**, en Ajustes → Notificaciones. El catálogo lo
+  manda el servidor con los nombres puestos (`api/src/avisos.js`,
+  `CLASES_DE_AVISO`) y **la pantalla no lleva su propia copia**: una clase que se
+  llame distinto en los dos sitios se apaga en uno y sigue sonando en el otro.
+- **✅ Es de la cuenta, no del aparato** (migración `0014`, `cuenta.avisosClases`).
+  `dispositivo.avisos` ya existía y es otra cosa: el permiso del sistema, que se
+  da y se quita en iOS y vale solo para ese teléfono. Quien tiene móvil e iPad no
+  quiere apagar «los estados» dos veces.
+- **✅ Se guarda lo apagado, no lo encendido.** Así una clase nueva llega
+  encendida a todo el mundo sin tocar ninguna fila. Guardando la lista de las que
+  sí, cada aviso que se inventara nacería apagado para los que ya estaban, que es
+  la forma más silenciosa de que una función no exista.
+- **✅ Dos avisos nuevos, los dos de lo que se mira sin estar delante.** Un
+  **gasto que te mueve el saldo** —tu familia paga o entras en el reparto— y una
+  **deuda saldada**, las dos bajo la clase `dinero`; y **el estado de alguien**,
+  que hasta ahora viajaba a todos los móviles y solo se veía entrando en «Hoy».
+- **✅ Nunca se avisa a quien lo provocó.** Se pidió con esas palabras —«yo, al
+  ser admin, también me llegan los míos»— y es la regla que decide si los avisos
+  se leen o se apagan enteros: un aviso de lo que uno acaba de hacer no informa
+  de nada. Va en los dos sitios, en la elección de a quién (`tokensParaAviso`,
+  `exceptoCuentaId`) y en la de qué (`avisoDeEstado`).
+- **✅ Se avisa de lo que cambia el saldo, no de lo que se toca**
+  (`elGastoMueveElSaldo`). Corregir la descripción de un gasto no le mueve un
+  céntimo a nadie; el importe, los pagadores o el reparto, sí. Sin esa
+  distinción, editar tres veces seguidas un gasto son tres avisos a nueve
+  teléfonos. Lo mismo con el estado: la app manda la fila entera de la persona al
+  corregir un apodo, así que se compara con lo que había.
+
+### 14.39-bis La hoja de una mejora es un cuaderno, no un renglón
+
+Una mejora admite **2000 letras** (§14.22) y su hoja medía 380 pt de ancho con
+cuatro renglones: lo escrito no cabía en la pantalla mientras se escribía, y el
+único camino para apuntarla era un renglón de **una línea**. Las largas se
+apuntaban a medias.
+
+- **✅ La hoja pierde `fino`** y pasa al ancho del resto de capas, con diez
+  renglones y la cuenta de letras debajo.
+- **✅ Se puede escribir una larga desde el renglón** («Escribir una larga»), y
+  **lo ya tecleado viaja con el gesto**: el mismo mueble sirve para apuntar y
+  para editar.
+- **✅ Y se copia al portapapeles.** Una mejora se apunta aquí y acaba en otro
+  sitio —un mensaje al grupo, el encargo de la vuelta siguiente— y transcribir a
+  mano un párrafo desde un móvil es justo lo que no se hace. Es la figura del
+  renglón que se toca para copiar de la lista de pasos (§14.9-bis).
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

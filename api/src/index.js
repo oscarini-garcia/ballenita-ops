@@ -23,6 +23,8 @@
  *   POST /api/cuenta/baja · eliminar la cuenta propia (directriz 5.1.1(v) de Apple)
  *   POST /api/push      · apunta el token de APNs de este aparato, o lo silencia
  *   POST /api/push/prueba · se manda un aviso a sí mismo, y cuenta qué pasó
+ *   GET  /api/avisos    · de qué quiere enterarse esta cuenta
+ *   POST /api/avisos    · lo cambia
  *   GET  /api/ia        · qué clave y qué modelo hay puestos (administradores)
  *   POST /api/ia        · los cambia (administradores)
  *   POST /api/importar  · siembra la base desde un volcado de JSONBin (servicio)
@@ -44,13 +46,17 @@
 import { verificarTokenDeApple } from './apple.js';
 import { enviarAviso, hayApnsConfigurado } from './apns.js';
 import {
+  CLASES_DE_AVISO, ES_CLASE, avisoDeEstado, avisoDeGasto, avisoDeLiquidacion, elGastoMueveElSaldo,
+} from './avisos.js';
+import {
   coincideEnTiempoConstante, emitirPaseDeEspera, emitirSesion, verificarPaseDeEspera, verificarSesion,
 } from './sesion.js';
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
 import { esCorreoDelAdministrador, esNombreDelAdministrador } from './administrador.js';
 import {
   administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
-  cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta, enlazarCuentaConPersona,
+  avisosDeCuenta, cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta,
+  enlazarCuentaConPersona, guardarAvisosDeCuenta, tokensParaAviso,
   hayAdministradorActivo, hayAlgunaCuenta, importarInstantanea, leerInstantanea,
   leerMejorasPendientes, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
@@ -321,7 +327,17 @@ async function recibirCambios(peticion, env) {
     plataforma: peticion.headers.get('X-Plataforma') || 'web',
   });
 
-  return json({ resultados, instantanea: await leerInstantanea(env.DB) });
+  const instantanea = await leerInstantanea(env.DB);
+  // Los avisos van **después** de haber aplicado todo y con la instantánea ya
+  // leída, y no interrumpen la respuesta: lo que se ha guardado ya está
+  // guardado, y un APNs lento no puede dejar al móvil esperando su sincronía.
+  try {
+    await avisarDeLosCambios(env, { cambios, resultados, instantanea, cuenta });
+  } catch {
+    /* un aviso que no sale no puede tumbar el cambio que lo provocó */
+  }
+
+  return json({ resultados, instantanea });
 }
 
 async function cuentas(peticion, env) {
@@ -460,6 +476,91 @@ async function pruebaDePush(peticion, env) {
 }
 
 /**
+ * De qué quiere enterarse esta cuenta (SPECS §14.39).
+ *
+ * Es de la **cuenta** y no del aparato: `dispositivo.avisos` es el permiso del
+ * sistema, que se da y se quita en iOS y vale solo para ese teléfono; esto es
+ * qué te interesa saber, y quien tiene móvil e iPad no quiere apagar «los
+ * estados» dos veces.
+ *
+ * Devuelve siempre **el catálogo entero** con lo que hay puesto, para que la
+ * pantalla no tenga que llevar su propia copia de los nombres: una clase que se
+ * llame distinto en los dos sitios se apaga en uno y sigue sonando en el otro.
+ */
+async function avisosQueQuiero(peticion, env) {
+  const cuenta = await cuentaAutenticada(peticion, env);
+
+  if (peticion.method === 'POST') {
+    const { clases = {} } = await peticion.json();
+    // Solo las del catálogo. Sin este filtro, un cliente viejo o equivocado
+    // puede llenar la fila de claves que no apaga nada y que nadie limpia.
+    const limpias = Object.fromEntries(
+      Object.entries(clases).filter(([id]) => ES_CLASE(id)).map(([id, v]) => [id, v !== false ? true : false]),
+    );
+    await guardarAvisosDeCuenta(env.DB, cuenta.id, limpias);
+  }
+
+  const puestas = await avisosDeCuenta(env.DB, cuenta.id);
+  return json({
+    clases: CLASES_DE_AVISO.map((c) => ({ ...c, quiero: puestas[c.id] !== false })),
+    esAdministrador: cuenta.rol === 'administrador',
+  });
+}
+
+/**
+ * Los avisos que nacen de un cambio: un gasto que te mueve el saldo, una deuda
+ * pagada, alguien que dice en qué anda.
+ *
+ * Se llama **después** de aplicar el lote y con la instantánea ya leída, que es
+ * lo que da los nombres sin volver a la base. No lanza y no se espera a que
+ * termine de mandar: un aviso que no sale no puede tumbar el cambio que lo
+ * provocó, que es lo mismo que ya hacía `avisarDeSolicitud`.
+ */
+async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuenta }) {
+  if (!hayApnsConfigurado(env)) return;
+  const personas = instantanea?.persons ?? [];
+  const familias = instantanea?.families ?? [];
+  const moneda = instantanea?.events?.[0]?.currency || 'EUR';
+  const autor = cuenta.personId || null;
+
+  const sobres = [];
+  for (const [i, cambio] of cambios.entries()) {
+    const resultado = resultados[i];
+    if (!resultado?.aplicado || cambio?.op === 'borrar') continue;
+    const campos = cambio.campos || {};
+
+    if (cambio.tabla === 'expenses' && elGastoMueveElSaldo(resultado.anterior, campos)) {
+      sobres.push(avisoDeGasto({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
+    }
+    if (cambio.tabla === 'settlements' && resultado.nuevo) {
+      sobres.push(avisoDeLiquidacion({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
+    }
+    if (cambio.tabla === 'persons') {
+      sobres.push(avisoDeEstado({ id: cambio.id, ...campos }, resultado.anterior, { autor }));
+    }
+  }
+
+  for (const sobre of sobres.filter(Boolean)) {
+    const tokens = await tokensParaAviso(env.DB, {
+      clase: sobre.clase,
+      personIds: sobre.personIds,
+      exceptoCuentaId: cuenta.id,
+    });
+    for (const token of tokens) {
+      const r = await enviarAviso(env, token, {
+        titulo: sobre.titulo,
+        cuerpo: sobre.cuerpo,
+        categoria: sobre.clase,
+        agrupa: sobre.agrupa,
+        urgente: false,
+        datos: { ir: sobre.clase === 'dinero' ? 'dinero' : 'hoy' },
+      });
+      if (r.caducado) await olvidarTokenPush(env.DB, token);
+    }
+  }
+}
+
+/**
  * Avisa a quien administra de que alguien acaba de pedir entrar.
  *
  * Es el primer aviso remoto de la app y el que justifica todo el cable: quien
@@ -469,7 +570,11 @@ async function pruebaDePush(peticion, env) {
  */
 async function avisarDeSolicitud(env, nombre) {
   if (!hayApnsConfigurado(env)) return;
-  const tokens = await tokensDeAdministradores(env.DB);
+  // Con su clase: quien administra puede querer los gastos y no las
+  // solicitudes. Y sin la cuenta que lo provocó, aunque aquí no se dé —quien
+  // pide entrar no administra todavía—, porque la regla es de todos los avisos
+  // y una excepción escrita en un sitio y no en otro es la que muerde.
+  const tokens = await tokensDeAdministradores(env.DB, { clase: 'solicitud' });
   for (const token of tokens) {
     const resultado = await enviarAviso(env, token, {
       titulo: 'Alguien quiere entrar 🔑',
@@ -1029,6 +1134,8 @@ const RUTAS = [
   ['POST', '/api/cuenta/baja', darDeBaja],
   ['POST', '/api/push', registroDePush],
   ['POST', '/api/push/prueba', pruebaDePush],
+  ['GET', '/api/avisos', avisosQueQuiero],
+  ['POST', '/api/avisos', avisosQueQuiero],
   ['GET', '/api/ia', configuracionIA],
   ['POST', '/api/ia', configuracionIA],
   ['GET', '/api/ia/modelos', modelosDeIA],

@@ -6,7 +6,7 @@ import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import Campo from '../components/Campo.jsx'
 import { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
-import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, listarModelosIA, probarIA, registrarPush, probarPush } from '../sync/api.js'
+import { eliminarMiCuenta, gestionarCuenta, guardarAvisos, leerAvisos, leerIA, listarCuentas, guardarIA, listarModelosIA, probarIA, registrarPush, probarPush } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
@@ -297,6 +297,79 @@ function listaDePasos(setPasos) {
 }
 
 /**
+ * De qué avisar, uno por uno (SPECS §14.39).
+ *
+ * El catálogo lo manda el servidor con los nombres puestos, y esta pantalla
+ * **no lleva su propia copia**: una clase que se llame distinto en los dos
+ * sitios se apaga en uno y sigue sonando en el otro.
+ *
+ * Se guarda al tocar, sin botón: son tres interruptores y un «Guardar» debajo
+ * sería un paso de más para algo que se cambia una vez al año. Si el guardado
+ * falla, el interruptor **vuelve a donde estaba** — dejarlo puesto diría que
+ * está apagado cuando el servidor sigue avisando.
+ */
+function DeQueAvisar({ esAdmin = false }) {
+  const [clases, setClases] = useState(null)
+  const [fallo, setFallo] = useState(null)
+
+  useEffect(() => {
+    leerAvisos()
+      .then((r) => setClases(r.clases ?? []))
+      .catch((e) => setFallo(String(e.message ?? e)))
+  }, [])
+
+  async function cambiar(id, quiero) {
+    tap()
+    const antes = clases
+    setClases(clases.map((c) => (c.id === id ? { ...c, quiero } : c)))
+    setFallo(null)
+    try {
+      const r = await guardarAvisos({ [id]: quiero })
+      setClases(r.clases ?? [])
+    } catch (e) {
+      setClases(antes)
+      setFallo(String(e.message ?? e))
+    }
+  }
+
+  if (fallo && !clases) return <div className="note" role="alert">🐳 No he podido leer tus avisos: {fallo}</div>
+  if (!clases) return null
+
+  // Las de administrador solo se pintan a quien administra: un interruptor que
+  // no puede sonar nunca es una promesa que no se cumple.
+  const suyas = clases.filter((c) => !c.soloAdministradores || esAdmin)
+
+  return (
+    <>
+      <div className="sec-h">De qué avisarte</div>
+      <div className="card tight">
+        {suyas.map((c) => (
+          <div className="row" key={c.id}>
+            <div className="main">
+              <div className="n">{c.titulo}</div>
+              <div className="sub">{c.pista}</div>
+            </div>
+            <button
+              type="button"
+              className={`chip${c.quiero ? ' on' : ''}`}
+              aria-pressed={c.quiero}
+              onClick={() => cambiar(c.id, !c.quiero)}
+            >
+              {c.quiero ? 'Sí' : 'No'}
+            </button>
+          </div>
+        ))}
+      </div>
+      {fallo && <div className="note" role="alert">🐳 No se ha podido guardar: {fallo}</div>}
+      <div className="note">
+        🐳 Es de <b>tu cuenta</b>, no de este móvil: vale igual en el iPad. Lo de arriba es el permiso
+        de iOS, que sí es de cada aparato. Y de lo tuyo no te avisa nadie.
+      </div>
+    </>
+  )
+}
+
+/**
  * Lo que está esperando a que alguien haga algo (`lib/avisos.js`).
  *
  * Hoy solo hay una clase de aviso —alguien ha entrado y todavía no es nadie— y
@@ -480,10 +553,7 @@ export function NotificacionesSection() {
             </>
           )}
           {fallo && <div className="note" role="alert">🐳 {fallo}</div>}
-          <div className="note">
-            🐳 De momento se avisa de <b>una sola cosa</b>: alguien ha entrado con Apple y todavía no
-            es nadie del grupo. Llega solo a quien administra, porque es quien puede arreglarlo.
-          </div>
+          {permiso === 'granted' && <DeQueAvisar esAdmin={esAdmin} />}
         </>
       )}
 

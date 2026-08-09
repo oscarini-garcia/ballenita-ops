@@ -207,4 +207,44 @@ describe('el rótulo de Ajustes', () => {
     const rotulo = await screen.findByText('Mejoras')
     expect(await within(rotulo.closest('summary')).findByText('1 sin hacer')).toBeInTheDocument()
   })
+
+  /**
+   * La hoja, que pasó de 380 pt de ancho y cuatro renglones a la anchura del
+   * resto de capas y diez: una mejora son hasta 2000 letras, y escribirlas sin
+   * ver lo escrito es la razón por la que se apuntaban a medias.
+   */
+  it('se puede apuntar una mejora larga desde la hoja, no solo desde el renglón', async () => {
+    const { event } = await viaje()
+    render(<Apartado evento={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Escribir una larga' }))
+
+    const campo = await screen.findByLabelText('Qué se te ha ocurrido')
+    await userEvent.type(campo, 'Que la lista de la compra se pueda compartir por WhatsApp')
+    await userEvent.click(screen.getByRole('button', { name: 'Apuntarla' }))
+
+    expect(await screen.findByText(/se pueda compartir por WhatsApp/)).toBeInTheDocument()
+  })
+
+  it('lo tecleado en el renglón no se pierde al pasar a la hoja', async () => {
+    const { event } = await viaje()
+    render(<Apartado evento={event} />)
+    await userEvent.type(await screen.findByLabelText('Apunta una mejora'), 'Los avisos')
+    await userEvent.click(screen.getByRole('button', { name: 'Escribir una larga' }))
+
+    expect(await screen.findByLabelText('Qué se te ha ocurrido')).toHaveValue('Los avisos')
+  })
+
+  it('la hoja de una mejora se copia al portapapeles', async () => {
+    const escrito = []
+    Object.assign(navigator, { clipboard: { writeText: async (t) => { escrito.push(t) } } })
+    const { event } = await viaje()
+    await addMejora({ texto: 'Que el botón de cenas sea más grande' })
+
+    render(<Apartado evento={event} />)
+    await userEvent.click(await screen.findByText('Que el botón de cenas sea más grande'))
+    await userEvent.click(await screen.findByRole('button', { name: 'Copiar' }))
+
+    expect(escrito).toEqual(['Que el botón de cenas sea más grande'])
+    expect(await screen.findByText('Copiado')).toBeInTheDocument()
+  })
 })

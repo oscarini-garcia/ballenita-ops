@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.36.1 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  812 pruebas en 87 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.37.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  820 pruebas en 88 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  179 pruebas en 19 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  199 pruebas en 21 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -31,6 +31,8 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 | `POST` | `/api/cuenta/baja` | sesión | eliminar la cuenta propia (directriz 5.1.1(v) de Apple) |
 | `POST` | `/api/push` | sesión | apunta el token de APNs de este aparato, o lo silencia |
 | `POST` | `/api/push/prueba` | sesión | se manda un aviso a sí mismo, y cuenta qué pasó |
+| `GET` | `/api/avisos` | sesión | de qué quiere enterarse esta cuenta |
+| `POST` | `/api/avisos` | sesión | lo cambia |
 | `GET` | `/api/ia` | sesión | qué clave y qué modelo hay puestos (administradores) |
 | `POST` | `/api/ia` | sesión | los cambia (administradores) |
 | `GET` | `/api/ia/modelos` | sesión | los modelos que ofrece Anthropic hoy (administradores) |
@@ -261,7 +263,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`app/src/sync/`**
 
 - `api.js` — Transporte contra la API propia (Worker + D1).
-  ↳ hayApi, PLAZO_API, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta · +17 más
+  ↳ hayApi, PLAZO_API, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta · +19 más
 - `engine.js` — El orquestador de la sincronización: cuándo se sube la cola y se baja la instantánea.
   ↳ ultimaSincronizacion, syncNow, useSyncEngine
 - `tables.js` — Tablas que se sincronizan (todo lo que es "hecho" del grupo).
@@ -275,6 +277,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ hayApnsConfigurado, tokenDeProveedor, enviarAviso, olvidarTokenDeProveedor
 - `apple.js` — Verificación del token de identidad de Sign in with Apple.
   ↳ base64urlADatos, verificarTokenDeApple
+- `avisos.js` — A quién le importa lo que acaba de pasar, y qué se le dice.
+  ↳ importe, familiasDeUnGasto, elGastoMueveElSaldo, avisoDeGasto, avisoDeLiquidacion, avisoDeEstado · +3 más
 - `cantidades.js` — Cuánto de cada ingrediente, y en qué se compra.
   ↳ materialDelPlato, leerCantidades, pedirCantidades, INSTRUCCION
 - `cocina.js` — Con qué se cocina en este viaje (SPECS §14.20-quater).
@@ -298,7 +302,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `receta.js` — Los dos encargos del editor de una receta (SPECS §14.20-bis).
   ↳ materialDeLaLista, materialDelPlatoParecido, leerArreglo, leerParecidos, pedirArreglo, pedirParecidos · +2 más
 - `repositorio.js` — Lectura y escritura del registro del grupo sobre D1.
-  ↳ cuentaPorApple, cuentaPorId, hayAlgunaCuenta, crearCuenta, listarCuentas, enlazarCuentaConPersona · +25 más
+  ↳ cuentaPorApple, cuentaPorId, hayAlgunaCuenta, crearCuenta, listarCuentas, enlazarCuentaConPersona · +30 más
 - `revocacion.js` — Revocación del token de Sign in with Apple al darse de baja.
   ↳ hayRevocacionConfigurada, secretoDeCliente, revocarEnApple
 - `sesion.js` — Sesión propia: un JWT HS256 corto que el dispositivo presenta en cada petición.
@@ -357,7 +361,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14** Arquitectura técnica (PWA) → `db.js`, `ids.js`
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
-- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `ProgresoModal.jsx`, `api.js` · +11 más
+- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `MejorasSection.jsx`, `ProgresoModal.jsx` · +12 más
 - **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `scrollLock.js`, `stats.js`
 - **§14.11** Tipografía: un número y toda la escala → `BalancesScreen.jsx`
 - **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
@@ -372,7 +376,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`
 - **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
 - **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx` · +3 más
-- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `borrados.js`, `importe.js`, `reparto.js` · +1 más
+- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `importe.js` · +2 más
 - **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `Confirmar.jsx`, `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
@@ -381,3 +385,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
+- **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `index.js`

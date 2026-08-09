@@ -38,7 +38,7 @@ export default function MejorasSection({ evento, mejoras, persons, families, meI
 
   return (
     <>
-      <RenglonNuevaMejora evento={evento} meId={meId} />
+      <RenglonNuevaMejora evento={evento} meId={meId} onAbrirHoja={(texto) => setAbierta({ mejora: null, confirmando: false, texto })} />
 
       {mejoras.length > 0 && (
         <div className="card tight">
@@ -82,6 +82,9 @@ export default function MejorasSection({ evento, mejoras, persons, families, meI
         <ModalMejora
           mejora={abierta.mejora}
           confirmando={abierta.confirmando}
+          textoInicial={abierta.texto}
+          evento={evento}
+          meId={meId}
           onClose={() => setAbierta(null)}
         />
       )}
@@ -143,7 +146,7 @@ function Firma({ mejora, persons, families }) {
  * seguidas son dos frases y dos toques. El tope se corta aquí con `maxLength` y
  * lo vuelve a mirar `addMejora`; el Worker rechaza lo que se le cuele.
  */
-function RenglonNuevaMejora({ evento, meId }) {
+function RenglonNuevaMejora({ evento, meId, onAbrirHoja }) {
   const [texto, setTexto] = useState('')
   const campo = useRef(null)
 
@@ -172,6 +175,15 @@ function RenglonNuevaMejora({ evento, meId }) {
           <Icono nombre="visto" />
         </button>
       </div>
+      {/* Una línea vale para «que el botón de cenas sea más grande» y no para
+          media pantalla de explicación. Este enlace lleva lo escrito a la hoja,
+          que es el mismo mueble con sitio de verdad — y no se pierde por el
+          camino lo que ya se había tecleado. */}
+      <div className="pista" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button type="button" className="como-enlace" onClick={() => { tap(); onAbrirHoja?.(texto) }}>
+          Escribir una larga
+        </button>
+      </div>
     </form>
   )
 }
@@ -184,15 +196,21 @@ function RenglonNuevaMejora({ evento, meId }) {
  * (E1): cualquiera puede quitar la de cualquiera, y eso se dice antes y no se
  * descubre después. Quitar es `borrado = 1` en el servidor, no una destrucción.
  */
-function ModalMejora({ mejora, confirmando: confirmandoInicial, onClose }) {
+function ModalMejora({ mejora, confirmando: confirmandoInicial, textoInicial = '', evento, meId, onClose }) {
   useBloqueoDeScroll()
-  const [texto, setTexto] = useState(mejora.texto ?? '')
+  // Sin `mejora` la hoja es para apuntar una nueva. Es el mismo mueble a
+  // propósito: escribir una mejora larga en el renglón de una línea obligaba a
+  // guardarla a medias y volver a abrirla para terminarla.
+  const nueva = !mejora
+  const [texto, setTexto] = useState(mejora?.texto ?? textoInicial ?? '')
   const [confirmando, setConfirmando] = useState(confirmandoInicial)
+  const [copiado, setCopiado] = useState(null)
 
   async function guardar() {
     if (!texto.trim()) return
     tap()
-    await updateMejora(mejora.id, { texto: texto.trim() })
+    if (nueva) await addMejora({ texto: texto.trim(), autorId: meId ?? null }, evento)
+    else await updateMejora(mejora.id, { texto: texto.trim() })
     onClose()
   }
 
@@ -202,31 +220,66 @@ function ModalMejora({ mejora, confirmando: confirmandoInicial, onClose }) {
     onClose()
   }
 
+  /**
+   * Copiar lo escrito.
+   *
+   * Una mejora se apunta aquí y acaba en otro sitio —un mensaje al grupo, el
+   * encargo de la vuelta siguiente— y transcribir a mano desde un móvil un
+   * párrafo de doscientas letras es justo lo que no se hace. Es la misma figura
+   * del renglón que se toca para copiar en la lista de pasos (§14.9-bis).
+   */
+  async function copiar() {
+    tap()
+    try {
+      await navigator.clipboard.writeText(texto)
+      setCopiado('Copiado')
+    } catch {
+      setCopiado('No se ha podido copiar')
+    }
+  }
+
   return (
     // Centrado y sin robar el foco, como el editor de una idea: se abre a leer
     // o a quitar tanto como a escribir, y el teclado no sale hasta que se toca
     // el campo — sin teclado que lo pelee, centrado se lee mejor. Las dos
     // hojas hermanas se comportan igual.
     <div className="modal-bg center" onClick={onClose}>
-      <div className="modal fino center" onClick={(e) => e.stopPropagation()}>
+      {/* Sin `fino`: una mejora es un cuaderno de hasta 2000 letras y la hoja
+          medía 380 pt de ancho con cuatro renglones de alto, así que lo escrito
+          no cabía en pantalla mientras se escribía. Con el ancho del resto de
+          capas y diez renglones, se ve lo que se está diciendo. */}
+      <div className="modal center" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Cerrar">×</button>
-        <h2>Mejora</h2>
+        <h2>{nueva ? 'Apuntar una mejora' : 'Mejora'}</h2>
 
         <label htmlFor="mejora-texto">Qué se te ha ocurrido</label>
         <textarea
           id="mejora-texto"
-          rows="4"
+          rows="10"
           maxLength={TOPE_DE_MEJORA}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
         />
+        <div className="pista" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>{copiado || `${texto.length} de ${TOPE_DE_MEJORA}`}</span>
+          <button
+            type="button"
+            className="como-enlace"
+            disabled={!texto.trim()}
+            onClick={copiar}
+          >
+            Copiar
+          </button>
+        </div>
 
         <div style={{ marginTop: 16 }}>
-          <button className="btn block" onClick={guardar} disabled={!texto.trim()}>Guardar</button>
+          <button className="btn block" onClick={guardar} disabled={!texto.trim()}>
+            {nueva ? 'Apuntarla' : 'Guardar'}
+          </button>
         </div>
 
         <div style={{ marginTop: 10 }}>
-          {confirmando ? (
+          {nueva ? null : confirmando ? (
             <>
               <div className="note">¿Quitar esta mejora? Se va de la lista de todo el grupo.</div>
               <div className="chips" style={{ marginTop: 8 }}>

@@ -81,6 +81,21 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   un log de compilación con `exit 0` detrás — **un aviso que nadie lee dice lo mismo que no
   haber comprobado nada**—. `scripts/revision-de-avisos.mjs` relee los tres ficheros al
   final, dice el arreglo de cada uno y **falla** si falta alguno.
+- **De qué avisarte lo eliges tú, y de lo tuyo no te avisa nadie** (SPECS §14.39,
+  `api/src/avisos.js`): los avisos existían y avisaban de **una sola cosa**. Ahora hay tres
+  clases —`solicitud`, `dinero` (un gasto que te mueve el saldo o una deuda saldada) y
+  `estado`— con un interruptor cada una. La preferencia es **de la cuenta**
+  (`cuenta.avisosClases`, migración 0014) y no del aparato, que es lo que ya guardaba
+  `dispositivo.avisos`; y **se guarda lo apagado**, para que una clase nueva llegue
+  encendida sin tocar ninguna fila. Dos reglas que deciden si los avisos se leen o se
+  apagan enteros: **nunca a quien lo provocó** (`exceptoCuentaId`) y **solo si cambia el
+  saldo** (`elGastoMueveElSaldo`) — editar la descripción de un gasto tres veces no son
+  tres avisos a nueve teléfonos. El catálogo con sus nombres lo manda el servidor: la
+  pantalla no lleva copia.
+- **La hoja de una mejora es un cuaderno** (SPECS §14.39-bis): 2000 letras en una hoja de
+  380 pt y cuatro renglones no caben, y el único camino era un renglón de una línea. Ancho
+  normal, diez renglones, «Escribir una larga» que **se lleva lo tecleado**, y copiar al
+  portapapeles.
 - **Borrar pregunta, y la pregunta dice qué se lleva** (SPECS §14.38,
   `docs/diseño/borrar-confirmaciones.html` · A2·B2·B3·A1): nueve borrados ya confirmaban
   y tres no —gasto, cena y línea de la compra—, que no eran los más pequeños sino los que

@@ -16,6 +16,17 @@
  */
 export const NOTAS = [
   {
+    version: '0.37.0',
+    fecha: '2026-08-09',
+    titulo: 'Eliges de qué avisarte, y hay dos avisos nuevos',
+    lineas: [
+      'En Ajustes → Notificaciones, un interruptor por clase de aviso: los gastos que te tocan, en qué anda la gente y —si administras— quién quiere entrar.',
+      'Nuevo: te avisa de un gasto que te mueve el saldo y de cuando alguien salda una deuda contigo. Y de cuando alguien cambia su estado.',
+      'De lo tuyo no te avisa nadie: apuntar un gasto ya no te suena a ti mismo.',
+      'En Mejoras, la hoja es más grande y se puede escribir una larga desde el renglón, con un botón para copiarla al portapapeles.',
+    ],
+  },
+  {
     version: '0.36.1',
     fecha: '2026-08-09',
     titulo: 'Los avisos ya no se pierden al pasar a TestFlight',
