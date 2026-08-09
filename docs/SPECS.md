@@ -1351,6 +1351,25 @@ sitio donde se quedaba no era ninguno de los que este apartado había mirado
   `atDocumentStart`). Así que `plugin()` es ahora **síncrona**: si no está,
   `SIN_PLUGIN` en el acto. Cambiar una certeza instantánea por seis segundos de
   espera para acabar dando la respuesta equivocada es el peor de los dos tratos.
+- **✅ «Mandado» no es «llegado», y eran dos eslabones en uno**
+  (`escucharUnAviso`, `SIN_ENTREGA`). Con el registro por fin resuelto, el aviso
+  de prueba decía «mandado» y se callaba — y eso es solo un **200 del servidor de
+  APNs**. Entre eso y que el teléfono lo enseñe hay un tramo entero que no se
+  miraba, y ahí caben dos cosas que se ven igual y se arreglan en sitios
+  distintos: que no llegue —el entorno, que es la causa que más veces es y la
+  única que **no da ningún error**, porque Apple contesta que sí y tira el
+  aviso— o que llegue y **con la aplicación abierta iOS no pinte nada**. La
+  prueba pone el oído **antes** de mandar (el aviso puede volver antes que la
+  respuesta del servidor: ponerlo después es la misma carrera perdida que ya
+  costó el token) y espera doce segundos. No llegar queda en **aviso**, no en
+  fallo: salió bien.
+- **✅ Y con la app abierta iOS no pinta nada si no se le dice**
+  (`capacitor.config.json` · `PushNotifications.presentationOptions`). Sin esa
+  clave, `willPresent` de Capacitor devuelve el conjunto vacío y el aviso se
+  entrega sin banner, sin sonido y sin globo. `garciadoral-ops` tampoco la tiene
+  y no lo nota, porque allí los avisos llegan con la aplicación cerrada; aquí el
+  botón de prueba se pulsa **mirando la aplicación**, que es justo el caso.
+  Es del binario: no viaja por OTA.
 - **✅ Era el `AppDelegate`, y el aviso estaba dado desde el principio.** El
   renglón acabó diciendo que Apple no contestaba nada, y `grep -c
   didRegisterForRemoteNotifications ios/App/App/AppDelegate.swift` devolvió

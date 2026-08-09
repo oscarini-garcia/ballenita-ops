@@ -135,6 +135,54 @@ describe('el plugin se coge del puente, y solo del puente', () => {
   })
 })
 
+/**
+ * «Mandado» es un 200 del servidor de APNs y nada más. Entre eso y que el
+ * teléfono lo enseñe hay un tramo entero que no se miraba, y en el que cabe la
+ * causa que más veces es —el entorno—, que además **no da ningún error**: Apple
+ * contesta que sí y tira el aviso.
+ */
+describe('el oído puesto a que llegue un aviso', () => {
+  it('se cumple con el aviso cuando llega', async () => {
+    const { escucharUnAviso } = await conPuente({
+      PushNotifications: {
+        addListener: (evento, fn) => {
+          if (evento === 'pushNotificationReceived') setTimeout(() => fn({ title: 'hola' }), 0)
+          return { remove: async () => {} }
+        },
+      },
+    })
+    const oido = await escucharUnAviso(200)
+    expect(await oido.llegada).toEqual({ title: 'hola' })
+    await oido.soltar()
+  })
+
+  it('si no llega en su plazo se acaba en null, no en una espera eterna', async () => {
+    const { escucharUnAviso } = await conPuente({
+      PushNotifications: { addListener: () => ({ remove: async () => {} }) },
+    })
+    const oido = await escucharUnAviso(20)
+    expect(await oido.llegada).toBe(null)
+    await oido.soltar()
+  })
+
+  it('el escucha se suelta: uno por prueba es una fuga con forma de aviso doble', async () => {
+    const sueltas = []
+    const { escucharUnAviso } = await conPuente({
+      PushNotifications: { addListener: () => ({ remove: async () => { sueltas.push(1) } }) },
+    })
+    const oido = await escucharUnAviso(20)
+    await oido.soltar()
+    expect(sueltas).toHaveLength(1)
+  })
+
+  it('sin plugin no rompe: se queda sordo y lo demás sigue', async () => {
+    const { escucharUnAviso } = await conPuente({ Haptics: {} })
+    const oido = await escucharUnAviso(20)
+    expect(await oido.llegada).toBe(null)
+    await expect(oido.soltar()).resolves.toBeUndefined()
+  })
+})
+
 describe('el informe del puente', () => {
   it('nombra lo que sí trae, que es lo que separa las dos causas', async () => {
     const { informeDelPuente } = await conPuente({ Haptics: {}, Share: {} })
