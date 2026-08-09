@@ -12,6 +12,7 @@ import {
 } from '../db.js'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import Icono from '../components/Icono.jsx'
+import Confirmar from '../components/Confirmar.jsx'
 import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre } from '../lib/asignacion.js'
 import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
@@ -282,14 +283,14 @@ function PieDeEditor({ onGuardar, onCancelar, borrado }) {
         <button className="btn ghost" onClick={onCancelar}>Cancelar</button>
         <button className="btn" onClick={onGuardar}>Guardar</button>
       </div>
+      {/* La misma pieza que Dinero y Comidas: era de aquí, y ahora es de todos
+          (`components/Confirmar.jsx`, borrar-confirmaciones.html · A2). */}
       {borrado && confirmando && (
-        <div className="confirmar">
-          <div className="que-se-lleva">{borrado.queSeLleva}</div>
-          <div className="grid2">
-            <button className="btn ghost" onClick={() => setConfirmando(false)}>Dejarlo</button>
-            <button className="btn danger" onClick={borrado.onBorrar}>Sí, borrar</button>
-          </div>
-        </div>
+        <Confirmar
+          queSeLleva={borrado.queSeLleva}
+          onDejarlo={() => setConfirmando(false)}
+          onBorrar={borrado.onBorrar}
+        />
       )}
     </>
   )

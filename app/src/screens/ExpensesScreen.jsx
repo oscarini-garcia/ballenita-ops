@@ -7,7 +7,10 @@ import Deslizable from '../components/Deslizable.jsx'
 import Fab from '../components/Fab.jsx'
 import Recado from '../components/Recado.jsx'
 import Icono from '../components/Icono.jsx'
+import Confirmar from '../components/Confirmar.jsx'
 import { comoSeReparte } from '../lib/reparto-gente.js'
+import { queSeLlevaUnGasto } from '../lib/borrados.js'
+import { tap } from '../lib/native.js'
 import FichaDeGasto from './FichaDeGasto.jsx'
 
 /** «19:40» — desempata dos gastos de la misma categoría el mismo día. */
@@ -23,6 +26,8 @@ export default function ExpensesScreen({ eventId, event }) {
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   // null = cerrado · 'nuevo' = alta · un gasto = edición de ese gasto.
   const [ficha, setFicha] = useState(null)
+  // El gasto que se está a punto de borrar, o null.
+  const [borrando, setBorrando] = useState(null)
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
 
   const total = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)
@@ -71,7 +76,7 @@ export default function ExpensesScreen({ eventId, event }) {
               key={e.id}
               ancho={76}
               verbos={
-                <button className="verbo borrar" onClick={() => removeExpense(e.id)}>
+                <button className="verbo borrar" onClick={() => { tap(); setBorrando(e) }}>
                   <Icono nombre="papelera" className="g" />Borrar
                 </button>
               }
@@ -90,6 +95,22 @@ export default function ExpensesScreen({ eventId, event }) {
             </Deslizable>
           )
         })}
+
+        {/* Un gasto borrado **recalcula el saldo de todas las familias**, y ese
+            efecto vive en otra pantalla: quien borra no lo ve nunca. Es la
+            cascada más silenciosa que hay, y por eso el verbo del deslizado
+            dejó de borrar y pasa a preguntar (borrar-confirmaciones.html · A2). */}
+        {borrando && (
+          <Confirmar
+            queSeLleva={queSeLlevaUnGasto(borrando, {
+              familias: families,
+              personas: persons,
+              importe: formatCents(borrando.amountCents, event.currency),
+            })}
+            onDejarlo={() => { tap(); setBorrando(null) }}
+            onBorrar={async () => { tap(); await removeExpense(borrando.id); setBorrando(null) }}
+          />
+        )}
       </div>
 
       {/* El recado del viaje, al final del scroll (SPECS §14.25). */}

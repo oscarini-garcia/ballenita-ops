@@ -14,6 +14,7 @@ import { useIdentidad } from '../lib/identidad.js'
 import { comoSeReparte } from '../lib/compra.js'
 import { cifra } from '../lib/receta.js'
 import Recado from '../components/Recado.jsx'
+import Icono from '../components/Icono.jsx'
 
 const catOf = (id) => SHOP_CATEGORIES.find((c) => c.id === id) ?? SHOP_CATEGORIES.at(-1)
 
@@ -52,6 +53,9 @@ export default function CompraScreen({ eventId, event }) {
   // (C1). La lista es lo que hay que meter en el carro y nada más; el reparto
   // sirve en la cocina, no en el pasillo del súper.
   const [abierta, setAbierta] = useState(null)
+  // La línea escrita a mano que espera su segunda pulsación para irse. Una sola
+  // a la vez: preguntar por dos cosas en dos sitios se contesta mal.
+  const [quitando, setQuitando] = useState(null)
 
   /**
    * Las líneas que vienen de las cenas se rehacen solas (§14.20 · E2).
@@ -178,16 +182,33 @@ export default function CompraScreen({ eventId, event }) {
                 <span className={`compra-cant${it.origen === 'cena' && it.cantidad === null ? ' falta' : ''}`}>
                   {cantidadDe(it)}
                 </span>
-                <span
-                  className="btn sm ghost"
-                  role="button"
-                  aria-label={it.origen === 'cena' ? `Ver el reparto de ${it.texto}` : 'Borrar'}
-                  onClick={(e) => {
-                    e.stopPropagation(); tap()
-                    if (it.origen === 'cena') setAbierta(abierta === it.id ? null : it.id)
-                    else removeShopItem(it.id)
-                  }}
-                >{it.origen === 'cena' ? (abierta === it.id ? '▴' : '▾') : '×'}</span>
+                {/* Dos controles distintos y no uno con dos caras. Antes eran el
+                    mismo `btn sm ghost` en la misma columna: en una línea de cena
+                    **desplegaba** el reparto y en una escrita a mano **borraba**,
+                    y para saber cuál te tocaba había que mirar de dónde venía la
+                    fila. Ahora el que destruye lleva su color y **pregunta con una
+                    segunda pulsación** (borrar-confirmaciones.html · defecto uno · A1):
+                    aquí no hay cascada que contar —una línea no arrastra nada—, solo
+                    hay que evitar el toque de más, y eso cuesta 0 pt de alto. */}
+                {it.origen === 'cena' ? (
+                  <span
+                    className="btn sm ghost"
+                    role="button"
+                    aria-label={`Ver el reparto de ${it.texto}`}
+                    onClick={(e) => { e.stopPropagation(); tap(); setAbierta(abierta === it.id ? null : it.id) }}
+                  >{abierta === it.id ? '▴' : '▾'}</span>
+                ) : (
+                  <span
+                    className={`btn sm ghost quitar${quitando === it.id ? ' seguro' : ''}`}
+                    role="button"
+                    aria-label={quitando === it.id ? `Confirmar que se borra ${it.texto}` : `Borrar ${it.texto}`}
+                    onClick={(e) => {
+                      e.stopPropagation(); tap()
+                      if (quitando === it.id) { removeShopItem(it.id); setQuitando(null) }
+                      else setQuitando(it.id)
+                    }}
+                  >{quitando === it.id ? '¿Seguro?' : <Icono nombre="papelera" className="g" />}</span>
+                )}
               </button>
             ))}
           </div>
