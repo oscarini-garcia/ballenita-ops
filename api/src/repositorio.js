@@ -315,14 +315,17 @@ export async function aplicarCambio(db, cambio) {
     // dos móviles que editan cosas distintas del mismo gasto no se pisan.
     if (!claves.length) {
       await db.prepare(`UPDATE ${tabla} SET updatedAt = ? WHERE id = ?`).bind(marca, id).run();
-      return { aplicado: true };
+      return { aplicado: true, anterior, nuevo: false };
     }
     const asignaciones = claves.map((c) => `${c} = ?`).join(', ');
     await db
       .prepare(`UPDATE ${tabla} SET ${asignaciones}, updatedAt = ?, borrado = 0 WHERE id = ?`)
       .bind(...claves.map((c) => valores[c]), marca, id)
       .run();
-    return { aplicado: true };
+    // La fila de antes viaja de vuelta: es lo único con lo que quien llama puede
+    // saber si **cambió** el estado de alguien, y volver a leerla después sería
+    // leer justo lo que se acaba de escribir.
+    return { aplicado: true, anterior, nuevo: false };
   }
 
   const columnas = ['id', ...claves, 'updatedAt', 'creadoEn', 'borrado'];
@@ -334,7 +337,7 @@ export async function aplicarCambio(db, cambio) {
     )
     .bind(...parametros)
     .run();
-  return { aplicado: true };
+  return { aplicado: true, anterior: null, nuevo: true };
 }
 
 /**
@@ -533,13 +536,84 @@ export async function tokensDeCuenta(db, cuentaId) {
 
 /** Los aparatos de quien administra, que son los que reciben las peticiones de
  *  acceso. Sin token o silenciados no cuentan. */
-export async function tokensDeAdministradores(db) {
-  return filas(
+export async function tokensDeAdministradores(db, { clase = null, exceptoCuentaId = null } = {}) {
+  const f = await filas(
     db,
-    `SELECT d.tokenPush AS token
+    `SELECT d.tokenPush AS token, c.id AS cuentaId, c.avisosClases AS clases
        FROM dispositivo d
        JOIN cuenta c ON c.id = d.cuentaId
       WHERE c.rol = 'administrador' AND c.activa = 1
         AND d.avisos = 1 AND d.tokenPush IS NOT NULL AND d.tokenPush != ''`,
-  ).then((f) => f.map((x) => x.token));
+  );
+  return filtrarPorClase(f, { clase, exceptoCuentaId });
+}
+
+// ------------------------------------------- Qué avisos quiere cada cuenta --
+
+/**
+ * Las clases apagadas a mano, y nada más (migración 0014).
+ *
+ * Se guarda lo **apagado** y no lo encendido a propósito: así una clase nueva
+ * llega encendida a todo el mundo sin tener que tocar ninguna fila. Guardando la
+ * lista de las que sí, cada aviso que se inventara nacería apagado para los que
+ * ya estaban, que es la forma más silenciosa de que una función no exista.
+ */
+export function clasesDeAviso(crudo) {
+  try {
+    const puesto = typeof crudo === 'string' ? JSON.parse(crudo) : (crudo || {});
+    return puesto && typeof puesto === 'object' ? puesto : {};
+  } catch {
+    return {};
+  }
+}
+
+/** ¿Le interesa a esta cuenta esta clase de aviso? Lo que no está dicho, sí. */
+export const quiereLaClase = (crudo, clase) => clasesDeAviso(crudo)[clase] !== false;
+
+/** Las que ha apagado, para pintarlas en Ajustes. */
+export async function avisosDeCuenta(db, cuentaId) {
+  const fila = await db.prepare('SELECT avisosClases FROM cuenta WHERE id = ?').bind(cuentaId).first();
+  return clasesDeAviso(fila?.avisosClases);
+}
+
+export async function guardarAvisosDeCuenta(db, cuentaId, clases) {
+  // Solo se guarda lo apagado: `{estado: true}` no aporta nada y engorda la fila
+  // con la respuesta por defecto.
+  const apagadas = Object.fromEntries(
+    Object.entries(clases || {}).filter(([, quiere]) => quiere === false),
+  );
+  await db.prepare('UPDATE cuenta SET avisosClases = ? WHERE id = ?')
+    .bind(Object.keys(apagadas).length ? JSON.stringify(apagadas) : null, cuentaId)
+    .run();
+  return apagadas;
+}
+
+/** El filtro común: fuera quien apagó la clase, y fuera quien lo provocó. */
+function filtrarPorClase(f, { clase, exceptoCuentaId }) {
+  return f
+    .filter((x) => !exceptoCuentaId || x.cuentaId !== exceptoCuentaId)
+    .filter((x) => !clase || quiereLaClase(x.clases, clase))
+    .map((x) => x.token);
+}
+
+/**
+ * A qué aparatos les toca un aviso de los que nacen de un cambio.
+ *
+ * `personIds` acota a quién le interesa —a quién le mueve el saldo un gasto, por
+ * ejemplo—; sin lista, es de todo el grupo. **`exceptoCuentaId` no es opcional
+ * en la práctica**: quien apunta un gasto no necesita que su propio teléfono le
+ * cuente que lo ha apuntado, y avisarse a uno mismo es lo primero que hace que
+ * se apaguen los avisos enteros.
+ */
+export async function tokensParaAviso(db, { clase, personIds = null, exceptoCuentaId = null }) {
+  const f = await filas(
+    db,
+    `SELECT d.tokenPush AS token, c.id AS cuentaId, c.personId AS personId, c.avisosClases AS clases
+       FROM dispositivo d
+       JOIN cuenta c ON c.id = d.cuentaId
+      WHERE c.activa = 1 AND c.personId IS NOT NULL
+        AND d.avisos = 1 AND d.tokenPush IS NOT NULL AND d.tokenPush != ''`,
+  );
+  const acotado = personIds ? f.filter((x) => personIds.includes(x.personId)) : f;
+  return filtrarPorClase(acotado, { clase, exceptoCuentaId });
 }

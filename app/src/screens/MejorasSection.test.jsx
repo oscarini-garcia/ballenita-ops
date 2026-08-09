@@ -207,4 +207,53 @@ describe('el rótulo de Ajustes', () => {
     const rotulo = await screen.findByText('Mejoras')
     expect(await within(rotulo.closest('summary')).findByText('1 sin hacer')).toBeInTheDocument()
   })
+
+  /**
+   * La hoja, que pasó de 380 pt de ancho y cuatro renglones a la anchura del
+   * resto de capas y diez: una mejora son hasta 2000 letras, y escribirlas sin
+   * ver lo escrito es la razón por la que se apuntaban a medias.
+   */
+  it('se puede apuntar una mejora larga desde la hoja, no solo desde el renglón', async () => {
+    const { event } = await viaje()
+    render(<Apartado evento={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Escribir una larga' }))
+
+    // De una vez y no tecla a tecla: son 56 letras, y `userEvent.type` dispara un
+    // renderizado por cada una. En este portátil sobraba tiempo y en el runner
+    // no, que es exactamente la forma de una prueba inestable — y una inestable
+    // ya dejó un OTA sin publicar.
+    const campo = await screen.findByLabelText('Qué se te ha ocurrido')
+    fireEvent.change(campo, { target: { value: 'Que la lista de la compra se pueda compartir por WhatsApp' } })
+    await userEvent.click(await screen.findByRole('button', { name: 'Apuntarla' }))
+
+    // Contra la base y no contra la pantalla: lo que se prueba es que la hoja
+    // apunta, y la lista se repinta cuando Dexie avisa, que es otro reloj.
+    await waitFor(async () => {
+      const puestas = await listMejoras(event)
+      expect(puestas.map((m) => m.texto)).toContain('Que la lista de la compra se pueda compartir por WhatsApp')
+    })
+  })
+
+  it('lo tecleado en el renglón no se pierde al pasar a la hoja', async () => {
+    const { event } = await viaje()
+    render(<Apartado evento={event} />)
+    fireEvent.change(await screen.findByLabelText('Apunta una mejora'), { target: { value: 'Los avisos' } })
+    await userEvent.click(await screen.findByRole('button', { name: 'Escribir una larga' }))
+
+    expect(await screen.findByLabelText('Qué se te ha ocurrido')).toHaveValue('Los avisos')
+  })
+
+  it('la hoja de una mejora se copia al portapapeles', async () => {
+    const escrito = []
+    Object.assign(navigator, { clipboard: { writeText: async (t) => { escrito.push(t) } } })
+    const { event } = await viaje()
+    await addMejora({ texto: 'Que el botón de cenas sea más grande' })
+
+    render(<Apartado evento={event} />)
+    await userEvent.click(await screen.findByText('Que el botón de cenas sea más grande'))
+    await userEvent.click(await screen.findByRole('button', { name: 'Copiar' }))
+
+    expect(escrito).toEqual(['Que el botón de cenas sea más grande'])
+    expect(await screen.findByText('Copiado')).toBeInTheDocument()
+  })
 })
