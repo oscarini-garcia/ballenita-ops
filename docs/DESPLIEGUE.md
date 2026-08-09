@@ -139,6 +139,41 @@ Mientras pruebes en un móvil conectado a Xcode, el aviso sale por el servidor d
 pruebas de Apple: `APNS_ENTORNO = "pruebas"` en `wrangler.toml`. Con el binario
 de la App Store, quítalo (o ponlo a `produccion`).
 
+#### La capacidad se activa por App ID, y la clave no
+
+Este apartado faltaba, y es el que explica que **otra app del mismo equipo avise
+y esta no**. La clave `.p8` es **del equipo**: se saca una vez y vale para todas
+las apps, así que tenerla puesta y funcionando en otro proyecto no dice nada
+sobre este. Lo que se activa **por identificador** es la capacidad:
+
+**developer.apple.com → Certificates, Identifiers & Profiles → Identifiers →
+`com.garciadoral.ballenitaops` → Push Notifications.**
+
+Con la firma automática, Xcode suele marcarla sola al leer el `aps-environment`
+que escribe `patch-ios.mjs` y regenera el perfil. Con la firma manual, o si el
+identificador se creó antes de que existieran los avisos, hay que marcarla aquí
+**y regenerar el perfil de aprovisionamiento**: el entitlement vive en el perfil,
+no en el fichero, y un binario firmado con un perfil que no lo trae **no lo
+tiene**, por mucho que `App.entitlements` lo diga.
+
+El síntoma es inconfundible cuando se sabe leer: al encender los avisos, Apple
+contesta **con palabras** —«no valid `aps-environment` entitlement string found
+in application's signature»— y la app las enseña tal cual en el renglón «Apple ha
+rechazado el registro». Es la única de las cuatro causas que se arregla en el
+portal de Apple y no en el Mac ni en el Worker.
+
+#### Cuando no llega ningún aviso, por orden de probabilidad
+
+La lista es de `garciadoral-ops`, con lo que aquí cambia. Los tres primeros son
+del **binario o del portal** y no viajan por OTA; el cuarto es del Worker.
+
+| Lo que enseña Ajustes → Notificaciones | Qué es | Dónde se arregla |
+| --- | --- | --- |
+| «Esta instalación no puede avisar» | el binario instalado no trae el plugin | `npm run sync:ios` y reinstalar desde Xcode |
+| «Apple ha rechazado el registro» | el App ID no tiene la capacidad, o el perfil es anterior | portal de Apple, y regenerar el perfil |
+| «Apple no ha contestado nada en ocho segundos» | el `AppDelegate` no reenvía la respuesta de APNs | `npm run sync:ios` y reinstalar; ver `scripts/appdelegate.mjs` |
+| El aviso de prueba sale y no suena | `APNS_ENTORNO` no coincide con cómo se instaló la app | `wrangler.toml` y volver a desplegar |
+
 Y las migraciones, en orden:
 
 ```bash

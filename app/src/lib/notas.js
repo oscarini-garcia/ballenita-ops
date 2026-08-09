@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.34.3',
+    fecha: '2026-08-09',
+    titulo: 'El renglón de Apple dice qué ha pasado, no solo dónde',
+    lineas: [
+      '«Pidiéndole el identificador a Apple ×» era dónde falla, no qué falla, y ahí caben dos cosas que se arreglan en sitios distintos.',
+      'Ahora pone «Apple ha rechazado el registro» —y sus palabras son la causa— o «Apple no ha contestado nada en ocho segundos», que es otra cosa y otro arreglo.',
+    ],
+  },
+  {
     version: '0.34.2',
     fecha: '2026-08-09',
     titulo: 'Cuando Apple no contesta, se dice qué mirar',

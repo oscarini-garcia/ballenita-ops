@@ -278,8 +278,19 @@ function listaDePasos(setPasos) {
       lista.push({ texto: PASOS_DE_PUSH[clave] ?? clave, estado: 'curso' })
       setPasos([...lista])
     },
-    cerrar(estado, informe) {
-      if (lista.length) Object.assign(lista[lista.length - 1], { estado, informe })
+    /**
+     * Remata el último renglón, y **le cambia el texto si hace falta**.
+     *
+     * «Pidiéndole el identificador a Apple ×» es dónde ha fallado, no qué ha
+     * pasado, y ahí caben dos cosas que se arreglan en sitios distintos: que
+     * Apple conteste que no —y entonces sus palabras son la causa— o que no
+     * conteste nada. Se dijo «falla en pidiéndole el identificador a Apple» sin
+     * poder decir cuál de las dos, y eso costó una vuelta entera.
+     */
+    cerrar(estado, informe, texto) {
+      if (lista.length) {
+        Object.assign(lista[lista.length - 1], { estado, informe }, texto ? { texto } : null)
+      }
       setPasos([...lista])
     },
   }
@@ -335,7 +346,7 @@ export function NotificacionesSection() {
         // si no hiciera nada, y adivinarlo es peor: el porqué está escrito una
         // sola vez en `lib/native.js`, porque las dos pantallas que lo enseñaban
         // decían cosas distintas y una de las dos era falsa.
-        cerrar('fallo', SIN_TOKEN_PORQUE)
+        cerrar('fallo', SIN_TOKEN_PORQUE, 'Apple no ha contestado nada en ocho segundos')
         setFallo(SIN_TOKEN_PORQUE)
       }
       setPermiso(await estadoDePush())
@@ -346,7 +357,14 @@ export function NotificacionesSection() {
       // plugins trae—. Si están Haptics y Share pero no PushNotifications, el
       // binario es anterior al plugin; si no está ninguno, lo que falla es el
       // puente entero y los avisos son lo de menos.
-      cerrar('fallo', motivo === SIN_PLUGIN ? informeDelPuente() : motivo)
+      // Y si el que contesta que no es Apple, el renglón lo dice: sus palabras
+      // son la causa —el App ID sin la capacidad de avisos sale por aquí—, y no
+      // es lo mismo que su silencio, que se arregla en otro sitio.
+      cerrar(
+        'fallo',
+        motivo === SIN_PLUGIN ? informeDelPuente() : motivo,
+        motivo.startsWith('Apple rechazó') ? 'Apple ha rechazado el registro' : undefined,
+      )
       setPermiso(motivo === SIN_PLUGIN ? SIN_PLUGIN : await estadoDePush())
       if (motivo !== SIN_PLUGIN) setFallo(motivo)
     } finally { setYendo(false) }
