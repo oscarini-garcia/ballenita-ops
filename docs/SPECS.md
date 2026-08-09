@@ -1351,6 +1351,37 @@ sitio donde se quedaba no era ninguno de los que este apartado había mirado
   `atDocumentStart`). Así que `plugin()` es ahora **síncrona**: si no está,
   `SIN_PLUGIN` en el acto. Cambiar una certeza instantánea por seis segundos de
   espera para acabar dando la respuesta equivocada es el peor de los dos tratos.
+- **✅ El silencio de Apple tiene su propia causa, y no la que se decía**
+  (`SIN_TOKEN_PORQUE`). Con el primer eslabón resuelto, el renglón pasó a pararse
+  en el tercero, y ahí las dos pantallas que lo enseñaban decían **cosas
+  distintas** y las dos adivinaban: «suele ser que al binario le falta el permiso
+  de avisos» y «suele ser que no hay red». La primera es directamente falsa: un
+  `aps-environment` que falta **no da silencio, da un `registrationError` con
+  palabras**, y ese camino ya se cuenta entero desde §14.17. Lo que sí calla a
+  Apple es que el `AppDelegate` del binario instalado no reenvíe la respuesta
+  —lo repone `scripts/appdelegate.mjs` en cada `sync:ios`, y **no viaja por
+  OTA**—, que el aparato no tenga red, o que sea el simulador. Escrito una sola
+  vez y en el módulo que produce el silencio, no en las dos pantallas que lo
+  pintan.
+- **✅ El renglón dice qué ha pasado, no solo dónde.** «Pidiéndole el
+  identificador a Apple ×» se reportó tal cual —«falla en pidiéndole el
+  identificador a Apple»— y costó una vuelta entera, porque ahí caben **dos**
+  cosas que se arreglan en sitios distintos: que Apple conteste que no, y
+  entonces sus palabras son la causa y el arreglo está en el portal de Apple; o
+  que no conteste nada, y entonces es el binario. El renglón pasa a poner «Apple
+  ha rechazado el registro» o «Apple no ha contestado nada en ocho segundos», sin
+  tener que tocarlo. Un rótulo que dice el eslabón es la mitad del trabajo; la
+  otra mitad es decir el desenlace.
+- **✅ La capacidad se activa por App ID, y la clave no** (`docs/DESPLIEGUE.md`).
+  Es lo que explica que **otra app del mismo equipo avise y esta no**: la clave
+  `.p8` es del equipo y vale para todas, así que verla funcionar en otro proyecto
+  no dice nada de este; lo que se activa por identificador es la capacidad, en
+  *Identifiers → Push Notifications*, **y hay que regenerar el perfil** —el
+  entitlement vive en el perfil, no en el fichero, y un binario firmado con un
+  perfil que no lo trae no lo tiene por mucho que `App.entitlements` lo diga—.
+  Aquí no estaba documentado en ningún sitio: `DESPLIEGUE.md` cubría los tres
+  secretos del Worker y el entorno, que es la mitad del asunto que **no** gatea
+  el registro.
 - **✅ El renglón que falla lleva en qué se basa** (`informeDelPuente`).
   «sin-plugin» copiado al portapapeles no informa de nada; qué plataforma dice el
   puente y **qué plugins trae** separa las dos causas que desde el móvil se ven

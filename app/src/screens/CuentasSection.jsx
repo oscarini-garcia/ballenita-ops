@@ -10,7 +10,7 @@ import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, li
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
-import { SIN_PLUGIN, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
+import { SIN_PLUGIN, SIN_TOKEN_PORQUE, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
 import { asegurarPush } from '../lib/push.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
@@ -278,8 +278,19 @@ function listaDePasos(setPasos) {
       lista.push({ texto: PASOS_DE_PUSH[clave] ?? clave, estado: 'curso' })
       setPasos([...lista])
     },
-    cerrar(estado, informe) {
-      if (lista.length) Object.assign(lista[lista.length - 1], { estado, informe })
+    /**
+     * Remata el último renglón, y **le cambia el texto si hace falta**.
+     *
+     * «Pidiéndole el identificador a Apple ×» es dónde ha fallado, no qué ha
+     * pasado, y ahí caben dos cosas que se arreglan en sitios distintos: que
+     * Apple conteste que no —y entonces sus palabras son la causa— o que no
+     * conteste nada. Se dijo «falla en pidiéndole el identificador a Apple» sin
+     * poder decir cuál de las dos, y eso costó una vuelta entera.
+     */
+    cerrar(estado, informe, texto) {
+      if (lista.length) {
+        Object.assign(lista[lista.length - 1], { estado, informe }, texto ? { texto } : null)
+      }
       setPasos([...lista])
     },
   }
@@ -331,12 +342,12 @@ export function NotificacionesSection() {
         // Un «no» no es un fallo: es una respuesta, y la de arriba ya lo cuenta.
         cerrar('aviso')
       } else {
-        // Permiso concedido y aun así ningún token: eso es cosa de APNs —falta
-        // el permiso `aps-environment` en el binario, o no hay red—, y callarlo
-        // deja el botón como si no hiciera nada.
-        const motivo = 'Permiso dado, pero Apple no ha devuelto ningún identificador para este móvil. Suele ser que al binario le falta el permiso de avisos.'
-        cerrar('fallo', motivo)
-        setFallo(motivo)
+        // Permiso concedido y aun así ningún token. Callarlo deja el botón como
+        // si no hiciera nada, y adivinarlo es peor: el porqué está escrito una
+        // sola vez en `lib/native.js`, porque las dos pantallas que lo enseñaban
+        // decían cosas distintas y una de las dos era falsa.
+        cerrar('fallo', SIN_TOKEN_PORQUE, 'Apple no ha contestado nada en ocho segundos')
+        setFallo(SIN_TOKEN_PORQUE)
       }
       setPermiso(await estadoDePush())
     } catch (e) {
@@ -346,7 +357,14 @@ export function NotificacionesSection() {
       // plugins trae—. Si están Haptics y Share pero no PushNotifications, el
       // binario es anterior al plugin; si no está ninguno, lo que falla es el
       // puente entero y los avisos son lo de menos.
-      cerrar('fallo', motivo === SIN_PLUGIN ? informeDelPuente() : motivo)
+      // Y si el que contesta que no es Apple, el renglón lo dice: sus palabras
+      // son la causa —el App ID sin la capacidad de avisos sale por aquí—, y no
+      // es lo mismo que su silencio, que se arregla en otro sitio.
+      cerrar(
+        'fallo',
+        motivo === SIN_PLUGIN ? informeDelPuente() : motivo,
+        motivo.startsWith('Apple rechazó') ? 'Apple ha rechazado el registro' : undefined,
+      )
       setPermiso(motivo === SIN_PLUGIN ? SIN_PLUGIN : await estadoDePush())
       if (motivo !== SIN_PLUGIN) setFallo(motivo)
     } finally { setYendo(false) }
@@ -372,9 +390,8 @@ export function NotificacionesSection() {
       // «no se pudo» deja el fallo sin arreglar y sin explicar.
       if (estado === 'error') { cerrar('fallo', motivo); setPrueba({ enviados: 0, motivo }); return }
       if (estado === 'sin-token') {
-        const sinToken = 'Permiso dado, y Apple no contesta ni con identificador ni con error. Suele ser que no hay red.'
-        cerrar('fallo', sinToken)
-        setPrueba({ enviados: 0, motivo: sinToken })
+        cerrar('fallo', SIN_TOKEN_PORQUE)
+        setPrueba({ enviados: 0, motivo: SIN_TOKEN_PORQUE })
         return
       }
       empujar('Mandando el aviso')

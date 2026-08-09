@@ -280,6 +280,29 @@ async function conPlazo(promesa, ms = PLAZOS.puente) {
 export const PASOS_DE_PUSH = ['plugin', 'permiso', 'apple', 'servidor']
 
 /**
+ * Qué significa que Apple no conteste **nada**, que es distinto de que conteste
+ * que no.
+ *
+ * Las dos pantallas que lo enseñaban decían cosas distintas y las dos
+ * adivinaban: una, «suele ser que al binario le falta el permiso de avisos»; la
+ * otra, «suele ser que no hay red». La primera es directamente falsa y por eso
+ * está escrito aquí una sola vez: **un `aps-environment` que falta no da
+ * silencio, da un `registrationError` con palabras** —«no valid 'aps-environment'
+ * entitlement string found in application's signature»—, y ese camino ya se
+ * cuenta entero.
+ *
+ * El silencio tiene otras causas, y la primera es la que más veces es: el
+ * `AppDelegate` del binario instalado no reenvía la respuesta de APNs. Es lo que
+ * repone `scripts/appdelegate.mjs` en cada `sync:ios`, y no viaja por OTA.
+ */
+export const SIN_TOKEN_PORQUE = [
+  'Permiso dado, y Apple no ha contestado ni con identificador ni con error en ocho segundos.',
+  'No es un permiso que le falte al binario: eso llega con mensaje, no con silencio.',
+  'Suele ser que el AppDelegate del binario instalado no reenvía la respuesta de APNs —se repone con «npm run sync:ios» y hay que volver a instalar desde Xcode—.',
+  'También calla un móvil sin red, y el simulador de iOS, que no da identificador.',
+].join(' ')
+
+/**
  * El identificador de APNs de este aparato, o `null`.
  *
  * `alPaso` recibe la clave de cada eslabón **al empezarlo**, para que quien

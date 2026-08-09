@@ -80,6 +80,27 @@ describe('la lista de pasos de los avisos', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/aps-environment/)
   })
 
+  /**
+   * «Falla en pidiéndole el identificador a Apple» costó una vuelta entera: es
+   * dónde, no qué, y ahí caben dos cosas que se arreglan en sitios distintos
+   * —el portal de Apple y el binario—. El renglón lo dice ahora sin tocarlo.
+   */
+  it('el renglón dice si Apple contestó que no, no solo que falló', async () => {
+    puente.romper = "Apple rechazó el registro: no valid 'aps-environment' entitlement"
+    await encender()
+
+    const renglones = await screen.findAllByRole('listitem')
+    await waitFor(() => expect(renglones[2]).toHaveTextContent('Apple ha rechazado el registro'))
+  })
+
+  it('y si lo que hubo fue silencio, lo dice con esas palabras', async () => {
+    puente.token = null
+    await encender()
+
+    const renglones = await screen.findAllByRole('listitem')
+    await waitFor(() => expect(renglones[2]).toHaveTextContent('Apple no ha contestado nada en ocho segundos'))
+  })
+
   it('si es el servidor el que falla, el fallo cae en su renglón y no en el de Apple', async () => {
     registrarPush.mockRejectedValue(new Error('la API no contestó en 20 s (/api/push)'))
     await encender()
@@ -99,7 +120,11 @@ describe('la lista de pasos de los avisos', () => {
     // Tres: no se llega al servidor, así que no se nombra.
     expect(renglones).toHaveLength(3)
     await waitFor(() => expect(renglones[2]).toHaveAttribute('data-estado', 'fallo'))
-    expect(await screen.findByRole('alert')).toHaveTextContent(/permiso de avisos/)
+    // Y lo que dice **no** es que le falte el permiso al binario: eso llega con
+    // mensaje, no con silencio. Lo primero que se mira es el AppDelegate.
+    const dicho = await screen.findByRole('alert')
+    expect(dicho).toHaveTextContent(/AppDelegate/)
+    expect(dicho).not.toHaveTextContent(/le falta el permiso de avisos/)
   })
 
   it('un «no» del usuario no se pinta como un fallo: es una respuesta', async () => {
