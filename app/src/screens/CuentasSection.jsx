@@ -10,7 +10,7 @@ import { eliminarMiCuenta, gestionarCuenta, leerIA, listarCuentas, guardarIA, li
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
-import { SIN_PLUGIN, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
+import { SIN_PLUGIN, SIN_TOKEN_PORQUE, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
 import { asegurarPush } from '../lib/push.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
@@ -331,12 +331,12 @@ export function NotificacionesSection() {
         // Un «no» no es un fallo: es una respuesta, y la de arriba ya lo cuenta.
         cerrar('aviso')
       } else {
-        // Permiso concedido y aun así ningún token: eso es cosa de APNs —falta
-        // el permiso `aps-environment` en el binario, o no hay red—, y callarlo
-        // deja el botón como si no hiciera nada.
-        const motivo = 'Permiso dado, pero Apple no ha devuelto ningún identificador para este móvil. Suele ser que al binario le falta el permiso de avisos.'
-        cerrar('fallo', motivo)
-        setFallo(motivo)
+        // Permiso concedido y aun así ningún token. Callarlo deja el botón como
+        // si no hiciera nada, y adivinarlo es peor: el porqué está escrito una
+        // sola vez en `lib/native.js`, porque las dos pantallas que lo enseñaban
+        // decían cosas distintas y una de las dos era falsa.
+        cerrar('fallo', SIN_TOKEN_PORQUE)
+        setFallo(SIN_TOKEN_PORQUE)
       }
       setPermiso(await estadoDePush())
     } catch (e) {
@@ -372,9 +372,8 @@ export function NotificacionesSection() {
       // «no se pudo» deja el fallo sin arreglar y sin explicar.
       if (estado === 'error') { cerrar('fallo', motivo); setPrueba({ enviados: 0, motivo }); return }
       if (estado === 'sin-token') {
-        const sinToken = 'Permiso dado, y Apple no contesta ni con identificador ni con error. Suele ser que no hay red.'
-        cerrar('fallo', sinToken)
-        setPrueba({ enviados: 0, motivo: sinToken })
+        cerrar('fallo', SIN_TOKEN_PORQUE)
+        setPrueba({ enviados: 0, motivo: SIN_TOKEN_PORQUE })
         return
       }
       empujar('Mandando el aviso')

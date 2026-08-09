@@ -1351,6 +1351,18 @@ sitio donde se quedaba no era ninguno de los que este apartado había mirado
   `atDocumentStart`). Así que `plugin()` es ahora **síncrona**: si no está,
   `SIN_PLUGIN` en el acto. Cambiar una certeza instantánea por seis segundos de
   espera para acabar dando la respuesta equivocada es el peor de los dos tratos.
+- **✅ El silencio de Apple tiene su propia causa, y no la que se decía**
+  (`SIN_TOKEN_PORQUE`). Con el primer eslabón resuelto, el renglón pasó a pararse
+  en el tercero, y ahí las dos pantallas que lo enseñaban decían **cosas
+  distintas** y las dos adivinaban: «suele ser que al binario le falta el permiso
+  de avisos» y «suele ser que no hay red». La primera es directamente falsa: un
+  `aps-environment` que falta **no da silencio, da un `registrationError` con
+  palabras**, y ese camino ya se cuenta entero desde §14.17. Lo que sí calla a
+  Apple es que el `AppDelegate` del binario instalado no reenvíe la respuesta
+  —lo repone `scripts/appdelegate.mjs` en cada `sync:ios`, y **no viaja por
+  OTA**—, que el aparato no tenga red, o que sea el simulador. Escrito una sola
+  vez y en el módulo que produce el silencio, no en las dos pantallas que lo
+  pintan.
 - **✅ El renglón que falla lleva en qué se basa** (`informeDelPuente`).
   «sin-plugin» copiado al portapapeles no informa de nada; qué plataforma dice el
   puente y **qué plugins trae** separa las dos causas que desde el móvil se ven

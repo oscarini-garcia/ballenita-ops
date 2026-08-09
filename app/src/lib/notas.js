@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.34.2',
+    fecha: '2026-08-09',
+    titulo: 'Cuando Apple no contesta, se dice qué mirar',
+    lineas: [
+      'Si el permiso está dado y Apple no devuelve identificador, la app decía «suele ser que al binario le falta el permiso de avisos». Es falso: eso llega con mensaje, no con silencio.',
+      'Ahora dice lo que de verdad calla a Apple: que el AppDelegate del binario instalado no reenvía la respuesta, que no hay red, o que es el simulador.',
+      'Y lo decían dos pantallas con dos textos distintos; ahora está escrito una sola vez.',
+    ],
+  },
+  {
     version: '0.34.1',
     fecha: '2026-08-08',
     titulo: 'Los avisos contestan en el acto cuando la app no puede avisar',
