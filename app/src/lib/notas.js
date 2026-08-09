@@ -16,6 +16,14 @@
  */
 export const NOTAS = [
   {
+    version: '0.38.0',
+    fecha: '2026-08-09',
+    titulo: 'En Comidas, «Platos» pasa a llamarse «Carta»',
+    lineas: [
+      'Es el catálogo de lo que sabéis cocinar, y «Platos» se confundía con los platos de esa cena, que son los que se marcan en Cenas y en el día.',
+    ],
+  },
+  {
     version: '0.37.1',
     fecha: '2026-08-09',
     titulo: 'Los avisos no esperan a la migración para volver a sonar',

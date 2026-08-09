@@ -3631,6 +3631,18 @@ nadie más. Ahora avisan de tres, y se puede elegir.
   en su sitio. El `catch` deja además de ser mudo: sale por el log del Worker,
   que es donde se mira cuando alguien dice que no le llega nada.
 
+### 14.40 En Comidas, el área se llama «Carta»
+
+`Comidas` son **Cenas · Carta · Compra** (§14.10-ter). El área del medio se
+llamaba «Platos» y nombraba dos cosas a la vez: el **catálogo** de lo que el
+grupo sabe cocinar, que es lo que hay ahí, y los **platos de una cena**, que se
+marcan en Cenas y en el día. «Carta» solo puede ser lo primero.
+
+El `id` del área **se queda en `platos`**: es lo que hay guardado en cada móvil
+—`lib/areas.js` recuerda el área abierta— y renombrarlo devolvería a todo el
+mundo a Cenas a cambio de nada. Los dos sitios que mandaban «a Comidas → Platos»
+—los vacíos del elegidor de platos del día— dicen ahora «a Comidas → Carta».
+
 ### 14.39-bis La hoja de una mejora es un cuaderno, no un renglón
 
 Una mejora admite **2000 letras** (§14.22) y su hoja medía 380 pt de ancho con

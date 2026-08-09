@@ -54,17 +54,19 @@ describe('App — navegación', () => {
     expect(screen.queryByText('Gasto total del evento')).not.toBeInTheDocument()
   })
 
-  it('«Comidas» tiene tres áreas: Cenas, Platos y la Compra', async () => {
+  it('«Comidas» tiene tres áreas: Cenas, la Carta y la Compra', async () => {
     await abrirEjemplo()
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[2])
 
-    for (const area of ['Cenas', 'Platos', 'Compra']) {
+    for (const area of ['Cenas', 'Carta', 'Compra']) {
       expect(await screen.findByRole('tab', { name: area })).toBeInTheDocument()
     }
 
-    // Platos es el catálogo, que hasta ahora solo existía dentro del modal de
-    // una cena y no se podía ni corregir.
-    await userEvent.click(screen.getByRole('tab', { name: 'Platos' }))
+    // La Carta es el catálogo de lo que se sabe cocinar, que hasta ahora solo
+    // existía dentro del modal de una cena y no se podía ni corregir. Se llamaba
+    // «Platos» y se confundía con los platos **de esta cena**, que son los que se
+    // marcan en Cenas y en el día.
+    await userEvent.click(screen.getByRole('tab', { name: 'Carta' }))
     expect(await screen.findByText(/el mismo en todos los eventos/)).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Abrir Paella mixta' })).toBeInTheDocument()
 
