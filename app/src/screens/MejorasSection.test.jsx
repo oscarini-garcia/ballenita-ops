@@ -218,18 +218,27 @@ describe('el rótulo de Ajustes', () => {
     render(<Apartado evento={event} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Escribir una larga' }))
 
+    // De una vez y no tecla a tecla: son 56 letras, y `userEvent.type` dispara un
+    // renderizado por cada una. En este portátil sobraba tiempo y en el runner
+    // no, que es exactamente la forma de una prueba inestable — y una inestable
+    // ya dejó un OTA sin publicar.
     const campo = await screen.findByLabelText('Qué se te ha ocurrido')
-    await userEvent.type(campo, 'Que la lista de la compra se pueda compartir por WhatsApp')
-    await userEvent.click(screen.getByRole('button', { name: 'Apuntarla' }))
+    fireEvent.change(campo, { target: { value: 'Que la lista de la compra se pueda compartir por WhatsApp' } })
+    await userEvent.click(await screen.findByRole('button', { name: 'Apuntarla' }))
 
-    expect(await screen.findByText(/se pueda compartir por WhatsApp/)).toBeInTheDocument()
+    // Contra la base y no contra la pantalla: lo que se prueba es que la hoja
+    // apunta, y la lista se repinta cuando Dexie avisa, que es otro reloj.
+    await waitFor(async () => {
+      const puestas = await listMejoras(event)
+      expect(puestas.map((m) => m.texto)).toContain('Que la lista de la compra se pueda compartir por WhatsApp')
+    })
   })
 
   it('lo tecleado en el renglón no se pierde al pasar a la hoja', async () => {
     const { event } = await viaje()
     render(<Apartado evento={event} />)
-    await userEvent.type(await screen.findByLabelText('Apunta una mejora'), 'Los avisos')
-    await userEvent.click(screen.getByRole('button', { name: 'Escribir una larga' }))
+    fireEvent.change(await screen.findByLabelText('Apunta una mejora'), { target: { value: 'Los avisos' } })
+    await userEvent.click(await screen.findByRole('button', { name: 'Escribir una larga' }))
 
     expect(await screen.findByLabelText('Qué se te ha ocurrido')).toHaveValue('Los avisos')
   })
