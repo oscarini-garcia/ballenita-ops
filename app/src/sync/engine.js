@@ -8,7 +8,7 @@
 // en primer plano.
 import { useEffect, useState } from 'react'
 import { colaPendiente, importSnapshot, vaciarCola, db } from '../db.js'
-import { haySesion } from '../auth/sesion.js'
+import { actualizarCuenta, haySesion } from '../auth/sesion.js'
 import * as api from './api.js'
 
 let syncing = false
@@ -58,10 +58,15 @@ export async function syncNow() {
 
     let instantanea
     let rechazados = []
+    // Lo que el servidor sabe de esta cuenta viaja al lado de la instantánea
+    // (SPECS §14.41): si el administrador la enlazó con una persona después de
+    // entrar, aquí es donde este móvil se entera.
+    let cuenta = null
 
     if (cola.length) {
       const respuesta = await api.enviarCambios(cola.map(({ orden, ...cambio }) => cambio))
       instantanea = respuesta.instantanea
+      cuenta = respuesta.cuenta ?? null
       // Lo que el servidor no ha aplicado **hay que decirlo**, no solo apuntarlo
       // en una consola que nadie abre desde un iPhone: la interfaz es optimista,
       // así que un cambio rechazado se vio guardado un momento y desaparece con
@@ -73,8 +78,10 @@ export async function syncNow() {
       if (rechazados.length) console.warn('Cambios no aplicados por el servidor:', rechazados)
     } else {
       instantanea = await api.traerInstantanea()
+      cuenta = instantanea?.cuenta ?? null
     }
 
+    if (cuenta) actualizarCuenta(cuenta)
     if (corte) await vaciarCola(corte)
     if (instantanea?.tables) await importSnapshot(instantanea)
 

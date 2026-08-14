@@ -11,6 +11,8 @@ import Confirmar from '../components/Confirmar.jsx'
 import { comoSeReparte } from '../lib/reparto-gente.js'
 import { queSeLlevaUnGasto } from '../lib/borrados.js'
 import { tap } from '../lib/native.js'
+import { useIdentidad } from '../lib/identidad.js'
+import { puedeTocarDinero } from '../lib/personas.js'
 import FichaDeGasto from './FichaDeGasto.jsx'
 
 /** «19:40» — desempata dos gastos de la misma categoría el mismo día. */
@@ -28,6 +30,10 @@ export default function ExpensesScreen({ eventId, event }) {
   const [ficha, setFicha] = useState(null)
   // El gasto que se está a punto de borrar, o null.
   const [borrando, setBorrando] = useState(null)
+  // Con la identidad de un niño puesta, esta pantalla es un escaparate: sin
+  // «+ Gasto», sin abrir la ficha y sin el verbo de borrar (SPECS §14.41).
+  const { me } = useIdentidad(eventId, persons)
+  const soloMirar = !puedeTocarDinero(me)
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
 
   const total = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)
@@ -71,6 +77,21 @@ export default function ExpensesScreen({ eventId, event }) {
             `${puesto ? 'p' : 'P'}agó ${e.payers?.map((p) => famName(p.familyId)).join(', ')}`,
             raro || (puesto ? null : hora(e.dateISO)),
           ].filter(Boolean).join(' · ')
+          const cuerpo = (
+            <>
+              <span className="ico" data-cat={c.tono}><Icono nombre={c.icon} /></span>
+              <span className="main">
+                <span className="n">{puesto || c.label}</span>
+                <span className="sub">
+                  {sub}
+                  {e.currency && e.currency !== event.currency && <> · <span className="pill fx">{e.amountOriginal} {e.currency}</span></>}
+                </span>
+              </span>
+              <span className="amt tnum">{formatCents(e.amountCents, event.currency)}</span>
+            </>
+          )
+          // El escaparate: la misma fila, sin gesto detrás ni ficha que abrir.
+          if (soloMirar) return <div className="row fila-gasto" key={e.id}>{cuerpo}</div>
           return (
             <Deslizable
               key={e.id}
@@ -82,15 +103,7 @@ export default function ExpensesScreen({ eventId, event }) {
               }
             >
               <button type="button" className="row fila-gasto" onClick={() => setFicha(e)}>
-                <span className="ico" data-cat={c.tono}><Icono nombre={c.icon} /></span>
-                <span className="main">
-                  <span className="n">{puesto || c.label}</span>
-                  <span className="sub">
-                    {sub}
-                    {e.currency && e.currency !== event.currency && <> · <span className="pill fx">{e.amountOriginal} {e.currency}</span></>}
-                  </span>
-                </span>
-                <span className="amt tnum">{formatCents(e.amountCents, event.currency)}</span>
+                {cuerpo}
               </button>
             </Deslizable>
           )
@@ -113,10 +126,14 @@ export default function ExpensesScreen({ eventId, event }) {
         )}
       </div>
 
+      {soloMirar && (
+        <div className="note">🐳 Los gastos y los pagos los tocan los mayores. Mirar, todo lo que quieras.</div>
+      )}
+
       {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
       <Recado evento={event} />
 
-      <Fab label="Gasto" onClick={() => setFicha('nuevo')} />
+      {!soloMirar && <Fab label="Gasto" onClick={() => setFicha('nuevo')} />}
 
       {ficha && (
         <FichaDeGasto

@@ -7,6 +7,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { expensesOf, familiesOf, personsOf, settlementsOf, addSettlement } from '../db.js'
 import { computeFamilyBalances, simplifyDebts } from '../lib/reparto.js'
 import { formatCents } from '../lib/money.js'
+import { useIdentidad } from '../lib/identidad.js'
+import { puedeTocarDinero } from '../lib/personas.js'
 import Alias from '../components/Alias.jsx'
 
 /**
@@ -41,6 +43,10 @@ export default function BalancesScreen({ eventId, event }) {
 
   const personsById = Object.fromEntries(persons.map((p) => [p.id, p]))
   const famById = Object.fromEntries(families.map((f) => [f.id, f]))
+  // «Pagado» mueve el saldo de dos familias: con la identidad de un niño
+  // puesta, el botón no está (SPECS §14.41). Los saldos se miran igual.
+  const { me } = useIdentidad(eventId, persons)
+  const soloMirar = !puedeTocarDinero(me)
 
   /**
    * Quién es el dueño de un saldo. Una persona sin familia es una **familia de
@@ -101,7 +107,7 @@ export default function BalancesScreen({ eventId, event }) {
                     <div className="n">{nombre(t.fromFamilyId)} <span className="flecha">→</span> {nombre(t.toFamilyId)}</div>
                     <div className="sub tnum">{formatCents(t.amountCents, event.currency)}</div>
                   </div>
-                  <button className="btn sm ghost" onClick={() => addSettlement(eventId, t)}>pagado</button>
+                  {!soloMirar && <button className="btn sm ghost" onClick={() => addSettlement(eventId, t)}>pagado</button>}
                 </div>
               ))}
             </div>

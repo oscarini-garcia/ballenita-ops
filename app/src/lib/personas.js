@@ -22,6 +22,14 @@ export const EDADES = [
 export const pesoDe = (edad) => EDADES.find((e) => e.id === edad)?.peso ?? 1
 
 /**
+ * Dinero escribe solo con manos adultas (SPECS §14.41): con la identidad de un
+ * niño puesta, los gastos y los saldos se miran pero no se tocan. Sin identidad
+ * se puede tocar —la libreta local y el primer arranque no tienen a nadie
+ * elegido y capar ahí dejaría la app muda—; con ella, decide la edad.
+ */
+export const puedeTocarDinero = (me) => me?.edad !== 'niño'
+
+/**
  * Emoji para elegir de un toque, además de escribir el que quieras.
  *
  * El del cromo se fue (§14.13), pero el que eliges tú es contenido y se queda —y

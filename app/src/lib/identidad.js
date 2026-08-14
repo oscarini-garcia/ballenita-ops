@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { leerSesion } from '../auth/sesion.js'
 
 /**
  * Quién eres en un evento.
@@ -49,6 +50,20 @@ export function useIdentidad(eventId, persons = []) {
   useEffect(() => {
     if (meId && persons.length && !me) { setMeId(eventId, null); setMe(null) }
   }, [meId, persons, me, eventId])
+
+  // Si el servidor ya sabe quién eres —tu cuenta está enlazada con una persona
+  // (SPECS §14.41)— y en este móvil aún no se ha elegido, se elige sola. Solo
+  // rellena el hueco: una elección hecha a mano no se pisa, y si la persona
+  // enlazada no es de este evento, no se inventa nada.
+  useEffect(() => {
+    if (meId || !persons.length) return
+    const enlazada = leerSesion()?.cuenta?.personId
+    if (enlazada && persons.some((p) => p.id === enlazada)) {
+      setMeId(eventId, enlazada)
+      setMe(enlazada)
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event(AVISO))
+    }
+  }, [meId, persons, eventId])
 
   function elegir(id) {
     setMeId(eventId, id)
