@@ -8,7 +8,7 @@ import { expensesOf, familiesOf, personsOf, settlementsOf, addSettlement } from 
 import { computeFamilyBalances, simplifyDebts } from '../lib/reparto.js'
 import { formatCents } from '../lib/money.js'
 import { useIdentidad } from '../lib/identidad.js'
-import { puedeTocarDinero } from '../lib/personas.js'
+import { puedeOrganizar } from '../lib/personas.js'
 import Alias from '../components/Alias.jsx'
 
 /**
@@ -46,7 +46,7 @@ export default function BalancesScreen({ eventId, event }) {
   // «Pagado» mueve el saldo de dos familias: con la identidad de un niño
   // puesta, el botón no está (SPECS §14.41). Los saldos se miran igual.
   const { me } = useIdentidad(eventId, persons)
-  const soloMirar = !puedeTocarDinero(me)
+  const soloMirar = !puedeOrganizar(me)
 
   /**
    * Quién es el dueño de un saldo. Una persona sin familia es una **familia de

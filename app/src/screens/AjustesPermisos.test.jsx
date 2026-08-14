@@ -3,12 +3,15 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import 'fake-indexeddb/auto'
 
 /**
- * Quién eres no se elige cuando lo dice tu cuenta (SPECS §14.42).
+ * Quién puede cambiar qué en Ajustes (SPECS §14.42 y §14.43).
  *
- * La lista de personas y el botón «Salir» solo tienen sentido donde la
- * identidad es una preferencia de este móvil: la libreta local y la
- * demostración. Con sesión, quién eres es el enlace que hizo quien administra,
- * y un botón que se deshace solo al instante es peor que no tenerlo.
+ * **Quién eres** no se elige cuando lo dice tu cuenta: la lista de personas y
+ * el «Salir» de ese apartado solo tienen sentido donde la identidad es una
+ * preferencia de este móvil —libreta local y demostración—, y un botón que se
+ * deshace solo al instante es peor que no tenerlo.
+ *
+ * **El evento** lo lleva quien administra: sus fechas apartan cenas y planes de
+ * todo el grupo, así que no es una corrección personal.
  */
 vi.mock('../sync/api.js', async (original) => ({
   ...(await original()),
@@ -78,5 +81,37 @@ describe('quién eres, con la cuenta enlazada', () => {
     pintar()
 
     await waitFor(() => expect(screen.getByText('Elige quién eres')).toBeInTheDocument())
+  })
+})
+
+/**
+ * El evento lo lleva quien administra (SPECS §14.43): sus fechas apartan cenas
+ * y planes de todo el grupo, así que no es una corrección personal.
+ */
+describe('editar el evento', () => {
+  const fichaDelEvento = () => within(screen.getByText('Evento').closest('details'))
+
+  // Acotado a su apartado: la nota de la versión que cuenta este mismo cambio
+  // vive en «La app» y dice la misma frase — un `getByText` suelto la encuentra.
+  it('un miembro lo ve pero no lo toca', async () => {
+    entrarComo('miembro', mariona)
+    pintar()
+
+    await waitFor(() => expect(fichaDelEvento().getByText(/lo lleva quien administra/)).toBeInTheDocument())
+    expect(fichaDelEvento().queryByRole('button', { name: /Ballenita/ })).toBeNull()
+  })
+
+  it('quien administra sí', async () => {
+    entrarComo('administrador', mariona)
+    pintar()
+
+    await waitFor(() => expect(fichaDelEvento().getByRole('button', { name: /Ballenita/ })).toBeInTheDocument())
+    expect(fichaDelEvento().queryByText(/lo lleva quien administra/)).toBeNull()
+  })
+
+  it('sin sesión —libreta local, demostración— también', async () => {
+    pintar()
+
+    await waitFor(() => expect(fichaDelEvento().getByRole('button', { name: /Ballenita/ })).toBeInTheDocument())
   })
 })

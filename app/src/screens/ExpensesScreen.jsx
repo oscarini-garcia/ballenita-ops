@@ -12,7 +12,7 @@ import { comoSeReparte } from '../lib/reparto-gente.js'
 import { queSeLlevaUnGasto } from '../lib/borrados.js'
 import { tap } from '../lib/native.js'
 import { useIdentidad } from '../lib/identidad.js'
-import { puedeTocarDinero } from '../lib/personas.js'
+import { puedeOrganizar } from '../lib/personas.js'
 import FichaDeGasto from './FichaDeGasto.jsx'
 
 /** «19:40» — desempata dos gastos de la misma categoría el mismo día. */
@@ -33,7 +33,7 @@ export default function ExpensesScreen({ eventId, event }) {
   // Con la identidad de un niño puesta, esta pantalla es un escaparate: sin
   // «+ Gasto», sin abrir la ficha y sin el verbo de borrar (SPECS §14.41).
   const { me } = useIdentidad(eventId, persons)
-  const soloMirar = !puedeTocarDinero(me)
+  const soloMirar = !puedeOrganizar(me)
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
 
   const total = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)

@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.40.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  841 pruebas en 91 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.41.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  850 pruebas en 92 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -196,7 +196,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
   ↳ NOTAS
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
-  ↳ EDADES, pesoDe, puedeTocarDinero, EMOJIS_PERSONA
+  ↳ EDADES, pesoDe, puedeOrganizar, EMOJIS_PERSONA
 - `planes.js` — Lo que se dice de un plan sin abrirlo: cuántos lo quieren y quién falta.
   ↳ quienFaltaPorVotar, votosDe
 - `primeraBajada.js` — La primera bajada: traer lo del grupo justo después de entrar por primera vez.
@@ -386,5 +386,6 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `index.js`
-- **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js`, `engine.js` · +3 más
+- **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +4 más
 - **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `EventSettingsScreen.jsx`, `identidad.js`
+- **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `CenasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `personas.js`

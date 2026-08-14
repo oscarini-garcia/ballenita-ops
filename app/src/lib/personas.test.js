@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EDADES, EMOJIS_PERSONA, pesoDe, puedeTocarDinero } from './personas.js'
+import { EDADES, EMOJIS_PERSONA, pesoDe, puedeOrganizar } from './personas.js'
 
 describe('pesos por edad', () => {
   it('son tres: adulto 1, adolescente 1 y niño 0,6', () => {
@@ -17,13 +17,13 @@ describe('pesos por edad', () => {
 
 describe('quién toca Dinero (§14.41)', () => {
   it('el adulto sí; el adolescente y el niño, no', () => {
-    expect(puedeTocarDinero({ edad: 'adulto' })).toBe(true)
-    expect(puedeTocarDinero({ edad: 'adolescente' })).toBe(false)
-    expect(puedeTocarDinero({ edad: 'niño' })).toBe(false)
+    expect(puedeOrganizar({ edad: 'adulto' })).toBe(true)
+    expect(puedeOrganizar({ edad: 'adolescente' })).toBe(false)
+    expect(puedeOrganizar({ edad: 'niño' })).toBe(false)
   })
   it('sin identidad no se capa, y una edad desconocida tampoco', () => {
-    expect(puedeTocarDinero(null)).toBe(true)
-    expect(puedeTocarDinero({ edad: 'bebé' })).toBe(true)
+    expect(puedeOrganizar(null)).toBe(true)
+    expect(puedeOrganizar({ edad: 'bebé' })).toBe(true)
   })
 })
 

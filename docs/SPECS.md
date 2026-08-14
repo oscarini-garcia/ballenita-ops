@@ -3733,6 +3733,35 @@ sitio — y el cerrojo de Dinero (§14.41) se saltaba eligiéndose un adulto.
   esa persona: lo decide quien lleva el grupo, no este móvil». Un control que
   desaparece sin explicación se lee como una avería.
 
+### 14.43 Organizar el viaje es de los adultos, y el evento de quien administra
+
+§14.41 cerró el dinero y §14.42 la identidad. Faltaba lo demás de organizar: un
+niño podía **montar una cena**, **pasar una idea a propuesta** —que crea un plan
+del viaje— y **colocar el día** de todos. Y las **fechas del evento**, que
+apartan cenas y planes de todo el grupo (§14.10-quater), las cambiaba cualquiera.
+
+- **✅ Un solo predicado, `puedeOrganizar`** (`lib/personas.js`), porque es una
+  sola regla: escribir lo que organiza el viaje. Sustituye a `puedeTocarDinero`
+  —dos nombres para la misma decisión se separan solos con el tiempo— y bebe de
+  la columna `organiza` de `EDADES`, así que una edad nueva se declara en un
+  sitio y sale en las cinco pantallas a la vez.
+- **✅ Lo que queda dentro:** gastos y liquidaciones (§14.41), montar y borrar
+  cenas, «Proponer» una idea, y los tres renglones del día —platos, bungas y
+  plan—.
+- **✅ Lo que queda fuera, a propósito:** **votar** un plan, **apuntar** una idea
+  —media razón de ser del catálogo—, marcar la compra, cambiar el estado y
+  mirarlo todo. Un viaje en el que los peques no pueden opinar no es este.
+- **✅ El día se abre igual**, y sus renglones dejan de ser botones en vez de
+  salir apagados: una fila `disabled` se lee como una avería, y aquí no falta
+  nada —simplemente no te toca colocar el día—. Las pistas cambian con ellos:
+  «toca para elegir el bunga» pasa a «sin elegir», porque un renglón no puede
+  prometer un gesto que no ocurre.
+- **✅ El evento lo edita quien administra** (pedido expreso). Su ficha de
+  Ajustes deja de ser un botón para los demás y dice por qué: cambiar las fechas
+  aparta cenas y planes de todos.
+- **Sin sesión no se capa nada** —libreta local y demostración—, como en todo lo
+  demás: ahí el viaje es de quien tiene el móvil en la mano.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

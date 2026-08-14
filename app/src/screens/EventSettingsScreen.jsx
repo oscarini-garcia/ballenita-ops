@@ -27,6 +27,7 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { aplicarSiguienteMigracion, eliminarMiCuenta, gestionarCuenta, hayApi, leerMigraciones, listarCuentas } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
+import { esAdministrador } from '../lib/admin.js'
 import { tap } from '../lib/native.js'
 import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
@@ -446,6 +447,22 @@ function QuienEresSection({ eventId, persons }) {
 function EventoSection({ event, onPickEvent }) {
   const events = useLiveQuery(listEvents, [], [])
   const [editando, setEditando] = useState(false)
+  // El evento lo edita quien administra (SPECS §14.43): sus fechas mueven las
+  // cenas y los planes de todo el grupo —lo que cae fuera se aparta (§14.10-quater)—,
+  // así que no es una corrección personal. Sin sesión —libreta local,
+  // demostración— no se capa: ahí el evento es de quien tiene el móvil.
+  const sesion = leerSesion()
+  const puedeEditar = !sesion || esAdministrador(sesion)
+
+  const ficha = (
+    <>
+      <span className="ico"><Icono nombre="evento" /></span>
+      <span className="main">
+        <span className="n">{event?.name || 'Evento'}</span>
+        <span className="sub">{[event?.lugar, fechasEnPalabras(event)].filter(Boolean).join(' · ') || 'Ballena Ops'}</span>
+      </span>
+    </>
+  )
 
   return (
     <>
@@ -455,16 +472,23 @@ function EventoSection({ event, onPickEvent }) {
           cosa del evento. */}
       <div className="card tight">
         <div className="row">
-          <button type="button" className="row-quien" onClick={() => { tap(); setEditando(true) }}>
-            <span className="ico"><Icono nombre="evento" /></span>
-            <span className="main">
-              <span className="n">{event?.name || 'Evento'}</span>
-              <span className="sub">{[event?.lugar, fechasEnPalabras(event)].filter(Boolean).join(' · ') || 'Ballena Ops'}</span>
-            </span>
-          </button>
+          {puedeEditar ? (
+            <button type="button" className="row-quien" onClick={() => { tap(); setEditando(true) }}>
+              {ficha}
+            </button>
+          ) : (
+            <span className="row-quien">{ficha}</span>
+          )}
           <span className="pill neutral">en curso</span>
         </div>
       </div>
+
+      {!puedeEditar && (
+        <div className="note">
+          🐳 El viaje —su nombre, el sitio y las fechas— lo lleva quien administra el grupo. Cambiar
+          las fechas aparta cenas y planes de todos, y por eso no es cosa de un móvil.
+        </div>
+      )}
 
       {editando && event && <EditorEvento event={event} onCerrar={() => setEditando(false)} />}
 
