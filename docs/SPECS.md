@@ -3660,6 +3660,55 @@ apuntaban a medias.
   mano un párrafo desde un móvil es justo lo que no se hace. Es la figura del
   renglón que se toca para copiar de la lista de pasos (§14.9-bis).
 
+### 14.41 Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos
+
+La app era igual de editable para todo el mundo: un niño con la tablet podía
+borrar un gasto, y cualquiera podía reescribir el censo del grupo. Y «quién
+eres» había que elegirlo a mano en cada móvil, cuando el servidor ya lo sabía
+desde que el administrador enlaza cada cuenta con su persona (§14.15).
+
+- **✅ La cuenta viaja con la instantánea** (`cuentaPublica` en
+  `api/src/index.js`): `{ id, nombre, rol, personId }` sale en el canje de
+  sesión, en el sondeo de la sala de espera y **al lado de cada instantánea**
+  (`GET /api/sync`, `POST /api/cambios`). Lo último es lo que importa: un
+  enlace hecho **después** de entrar llega a los móviles que ya estaban dentro,
+  en su siguiente sincronización y sin volver por Apple. El motor lo refresca
+  (`actualizarCuenta`, `auth/sesion.js`) sin tocar el token.
+- **✅ La identidad se siembra sola** (`useIdentidad`, `lib/identidad.js`): sin
+  nadie elegido en este móvil, la persona enlazada de la sesión entra sola —al
+  enlazar a Mariona, su móvil ya sabe que es Mariona—. Solo rellena el hueco:
+  una elección hecha a mano no se pisa, y si la persona enlazada no es de este
+  evento no se inventa nada.
+- **✅ Dinero escribe solo con manos adultas** (`puedeTocarDinero`,
+  `lib/personas.js`): con la identidad de un niño puesta, Gastos pierde el
+  «+ Gasto», el toque que abre la ficha y el gesto de borrar —la fila deja de
+  ser un botón—, y Saldos pierde «pagado». Mirar, todo lo que quieran: los
+  saldos son del grupo. Sin identidad no se capa nada: la libreta local y el
+  primer arranque no tienen a nadie elegido y una app muda no invita a entrar.
+- **✅ Y hay una tercera edad: el adolescente.** Pesa **como un adulto** —come y
+  cuesta como uno: peso 1, mesa de mayores y reparto de adulto de fábrica— y lo
+  único que lo distingue es que **Dinero no es suyo**. Vive en la misma tabla
+  `EDADES` con su columna `dinero`, que es de donde bebe `puedeTocarDinero`:
+  una edad nueva se añade en un sitio y sale en el editor, en el peso y en el
+  cerrojo a la vez. No pide migración: `edad` ya era texto libre en la base, y
+  a un cliente viejo un «adolescente» le pesa 1 (`pesoDe` cae en 1 ante lo
+  desconocido).
+- **✅ El grupo lo edita quien administra** (`GrupoSection`): con sesión de
+  miembro es el censo —sin «+ Familia», sin «+ Persona», sin abrir fichas ni
+  emparejar bungas—. Sin sesión no se capa: la libreta local y la demostración
+  son de quien tiene el móvil en la mano. Es un cerrojo de pantalla, no de
+  servidor: en un grupo de nueve amigos el riesgo es el dedo, no el dolo.
+- **✅ El administrador no cambia de persona** (pedido expreso): su «Cambiar de
+  persona» de Quién eres se retira mientras tenga identidad — el servidor ya le
+  enlaza (§14.15) y no la usa. Si se queda sin ella, la lista vuelve sola.
+- **✅ Sincronización y Actualizar se consolidan en «La app»** (pedido expreso):
+  eran dos acordeones contando la misma operación por mitades, cuando el punto
+  de la cabecera ya hace las dos cosas en una pasada (datos + versión, §14.10).
+  Un acordeón, con la versión en el rótulo.
+- **Lo que no se toca:** IA ya era solo del administrador, y el acordeón
+  «Cuentas» de un miembro se queda en lo mínimo que exige Apple — «Salir» y
+  «Eliminar mi cuenta» (directriz 5.1.1(v)) no pueden desaparecer.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

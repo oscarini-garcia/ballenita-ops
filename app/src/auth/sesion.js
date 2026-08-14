@@ -36,6 +36,20 @@ export function borrarSesion() {
 export const haySesion = () => Boolean(leerSesion()?.token)
 
 /**
+ * Refresca lo que la sesión sabe de su cuenta, sin tocar el token.
+ *
+ * El servidor devuelve la cuenta al lado de cada instantánea (SPECS §14.41)
+ * porque el dato que importa —con qué persona está enlazada, `personId`— puede
+ * cambiar **después** de entrar: el administrador enlaza cuando le pilla bien.
+ * Sin este refresco, ese enlace solo llegaría volviendo a pasar por Apple.
+ */
+export function actualizarCuenta(cuenta) {
+  const sesion = leerSesion()
+  if (!sesion?.token || !cuenta || (sesion.cuenta?.id && cuenta.id !== sesion.cuenta.id)) return
+  guardarSesion({ ...sesion, cuenta: { ...sesion.cuenta, ...cuenta } })
+}
+
+/**
  * Modo local en la app de iOS: usar Ballena Ops como libreta de este móvil sin
  * haber entrado.
  *

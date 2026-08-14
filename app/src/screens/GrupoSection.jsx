@@ -17,6 +17,8 @@ import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCo
 import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
 import { EDADES, EMOJIS_PERSONA, pesoDe } from '../lib/personas.js'
+import { esAdministrador } from '../lib/admin.js'
+import { leerSesion } from '../auth/sesion.js'
 
 const COLORES = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -63,7 +65,14 @@ export default function GrupoSection({ eventId }) {
   // { que: 'bunga'|'familia', id } · qué emparejamiento se está eligiendo.
   const [eligiendo, setEligiendo] = useState(null)
 
-  const abrir = (e) => { tap(); setEditor(e) }
+  // El grupo lo edita quien administra (SPECS §14.41): con sesión de miembro,
+  // esto es el censo para mirarlo. Sin sesión no se capa nada — la libreta
+  // local y la demostración son de quien tiene el móvil en la mano.
+  const sesion = leerSesion()
+  const soloLectura = Boolean(sesion) && !esAdministrador(sesion)
+
+  const abrir = (e) => { if (soloLectura) return; tap(); setEditor(e) }
+  const emparejar = (e) => { if (soloLectura) return; tap(); setEligiendo(e) }
   // Todo va ordenado por nombre: una lista de nueve nombres sin orden se recorre
   // entera cada vez, y el de la base es el de los ids, que son aleatorios.
   const genteDe = (familyId) => persons.filter((p) => p.familyId === familyId).sort(porNombre)
@@ -88,13 +97,15 @@ export default function GrupoSection({ eventId }) {
                   {f.estado && <span className="sub">{f.estado}</span>}
                 </span>
               </button>
-              <button
-                type="button"
-                className={`pastilla${b ? '' : ' vacia'}`}
-                onClick={() => { tap(); setEligiendo({ que: 'bunga', id: f.id }) }}
-              >
-                {b ? etiquetaCorta(b) : '+ Bunga'}
-              </button>
+              {(b || !soloLectura) && (
+                <button
+                  type="button"
+                  className={`pastilla${b ? '' : ' vacia'}`}
+                  onClick={() => emparejar({ que: 'bunga', id: f.id })}
+                >
+                  {b ? etiquetaCorta(b) : '+ Bunga'}
+                </button>
+              )}
             </div>
             <div className="ficha-cuerpo">
               {genteDe(f.id).map((p) => (
@@ -104,9 +115,11 @@ export default function GrupoSection({ eventId }) {
                   <span className="dato">{p.edad}</span>
                 </button>
               ))}
-              <button type="button" className="mini anadir" onClick={() => abrir({ tipo: 'persona', familyId: f.id })}>
-                + Persona
-              </button>
+              {!soloLectura && (
+                <button type="button" className="mini anadir" onClick={() => abrir({ tipo: 'persona', familyId: f.id })}>
+                  + Persona
+                </button>
+              )}
             </div>
           </div>
         )
@@ -125,13 +138,15 @@ export default function GrupoSection({ eventId }) {
                     <span className="sub">{[b.alias, 'sin familia'].filter(Boolean).join(' · ')}</span>
                   </span>
                 </button>
-                <button
-                  type="button"
-                  className="btn sm ghost"
-                  onClick={() => { tap(); setEligiendo({ que: 'familia', id: b.id }) }}
-                >
-                  Asignar
-                </button>
+                {!soloLectura && (
+                  <button
+                    type="button"
+                    className="btn sm ghost"
+                    onClick={() => emparejar({ que: 'familia', id: b.id })}
+                  >
+                    Asignar
+                  </button>
+                )}
               </div>
             ))}
             {sueltosGente.map((p) => (
@@ -149,11 +164,20 @@ export default function GrupoSection({ eventId }) {
         </>
       )}
 
-      <button className="btn block" onClick={() => abrir({ tipo: 'familia' })}>+ Familia</button>
-      <div className="note">
-        🐳 Quien se queda <b>sin familia</b> no entra en el reparto de ninguna. La gente de aquí es
-        la que puede tener cuenta: las peticiones de acceso se enlazan con una persona.
-      </div>
+      {soloLectura ? (
+        <div className="note">
+          🐳 El grupo lo edita quien administra; esto es el censo, para mirarlo. Lo tuyo —tu emoji,
+          tu foto y tu estado— se cambia en «Quién eres».
+        </div>
+      ) : (
+        <>
+          <button className="btn block" onClick={() => abrir({ tipo: 'familia' })}>+ Familia</button>
+          <div className="note">
+            🐳 Quien se queda <b>sin familia</b> no entra en el reparto de ninguna. La gente de aquí es
+            la que puede tener cuenta: las peticiones de acceso se enlazan con una persona.
+          </div>
+        </>
+      )}
 
       {editor?.tipo === 'familia' && (
         <EditorFamilia
@@ -571,8 +595,10 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
         </>
       )}
 
-      {/* Dos botones y no un desplegable: son dos opciones, y el peso sale de
-          la que elijas en vez de ser un número que hay que decidir cada vez. */}
+      {/* Botones y no un desplegable: son tres opciones, y el peso sale de la
+          que elijas en vez de ser un número que hay que decidir cada vez. El
+          adolescente pesa como un adulto: lo único que cambia es que no toca
+          Dinero (§14.41). */}
       <label>Edad</label>
       <div className="segmentado" role="group" aria-label="Edad">
         {EDADES.map((e) => (

@@ -1,15 +1,29 @@
 import { describe, it, expect } from 'vitest'
-import { EDADES, EMOJIS_PERSONA, pesoDe } from './personas.js'
+import { EDADES, EMOJIS_PERSONA, pesoDe, puedeTocarDinero } from './personas.js'
 
 describe('pesos por edad', () => {
-  it('son dos y solo dos: adulto 1, niño 0,6', () => {
-    expect(EDADES.map((e) => [e.id, e.peso])).toEqual([['adulto', 1], ['niño', 0.6]])
+  it('son tres: adulto 1, adolescente 1 y niño 0,6', () => {
+    expect(EDADES.map((e) => [e.id, e.peso]))
+      .toEqual([['adulto', 1], ['adolescente', 1], ['niño', 0.6]])
   })
   it('pesoDe cae en 1 ante cualquier cosa rara', () => {
     expect(pesoDe('adulto')).toBe(1)
+    expect(pesoDe('adolescente')).toBe(1)
     expect(pesoDe('niño')).toBe(0.6)
     expect(pesoDe(undefined)).toBe(1)
     expect(pesoDe('bebé')).toBe(1)
+  })
+})
+
+describe('quién toca Dinero (§14.41)', () => {
+  it('el adulto sí; el adolescente y el niño, no', () => {
+    expect(puedeTocarDinero({ edad: 'adulto' })).toBe(true)
+    expect(puedeTocarDinero({ edad: 'adolescente' })).toBe(false)
+    expect(puedeTocarDinero({ edad: 'niño' })).toBe(false)
+  })
+  it('sin identidad no se capa, y una edad desconocida tampoco', () => {
+    expect(puedeTocarDinero(null)).toBe(true)
+    expect(puedeTocarDinero({ edad: 'bebé' })).toBe(true)
   })
 })
 

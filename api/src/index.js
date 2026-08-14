@@ -117,6 +117,16 @@ function idDeCuenta() {
 }
 
 /**
+ * Lo que un móvil guarda de su propia cuenta. `personId` viaja porque es lo que
+ * siembra «quién eres» en el aparato (SPECS §14.41): al enlazar una cuenta con
+ * una persona, el siguiente canje o sincronización se lo lleva puesto y el
+ * móvil elige la identidad solo, sin pasearse por Ajustes.
+ */
+function cuentaPublica(cuenta) {
+  return { id: cuenta.id, nombre: cuenta.nombre, rol: cuenta.rol, personId: cuenta.personId ?? null };
+}
+
+/**
  * ¿Es este el administrador? Dos llaves, de distinta fuerza (`administrador.js`).
  *
  * El **correo** vale siempre: viene dentro del token que firma Apple, no lo
@@ -237,10 +247,7 @@ async function abrirSesion(peticion, env) {
   await anotarAcceso(env.DB, cuenta.id);
   const token = await emitirSesion(env.SESION_SECRETO, cuenta, plataforma);
 
-  return json({
-    token,
-    cuenta: { id: cuenta.id, nombre: cuenta.nombre, rol: cuenta.rol },
-  });
+  return json({ token, cuenta: cuentaPublica(cuenta) });
 }
 
 /**
@@ -286,7 +293,7 @@ async function mirarLaEspera(peticion, env) {
   return json({
     estado: 'dentro',
     token: await emitirSesion(env.SESION_SECRETO, cuenta, 'ios'),
-    cuenta: { id: cuenta.id, nombre: cuenta.nombre, rol: cuenta.rol },
+    cuenta: cuentaPublica(cuenta),
   });
 }
 
@@ -299,7 +306,10 @@ async function sincronizar(peticion, env) {
     plataforma: peticion.headers.get('X-Plataforma') || 'web',
   });
 
-  return json(await leerInstantanea(env.DB));
+  // La instantánea lleva la cuenta al lado (`cuentaPublica`): es lo que hace
+  // que un enlace hecho **después** de entrar llegue a los móviles que ya
+  // estaban dentro, en su siguiente sincronización y sin volver por Apple.
+  return json({ ...(await leerInstantanea(env.DB)), cuenta: cuentaPublica(cuenta) });
 }
 
 async function recibirCambios(peticion, env) {
@@ -341,7 +351,7 @@ async function recibirCambios(peticion, env) {
     console.error('[avisos] no se ha podido avisar de los cambios:', String(error?.message || error));
   }
 
-  return json({ resultados, instantanea });
+  return json({ resultados, instantanea, cuenta: cuentaPublica(cuenta) });
 }
 
 async function cuentas(peticion, env) {

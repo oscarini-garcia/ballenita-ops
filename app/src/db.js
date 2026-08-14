@@ -263,8 +263,10 @@ export async function addPerson(eventId, p) {
     apodo: p.apodo ?? '',
     familyId: p.familyId ?? null,
     edad,
-    comeConMayores: p.comeConMayores ?? edad === 'adulto',
-    cuentaComoAdultoReparto: p.cuentaComoAdultoReparto ?? edad === 'adulto',
+    // El adolescente arranca con los mayores en la mesa y en el reparto: pesa
+    // como un adulto (§14.41) y solo se distingue en que no toca Dinero.
+    comeConMayores: p.comeConMayores ?? edad !== 'niño',
+    cuentaComoAdultoReparto: p.cuentaComoAdultoReparto ?? edad !== 'niño',
     pesoReparto: p.pesoReparto ?? pesoDe(edad),
     avatar: p.avatar ?? '🧑',
     estado: p.estado ?? '',

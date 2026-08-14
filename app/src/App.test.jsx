@@ -113,7 +113,7 @@ describe('App — navegación', () => {
     expect(ultima).toHaveTextContent('Ajustes')
 
     await userEvent.click(ultima)
-    expect(await screen.findByText('Sincronización')).toBeInTheDocument()
+    expect(await screen.findByText('La app')).toBeInTheDocument()
   })
 
   it('la cabecera son tres cosas: ballena, dónde estás y el punto', async () => {
@@ -132,12 +132,16 @@ describe('App — navegación', () => {
     await abrirEjemplo()
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
 
-    for (const titulo of ['Sincronización', 'Aspecto', 'Quién eres', 'Evento', 'Actualizar']) {
+    for (const titulo of ['Aspecto', 'Quién eres', 'Evento', 'La app']) {
       expect(await screen.findByText(titulo)).toBeInTheDocument()
     }
     // Las estadísticas ya no son un apartado: se miran, no se ajustan, y viven
     // en Agenda como tercera área.
     expect(screen.queryByText('Estadísticas')).toBeNull()
+    // Sincronización y Actualizar tampoco: eran la misma operación contada en
+    // dos mitades y van juntas en «La app» (SPECS §14.41).
+    expect(screen.queryByText('Sincronización')).toBeNull()
+    expect(screen.queryByText('Actualizar')).toBeNull()
     // Todos plegados: la lista entera se lee de un vistazo y se toca la que toca.
     expect(document.querySelectorAll('.acordeon[open]')).toHaveLength(0)
   })

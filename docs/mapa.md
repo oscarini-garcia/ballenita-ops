@@ -10,9 +10,9 @@ Cada hecho declarado dos veces coincide con su gemelo.
 ## Las dos piezas
 
 - **`app/`** v0.38.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  820 pruebas en 88 ficheros · `npm test` → `vitest run`
+  836 pruebas en 90 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  200 pruebas en 21 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -112,7 +112,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `espera.js` — La sala de espera, del lado del móvil.
   ↳ leerEspera, guardarEspera, olvidarEspera, preguntarSiYaEntro
 - `sesion.js` — La sesión de este dispositivo: el token que firmó el Worker y a quién corresponde.
-  ↳ leerSesion, guardarSesion, borrarSesion, modoLocal, activarModoLocal, salirDeModoLocal · +1 más
+  ↳ leerSesion, guardarSesion, borrarSesion, actualizarCuenta, modoLocal, activarModoLocal · +2 más
 
 **`app/src/components/`**
 
@@ -196,7 +196,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
   ↳ NOTAS
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
-  ↳ EDADES, pesoDe, EMOJIS_PERSONA
+  ↳ EDADES, pesoDe, puedeTocarDinero, EMOJIS_PERSONA
 - `planes.js` — Lo que se dice de un plan sin abrirlo: cuántos lo quieren y quién falta.
   ↳ quienFaltaPorVotar, votosDe
 - `primeraBajada.js` — La primera bajada: traer lo del grupo justo después de entrar por primera vez.
@@ -386,3 +386,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `index.js`
+- **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js`, `engine.js` · +4 más

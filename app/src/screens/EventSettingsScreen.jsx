@@ -27,6 +27,7 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { aplicarSiguienteMigracion, eliminarMiCuenta, gestionarCuenta, hayApi, leerMigraciones, listarCuentas } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
+import { esAdministrador } from '../lib/admin.js'
 import { tap } from '../lib/native.js'
 import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
@@ -406,6 +407,10 @@ function QuienEresSection({ eventId, persons }) {
         </>
       )}
 
+      {/* Al administrador el servidor ya le enlaza con su persona y no cambia
+          de identidad (pedido expreso, SPECS §14.41): la lista sobra. Si un día
+          se queda sin identidad —persona borrada—, la lista vuelve sola. */}
+      {!(esAdministrador(leerSesion()) && me) && (<>
       <div className="sec-h">{me ? 'Cambiar de persona' : 'Elige quién eres'}</div>
       <div className="lista-personas">
         {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en «Gente».</div>}
@@ -420,6 +425,7 @@ function QuienEresSection({ eventId, persons }) {
           </button>
         ))}
       </div>
+      </>)}
 
       <div className="note">Quién eres se guarda <b>en este móvil</b> y no se sincroniza: cada uno elige la suya. El emoji y el estado sí los ve el grupo. «Salir» solo olvida la identidad aquí: no borra a nadie.</div>
     </>
@@ -906,10 +912,6 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <QuienEresSection eventId={eventId} persons={persons} />
       </Acordeon>
 
-      <Acordeon titulo="Sincronización" icono="sincronizar">
-        <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
-      </Acordeon>
-
       <Acordeon titulo="Notificaciones" icono="aviso" nota={pendientes || null}>
         <NotificacionesSection />
       </Acordeon>
@@ -928,7 +930,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         </Acordeon>
       )}
 
-      {/* Penúltimo y pegado a «Actualizar» a propósito: las dos hablan de la
+      {/* Penúltimo y pegado a «La app» a propósito: las dos hablan de la
           app, no del viaje, y una mejora se apunta menos veces que todo lo
           demás (`docs/diseño/mejoras.html` · A1). */}
       <Acordeon titulo="Mejoras" icono="mejora" nota={mejorasQueFaltan ? `${mejorasQueFaltan} sin hacer` : null}>
@@ -941,7 +943,12 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         />
       </Acordeon>
 
-      <Acordeon titulo="Actualizar" icono="sincronizar" nota={`v${APP_VERSION}`}>
+      {/* «Sincronización» y «Actualizar» eran dos acordeones contando la misma
+          operación por mitades — el punto de la cabecera ya hace las dos cosas
+          en una pasada (datos + versión, §14.10)—, así que aquí van juntas y el
+          apartado se llama por lo que es: la app (SPECS §14.41). */}
+      <Acordeon titulo="La app" icono="sincronizar" nota={`v${APP_VERSION}`}>
+        <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
         <AppSection esAdmin={esAdmin} />
       </Acordeon>
 

@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.39.0',
+    fecha: '2026-08-14',
+    titulo: 'La app ya sabe quién eres, y el dinero lo tocan los adultos',
+    lineas: [
+      'Cuando te dan acceso, tu móvil se pone solo con tu persona: ya no hay que elegirse en Ajustes.',
+      'Gastos y Saldos son cosa de los adultos. Los peques y los adolescentes lo ven todo, pero no lo tocan.',
+      'Hay una edad nueva, Adolescente: cuenta como un adulto en el reparto y en la mesa; lo único que cambia es el dinero.',
+      'El grupo —familias, bungas y gente— lo edita quien lleva el grupo; los demás lo ven.',
+      'Sincronización y Actualizar eran lo mismo contado dos veces: ahora son un solo apartado, «La app».',
+    ],
+  },
+  {
     version: '0.38.0',
     fecha: '2026-08-09',
     titulo: 'En Comidas, «Platos» pasa a llamarse «Carta»',
