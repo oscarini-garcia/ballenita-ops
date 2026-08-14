@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.40.0',
+    fecha: '2026-08-14',
+    titulo: 'Quién eres ya no se elige: lo dice tu cuenta',
+    lineas: [
+      'Eres la persona con la que te enlazó quien lleva el grupo, y ya no se puede cambiar desde el móvil — así nadie apunta gastos en el sitio de otro.',
+      'Si te habías elegido mal, se corrige solo al abrir la app.',
+      'En la libreta local y en la demostración se sigue eligiendo a mano, que es donde no hay cuenta que lo diga.',
+    ],
+  },
+  {
     version: '0.39.0',
     fecha: '2026-08-14',
     titulo: 'La app ya sabe quién eres, y el dinero lo tocan los adultos',

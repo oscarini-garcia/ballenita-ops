@@ -29,9 +29,16 @@ export function setMeId(eventId, id) {
 const AVISO = 'ballena:identidad'
 
 /**
- * `[me, elegir, salir]` para el evento dado. `me` es la persona entera (o null),
- * resuelta contra la lista que se pase: si la guardada ya no existe —borrada, u
- * otro evento— se olvida sola.
+ * Con quién está enlazada esta cuenta, si hay sesión. `null` en la libreta
+ * local y en la demostración, que es donde quién eres se elige a mano.
+ */
+export const personaDeLaCuenta = () => leerSesion()?.cuenta?.personId ?? null
+
+/**
+ * `{ me, elegir, salir, deLaCuenta }` para el evento dado. `me` es la persona
+ * entera (o null), resuelta contra la lista que se pase: si la guardada ya no
+ * existe —borrada, u otro evento— se olvida sola. `deLaCuenta` dice si quién
+ * eres lo manda el enlace de tu cuenta, que es cuando no se elige a mano.
  */
 export function useIdentidad(eventId, persons = []) {
   const [meId, setMe] = useState(() => getMeId(eventId))
@@ -51,19 +58,23 @@ export function useIdentidad(eventId, persons = []) {
     if (meId && persons.length && !me) { setMeId(eventId, null); setMe(null) }
   }, [meId, persons, me, eventId])
 
-  // Si el servidor ya sabe quién eres —tu cuenta está enlazada con una persona
-  // (SPECS §14.41)— y en este móvil aún no se ha elegido, se elige sola. Solo
-  // rellena el hueco: una elección hecha a mano no se pisa, y si la persona
-  // enlazada no es de este evento, no se inventa nada.
+  // **Con sesión, quién eres lo dice la cuenta** (SPECS §14.42). No es una
+  // preferencia de este móvil sino el enlace que hizo quien administra, así que
+  // no se elige a mano y **manda siempre**, no solo cuando el hueco está vacío:
+  // rellenar el hueco y luego esconder la lista dejaría atrapado para siempre a
+  // quien se hubiera elegido mal antes de que esto existiera.
+  //
+  // Si la persona enlazada no es de este evento no se toca nada: ahí sigue
+  // habiendo lista, que es la única salida de un evento donde tu cuenta no
+  // figura.
+  const enlazada = personaDeLaCuenta()
   useEffect(() => {
-    if (meId || !persons.length) return
-    const enlazada = leerSesion()?.cuenta?.personId
-    if (enlazada && persons.some((p) => p.id === enlazada)) {
-      setMeId(eventId, enlazada)
-      setMe(enlazada)
-      if (typeof window !== 'undefined') window.dispatchEvent(new Event(AVISO))
-    }
-  }, [meId, persons, eventId])
+    if (!enlazada || !persons.length || meId === enlazada) return
+    if (!persons.some((p) => p.id === enlazada)) return
+    setMeId(eventId, enlazada)
+    setMe(enlazada)
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event(AVISO))
+  }, [enlazada, meId, persons, eventId])
 
   function elegir(id) {
     setMeId(eventId, id)
@@ -71,5 +82,12 @@ export function useIdentidad(eventId, persons = []) {
     if (typeof window !== 'undefined') window.dispatchEvent(new Event(AVISO))
   }
 
-  return { meId, me, elegir, salir: () => elegir(null) }
+  return {
+    meId,
+    me,
+    elegir,
+    salir: () => elegir(null),
+    // Quién eres viene de la cuenta: ni se cambia ni se sale de ello.
+    deLaCuenta: Boolean(me && enlazada && me.id === enlazada),
+  }
 }
