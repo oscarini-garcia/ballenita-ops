@@ -263,15 +263,19 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .estado-campos { display: grid; grid-template-columns: 68px 1fr; gap: 8px; }
 .estado-campos .estado-emoji { text-align: center; }
 
-/* ── Quién anda en qué (§14.36 · G3) ───────────────────────────────────────
-   La tira de caras con su estado, en «Hoy». Se desplaza de lado porque el
-   grupo son nueve y la pantalla 390: en pila costaría 9 × 44 pt de la única
-   pantalla que tiene un titular y nada más. */
-.tira-estados { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 4px;
-  -webkit-overflow-scrolling: touch; }
-.tira-estados .est { flex: none; display: flex; align-items: center; gap: 8px;
-  background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: 999px;
-  padding: 6px 12px 6px 8px; max-width: 240px; }
+/* ── Quién anda en qué (§14.36 · G3, revisado en §14.44) ───────────────────
+   Uno debajo de otro, y **no** una tira que se desplaza de lado. Nació
+   horizontal para ahorrar alto —el grupo son nueve y la pantalla 390—, y ese
+   ahorro salía caro por dos sitios: lo que no cabe **no se ve** (hay que
+   arrastrar para descubrir que hay alguien más, y nada anuncia que lo haya), y
+   dentro de una pastilla de 240 el estado se corta con puntos suspensivos justo
+   donde está la gracia — «no sé si me dejo algo» se leía «no sé si me dej…».
+   En pila se lee entero y de un vistazo; el alto lo paga el scroll, que en esta
+   pantalla ya existe. */
+.tira-estados { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 4px; }
+.tira-estados .est { display: flex; align-items: center; gap: 9px;
+  background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r);
+  padding: 8px 12px; }
 .tira-estados .cara { font-size: var(--t-body); line-height: 1; flex: none; }
 .tira-estados .quien { min-width: 0; display: flex; flex-direction: column; }
 .tira-estados .quien .n { font-size: var(--t-label); font-weight: 650; line-height: 1.2;
@@ -279,8 +283,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* La pastilla de la familia, aquí más pegada: en una fila de idea va suelta,
    pero dentro de una pastilla ya estrecha, 5 pt de margen se notan. */
 .tira-estados .quien .n .alias { margin: 0 0 0 4px; }
-.tira-estados .quien .q { font-size: var(--t-label); color: var(--ink-soft); line-height: 1.25;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Sin recorte: con el ancho entero para él, el estado cabe, y si no dobla. */
+.tira-estados .quien .q { font-size: var(--t-label); color: var(--ink-soft); line-height: 1.25; }
 
 /* Botón redondeado genérico de la cabecera. */
 .appbar .iconbtn { flex: none; background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink);
@@ -1309,8 +1313,10 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    Va en voz baja a propósito —`--t-sub` y tinta tenue—: es lo último de la
    pantalla y no compite con nada. Aquí sí puede doblar a dos líneas sin
    molestar, que es la otra mitad de por qué este sitio y no el de arriba. */
+/* Ahora va **arriba, bajo el selector** (§14.44), así que el aire va debajo y
+   no encima: es lo primero que se pinta y no tiene nada de lo que separarse. */
 .recado { display: flex; align-items: baseline; gap: 9px; justify-content: center;
-  margin: 22px 0 0; padding: 0 8px; text-align: center;
+  margin: 0 0 6px; padding: 0 8px; text-align: center;
   font-size: var(--t-sub); color: var(--ink-faint); line-height: 1.45; }
 .recado .e { font-size: var(--t-body); flex: none; }
 /* Dentro de un vacío el recado ya está en su sitio: no hace falta empujarlo. */

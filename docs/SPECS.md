@@ -3762,6 +3762,31 @@ apartan cenas y planes de todo el grupo (§14.10-quater), las cambiaba cualquier
 - **Sin sesión no se capa nada** —libreta local y demostración—, como en todo lo
   demás: ahí el viaje es de quien tiene el móvil en la mano.
 
+### 14.44 Los estados, uno debajo de otro; el recado, bajo el selector
+
+Dos sitios donde el ahorro de alto salía caro, y los dos se ven en el mismo
+pantallazo: la tira de «Quién anda en qué» cortada por la derecha y un recado
+que solo aparece si llegas al fondo.
+
+- **✅ «Quién anda en qué» pasa a pila** (revisa el G3 de §14.36). Nació
+  horizontal para ahorrar alto —nueve personas en 390 pt— y ese ahorro se
+  pagaba dos veces: lo que no cabe **no se ve** —hay que arrastrar para
+  descubrir que hay alguien más, y nada anuncia que lo haya— y dentro de una
+  pastilla de 240 el estado **se corta justo donde está la gracia**: «no sé si
+  me dejo algo» se leía «no sé si me dej…». En pila se lee entero, medido en
+  navegador: tres filas, **63 pt cada una** y **cero textos recortados**. El
+  alto lo paga el scroll, que en esa pantalla ya existía.
+- **✅ El recado sube al principio del cuerpo, bajo el selector** (revisa C2 de
+  §14.25). El sitio de antes —el pie del scroll— seguía costando 0 pt
+  permanentes, pero a cambio **no lo leía nadie**: en Gastos hay que recorrer
+  el viaje entero para llegar. Arriba se lee al entrar y **se va con el scroll**
+  en cuanto se empieza a mirar la lista, así que el argumento de §14.25 se
+  mantiene: no ocupa sitio fijo. Sigue en voz baja —`--t-sub` y tinta tenue— y
+  el aire pasa de encima a debajo, que es donde hace falta ahora.
+- Está en las cinco pantallas que ya lo tenían (Gastos, Cenas, Carta, Compra y
+  Hoy). En Hoy hay **dos** `.body` —el del evento sin fechas y el de verdad— y
+  el recado va en el segundo: en el primero ya hay un vacío que habla.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

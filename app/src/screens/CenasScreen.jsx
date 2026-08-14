@@ -43,6 +43,11 @@ export default function CenasScreen({ eventId, event }) {
 
   return (
     <div className="body">
+      {/* El recado, **bajo el selector** y no al final del scroll
+          (SPECS §14.44): al final no lo lee nadie — en una lista larga
+          hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      <Recado evento={event} />
+
       {dinners.length === 0 && (
         <div className="empty">
           <span className="e">🍳</span>Ninguna cena todavía.<br />
@@ -70,8 +75,6 @@ export default function CenasScreen({ eventId, event }) {
         </>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
-      <Recado evento={event} />
 
       {organiza
         ? <Fab label="Cena" onClick={() => setOpen(true)} />

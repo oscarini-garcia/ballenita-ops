@@ -40,6 +40,11 @@ export default function ExpensesScreen({ eventId, event }) {
 
   return (
     <div className="body">
+      {/* El recado, **bajo el selector** y no al final del scroll
+          (SPECS §14.44): al final no lo lee nadie — en una lista larga
+          hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      <Recado evento={event} />
+
       <div className="card tight" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div><div className="cifra-l">Gasto total del evento</div>
           <div className="tnum cifra">{formatCents(total, event.currency)}</div></div>
@@ -130,8 +135,6 @@ export default function ExpensesScreen({ eventId, event }) {
         <div className="note">🐳 Los gastos y los pagos los tocan los adultos. Mirar, todo lo que quieras.</div>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
-      <Recado evento={event} />
 
       {!soloMirar && <Fab label="Gasto" onClick={() => setFicha('nuevo')} />}
 

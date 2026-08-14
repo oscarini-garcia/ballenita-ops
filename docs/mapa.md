@@ -375,7 +375,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
 - **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`
 - **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
-- **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx` · +3 más
+- **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `api.js`, `index.js`, `repositorio.js`
 - **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `importe.js` · +2 más
 - **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `Confirmar.jsx`, `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
@@ -389,3 +389,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +4 más
 - **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `EventSettingsScreen.jsx`, `identidad.js`
 - **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `CenasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `personas.js`
+- **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
