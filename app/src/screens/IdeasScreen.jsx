@@ -6,6 +6,7 @@ import {
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
+import { puedeOrganizar } from '../lib/personas.js'
 import Alias from '../components/Alias.jsx'
 import { formatearHace } from '../lib/hace.js'
 import { tap } from '../lib/native.js'
@@ -51,7 +52,11 @@ export default function IdeasScreen({ eventId, event }) {
   const propuestas = useLiveQuery(() => ideasYaPropuestas(eventId), [eventId], new Map())
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
-  const { meId } = useIdentidad(eventId, persons)
+  const { meId, me } = useIdentidad(eventId, persons)
+  // Apuntar una idea es de todos —es media razón de ser del catálogo—, pero
+  // **pasarla a propuesta** crea un plan del viaje y eso lo hacen los adultos
+  // (SPECS §14.43). Sin identidad no se capa: libreta local y demostración.
+  const organiza = puedeOrganizar(me)
   const [editando, setEditando] = useState(null)
   const [sugiriendo, setSugiriendo] = useState(false)
 
@@ -110,7 +115,7 @@ export default function IdeasScreen({ eventId, event }) {
                 persons={persons}
                 families={families}
                 onEditar={() => { tap(); setEditando(idea) }}
-                onProponer={() => proponer(idea)}
+                onProponer={organiza ? () => proponer(idea) : null}
               />
             ))}
           </div>

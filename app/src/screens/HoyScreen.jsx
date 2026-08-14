@@ -69,6 +69,11 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
 
   return (
     <div className="body">
+      {/* El recado, **bajo el selector** y no al final del scroll
+          (SPECS §14.44): al final no lo lee nadie — en una lista larga
+          hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      <Recado evento={event} />
+
       {/* El titular. Es lo único grande de la pantalla: si compite con otra
           tarjeta deja de ser un titular y hay que leer para saber qué pasa. */}
       <div className="titular">
@@ -133,8 +138,6 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
         </>
       )}
 
-      {/* El recado del día, encima de la versión (SPECS §14.25). */}
-      <Recado evento={event} />
 
       <PieDeVersion />
     </div>

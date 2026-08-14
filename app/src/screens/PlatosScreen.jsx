@@ -43,6 +43,11 @@ export default function PlatosScreen({ event }) {
 
   return (
     <div className="body">
+      {/* El recado, **bajo el selector** y no al final del scroll
+          (SPECS §14.44): al final no lo lee nadie — en una lista larga
+          hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      <Recado evento={event} />
+
       <div className="note">
         El catálogo es <b>el mismo en todos los eventos</b>: lo que se apunte aquí estará
         también en el viaje que viene.
@@ -78,8 +83,6 @@ export default function PlatosScreen({ event }) {
         </div>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
-      <Recado evento={event} />
 
       <Fab label="Plato" onClick={() => setEditando('nuevo')} />
       {editando && (

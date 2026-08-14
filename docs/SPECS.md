@@ -3733,6 +3733,60 @@ sitio — y el cerrojo de Dinero (§14.41) se saltaba eligiéndose un adulto.
   esa persona: lo decide quien lleva el grupo, no este móvil». Un control que
   desaparece sin explicación se lee como una avería.
 
+### 14.43 Organizar el viaje es de los adultos, y el evento de quien administra
+
+§14.41 cerró el dinero y §14.42 la identidad. Faltaba lo demás de organizar: un
+niño podía **montar una cena**, **pasar una idea a propuesta** —que crea un plan
+del viaje— y **colocar el día** de todos. Y las **fechas del evento**, que
+apartan cenas y planes de todo el grupo (§14.10-quater), las cambiaba cualquiera.
+
+- **✅ Un solo predicado, `puedeOrganizar`** (`lib/personas.js`), porque es una
+  sola regla: escribir lo que organiza el viaje. Sustituye a `puedeTocarDinero`
+  —dos nombres para la misma decisión se separan solos con el tiempo— y bebe de
+  la columna `organiza` de `EDADES`, así que una edad nueva se declara en un
+  sitio y sale en las cinco pantallas a la vez.
+- **✅ Lo que queda dentro:** gastos y liquidaciones (§14.41), montar y borrar
+  cenas, «Proponer» una idea, y los tres renglones del día —platos, bungas y
+  plan—.
+- **✅ Lo que queda fuera, a propósito:** **votar** un plan, **apuntar** una idea
+  —media razón de ser del catálogo—, marcar la compra, cambiar el estado y
+  mirarlo todo. Un viaje en el que los peques no pueden opinar no es este.
+- **✅ El día se abre igual**, y sus renglones dejan de ser botones en vez de
+  salir apagados: una fila `disabled` se lee como una avería, y aquí no falta
+  nada —simplemente no te toca colocar el día—. Las pistas cambian con ellos:
+  «toca para elegir el bunga» pasa a «sin elegir», porque un renglón no puede
+  prometer un gesto que no ocurre.
+- **✅ El evento lo edita quien administra** (pedido expreso). Su ficha de
+  Ajustes deja de ser un botón para los demás y dice por qué: cambiar las fechas
+  aparta cenas y planes de todos.
+- **Sin sesión no se capa nada** —libreta local y demostración—, como en todo lo
+  demás: ahí el viaje es de quien tiene el móvil en la mano.
+
+### 14.44 Los estados, uno debajo de otro; el recado, bajo el selector
+
+Dos sitios donde el ahorro de alto salía caro, y los dos se ven en el mismo
+pantallazo: la tira de «Quién anda en qué» cortada por la derecha y un recado
+que solo aparece si llegas al fondo.
+
+- **✅ «Quién anda en qué» pasa a pila** (revisa el G3 de §14.36). Nació
+  horizontal para ahorrar alto —nueve personas en 390 pt— y ese ahorro se
+  pagaba dos veces: lo que no cabe **no se ve** —hay que arrastrar para
+  descubrir que hay alguien más, y nada anuncia que lo haya— y dentro de una
+  pastilla de 240 el estado **se corta justo donde está la gracia**: «no sé si
+  me dejo algo» se leía «no sé si me dej…». En pila se lee entero, medido en
+  navegador: tres filas, **63 pt cada una** y **cero textos recortados**. El
+  alto lo paga el scroll, que en esa pantalla ya existía.
+- **✅ El recado sube al principio del cuerpo, bajo el selector** (revisa C2 de
+  §14.25). El sitio de antes —el pie del scroll— seguía costando 0 pt
+  permanentes, pero a cambio **no lo leía nadie**: en Gastos hay que recorrer
+  el viaje entero para llegar. Arriba se lee al entrar y **se va con el scroll**
+  en cuanto se empieza a mirar la lista, así que el argumento de §14.25 se
+  mantiene: no ocupa sitio fijo. Sigue en voz baja —`--t-sub` y tinta tenue— y
+  el aire pasa de encima a debajo, que es donde hace falta ahora.
+- Está en las cinco pantallas que ya lo tenían (Gastos, Cenas, Carta, Compra y
+  Hoy). En Hoy hay **dos** `.body` —el del evento sin fechas y el de verdad— y
+  el recado va en el segundo: en el primero ya hay un vacío que habla.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

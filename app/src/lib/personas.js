@@ -19,22 +19,28 @@
  * sitios a la vez.
  */
 export const EDADES = [
-  { id: 'adulto', etiqueta: 'Adulto', peso: 1, dinero: true },
-  { id: 'adolescente', etiqueta: 'Adolescente', peso: 1, dinero: false },
-  { id: 'niño', etiqueta: 'Niño', peso: 0.6, dinero: false },
+  { id: 'adulto', etiqueta: 'Adulto', peso: 1, organiza: true },
+  { id: 'adolescente', etiqueta: 'Adolescente', peso: 1, organiza: false },
+  { id: 'niño', etiqueta: 'Niño', peso: 0.6, organiza: false },
 ]
 
 export const pesoDe = (edad) => EDADES.find((e) => e.id === edad)?.peso ?? 1
 
 /**
- * Dinero escribe solo con manos adultas (SPECS §14.41): con la identidad de un
- * niño o un adolescente puesta, los gastos y los saldos se miran pero no se
- * tocan. Sin identidad se puede tocar —la libreta local y el primer arranque no
- * tienen a nadie elegido y capar ahí dejaría la app muda—; con ella, decide la
- * columna `dinero` de su edad, y una edad desconocida no capa: mejor un cerrojo
- * de menos que una app muda por un dato viejo.
+ * Quién escribe lo que **organiza el viaje** (SPECS §14.41 y §14.43): el dinero
+ * —gastos y liquidaciones—, las cenas, pasar una idea a plan y colocar el día.
+ *
+ * Es una sola regla y por eso un solo predicado: lo que decide no es la
+ * pantalla sino si quien tiene el móvil delante responde de lo que apunte. Lo
+ * que **sí** hace todo el mundo se queda fuera de aquí a propósito: votar un
+ * plan, apuntar una idea, marcar la compra, cambiar su estado y mirarlo todo.
+ *
+ * Sin identidad no se capa —la libreta local, la demostración y el primer
+ * arranque no tienen a nadie elegido, y una app muda no invita a entrar— y una
+ * edad desconocida tampoco: mejor un cerrojo de menos que una pantalla muerta
+ * por un dato viejo.
  */
-export const puedeTocarDinero = (me) => !me || (EDADES.find((e) => e.id === me.edad)?.dinero ?? true)
+export const puedeOrganizar = (me) => !me || (EDADES.find((e) => e.id === me.edad)?.organiza ?? true)
 
 /**
  * Emoji para elegir de un toque, además de escribir el que quieras.

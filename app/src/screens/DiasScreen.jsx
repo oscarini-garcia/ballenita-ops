@@ -10,6 +10,8 @@ import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
+import { useIdentidad } from '../lib/identidad.js'
+import { puedeOrganizar } from '../lib/personas.js'
 import {
   diasDe, resumenDeDia, numeroYDia, fmtDiaLargo, fmtDiaCorto, hoyISO, titularDeCena, enLetras,
   filtraOpciones,
@@ -40,6 +42,11 @@ export default function DiasScreen({ eventId, event }) {
   const personas = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   const [abierto, setAbierto] = useState(null)
+  // Colocar el día —los platos, los bungas, qué plan— es de los adultos (SPECS
+  // §14.43). El día se **abre igual**: saber qué se cena y qué se hace es la
+  // mitad de la app, y esconderlo sería castigar a quien solo viene a mirar.
+  const { me } = useIdentidad(eventId, personas)
+  const organiza = puedeOrganizar(me)
 
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
   const porId = Object.fromEntries(platos.map((p) => [p.id, p]))
@@ -117,6 +124,7 @@ export default function DiasScreen({ eventId, event }) {
           bungas={bungas}
           familias={familias}
           personas={personas}
+          organiza={organiza}
           platos={platos}
           onClose={() => setAbierto(null)}
         />
@@ -148,7 +156,7 @@ const etiquetaCategoria = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.labe
  * La cena sigue naciendo sola con el primer «Listo» que la necesita, con la
  * guarda de `cenaRef` para que dos seguidos no críen dos cenas.
  */
-function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, personas, platos, onClose }) {
+function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, personas, platos, organiza = true, onClose }) {
   useBloqueoDeScroll()
   const [eligiendo, setEligiendo] = useState(null)
   // La cena recién nacida, antes de que la consulta viva la traiga: sin esto,
@@ -190,13 +198,17 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
 
   // El renglón de un bunga dice la casa y de quién es (elegidores.html · S2).
   // En masculino, que es como habla el grupo: «El del ruido», «+ Bunga nuevo…».
+  // Sin permiso para colocar, la pista no puede decir «toca»: sería un renglón
+  // que promete un gesto que no ocurre.
   const filaBunga = (id, quien) => {
     const b = bungas.find((x) => x.id === id)
     const f = b && familias.find((x) => x.id === b.familyId)
     return {
       elegido: Boolean(b),
       n: b ? `${quien} · ${b.alias || b.name}` : quien,
-      s: b ? (f ? `el de los ${f.name}` : 'toca para cambiarlo') : 'toca para elegir el bunga',
+      s: b
+        ? (f ? `el de los ${f.name}` : (organiza ? 'toca para cambiarlo' : 'sin familia'))
+        : (organiza ? 'toca para elegir el bunga' : 'sin elegir'),
     }
   }
   const may = filaBunga(cena?.bungaMayoresId, 'Mayores')
@@ -204,7 +216,7 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
 
   const subCena = nPlatos
     ? (nPlatos === 1 ? 'un plato' : `${enLetras(nPlatos)} platos`)
-    : 'toca para elegir los platos'
+    : (organiza ? 'toca para elegir los platos' : 'sin platos todavía')
   const subPlanes = libres.length
     ? `${libres.length} ${libres.length === 1 ? 'plan libre' : 'planes libres'} por traer`
     : 'ningún plan libre — nacen en Planes'
@@ -213,6 +225,35 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
   // El fondo, con un elegidor abierto, es su «Cancelar»: descarta y vuelve al
   // día. Sin elegidor, cierra el día — que no tiene nada que perder (C2).
   const fondo = () => { if (eligiendo) setEligiendo(null); else onClose() }
+
+  /**
+   * Un renglón del día. Con permiso es el botón que abre su elegidor; sin él,
+   * la misma fila **sin gesto detrás** — la figura de Gastos con un niño
+   * (§14.41): lo que se dice se queda, el verbo se va. No es un `disabled`
+   * porque una fila apagada se lee como una avería, y aquí no falta nada:
+   * simplemente no te toca a ti colocar el día.
+   */
+  const renglon = ({ icono, verde, n, s, abre, apagado = false }) => {
+    const cuerpo = (
+      <>
+        <div className={`ico ${verde ? 'verde' : 'ambar'}`}><Icono nombre={icono} /></div>
+        <div className="main">
+          <div className="n">{n}</div>
+          <div className="sub">{s}</div>
+        </div>
+      </>
+    )
+    if (!organiza) return <div className="row fila-capa">{cuerpo}</div>
+    return (
+      <button
+        className="row fila-boton fila-capa"
+        disabled={apagado}
+        onClick={() => { tap(); setEligiendo(abre) }}
+      >
+        {cuerpo}
+      </button>
+    )
+  }
 
   return (
     <div className="modal-bg center" onClick={fondo}>
@@ -227,55 +268,47 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
                 ámbar —pendiente—, no en rojo, que aquí significa deuda. */}
             <div className="sec-h" style={{ marginTop: 10 }}>La cena</div>
             <div className="card tight" style={{ marginTop: 6 }}>
-              <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('platos') }}>
-                <div className={`ico ${nPlatos ? 'verde' : 'ambar'}`}><Icono nombre="restaurante" /></div>
-                <div className="main">
-                  <div className="n">{titularDeCena(cena ?? null, elegidos)}</div>
-                  <div className="sub">{subCena}</div>
-                </div>
-              </button>
+              {renglon({
+                icono: 'restaurante',
+                verde: nPlatos > 0,
+                n: titularDeCena(cena ?? null, elegidos),
+                s: subCena,
+                abre: 'platos',
+              })}
             </div>
 
             <div className="sec-h" style={{ marginTop: 6 }}>Los bungas</div>
             <div className="card tight" style={{ marginTop: 6 }}>
-              <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('mayores') }}>
-                <div className={`ico ${may.elegido ? 'verde' : 'ambar'}`}><Icono nombre="casa" /></div>
-                <div className="main">
-                  <div className="n">{may.n}</div>
-                  <div className="sub">{may.s}</div>
-                </div>
-              </button>
-              <button className="row fila-boton fila-capa" onClick={() => { tap(); setEligiendo('ninos') }}>
-                <div className={`ico ${nin.elegido ? 'verde' : 'ambar'}`}><Icono nombre="casa" /></div>
-                <div className="main">
-                  <div className="n">{nin.n}</div>
-                  <div className="sub">{nin.s}</div>
-                </div>
-              </button>
+              {renglon({ icono: 'casa', verde: may.elegido, n: may.n, s: may.s, abre: 'mayores' })}
+              {renglon({ icono: 'casa', verde: nin.elegido, n: nin.n, s: nin.s, abre: 'ninos' })}
             </div>
 
             <div className="sec-h" style={{ marginTop: 6 }}>El plan</div>
             <div className="card tight" style={{ marginTop: 6 }}>
-              <button
-                className="row fila-boton fila-capa"
-                disabled={sinNadaQueTraer}
-                onClick={() => { tap(); setEligiendo('planes') }}
-              >
-                <div className={`ico ${delDia.length ? 'verde' : 'ambar'}`}><Icono nombre="plan" /></div>
-                <div className="main">
-                  <div className="n">
-                    {delDia.length === 0 ? 'Nada apuntado'
-                      : delDia.length === 1 ? delDia[0].titulo
-                        : `${delDia[0].titulo} y ${delDia.length === 2 ? 'otro más' : `${enLetras(delDia.length - 1)} más`}`}
-                  </div>
-                  <div className="sub">{delDia.length === 1 ? notaDePlan(delDia[0]) : subPlanes}</div>
-                </div>
-              </button>
+              {renglon({
+                icono: 'plan',
+                verde: delDia.length > 0,
+                n: delDia.length === 0 ? 'Nada apuntado'
+                  : delDia.length === 1 ? delDia[0].titulo
+                    : `${delDia[0].titulo} y ${delDia.length === 2 ? 'otro más' : `${enLetras(delDia.length - 1)} más`}`,
+                s: delDia.length === 1 ? notaDePlan(delDia[0]) : subPlanes,
+                abre: 'planes',
+                apagado: sinNadaQueTraer,
+              })}
             </div>
 
             <div className="note" style={{ marginTop: 12 }}>
-              Cada renglón abre su elegidor, y nada cambia hasta su <b>«Listo»</b>. Los planes se
-              <b> votan</b> en Planes; aquí se colocan.
+              {organiza ? (
+                <>
+                  Cada renglón abre su elegidor, y nada cambia hasta su <b>«Listo»</b>. Los planes se
+                  <b> votan</b> en Planes; aquí se colocan.
+                </>
+              ) : (
+                <>
+                  🐳 El día lo colocan los adultos: los platos, los bungas y el plan. <b>Votar</b> los
+                  planes sí es de todos, en Planes.
+                </>
+              )}
             </div>
           </>
         )}

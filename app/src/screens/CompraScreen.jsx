@@ -111,6 +111,11 @@ export default function CompraScreen({ eventId, event }) {
 
   return (
     <div className="body">
+      {/* El recado, **bajo el selector** y no al final del scroll
+          (SPECS §14.44): al final no lo lee nadie — en una lista larga
+          hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      <Recado evento={event} />
+
       <div className="card tight">
         <div style={{ display: 'flex', gap: 8 }}>
           <input
@@ -244,8 +249,6 @@ export default function CompraScreen({ eventId, event }) {
         </>
       )}
 
-      {/* El recado del viaje, al final de la lista (SPECS §14.25). */}
-      <Recado evento={event} />
     </div>
   )
 }

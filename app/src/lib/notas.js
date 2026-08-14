@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.41.0',
+    fecha: '2026-08-14',
+    titulo: 'Organizar el viaje es de los adultos',
+    lineas: [
+      'Montar cenas, pasar una idea a propuesta y colocar el día pasan a ser cosa de los adultos, como ya lo era el dinero.',
+      'Votar planes, apuntar ideas, marcar la compra y mirarlo todo siguen siendo de todos: el día se abre igual, solo que sus renglones no se tocan.',
+      'El viaje —su nombre, el sitio y las fechas— lo lleva quien administra el grupo: cambiar las fechas aparta cenas y planes de todos.',
+      '«Quién anda en qué» va ahora uno debajo de otro: antes se desplazaba de lado, así que ni se veía quién más había ni cabía el estado entero.',
+      'Y el recadillo de la ballena sube al principio de la pantalla, bajo el selector: al final de la lista no lo leía nadie.',
+    ],
+  },
+  {
     version: '0.40.0',
     fecha: '2026-08-14',
     titulo: 'Quién eres ya no se elige: lo dice tu cuenta',

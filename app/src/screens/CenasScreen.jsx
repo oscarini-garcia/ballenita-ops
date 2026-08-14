@@ -13,6 +13,8 @@ import Fab from '../components/Fab.jsx'
 import Recado from '../components/Recado.jsx'
 import Confirmar from '../components/Confirmar.jsx'
 import { queSeLlevaUnaCena } from '../lib/borrados.js'
+import { useIdentidad } from '../lib/identidad.js'
+import { puedeOrganizar } from '../lib/personas.js'
 
 const catLabel = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 const fmtDay = (d) => (d ? new Date(d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Sin día')
@@ -27,6 +29,10 @@ export default function CenasScreen({ eventId, event }) {
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const compra = useLiveQuery(() => shopItemsOf(eventId), [eventId], [])
   const [open, setOpen] = useState(false)
+  // Montar una cena —y borrarla, que arrastra líneas de la compra— es de los
+  // adultos (SPECS §14.43). Lo que hay puesto se mira igual.
+  const { me } = useIdentidad(eventId, persons)
+  const organiza = puedeOrganizar(me)
 
   const bungaName = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : '—' }
   const dishById = Object.fromEntries(dishes.map((d) => [d.id, d]))
@@ -37,6 +43,11 @@ export default function CenasScreen({ eventId, event }) {
 
   return (
     <div className="body">
+      {/* El recado, **bajo el selector** y no al final del scroll
+          (SPECS §14.44): al final no lo lee nadie — en una lista larga
+          hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      <Recado evento={event} />
+
       {dinners.length === 0 && (
         <div className="empty">
           <span className="e">🍳</span>Ninguna cena todavía.<br />
@@ -46,7 +57,7 @@ export default function CenasScreen({ eventId, event }) {
       )}
 
       {dentro.map((c) => (
-        <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} contexto={contexto} />
+        <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} contexto={contexto} organiza={organiza} />
       ))}
 
       {fuera.length > 0 && (
@@ -59,15 +70,15 @@ export default function CenasScreen({ eventId, event }) {
             en <b>Ajustes → Evento</b>.
           </div>
           {fuera.map((c) => (
-            <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} fuera contexto={contexto} />
+            <FichaDeCena key={c.id} cena={c} bungaName={bungaName} dishById={dishById} fuera contexto={contexto} organiza={organiza} />
           ))}
         </>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
-      <Recado evento={event} />
 
-      <Fab label="Cena" onClick={() => setOpen(true)} />
+      {organiza
+        ? <Fab label="Cena" onClick={() => setOpen(true)} />
+        : <div className="note">🐳 Las cenas las montan los adultos. Lo que hay puesto se ve entero.</div>}
       {open && <AddDinnerModal eventId={eventId} evento={event} bungas={bungas} dishes={dishes} onClose={() => setOpen(false)} />}
     </div>
   )
@@ -83,7 +94,7 @@ export default function CenasScreen({ eventId, event }) {
  * líneas. Baja al fondo, donde está el de Grupo, y pregunta antes
  * (`docs/diseño/borrar-confirmaciones.html` · defecto dos · A2·B2·B3).
  */
-function FichaDeCena({ cena: c, bungaName, dishById, fuera = false, contexto }) {
+function FichaDeCena({ cena: c, bungaName, dishById, fuera = false, contexto, organiza = true }) {
   const [confirmando, setConfirmando] = useState(false)
   return (
     <div className="card">
@@ -124,7 +135,7 @@ function FichaDeCena({ cena: c, bungaName, dishById, fuera = false, contexto }) 
         </div>
       )}
 
-      {confirmando ? (
+      {organiza && (confirmando ? (
         <Confirmar
           queSeLleva={queSeLlevaUnaCena(c, { ...contexto, dia: fmtDay(c.dia) })}
           onDejarlo={() => { tap(); setConfirmando(false) }}
@@ -139,7 +150,7 @@ function FichaDeCena({ cena: c, bungaName, dishById, fuera = false, contexto }) 
         >
           Borrar la cena
         </button>
-      )}
+      ))}
     </div>
   )
 }

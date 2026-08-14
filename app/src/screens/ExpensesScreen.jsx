@@ -12,7 +12,7 @@ import { comoSeReparte } from '../lib/reparto-gente.js'
 import { queSeLlevaUnGasto } from '../lib/borrados.js'
 import { tap } from '../lib/native.js'
 import { useIdentidad } from '../lib/identidad.js'
-import { puedeTocarDinero } from '../lib/personas.js'
+import { puedeOrganizar } from '../lib/personas.js'
 import FichaDeGasto from './FichaDeGasto.jsx'
 
 /** «19:40» — desempata dos gastos de la misma categoría el mismo día. */
@@ -33,13 +33,18 @@ export default function ExpensesScreen({ eventId, event }) {
   // Con la identidad de un niño puesta, esta pantalla es un escaparate: sin
   // «+ Gasto», sin abrir la ficha y sin el verbo de borrar (SPECS §14.41).
   const { me } = useIdentidad(eventId, persons)
-  const soloMirar = !puedeTocarDinero(me)
+  const soloMirar = !puedeOrganizar(me)
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
 
   const total = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)
 
   return (
     <div className="body">
+      {/* El recado, **bajo el selector** y no al final del scroll
+          (SPECS §14.44): al final no lo lee nadie — en una lista larga
+          hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      <Recado evento={event} />
+
       <div className="card tight" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div><div className="cifra-l">Gasto total del evento</div>
           <div className="tnum cifra">{formatCents(total, event.currency)}</div></div>
@@ -130,8 +135,6 @@ export default function ExpensesScreen({ eventId, event }) {
         <div className="note">🐳 Los gastos y los pagos los tocan los adultos. Mirar, todo lo que quieras.</div>
       )}
 
-      {/* El recado del viaje, al final del scroll (SPECS §14.25). */}
-      <Recado evento={event} />
 
       {!soloMirar && <Fab label="Gasto" onClick={() => setFicha('nuevo')} />}
 
