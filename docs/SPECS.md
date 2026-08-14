@@ -3685,6 +3685,14 @@ desde que el administrador enlaza cada cuenta con su persona (§14.15).
   ser un botón—, y Saldos pierde «pagado». Mirar, todo lo que quieran: los
   saldos son del grupo. Sin identidad no se capa nada: la libreta local y el
   primer arranque no tienen a nadie elegido y una app muda no invita a entrar.
+- **✅ Y hay una tercera edad: el adolescente.** Pesa **como un adulto** —come y
+  cuesta como uno: peso 1, mesa de mayores y reparto de adulto de fábrica— y lo
+  único que lo distingue es que **Dinero no es suyo**. Vive en la misma tabla
+  `EDADES` con su columna `dinero`, que es de donde bebe `puedeTocarDinero`:
+  una edad nueva se añade en un sitio y sale en el editor, en el peso y en el
+  cerrojo a la vez. No pide migración: `edad` ya era texto libre en la base, y
+  a un cliente viejo un «adolescente» le pesa 1 (`pesoDe` cae en 1 ante lo
+  desconocido).
 - **✅ El grupo lo edita quien administra** (`GrupoSection`): con sesión de
   miembro es el censo —sin «+ Familia», sin «+ Persona», sin abrir fichas ni
   emparejar bungas—. Sin sesión no se capa: la libreta local y la demostración

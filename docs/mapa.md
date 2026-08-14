@@ -10,7 +10,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 ## Las dos piezas
 
 - **`app/`** v0.38.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  832 pruebas en 90 ficheros · `npm test` → `vitest run`
+  836 pruebas en 90 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -386,4 +386,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `index.js`
-- **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `engine.js`, `identidad.js` · +3 más
+- **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js`, `engine.js` · +4 más

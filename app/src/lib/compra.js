@@ -28,8 +28,8 @@ import { normalizarIngredientes, estirar, loQueSeCompra, claveDeIngrediente, cif
  */
 export function racionesPorMesa(personas = []) {
   const suma = (lista) => lista.reduce((t, p) => t + (Number(p.pesoReparto) || 1), 0)
-  const mayores = personas.filter((p) => p.comeConMayores ?? p.edad === 'adulto')
-  const ninos = personas.filter((p) => !(p.comeConMayores ?? p.edad === 'adulto'))
+  const mayores = personas.filter((p) => p.comeConMayores ?? p.edad !== 'niño')
+  const ninos = personas.filter((p) => !(p.comeConMayores ?? p.edad !== 'niño'))
   return {
     mayores: Math.round(suma(mayores) * 100) / 100,
     ninos: Math.round(suma(ninos) * 100) / 100,

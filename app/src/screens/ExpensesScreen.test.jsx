@@ -14,7 +14,7 @@ async function sembrar({ conGasto = true } = {}) {
   const perez = await addFamily(eventId, { name: 'Pérez' })
   const curro = await addPerson(eventId, { name: 'Curro', familyId: garcia, edad: 'adulto', pesoReparto: 1 })
   const ana = await addPerson(eventId, { name: 'Ana', familyId: perez, edad: 'adulto', pesoReparto: 1 })
-  const nino = await addPerson(eventId, { name: 'Pablo', familyId: perez, edad: 'nino', pesoReparto: 0.6 })
+  const nino = await addPerson(eventId, { name: 'Pablo', familyId: perez, edad: 'niño', pesoReparto: 0.6 })
   if (conGasto) {
     await addExpense(eventId, {
       description: 'Cañas en el chiringuito',

@@ -36,9 +36,22 @@ describe('dinero solo adultos, grupo solo lectura', () => {
     await screen.findByText('Helados')
 
     expect(container.querySelector('.fab')).toBeNull()
-    expect(screen.getByText(/los tocan los mayores/)).toBeInTheDocument()
+    expect(screen.getByText(/los tocan los adultos/)).toBeInTheDocument()
     // La fila no es un botón: no hay ficha que abrir ni gesto que deslice.
     expect(screen.getByText('Helados').closest('button')).toBeNull()
+  })
+
+  it('el adolescente pesa como un adulto, pero Dinero tampoco es suyo', async () => {
+    const adolescente = await addPerson(evento.id, { name: 'Teo', edad: 'adolescente', familyId: familia })
+    localStorage.setItem(`ballena.me:${evento.id}`, adolescente)
+    const { container } = render(<ExpensesScreen eventId={evento.id} event={evento} />)
+    await screen.findByText('Helados')
+
+    expect(container.querySelector('.fab')).toBeNull()
+    expect(screen.getByText(/los tocan los adultos/)).toBeInTheDocument()
+    // Y el peso no cambia: en el reparto cuenta 1, como un adulto.
+    expect((await db.persons.get(adolescente)).pesoReparto).toBe(1)
+    expect((await db.persons.get(adolescente)).comeConMayores).toBe(true)
   })
 
   it('con identidad adulta, los verbos están donde siempre', async () => {

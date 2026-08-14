@@ -127,7 +127,7 @@ export default function ExpensesScreen({ eventId, event }) {
       </div>
 
       {soloMirar && (
-        <div className="note">🐳 Los gastos y los pagos los tocan los mayores. Mirar, todo lo que quieras.</div>
+        <div className="note">🐳 Los gastos y los pagos los tocan los adultos. Mirar, todo lo que quieras.</div>
       )}
 
       {/* El recado del viaje, al final del scroll (SPECS §14.25). */}

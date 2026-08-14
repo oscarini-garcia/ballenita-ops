@@ -595,8 +595,10 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
         </>
       )}
 
-      {/* Dos botones y no un desplegable: son dos opciones, y el peso sale de
-          la que elijas en vez de ser un número que hay que decidir cada vez. */}
+      {/* Botones y no un desplegable: son tres opciones, y el peso sale de la
+          que elijas en vez de ser un número que hay que decidir cada vez. El
+          adolescente pesa como un adulto: lo único que cambia es que no toca
+          Dinero (§14.41). */}
       <label>Edad</label>
       <div className="segmentado" role="group" aria-label="Edad">
         {EDADES.map((e) => (

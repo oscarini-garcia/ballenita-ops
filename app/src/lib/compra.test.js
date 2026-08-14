@@ -123,6 +123,15 @@ describe('las dos mesas', () => {
     expect(ninos).toBe(0.6)
   })
 
+  it('el adolescente sin mesa dicha come con los mayores, como un adulto', () => {
+    const { mayores, ninos } = racionesPorMesa([
+      { edad: 'adolescente', pesoReparto: 1 },
+      { edad: 'niño', pesoReparto: 0.6 },
+    ])
+    expect(mayores).toBe(1)
+    expect(ninos).toBe(0.6)
+  })
+
   it('los niños heredan los platos hasta que se les toca (G2)', () => {
     expect(platosDeLaCena({ platoIds: ['a', 'b'] })).toEqual({ mayores: ['a', 'b'], ninos: ['a', 'b'], hereda: true })
     expect(platosDeLaCena({ platoIds: ['a', 'b'], platoIdsNinos: ['c'] }))
