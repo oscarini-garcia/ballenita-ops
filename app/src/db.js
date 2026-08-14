@@ -276,6 +276,17 @@ export const personsOf = (eventId) => db.persons.where({ eventId }).toArray()
 export const updatePerson = (id, patch) => escribir('persons', id, patch)
 export const removePerson = (id) => removeRow('persons', id)
 
+/**
+ * Tu estado, con su «cuándo» (§14.36-bis). El `estadoEl` lo escribe el cliente
+ * —no vale `updatedAt`, que se mueve al corregir un apodo— y por eso la tira de
+ * «Hoy» ordena por novedad desde el primer pintado, sin esperar a sincronizar.
+ * Vaciarlo lo borra. Vive aquí y no en cada pantalla porque lo escriben dos
+ * —la pastilla de la cabecera y el botón de «Hoy» (§14.45)— y dos copias de la
+ * misma regla se separan a la primera.
+ */
+export const ponerEstado = (id, texto) =>
+  updatePerson(id, { estado: texto, estadoEl: texto ? now() : null })
+
 // ── Gastos ──
 export async function addExpense(eventId, e) {
   return escribir('expenses', uid('exp'), { eventId, ...e })

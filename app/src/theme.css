@@ -285,6 +285,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .tira-estados .quien .n .alias { margin: 0 0 0 4px; }
 /* Sin recorte: con el ancho entero para él, el estado cabe, y si no dobla. */
 .tira-estados .quien .q { font-size: var(--t-label); color: var(--ink-soft); line-height: 1.25; }
+/* Tu invitación, cuando aún no has dicho nada (§14.45). Va **de rayas** y no
+   llena: en una lista de estados puestos, uno igual que los demás se leería
+   como que ya has dicho algo. Es un botón de verdad, así que cumple los 44 pt
+   de objetivo — los otros son filas de solo lectura y no los necesitan. */
+.tira-estados .invita { min-height: var(--toque); width: 100%; text-align: left; cursor: pointer;
+  background: none; border-style: dashed; border-color: var(--line); }
+.tira-estados .invita .q { color: var(--spout-deep); font-weight: 600; }
+.tira-estados .invita:active { transform: translateY(1px); }
 
 /* Botón redondeado genérico de la cabecera. */
 .appbar .iconbtn { flex: none; background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink);

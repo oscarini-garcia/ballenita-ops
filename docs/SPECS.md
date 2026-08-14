@@ -3787,6 +3787,33 @@ que solo aparece si llegas al fondo.
   Hoy). En Hoy hay **dos** `.body` —el del evento sin fechas y el de verdad— y
   el recado va en el segundo: en el primero ya hay un vacío que habla.
 
+### 14.45 Quien administra sí cambia de persona, y «Hoy» invita a decir tu estado
+
+Dos correcciones sobre lo anterior, las dos del uso.
+
+- **✅ Cambiar de persona vuelve, pero solo para quien administra** (revisa
+  §14.42, que se lo había quitado a todo el mundo). Es la única identidad que
+  tiene un motivo para moverse: mirar la app **tal como la ve otro** cuando
+  alguien dice «a mí no me sale» — con los cerrojos de §14.43 encima, eso ya no
+  se puede comprobar de otra manera. A los demás la cuenta les sigue mandando.
+- **✅ Y por eso a él la cuenta le *siembra*, no le impone**
+  (`mandaLaCuenta` en `lib/identidad.js`): imponérsela le desharía la elección
+  en el acto, que es el mismo defecto que §14.42 arregló al revés. El hueco
+  vacío sí se le rellena, para que empiece siendo él sin tocar nada.
+- **✅ «Hoy» invita a decir en qué andas** cuando tienes identidad y **no has
+  dicho nada**: primera fila de «Quién anda en qué», **de rayas y no llena**
+  —en una lista de estados puestos, una fila igual que las demás se leería como
+  que ya has dicho algo— y con sus 44 pt de objetivo, que las otras filas no
+  necesitan porque no se tocan. Medido: 56 pt de alto, el ancho entero.
+- **La pastilla de la cabecera ya invitaba** (§14.36 · V1) y se queda, pero ahí
+  son 15 pt sobre el cielo que se leen como parte del rótulo del evento. El
+  sitio donde se ve lo que dicen los demás es donde apetece decir lo tuyo. En
+  cuanto hay estado la invitación de «Hoy» **desaparece** —la pastilla sigue
+  sirviendo para cambiarlo— porque dos invitaciones a la vez son ruido.
+- **✅ El estado lo escribe un solo sitio** (`ponerEstado`, en `db.js`): lo
+  guardan la pastilla y el botón nuevo, y dos copias de la misma regla —el
+  `estadoEl` que escribe el cliente, §14.36-bis— se separan a la primera.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

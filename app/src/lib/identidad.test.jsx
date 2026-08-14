@@ -37,6 +37,21 @@ describe('useIdentidad y la cuenta enlazada', () => {
     expect(result.current.deLaCuenta).toBe(true)
   })
 
+  // Quien administra es la excepción (§14.45): a él la cuenta le siembra el
+  // hueco, pero no le corrige — es como mira la app tal como la ve otro.
+  it('a quien administra la cuenta le siembra el hueco y no le pisa', async () => {
+    guardarSesion({ token: 'jwt', cuenta: { id: 'cta_1', rol: 'administrador', personId: 'per_mariona' } })
+    const primera = renderHook(() => useIdentidad('evt_1', PERSONAS))
+    await waitFor(() => expect(primera.result.current.me?.id).toBe('per_mariona'))
+    // …y no queda «dicho por la cuenta»: por eso sale la lista para cambiar.
+    expect(primera.result.current.deLaCuenta).toBe(false)
+    primera.unmount()
+
+    localStorage.setItem('ballena.me:evt_1', 'per_curro')
+    const segunda = renderHook(() => useIdentidad('evt_1', PERSONAS))
+    await waitFor(() => expect(segunda.result.current.me?.id).toBe('per_curro'))
+  })
+
   it('sin sesión la elección es de este móvil, y no la manda nadie', async () => {
     localStorage.setItem('ballena.me:evt_1', 'per_curro')
     const { result } = renderHook(() => useIdentidad('evt_1', PERSONAS))

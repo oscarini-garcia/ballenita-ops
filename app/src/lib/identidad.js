@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { leerSesion } from '../auth/sesion.js'
+import { esAdministrador } from './admin.js'
 
 /**
  * Quién eres en un evento.
@@ -64,17 +65,25 @@ export function useIdentidad(eventId, persons = []) {
   // rellenar el hueco y luego esconder la lista dejaría atrapado para siempre a
   // quien se hubiera elegido mal antes de que esto existiera.
   //
+  // **Salvo a quien administra** (§14.45): a él la cuenta le **siembra** el
+  // hueco y ahí se acaba, porque es el único que sí cambia de persona —para
+  // mirar la app como la ve otro, que es lo que hace falta cuando alguien dice
+  // «a mí no me sale»—. Imponérsela le desharía la elección en el acto.
+  //
   // Si la persona enlazada no es de este evento no se toca nada: ahí sigue
   // habiendo lista, que es la única salida de un evento donde tu cuenta no
   // figura.
   const enlazada = personaDeLaCuenta()
+  const mandaLaCuenta = Boolean(enlazada) && !esAdministrador(leerSesion())
   useEffect(() => {
     if (!enlazada || !persons.length || meId === enlazada) return
+    // Quien administra ya eligió: sembrar es para el hueco, no para corregirle.
+    if (meId && !mandaLaCuenta) return
     if (!persons.some((p) => p.id === enlazada)) return
     setMeId(eventId, enlazada)
     setMe(enlazada)
     if (typeof window !== 'undefined') window.dispatchEvent(new Event(AVISO))
-  }, [enlazada, meId, persons, eventId])
+  }, [enlazada, mandaLaCuenta, meId, persons, eventId])
 
   function elegir(id) {
     setMeId(eventId, id)
@@ -87,7 +96,8 @@ export function useIdentidad(eventId, persons = []) {
     me,
     elegir,
     salir: () => elegir(null),
-    // Quién eres viene de la cuenta: ni se cambia ni se sale de ello.
-    deLaCuenta: Boolean(me && enlazada && me.id === enlazada),
+    // Quién eres viene de la cuenta: ni se cambia ni se sale de ello. Para
+    // quien administra es `false` aunque esté enlazado — él sí elige (§14.45).
+    deLaCuenta: Boolean(me && mandaLaCuenta && me.id === enlazada),
   }
 }

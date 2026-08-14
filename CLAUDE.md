@@ -352,7 +352,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   «Salir» de ese apartado **no existen**: quedarían deshaciéndose solos, y respetar una elección
   vieja dejaría atrapado a quien se eligió mal. La lista vuelve donde la cuenta no puede
   contestar: sin sesión (libreta local, demostración) y si la persona enlazada no es de este
-  evento. Y los cerrojos de pantalla, todos con la misma guarda —**sin sesión (libreta local,
+  evento — **y para quien administra** (§14.45), el único que tiene motivo para moverse: mirar la
+  app tal como la ve otro. A él la cuenta le **siembra** el hueco y no le impone nada. En «Hoy»,
+  quien tiene identidad y aún no ha dicho estado abre la tira con su invitación de rayas, y el
+  estado lo escribe un solo sitio (`ponerEstado`, en `db.js`). Y los cerrojos de pantalla, todos con la misma guarda —**sin sesión (libreta local,
   demostración) no se capa nada**—: **organizar el viaje es de los adultos** (§14.43,
   `puedeOrganizar`, un solo predicado sobre la columna `organiza` de `EDADES`) —gastos y
   liquidaciones, montar y borrar cenas, «Proponer» una idea y los tres renglones del día—,
