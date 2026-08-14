@@ -1,9 +1,13 @@
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { dinnersOf, plansOf, bungasOf, personsOf, familiesOf, listDishes } from '../db.js'
+import { dinnersOf, plansOf, bungasOf, personsOf, familiesOf, listDishes, ponerEstado } from '../db.js'
 import Icono from '../components/Icono.jsx'
 import PieDeVersion from '../components/PieDeVersion.jsx'
 import Recado from '../components/Recado.jsx'
 import Alias from '../components/Alias.jsx'
+import HojaDeEstado from '../components/HojaDeEstado.jsx'
+import { useIdentidad } from '../lib/identidad.js'
+import { tap } from '../lib/native.js'
 import { estadoEnUnaLinea, partirEstado, quienTieneEstado } from '../lib/estados.js'
 import {
   diasDe, diaQueEnsenaHoy, rotuloDelDia, titularDeHoy, fmtDiaCorto,
@@ -35,6 +39,11 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   const personas = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const familias = useLiveQuery(() => familiesOf(eventId), [eventId], [])
+  // Los dos hooks del estado van **antes** del retorno temprano de abajo: un
+  // hook detrás de un `return` se salta unas veces sí y otras no, y React
+  // exige que el orden no cambie entre pintados.
+  const { me } = useIdentidad(eventId, personas)
+  const [poniendoEstado, setPoniendoEstado] = useState(false)
 
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
   const cual = diaQueEnsenaHoy(dias)
@@ -58,6 +67,13 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   const susPlatos = (cena?.platoIds ?? []).map((id) => porId[id]).filter(Boolean)
   const nombreBunga = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : null }
   const conEstado = quienTieneEstado(personas)
+  // Si tienes identidad en este móvil y **no has dicho nada**, la tira te abre
+  // con la invitación (§14.45). La pastilla de la cabecera ya invitaba, pero
+  // ahí es un renglón de 15 pt sobre el cielo que se lee como parte del rótulo
+  // del evento: el sitio donde se ve lo que dicen los demás es donde apetece
+  // decir lo tuyo. En cuanto hay estado, el botón desaparece — la pastilla
+  // sigue estando para cambiarlo, y dos invitaciones a la vez son ruido.
+  const invita = Boolean(me) && !String(me.estado ?? '').trim()
 
   const { grande, pequeno } = titularDeHoy({
     cena,
@@ -115,10 +131,23 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
           (`Alias.jsx`, la de Ideas y la de los votantes): con dos Marías en el
           grupo, el nombre solo no dice de qué casa es. Y van **por novedad**,
           lo último puesto primero. */}
-      {conEstado.length > 0 && (
+      {(conEstado.length > 0 || invita) && (
         <>
           <div className="sec-h">Quién anda en qué</div>
           <div className="tira-estados">
+            {invita && (
+              <button
+                type="button"
+                className="est invita"
+                onClick={() => { tap(); setPoniendoEstado(true) }}
+              >
+                <span className="cara" aria-hidden>{me.avatar || '🙂'}</span>
+                <span className="quien">
+                  <span className="n">Tú<Alias familia={familias.find((f) => f.id === me.familyId)} /></span>
+                  <span className="q">+ di en qué andas</span>
+                </span>
+              </button>
+            )}
             {conEstado.map((p) => {
               const { emoji, texto } = partirEstado(p.estado)
               return (
@@ -140,6 +169,20 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
 
 
       <PieDeVersion />
+
+      {/* La misma hoja que abre la pastilla de la cabecera, y el mismo escritor
+          (`ponerEstado`): dos sitios para lo mismo, una sola regla. */}
+      {poniendoEstado && me && (
+        <HojaDeEstado
+          eventId={eventId}
+          persona={me}
+          onCerrar={() => setPoniendoEstado(false)}
+          onGuardar={async (nuevo) => {
+            await ponerEstado(me.id, nuevo)
+            setPoniendoEstado(false)
+          }}
+        />
+      )}
     </div>
   )
 }

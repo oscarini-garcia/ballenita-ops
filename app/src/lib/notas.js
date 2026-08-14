@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.42.0',
+    fecha: '2026-08-14',
+    titulo: 'Hoy te pregunta en qué andas',
+    lineas: [
+      'Si aún no has dicho nada, «Quién anda en qué» abre con tu invitación: un toque y lo cuentas.',
+      'Cambiar de persona vuelve, pero solo para quien lleva el grupo: es como puede mirar la app tal como la ve otro.',
+    ],
+  },
+  {
     version: '0.41.0',
     fecha: '2026-08-14',
     titulo: 'Organizar el viaje es de los adultos',

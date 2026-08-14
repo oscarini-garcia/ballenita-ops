@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.41.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  850 pruebas en 92 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.42.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  855 pruebas en 93 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -102,7 +102,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `App.jsx` — El esqueleto de la aplicación: cabecera, cuerpo y barra de cinco destinos.
 - `db.js` — IndexedDB desde el día 1 (§14).
-  ↳ setApplyingRemote, removeRow, importSnapshot, exportSnapshot, olvidarTodo, createEvent · +67 más
+  ↳ setApplyingRemote, removeRow, importSnapshot, exportSnapshot, olvidarTodo, createEvent · +68 más
 - `main.jsx` — El arranque: monta React en el DOM y pone el tema y el tamaño de letra antes del primer pintado, para que la app no aparezca con la cara equivocada.
 
 **`app/src/auth/`**
@@ -383,10 +383,11 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`
 - **§14.31** Los elegidores del día: al centro, con borrador y buscador → `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
-- **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `estados.js`, `index.js`
+- **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `db.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `index.js`
 - **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +4 más
 - **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `EventSettingsScreen.jsx`, `identidad.js`
 - **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `CenasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `personas.js`
 - **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
+- **§14.45** Quien administra sí cambia de persona, y «Hoy» invita a decir tu estado → `HoyScreen.jsx`, `db.js`, `identidad.js`

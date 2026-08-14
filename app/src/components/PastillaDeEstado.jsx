@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { personsOf, updatePerson } from '../db.js'
-import { now } from '../lib/ids.js'
+import { personsOf, ponerEstado } from '../db.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { tap } from '../lib/native.js'
 import HojaDeEstado from './HojaDeEstado.jsx'
@@ -51,10 +50,9 @@ export default function PastillaDeEstado({ eventId, lugar }) {
           persona={me}
           onCerrar={() => setAbierto(false)}
           onGuardar={async (nuevo) => {
-            // El «cuándo» lo escribe el cliente, como `apuntadaEl` de una idea:
-            // así la tira de «Hoy» ordena por novedad desde el primer pintado y
-            // sin depender de la sincronización. Vaciar el estado lo borra.
-            await updatePerson(me.id, { estado: nuevo, estadoEl: nuevo ? now() : null })
+            // El «cuándo» va con él (`ponerEstado`, en `db.js`): así la tira de
+            // «Hoy» ordena por novedad desde el primer pintado.
+            await ponerEstado(me.id, nuevo)
             setAbierto(false)
           }}
         />
