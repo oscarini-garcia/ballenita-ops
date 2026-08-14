@@ -3709,6 +3709,30 @@ desde que el administrador enlaza cada cuenta con su persona (§14.15).
   «Cuentas» de un miembro se queda en lo mínimo que exige Apple — «Salir» y
   «Eliminar mi cuenta» (directriz 5.1.1(v)) no pueden desaparecer.
 
+### 14.42 Con sesión, quién eres lo dice la cuenta y no se elige
+
+§14.41 dejó la identidad **sembrada** desde la cuenta pero seguía siendo
+elegible: cualquiera podía ponerse el nombre de otro y apuntar gastos en su
+sitio — y el cerrojo de Dinero (§14.41) se saltaba eligiéndose un adulto.
+
+- **✅ La lista de personas se retira con sesión** (pedido expreso). Solo sale
+  donde no hay cuenta que lo diga: la **libreta local** y la **demostración**.
+- **✅ Y la cuenta manda, no rellena.** Sembrar el hueco y esconder la lista, a
+  la vez, dejaría atrapado para siempre a quien se hubiera elegido mal antes de
+  que esto existiera — que es justo a quien esto viene a corregir. Así que la
+  persona enlazada **se impone** en cada arranque (`useIdentidad`), y una
+  elección vieja de este móvil se corrige sola.
+- **✅ «Salir» desaparece con ella.** Olvidar la identidad tiene sentido cuando
+  se eligió aquí; con la cuenta enlazada volvería a ponerse en el acto, o sea un
+  botón que se deshace solo. El «Salir» de **Cuentas** —cerrar sesión— no se
+  toca: es otra cosa y sigue donde estaba.
+- **✅ Queda una salida:** si la persona enlazada **no es de este evento**, la
+  lista vuelve. Es el único caso en que la cuenta no puede contestar, y sin ella
+  ese evento no se podría usar.
+- **La pantalla dice por qué**: «Eres Mariona porque tu cuenta está enlazada con
+  esa persona: lo decide quien lleva el grupo, no este móvil». Un control que
+  desaparece sin explicación se lee como una avería.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

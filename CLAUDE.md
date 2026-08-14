@@ -345,14 +345,17 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   con su persona — sin esto, salir de la cuenta el único administrador era un cerrojo. Y como con
   «Ocultar mi correo» llega un relé, el **nombre** (sin tildes) es segunda llave, válida **solo
   sin ningún administrador activo**: el nombre no lo firma Apple, lo manda la app.
-- **La cuenta viaja con la instantánea y siembra «quién eres»** (SPECS §14.41): `{ id, nombre,
-  rol, personId }` sale en la sesión, en la espera y al lado de cada instantánea, el motor lo
-  refresca (`actualizarCuenta`) y `useIdentidad` elige sola a la persona enlazada si en el móvil
-  no hay nadie elegido — una elección a mano no se pisa. Y los cerrojos de pantalla: **Dinero
-  escribe solo con identidad adulta** (`puedeTocarDinero`, un niño mira sin tocar), **El grupo lo
-  edita quien administra** (miembro = censo de solo lectura; sin sesión —local, demo— no se capa),
-  el administrador pierde «Cambiar de persona», y Sincronización + Actualizar son un solo
-  acordeón, **«La app»**, con la versión en el rótulo.
+- **La cuenta viaja con la instantánea y decide «quién eres»** (SPECS §14.41 y §14.42):
+  `{ id, nombre, rol, personId }` sale en la sesión, en la espera y al lado de cada instantánea, y
+  el motor lo refresca (`actualizarCuenta`). **Con sesión, la persona enlazada manda** —se impone
+  en cada arranque, no solo rellena el hueco— y por eso la lista de «Cambiar de persona» y el
+  «Salir» de ese apartado **no existen**: quedarían deshaciéndose solos, y respetar una elección
+  vieja dejaría atrapado a quien se eligió mal. La lista vuelve donde la cuenta no puede
+  contestar: sin sesión (libreta local, demostración) y si la persona enlazada no es de este
+  evento. Y los cerrojos de pantalla: **Dinero escribe solo con identidad adulta**
+  (`puedeTocarDinero`; el niño y el adolescente miran sin tocar), **El grupo lo edita quien
+  administra** (miembro = censo de solo lectura; sin sesión no se capa), y Sincronización +
+  Actualizar son un solo acordeón, **«La app»**, con la versión en el rótulo.
 - **La clave de la IA vive en el servidor** (tabla `configuracion`, SPECS §14.16) y no vuelve
   entera a ningún móvil: es una credencial de pago. **El modelo se elige de una lista** que trae
   el Worker de Anthropic, y hay un botón que **prueba el par clave+modelo** con una llamada de

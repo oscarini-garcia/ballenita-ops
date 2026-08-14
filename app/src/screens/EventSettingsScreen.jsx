@@ -27,7 +27,6 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { aplicarSiguienteMigracion, eliminarMiCuenta, gestionarCuenta, hayApi, leerMigraciones, listarCuentas } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion, modoLocal, salirDeModoLocal } from '../auth/sesion.js'
-import { esAdministrador } from '../lib/admin.js'
 import { tap } from '../lib/native.js'
 import { avisosPara } from '../lib/avisos.js'
 import { forzarActualizacion, marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, UPDATE_STEPS } from '../lib/pwa.js'
@@ -309,7 +308,7 @@ function Cara({ emoji, foto, className }) {
  * en este móvil (`lib/avatares.js`, SPECS §14.10).
  */
 function QuienEresSection({ eventId, persons }) {
-  const { meId, me, elegir, salir } = useIdentidad(eventId, persons)
+  const { meId, me, elegir, salir, deLaCuenta } = useIdentidad(eventId, persons)
   const [foto, setFoto] = useState(null)
   const [estado, setEstado] = useState('')
   const [avatar, setAvatar] = useState('🧑')
@@ -364,7 +363,10 @@ function QuienEresSection({ eventId, persons }) {
             <div className="n">{me ? me.name : 'Sin elegir'}</div>
             <div className="sub">{me ? (me.estado || 'Sin estado') : 'Nadie ha dicho quién es en este móvil'}</div>
           </div>
-          {me && <button className="btn sm ghost" onClick={() => { tap(); salir() }}>Salir</button>}
+          {/* «Salir» olvida la identidad de este móvil, y eso solo tiene sentido
+              cuando se eligió aquí: con la cuenta enlazada volvería a ponerse
+              sola en el acto (§14.42), o sea un botón que no hace nada. */}
+          {me && !deLaCuenta && <button className="btn sm ghost" onClick={() => { tap(); salir() }}>Salir</button>}
         </div>
       </div>
 
@@ -407,10 +409,11 @@ function QuienEresSection({ eventId, persons }) {
         </>
       )}
 
-      {/* Al administrador el servidor ya le enlaza con su persona y no cambia
-          de identidad (pedido expreso, SPECS §14.41): la lista sobra. Si un día
-          se queda sin identidad —persona borrada—, la lista vuelve sola. */}
-      {!(esAdministrador(leerSesion()) && me) && (<>
+      {/* Quién eres lo dice el enlace de tu cuenta, y por eso no se elige aquí
+          (pedido expreso, SPECS §14.42). La lista solo sale donde no hay cuenta
+          que lo diga —libreta local y demostración— o cuando la persona
+          enlazada no es de este evento, que es su única salida. */}
+      {!deLaCuenta && (<>
       <div className="sec-h">{me ? 'Cambiar de persona' : 'Elige quién eres'}</div>
       <div className="lista-personas">
         {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en «Gente».</div>}
@@ -427,7 +430,14 @@ function QuienEresSection({ eventId, persons }) {
       </div>
       </>)}
 
-      <div className="note">Quién eres se guarda <b>en este móvil</b> y no se sincroniza: cada uno elige la suya. El emoji y el estado sí los ve el grupo. «Salir» solo olvida la identidad aquí: no borra a nadie.</div>
+      {deLaCuenta ? (
+        <div className="note">
+          🐳 Eres <b>{me.name}</b> porque tu cuenta está enlazada con esa persona: lo decide quien
+          lleva el grupo, no este móvil. Tu emoji y tu estado sí los cambias tú, y los ve el grupo.
+        </div>
+      ) : (
+        <div className="note">Quién eres se guarda <b>en este móvil</b> y no se sincroniza: cada uno elige la suya. El emoji y el estado sí los ve el grupo. «Salir» solo olvida la identidad aquí: no borra a nadie.</div>
+      )}
     </>
   )
 }
