@@ -65,6 +65,33 @@ export function queSeLlevaUnGasto(gasto, { familias = [], personas = [], importe
 }
 
 /**
+ * La frase de deshacer un pago (§14.51).
+ *
+ * Es el mismo criterio que el gasto —«esto mueve el saldo de alguien que no
+ * tienes delante»— con una vuelta de tuerca: lo que se quita **no es un gasto,
+ * es una marca**, y su efecto es exactamente el contrario del que se ve. Por
+ * eso la frase no dice «se borra un pago» y para, sino que dice **qué vuelve a
+ * deberse**: quien deshace está mirando la lista de pagos hechos, y el número
+ * que cambia está dos secciones más arriba.
+ *
+ * `importe` llega ya formateado, como en el gasto: aquí no se sabe de monedas.
+ */
+export function queSeLlevaUnPago(pago, { familias = [], importe = '' } = {}) {
+  const nombre = (id) => familias.find((f) => f.id === id)?.name
+  const de = nombre(pago?.fromFamilyId)
+  const a = nombre(pago?.toFamilyId)
+
+  const primera = de && a
+    ? `Se deshace el pago${importe ? ` de ${importe}` : ''} de ${de} a ${a}.`
+    : `Se deshace este pago${importe ? ` de ${importe}` : ''}.`
+
+  // Sin importe la segunda frase no dice nada que no diga la primera, y el cero
+  // no se dice (B3): mejor una frase corta que una redonda y vacía.
+  if (!importe) return primera
+  return `${primera} ${de ? `${de} vuelve` : 'Vuelven'} a deber ${importe}.`
+}
+
+/**
  * Qué líneas de la compra se caen al borrar una cena.
  *
  * No se puede leer de la fila: una línea de la compra no apunta a su cena, sino

@@ -3989,6 +3989,52 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   algún día molesta, lo que toca es lo de la evaluación de WebSockets: un
   marcador de «¿cambió algo?» que evite bajar la instantánea entera cada minuto.
 
+### 14.51 Un pago apuntado se puede deshacer
+
+- **El defecto:** `removeSettlement` estaba escrito en `db.js` desde siempre y
+  **no lo llamaba nadie**. «pagado» es un botón de una sola pulsación, sin
+  confirmación, en una fila de 70,7 pt: un toque sin querer metía una
+  liquidación que ya no había forma de quitar desde la app, y descuadraba el
+  saldo de **dos** familias hasta que alguien entrara por la consola de D1.
+  Salió mirando qué le falta a Saldos frente a Splitwise, y no es una mejora:
+  es un agujero.
+- **✅ Detrás del gesto, como en Gastos** (`Deslizable`, §14.10-bis): la fila de
+  «Pagos apuntados» se desliza y descubre **Deshacer**. Detrás del gesto y no en
+  la fila porque el 99 % de las veces lo que se hace con esa lista es mirarla, y
+  un verbo permanente ahí sería un botón de descuadrar el saldo al alcance del
+  pulgar.
+- **La pregunta dice el efecto, que es el contrario del que se ve**
+  (`lib/borrados.js` · `queSeLlevaUnPago`): «Se deshace el pago de 70,56 € de
+  García a Pérez. **García vuelve a deber 70,56 €**». Es el criterio de §14.38
+  —esto mueve algo que quien borra no tiene delante— con una vuelta de tuerca:
+  lo que se quita no es un gasto sino una **marca**, y el número que cambia está
+  dos secciones más arriba.
+- **El verbo va en azul, no en rojo.** El rojo aquí es deuda y borrado (§14.32,
+  §14.37) y lo que se quita es una marca; quien avisa de lo que mueve es la
+  pregunta. Y **se mide solo**: los 76 pt de `.verbo` son la medida de «Borrar»,
+  y «Deshacer» son dos letras más —se salía por la derecha—. Con `--verbos`, que
+  pone el propio `Deslizable`, el botón llena exactamente lo que el gesto
+  descubre: **96 pt**, con la palabra en 76,4 (Grande) y **86,0 (Enorme)**.
+- **✅ Y la pregunta se enseña sola** (`components/Confirmar.jsx`). El bloque
+  nace al final de su lista, así que con la lista rodada cae fuera de la
+  ventana: medido en Saldos con **un solo** pago y la letra en Enorme, se abría
+  en el **788** y acababa en el **984** de una pantalla de 844. Desde el móvil
+  eso se lee como que el botón no ha hecho nada, y el siguiente toque es otra
+  vez el mismo botón. Con el `scrollIntoView`, 580 → 776: dentro. Vale para
+  **los diez** borrados de la app, no solo para este.
+- Con la identidad de un niño puesta no hay gesto ni verbo, igual que no hay
+  «pagado» (§14.41): es el mismo saldo movido en el sentido contrario.
+- **Lo que no se toca:** el algoritmo. `simplifyDebts` ya es el *Simplify Debts*
+  de Splitwise —netear y emparejar voraz a la mayor deudora con la mayor
+  acreedora— y con **tres familias es óptimo siempre**: para bajar de *n − 1*
+  hace falta un subconjunto propio que sume cero, y con tres saldos distintos de
+  cero eso no existe. Comprobado contra el óptimo exacto por fuerza bruta: 3
+  familias 2 y 2, 5 familias 4 y 4, y la primera diferencia aparece con **seis**
+  (5 contra 4). Cambiarlo hoy no ahorraría ni una transferencia.
+- **Sigue faltando el pago parcial**: «pagado» apunta la transferencia **entera**
+  que sugiere la app, y un Bizum de 20 sobre una deuda de 34,67 no se puede
+  decir. Es el hueco grande que queda frente a Splitwise, y es otra vuelta.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

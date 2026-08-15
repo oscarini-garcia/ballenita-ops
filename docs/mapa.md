@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.46.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  913 pruebas en 99 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.47.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  918 pruebas en 99 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -158,7 +158,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `avisos.js` — Lo que está esperando a que alguien haga algo.
   ↳ avisosDeCuentas, avisosPara
 - `borrados.js` — Qué se lleva por delante un borrado, dicho en una frase.
-  ↳ familiasQueTocaUnGasto, queSeLlevaUnGasto, loQueSeCaeDeLaCompra, queSeLlevaUnaCena
+  ↳ familiasQueTocaUnGasto, queSeLlevaUnGasto, queSeLlevaUnPago, loQueSeCaeDeLaCompra, queSeLlevaUnaCena
 - `categorias.js` — Las cinco categorías de un gasto.
   ↳ CATEGORIES, catOf
 - `cielo.js` — De qué color está el cielo a esta hora.
@@ -404,3 +404,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.48** Un bunga con familia también se corrige → `GrupoSection.jsx`, `Hoja.jsx`
 - **§14.49** «Mayores» son los mayores, y «Peques» se retira → `db.js`, `personas.js`, `reparto-gente.js`
 - **§14.50** Lo que hace el grupo se apunta, y al final se cuenta → `StatsScreen.jsx`, `db.js`, `recap.js`, `registro.js`, `tablas.js`
+- **§14.51** Un pago apuntado se puede deshacer → `borrados.js`

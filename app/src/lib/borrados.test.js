@@ -3,7 +3,7 @@ import {
   familiasQueTocaUnGasto,
   loQueSeCaeDeLaCompra,
   queSeLlevaUnGasto,
-  queSeLlevaUnaCena,
+  queSeLlevaUnaCena, queSeLlevaUnPago,
 } from './borrados.js'
 
 /**
@@ -123,5 +123,33 @@ describe('la frase de una cena', () => {
     const lineas = [linea('arroz|g'), linea('azafrán|g'), linea('tomate|ud')]
     const frase = queSeLlevaUnaCena(conDos, { ...base, cenas: [conDos], lineas })
     expect(frase).toContain('Se van 3 líneas de la compra')
+  })
+})
+
+describe('la frase de deshacer un pago', () => {
+  const FAMILIAS = [
+    { id: 'garcia', name: 'García' },
+    { id: 'perez', name: 'Pérez' },
+  ]
+  const PAGO = { fromFamilyId: 'garcia', toFamilyId: 'perez', amountCents: 7056 }
+
+  it('dice de quién a quién, y **qué vuelve a deberse**', () => {
+    // Lo que se quita no es un gasto sino una marca, y su efecto es el
+    // contrario del que se ve: quien deshace mira la lista de pagos hechos y el
+    // número que cambia está dos secciones más arriba (§14.51).
+    expect(queSeLlevaUnPago(PAGO, { familias: FAMILIAS, importe: '70,56 €' }))
+      .toBe('Se deshace el pago de 70,56 € de García a Pérez. García vuelve a deber 70,56 €.')
+  })
+
+  it('sin importe se queda corta, en vez de decir dos veces lo mismo', () => {
+    expect(queSeLlevaUnPago(PAGO, { familias: FAMILIAS }))
+      .toBe('Se deshace el pago de García a Pérez.')
+  })
+
+  it('y con una familia que ya no está, no se inventa el nombre', () => {
+    // Una familia borrada deja el pago apuntando a nada: la frase pierde los
+    // nombres pero sigue diciendo el importe, que es lo que mueve el saldo.
+    expect(queSeLlevaUnPago(PAGO, { familias: [], importe: '70,56 €' }))
+      .toBe('Se deshace este pago de 70,56 €. Vuelven a deber 70,56 €.')
   })
 })

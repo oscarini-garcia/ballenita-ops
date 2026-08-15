@@ -667,6 +667,16 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
   border: none; cursor: pointer; font-size: var(--t-label); font-weight: 600; padding: 0; }
 .verbo.editar { background: #1f6f8f; color: #eaf6fb; }
 .verbo.borrar { background: #a8322a; color: #ffe9e5; }
+/* Deshacer un pago no es borrar: lo que se quita es una **marca**, y el rojo
+   aquí es deuda y borrado (§14.32, §14.37). Va en el azul de los verbos que
+   hacen algo, y quien avisa de lo que mueve es la pregunta, no el color.
+
+   Y **se mide solo**: los 76 px de `.verbo` son la medida de «Borrar», y
+   «Deshacer» tiene dos letras más — se salía por la derecha, y con un
+   `ancho` distinto en el deslizable quedaba además una rendija de fondo entre
+   la tarjeta y el botón. Con `--verbos`, que lo pone el propio `Deslizable`,
+   el botón llena exactamente lo que el gesto descubre, sea cual sea. */
+.verbo.deshacer { width: var(--verbos, 76px); background: #1f6f8f; color: #eaf6fb; }
 .verbo:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
 
 /* Una lista de filas deslizables: separadas entre sí, porque cada una es su
