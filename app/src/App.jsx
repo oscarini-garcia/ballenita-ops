@@ -22,8 +22,9 @@ import LineaDelHorizonte from './components/LineaDelHorizonte.jsx'
 import ProgresoModal from './components/ProgresoModal.jsx'
 import { sincronizarTodo } from './lib/sincronizarTodo.js'
 import { primeraBajada } from './lib/primeraBajada.js'
-import { useSyncEngine, ultimaSincronizacion } from './sync/engine.js'
-import { isNative, tap } from './lib/native.js'
+import { LATIDO_DATOS_MS, useSyncEngine, ultimaSincronizacion } from './sync/engine.js'
+import { checkForOtaUpdate, hayOtaNueva, isNative, tap } from './lib/native.js'
+import { creaVigilante } from './lib/vigilante.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
 import { enDemo, salirDemo } from './lib/demo.js'
@@ -130,6 +131,28 @@ export default function App() {
     document.addEventListener('visibilitychange', alVolver)
     return () => { clearInterval(reloj); document.removeEventListener('visibilitychange', alVolver) }
   }, [activeId])
+
+  // La versión de la app, con la misma figura y el mismo minuto que los datos
+  // (SPECS §14.46): se **pregunta** cada latido —un JSON de 204 bytes— y se
+  // **pone** al volver a primer plano, que es cuando una recarga no le quita a
+  // nadie un gasto a medio escribir. Quién decide qué, en `lib/vigilante.js`.
+  useEffect(() => {
+    const vigilante = creaVigilante({
+      hayNueva: hayOtaNueva,
+      aplicar: () => checkForOtaUpdate({ aplicarYa: true }),
+    })
+    vigilante.comprobar()
+    const reloj = setInterval(() => {
+      if (document.visibilityState === 'visible') vigilante.comprobar()
+    }, LATIDO_DATOS_MS)
+    const alVolver = () => {
+      if (document.visibilityState !== 'visible') return
+      vigilante.comprobar()
+      vigilante.aplicarSiToca()
+    }
+    document.addEventListener('visibilitychange', alVolver)
+    return () => { clearInterval(reloj); document.removeEventListener('visibilitychange', alVolver) }
+  }, [])
 
   // Si el Worker rechaza la sesión, el transporte ya la ha borrado: aquí solo
   // hay que volver a la puerta.

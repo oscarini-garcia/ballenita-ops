@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.42.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  855 pruebas en 93 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.43.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  862 pruebas en 94 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -192,7 +192,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `money.js` — Todo el dinero se maneja en CÉNTIMOS enteros para no arrastrar errores de coma flotante.
   ↳ eurosToCents, centsToEuros, formatCents
 - `native.js` — Puente con las capacidades nativas (Capacitor).
-  ↳ urlDelManifiestoOta, isNative, tap, share, checkForOtaUpdate, versionInstalada · +11 más
+  ↳ urlDelManifiestoOta, isNative, tap, share, hayOtaNueva, checkForOtaUpdate · +12 más
 - `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
   ↳ NOTAS
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
@@ -229,6 +229,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ leerTanda, asegurarTanda, olvidarTandas, VENTANA_MS, LATIDO_MS, tocaPedir
 - `tema.js` — El tema, que ahora es **uno solo** con sus dos caras.
   ↳ getTema, setTema, applyTema, useTema, TEMAS
+- `vigilante.js` — Quién vigila si ha salido versión nueva mientras la app está abierta (SPECS §14.46).
+  ↳ creaVigilante
 
 **`app/src/screens/`**
 
@@ -265,7 +267,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `api.js` — Transporte contra la API propia (Worker + D1).
   ↳ hayApi, PLAZO_API, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta · +19 más
 - `engine.js` — El orquestador de la sincronización: cuándo se sube la cola y se baja la instantánea.
-  ↳ ultimaSincronizacion, syncNow, useSyncEngine
+  ↳ ultimaSincronizacion, syncNow, useSyncEngine, LATIDO_DATOS_MS
 - `tables.js` — Tablas que se sincronizan (todo lo que es "hecho" del grupo).
   ↳ SYNC_TABLES
 
@@ -391,3 +393,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `CenasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `personas.js`
 - **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
 - **§14.45** Quien administra sí cambia de persona, y «Hoy» invita a decir tu estado → `HoyScreen.jsx`, `db.js`, `identidad.js`
+- **§14.46** Al minuto: los datos se traen y la versión se vigila → `App.jsx`, `engine.js`, `native.js`, `vigilante.js`

@@ -75,6 +75,36 @@ export async function share({ title, text, url, dialogTitle } = {}) {
 // Flujo manual auto-alojado: leemos latest.json (versión + url del zip + checksum),
 // y si es más nuevo que el bundle instalado, lo descargamos y aplicamos. Solo en
 // nativo; en web/PWA el service worker ya se encarga de actualizar.
+/**
+ * ¿Hay versión nueva publicada? Pregunta y ya (SPECS §14.46).
+ *
+ * Es la mitad barata de `checkForOtaUpdate`: lee el manifiesto —un JSON de 204
+ * bytes— y lo compara con el paquete instalado, **sin descargar** los 380 KB
+ * del bundle. Por eso se puede preguntar cada minuto; bajar cada minuto no.
+ *
+ * En web devuelve que no hay nada: allí la versión la sirve el servidor al
+ * recargar y de eso se encarga el service worker (`lib/pwa.js`).
+ */
+export async function hayOtaNueva() {
+  if (!isNative()) return { hay: false }
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater')
+    const current = await CapacitorUpdater.current()
+    const res = await fetch(await urlDelManifiestoOta(), { cache: 'no-store' })
+    if (!res.ok) return { hay: false }
+    const manifest = await res.json()
+    const instalada = current?.bundle?.version
+    if (!manifest?.version || !manifest?.url) return { hay: false }
+    return manifest.version === instalada
+      ? { hay: false, version: instalada }
+      : { hay: true, version: manifest.version }
+  } catch {
+    // Sin red, o con el manifiesto caído, no hay noticia que dar: se vuelve a
+    // preguntar al minuto siguiente y punto.
+    return { hay: false }
+  }
+}
+
 export async function checkForOtaUpdate({ aplicarYa = false } = {}) {
   if (!isNative()) return { status: 'skip' }
   try {

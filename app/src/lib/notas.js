@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.43.0',
+    fecha: '2026-08-14',
+    titulo: 'Lo nuevo aparece al minuto',
+    lineas: [
+      'Con la app abierta se trae lo del grupo cada minuto, en vez de cada minuto y medio.',
+      'Y la app se mira sola si hay versión nueva: la pone al volver a ella desde otra app, para no recargarte encima de un gasto a medio escribir.',
+    ],
+  },
+  {
     version: '0.42.0',
     fecha: '2026-08-14',
     titulo: 'Hoy te pregunta en qué andas',
