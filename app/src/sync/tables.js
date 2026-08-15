@@ -7,5 +7,5 @@
 export const SYNC_TABLES = [
   'events', 'families', 'bungas', 'persons',
   'expenses', 'settlements', 'dishes', 'dinners', 'planIdeas', 'plans', 'shop',
-  'mejoras',
+  'mejoras', 'registro',
 ]

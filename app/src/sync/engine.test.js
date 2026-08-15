@@ -101,7 +101,7 @@ describe('syncNow', () => {
 
     // Ni se subió con el lote anterior ni se borró de la cola: queda para el
     // ciclo siguiente, y mientras tanto sigue viéndose en el móvil.
-    const cola = await colaPendiente()
+    const cola = (await colaPendiente()).filter((c) => c.tabla === 'expenses')
     expect(cola).toHaveLength(1)
     expect(cola[0].campos.description).toBe('Tarde')
     expect(await db.expenses.get(alVuelo.id)).toBeTruthy()

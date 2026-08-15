@@ -143,8 +143,9 @@ describe('la cola de cambios', () => {
   it('una idea sube como cualquier otro hecho del grupo', async () => {
     await db.outbox.clear()
     await addPlanIdea({ titulo: 'Playa de la Cala' })
+    // Y detrás, su renglón del recap (§14.50): sube por la misma cola.
     const cola = await db.outbox.toArray()
-    expect(cola.map((c) => c.tabla)).toEqual(['planIdeas'])
+    expect(cola.map((c) => c.tabla)).toEqual(['planIdeas', 'registro'])
     expect(cola[0].op).toBe('upsert')
   })
 })

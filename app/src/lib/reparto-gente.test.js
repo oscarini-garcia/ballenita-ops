@@ -5,35 +5,50 @@ import {
 } from './reparto-gente.js'
 
 // El grupo de verdad: tres familias, nueve personas, seis mayores y tres peques.
+//
+// **Mayor lo dice la edad** (§14.49) y no `cuentaComoAdultoReparto`, que era una
+// casilla guardada por persona: Fran es adolescente, pesa como un adulto y entra
+// en «Mayores» — que es exactamente el caso que estaba mal.
 const FAMILIAS = [
   { id: 'perez', name: 'Pérez' },
   { id: 'garcia', name: 'García' },
   { id: 'solteros', name: 'Solteros' },
 ]
-const mayor = (id, name, familyId) => ({ id, name, familyId, cuentaComoAdultoReparto: true, pesoReparto: 1 })
-const peque = (id, name, familyId) => ({ id, name, familyId, cuentaComoAdultoReparto: false, pesoReparto: 0.6 })
+const mayor = (id, name, familyId) => ({ id, name, familyId, edad: 'adulto', pesoReparto: 1 })
+const peque = (id, name, familyId) => ({ id, name, familyId, edad: 'niño', pesoReparto: 0.6 })
 const GENTE = [
   mayor('g1', 'Curro', 'garcia'), mayor('g2', 'Marta', 'garcia'), peque('g3', 'Pablo', 'garcia'),
-  mayor('p1', 'Fran', 'perez'), mayor('p2', 'Ana', 'perez'), peque('p3', 'Luis', 'perez'),
+  { id: 'p1', name: 'Fran', familyId: 'perez', edad: 'adolescente', pesoReparto: 1 },
+  mayor('p2', 'Ana', 'perez'), peque('p3', 'Luis', 'perez'),
   mayor('s1', 'Nacho', 'solteros'), mayor('s2', 'Bea', 'solteros'), peque('s3', 'Kike', 'solteros'),
 ]
 const ids = (l) => l.map((p) => p.id)
 
-describe('los cuatro atajos', () => {
-  it('son cuatro, y «Peques» es el que no existía', () => {
-    expect(ATAJOS.map((a) => a.id)).toEqual(['todos', 'mayores', 'peques', 'nadie'])
+describe('los tres atajos', () => {
+  it('son tres: «Peques» se retiró (§14.49)', () => {
+    expect(ATAJOS.map((a) => a.id)).toEqual(['todos', 'mayores', 'nadie'])
   })
 
   it('cada uno deja puesta a su gente', () => {
     expect(genteDeAtajo('todos', GENTE)).toHaveLength(9)
     expect(genteDeAtajo('mayores', GENTE)).toEqual(ids(mayoresDe(GENTE)))
-    expect(genteDeAtajo('peques', GENTE)).toEqual(['g3', 'p3', 's3'])
     expect(genteDeAtajo('nadie', GENTE)).toEqual([])
+    // Y el que ya no existe no deja a nadie, en vez de dejar a los peques.
+    expect(genteDeAtajo('peques', GENTE)).toEqual([])
   })
 
-  it('los mayores y los peques se parten por el peso, no por la edad', () => {
+  it('mayor lo dice la edad, y el adolescente es de los mayores', () => {
     expect(mayoresDe(GENTE)).toHaveLength(6)
     expect(pequesDe(GENTE)).toHaveLength(3)
+    expect(ids(mayoresDe(GENTE))).toContain('p1')
+  })
+
+  it('la casilla guardada ya no manda: un niño con ella puesta sigue siendo peque', () => {
+    // Es el caso de Fran en el Demo antes de §14.49: `edad: 'niño'` y
+    // `cuentaComoAdultoReparto: true` a la vez, y salía en «Mayores».
+    const franViejo = [{ id: 'x', name: 'Fran', edad: 'niño', cuentaComoAdultoReparto: true }]
+    expect(mayoresDe(franViejo)).toEqual([])
+    expect(pequesDe(franViejo)).toHaveLength(1)
   })
 })
 
@@ -41,11 +56,12 @@ describe('qué atajo describe lo que hay marcado', () => {
   it('se calcula y no se guarda, así que sigue al reparto', () => {
     expect(atajoDe(ids(GENTE), GENTE)).toBe('todos')
     expect(atajoDe(ids(mayoresDe(GENTE)), GENTE)).toBe('mayores')
-    expect(atajoDe(['g3', 'p3', 's3'], GENTE)).toBe('peques')
     expect(atajoDe([], GENTE)).toBe('nadie')
+    // Solo los peques ya no es ningún atajo: se marca a mano y el mando se apaga.
+    expect(atajoDe(['g3', 'p3', 's3'], GENTE)).toBe(null)
   })
 
-  it('y ninguno cuando el reparto ya no es ninguno de los cuatro', () => {
+  it('y ninguno cuando el reparto ya no es ninguno de los tres', () => {
     // Si se guardara «mayores», quitar a Bea a mano dejaría el mando mintiendo.
     const sinBea = ids(mayoresDe(GENTE)).filter((id) => id !== 's2')
     expect(atajoDe(sinBea, GENTE)).toBe(null)

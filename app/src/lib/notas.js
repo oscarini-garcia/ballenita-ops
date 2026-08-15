@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.46.0',
+    fecha: '2026-08-15',
+    titulo: 'El recap del viaje, y «Mayores» son los mayores',
+    lineas: [
+      'Se va apuntando lo que hace el grupo —gastos, cenas, votos, la compra, los estados— y al final de Números está «El recap»: cuántas cosas, quién ha andado más y el diario por días.',
+      'En un gasto, «Mayores» ya son todos los que no son niños según su edad, y no una casilla escondida en cada ficha que podía decir lo contrario.',
+      'Y el atajo «Peques» se retira: un gasto solo de los niños no lo apunta nadie, y quien lo necesite lo tiene con «Nadie» y dos toques.',
+    ],
+  },
+  {
     version: '0.45.0',
     fecha: '2026-08-15',
     titulo: 'Un bunga se puede corregir aunque tenga familia',

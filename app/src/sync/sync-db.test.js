@@ -29,11 +29,24 @@ describe('cola de cambios', () => {
 
   it('el dato y su entrada en la cola se escriben juntos', async () => {
     const eventId = await createEvent({ name: 'Ballenita' })
-    const antes = (await colaPendiente()).length
+    const antes = (await colaPendiente()).filter((c) => c.tabla === 'families').length
     const id = await addFamily(eventId, { name: 'García' })
 
     expect(await db.families.get(id)).toBeTruthy()
-    expect((await colaPendiente()).length).toBe(antes + 1)
+    expect((await colaPendiente()).filter((c) => c.tabla === 'families')).toHaveLength(antes + 1)
+  })
+
+  // §14.50: cada cosa que se hace deja además su renglón del recap, que sube
+  // por la misma cola. Va aquí escrito porque es lo que hace que la cola tenga
+  // el doble de entradas que cambios, y eso se descubre a lo tonto.
+  it('cada escritura deja también su renglón del recap, por la misma cola', async () => {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    await db.outbox.clear()
+    await addFamily(eventId, { name: 'García' })
+
+    const cola = await colaPendiente()
+    expect(cola.map((c) => c.tabla)).toEqual(['families', 'registro'])
+    expect(cola[1].campos.texto).toBe('dio de alta a los García')
   })
 
   it('borrar encola un cambio y no deja lápida', async () => {
@@ -55,7 +68,7 @@ describe('cola de cambios', () => {
     await addExpense(eventId, { description: 'Llegó tarde', amountCents: 200 })
     await vaciarCola(corte)
 
-    const quedan = await colaPendiente()
+    const quedan = (await colaPendiente()).filter((c) => c.tabla === 'expenses')
     expect(quedan).toHaveLength(1)
     expect(quedan[0].campos.description).toBe('Llegó tarde')
   })

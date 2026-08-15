@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.45.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  877 pruebas en 95 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.46.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  913 pruebas en 99 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -56,7 +56,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 
 ## Tablas
 
-- **Se sincronizan** (12, declaradas y contrastadas en `sync/tables.js`, `api/src/tablas.js`, la migración de D1 y Dexie): `events`, `families`, `bungas`, `persons`, `expenses`, `settlements`, `dishes`, `dinners`, `planIdeas`, `plans`, `shop`, `mejoras`
+- **Se sincronizan** (13, declaradas y contrastadas en `sync/tables.js`, `api/src/tablas.js`, la migración de D1 y Dexie): `events`, `families`, `bungas`, `persons`, `expenses`, `settlements`, `dishes`, `dinners`, `planIdeas`, `plans`, `shop`, `mejoras`, `registro`
 - **Solo del servidor**: `cuenta`, `dispositivo`, `configuracion`
 - **Solo locales** (no salen del móvil): `outbox`
 
@@ -102,7 +102,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `App.jsx` — El esqueleto de la aplicación: cabecera, cuerpo y barra de cinco destinos.
 - `db.js` — IndexedDB desde el día 1 (§14).
-  ↳ setApplyingRemote, removeRow, importSnapshot, exportSnapshot, olvidarTodo, createEvent · +68 más
+  ↳ setApplyingRemote, removeRow, importSnapshot, exportSnapshot, olvidarTodo, createEvent · +69 más
 - `main.jsx` — El arranque: monta React en el DOM y pone el tema y el tamaño de letra antes del primer pintado, para que la app no aparezca con la cara equivocada.
 
 **`app/src/auth/`**
@@ -198,7 +198,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
   ↳ NOTAS
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
-  ↳ EDADES, pesoDe, puedeOrganizar, EMOJIS_PERSONA
+  ↳ EDADES, pesoDe, esMayor, puedeOrganizar, EMOJIS_PERSONA
 - `planes.js` — Lo que se dice de un plan sin abrirlo: cuántos lo quieren y quién falta.
   ↳ quienFaltaPorVotar, votosDe
 - `primeraBajada.js` — La primera bajada: traer lo del grupo justo después de entrar por primera vez.
@@ -209,8 +209,12 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, forzarActualizacion, comprobarActualizacion, UPDATE_STEPS
 - `recados.js` — Los recados: un emoji y una frase, sacados de lo que está pasando en el viaje.
   ↳ recadosDeDatos, bolsaDeRecados, elegirRecado
+- `recap.js` — El recap del viaje, sacado del registro (SPECS §14.50).
+  ↳ componerRecap, porDias, diaDe
 - `receta.js` — Una receta con cantidades, y cómo se estira para la gente que hay.
   ↳ normalizarIngredientes, estirar, cifra, loQueSeCompra, partirCantidad, juntarCantidad · +3 más
+- `registro.js` — La bitácora del viaje: qué ha hecho cada uno, para el recap del final.
+  ↳ apunteDe, MISMA_COSA_MS, TABLAS_QUE_SE_APUNTAN, CLASES, claseDe
 - `reparto-gente.js` — Entre quién se divide un gasto: los atajos, las familias y el buscador.
   ↳ genteDeAtajo, atajoDe, porFamilias, estadoDeFamilia, quienDeFamilia, buscarGente · +4 más
 - `reparto.js` — Motor de reparto — el corazón de Ballena Ops (§3, §14.7 del spec).
@@ -360,7 +364,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§6.2** Platos predefinidos → `db.js`
 - **§6.4** Bungas en las comidas — rotación diaria mayores / niños ⭐ → `stats.js`
 - **§6.6** Lista de la compra compartida (manual) 🛒 ⭐ → `db.js`
-- **§7** Estadísticas 📊 → `StatsScreen.jsx`, `stats.js`
+- **§7** Estadísticas 📊 → `StatsScreen.jsx`, `recap.js`, `stats.js`
 - **§12.2** Offline-first ⭐ → `ids.js`
 - **§14** Arquitectura técnica (PWA) → `db.js`, `ids.js`
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
@@ -374,13 +378,13 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.16** La IA: la clave vive en el servidor → `api.js`, `cocina.js`, `encargos.js`, `ia.js`, `index.js`, `receta.js` · +1 más
 - **§14.18** El día es el de aquí, no el de Greenwich → `db.js`
 - **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx`, `api.js` · +8 más
-- **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js` · +6 más
+- **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js` · +7 más
 - **§14.21** El día del viaje: qué bungas, qué se cena y qué plan → `db.js`
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
 - **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`
 - **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
 - **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `api.js`, `index.js`, `repositorio.js`
-- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `importe.js` · +2 más
+- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `importe.js` · +3 más
 - **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `Confirmar.jsx`, `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
@@ -398,3 +402,5 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.46** Al minuto: los datos se traen y la versión se vigila → `App.jsx`, `engine.js`, `native.js`, `vigilante.js`
 - **§14.47** Pulsar Agenda lleva al calendario, y en un emoji caben tres → `App.jsx`, `EventSettingsScreen.jsx`, `areas.js`, `emojis.js`
 - **§14.48** Un bunga con familia también se corrige → `GrupoSection.jsx`, `Hoja.jsx`
+- **§14.49** «Mayores» son los mayores, y «Peques» se retira → `db.js`, `personas.js`, `reparto-gente.js`
+- **§14.50** Lo que hace el grupo se apunta, y al final se cuenta → `StatsScreen.jsx`, `db.js`, `recap.js`, `registro.js`, `tablas.js`

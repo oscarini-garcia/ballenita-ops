@@ -7,8 +7,9 @@ const FAMILIAS = [
   { id: 'perez', name: 'Pérez' },
   { id: 'garcia', name: 'García' },
 ]
-const mayor = (id, name, familyId) => ({ id, name, familyId, cuentaComoAdultoReparto: true, pesoReparto: 1 })
-const peque = (id, name, familyId) => ({ id, name, familyId, cuentaComoAdultoReparto: false, pesoReparto: 0.6 })
+// Mayor lo dice la edad (§14.49), no una casilla guardada en cada persona.
+const mayor = (id, name, familyId) => ({ id, name, familyId, edad: 'adulto', pesoReparto: 1 })
+const peque = (id, name, familyId) => ({ id, name, familyId, edad: 'niño', pesoReparto: 0.6 })
 const GENTE = [
   mayor('g1', 'Curro', 'garcia'), mayor('g2', 'Marta', 'garcia'), peque('g3', 'Pablo', 'garcia'),
   mayor('p1', 'Fran', 'perez'), peque('p2', 'Luis', 'perez'),
@@ -27,11 +28,13 @@ function abrir({ dentro = GENTE.map((p) => p.id) } = {}) {
 }
 
 describe('Entre quién se divide · lo que se ve al abrir', () => {
-  it('son los cuatro atajos y las familias, no los nombres de todo el grupo', async () => {
+  it('son los tres atajos y las familias, no los nombres de todo el grupo', async () => {
     abrir()
-    for (const et of ['Todos', 'Mayores', 'Peques', 'Nadie']) {
+    for (const et of ['Todos', 'Mayores', 'Nadie']) {
       expect(screen.getByRole('button', { name: et })).toBeInTheDocument()
     }
+    // «Peques» se retiró (§14.49): costaba un cuarto del mando para no usarse.
+    expect(screen.queryByRole('button', { name: 'Peques' })).not.toBeInTheDocument()
     expect(screen.getByText('García')).toBeInTheDocument()
     expect(screen.getByText('Pérez')).toBeInTheDocument()
     // Los nueve nombres seguidos eran 434 pt de los 711 que medía la hoja.
@@ -60,12 +63,15 @@ describe('Entre quién se divide · los atajos', () => {
     expect(onCambio.mock.calls[0][0]).toHaveLength(3)
   })
 
-  // El contrario de «Solo mayores» no existía, y es la merienda de la playa.
-  it('«Peques» es el contrario, y antes no había forma de decirlo', async () => {
+  // Y un reparto solo de peques se sigue pudiendo hacer, que es lo que hace que
+  // retirar el atajo no quite nada: «Nadie» y marcar los dos nombres.
+  it('solo los peques se marca a mano, en dos toques más', async () => {
     const { onCambio } = abrir()
-    await userEvent.click(screen.getByRole('button', { name: 'Peques' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Nadie' }))
+    await userEvent.click(screen.getByRole('button', { name: /^García/ }))   // destapa
+    await userEvent.click(screen.getByRole('button', { name: /Pablo/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
-    expect(onCambio.mock.calls[0][0].sort()).toEqual(['g3', 'p2'])
+    expect(onCambio.mock.calls[0][0]).toEqual(['g3'])
   })
 
   it('«Nadie» vacía la lista, que es lo que hace baratos los repartos raros', async () => {
@@ -81,9 +87,9 @@ describe('Entre quién se divide · los atajos', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Mayores' }))
     expect(screen.getByRole('button', { name: 'Mayores' })).toHaveAttribute('aria-pressed', 'true')
     // Y al completar los García a mano —con Pablo dentro— deja de describirlo
-    // ninguno de los cuatro: el mando sigue al reparto, no al último toque.
+    // ninguno de los tres: el mando sigue al reparto, no al último toque.
     await userEvent.click(screen.getByRole('button', { name: /Poner a los García/ }))
-    for (const et of ['Todos', 'Mayores', 'Peques', 'Nadie']) {
+    for (const et of ['Todos', 'Mayores', 'Nadie']) {
       expect(screen.getByRole('button', { name: et })).toHaveAttribute('aria-pressed', 'false')
     }
   })

@@ -1,7 +1,9 @@
 import Dexie from 'dexie'
 import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
-import { pesoDe } from './lib/personas.js'
+import { esMayor, pesoDe } from './lib/personas.js'
+import { MISMA_COSA_MS, apunteDe } from './lib/registro.js'
+import { getMeId } from './lib/identidad.js'
 import { loQueHayQueComprar } from './lib/compra.js'
 import { olvidarTandas } from './lib/tanda.js'
 
@@ -77,8 +79,20 @@ db.version(7).stores({
   mejoras: '&id',
 })
 
+// v8: el registro — qué ha hecho cada uno, para el recap del final (SPECS §14.50).
+//
+// Tabla sincronizada y no un log del móvil, porque la gracia está en **juntar**:
+// un recap que solo cuenta lo que tecleaste tú no es un recap. Índice por evento
+// y por cuándo, que es exactamente como se lee.
+db.version(8).stores({
+  registro: '&id, eventId, cuando',
+})
+
 // ── Señal de cambios locales (para disparar la sync) ──
 let applyingRemote = false
+// Y si lo que se escribe deja renglón en el recap. Se apaga para sembrar el
+// Demo, que son 45 escrituras que nadie ha hecho (§14.50).
+let registrando = true
 export function setApplyingRemote(v) { applyingRemote = v }
 function bump() {
   if (applyingRemote || typeof window === 'undefined') return
@@ -104,10 +118,14 @@ function bump() {
  */
 async function escribir(tabla, id, campos) {
   const updatedAt = now()
-  await db.transaction('rw', db[tabla], db.outbox, async () => {
+  await db.transaction('rw', db[tabla], db.outbox, db.registro, async () => {
     const anterior = await db[tabla].get(id)
-    await db[tabla].put({ ...(anterior ?? {}), ...campos, id, updatedAt })
+    const fila = { ...(anterior ?? {}), ...campos, id, updatedAt }
+    await db[tabla].put(fila)
     if (!applyingRemote) await db.outbox.add({ tabla, id, op: 'upsert', campos, updatedAt })
+    await apuntar({
+      tabla, id, accion: anterior ? 'editar' : 'crear', fila, antes: anterior ?? null, cuando: updatedAt,
+    })
   })
   bump()
   return id
@@ -119,19 +137,113 @@ async function escribir(tabla, id, campos) {
  */
 export async function removeRow(tabla, id) {
   const updatedAt = now()
-  await db.transaction('rw', db[tabla], db.outbox, async () => {
+  await db.transaction('rw', db[tabla], db.outbox, db.registro, async () => {
+    // La fila se lee **antes** de borrarla: el renglón del recap dice qué se
+    // fue («borró “Cena del sábado”»), y después del `delete` ya no hay de dónde
+    // sacar el nombre.
+    const anterior = await db[tabla].get(id)
     await db[tabla].delete(id)
     if (!applyingRemote) await db.outbox.add({ tabla, id, op: 'borrar', updatedAt })
+    await apuntar({ tabla, id, accion: 'borrar', fila: anterior ?? {}, antes: anterior ?? null, cuando: updatedAt })
   })
   bump()
 }
 
+/**
+ * Deja el renglón del recap, dentro de la transacción del dato (SPECS §14.50).
+ *
+ * Tres cosas que no son detalles:
+ *
+ *  · **No se apunta lo que llega del servidor** (`applyingRemote`). El renglón
+ *    lo escribió ya el móvil donde se hizo y viaja con la instantánea; volver a
+ *    apuntarlo aquí multiplicaría cada hecho por los teléfonos que hay.
+ *  · **El registro no se registra a sí mismo**, ni la cola. `apunteDe` solo
+ *    conoce las tablas que dejan rastro, así que la recursión no llega a nacer.
+ *  · **Lo mismo repetido se junta.** Corregir un gasto cuatro veces son cuatro
+ *    escrituras y un hecho: si el último renglón es de la misma persona sobre la
+ *    misma fila y no ha pasado `MISMA_COSA_MS`, se **actualiza** en vez de
+ *    añadir otro. Sin esto, el recap del viaje lo escribe quien más dudó al
+ *    teclear.
+ */
+async function apuntar({ tabla, id, accion, fila, antes, cuando }) {
+  if (applyingRemote || !registrando) return null
+  const apunte = apunteDe({ tabla, accion, fila, antes })
+  if (!apunte) return null
+
+  // `events` no deja rastro, así que la fila siempre trae su evento; los dos
+  // catálogos y las mejoras pueden no tenerlo, y entonces el renglón es del
+  // evento que se esté mirando.
+  const eventId = fila.eventId ?? antes?.eventId ?? eventoEnCurso() ?? null
+  const personId = eventId ? getMeId(eventId) : null
+
+  // Sin evento no se busca el renglón anterior: `where` no admite una clave
+  // nula, y un apunte huérfano no tiene con qué juntarse de todas formas.
+  const previo = eventId
+    ? (await db.registro.where({ eventId }).toArray())
+      .filter((r) => r.tabla === tabla && r.filaId === id && r.personId === personId && r.accion === accion)
+      .sort((a, b) => String(b.cuando).localeCompare(String(a.cuando)))[0]
+    : null
+
+  const juntar = previo && Date.parse(cuando) - Date.parse(previo.cuando) < MISMA_COSA_MS
+  const registroId = juntar ? previo.id : uid('reg')
+  const anterior = juntar ? previo : {}
+
+  const fijo = {
+    ...anterior,
+    id: registroId,
+    eventId: eventId ?? null,
+    personId,
+    tabla,
+    filaId: id,
+    accion,
+    clase: apunte.clase,
+    texto: apunte.texto,
+    cuando,
+    updatedAt: cuando,
+  }
+  await db.registro.put(fijo)
+  await db.outbox.add({
+    tabla: 'registro',
+    id: registroId,
+    op: 'upsert',
+    campos: {
+      eventId: fijo.eventId, personId, tabla, filaId: id, accion,
+      clase: apunte.clase, texto: apunte.texto, cuando,
+    },
+    updatedAt: cuando,
+  })
+  return fijo
+}
+
+/**
+ * Cuál es el evento que se está mirando. Lo guarda `App.jsx` al entrar, y aquí
+ * solo se lee: un renglón de la carta —que es catálogo de todos— sin evento
+ * detrás no saldría en el recap de ninguno, que es lo mismo que no apuntarlo.
+ */
+const EVENTO_EN_CURSO = 'ballena.activeEventId'
+function eventoEnCurso() {
+  try { return localStorage.getItem(EVENTO_EN_CURSO) || null } catch { return null }
+}
+
+/** Los renglones del recap de un evento, del más nuevo al más viejo. */
+export const registroDe = (eventId) =>
+  db.registro.where({ eventId }).toArray()
+    .then((filas) => filas.sort((a, b) => String(b.cuando).localeCompare(String(a.cuando))))
+
 /** Cambios pendientes de subir, en orden de llegada. */
 export const colaPendiente = () => db.outbox.orderBy('orden').toArray()
 export const hayCambiosPendientes = async () => (await db.outbox.count()) > 0
-// Cuántos, no solo si los hay: al salir de la cuenta hay que decir qué se
-// perdería, y «tienes cambios sin subir» no deja decidir. Ver `lib/salida.js`.
-export const cuantosPendientes = () => db.outbox.count()
+/**
+ * Cuántos, no solo si los hay: al salir de la cuenta hay que decir qué se
+ * perdería, y «tienes cambios sin subir» no deja decidir. Ver `lib/salida.js`.
+ *
+ * **El registro no cuenta** (§14.50): cada cosa que se hace deja además su
+ * renglón del recap, así que sin este filtro apuntar un gasto diría «2 cambios
+ * sin subir» y el número que enseña el punto de la cabecera —que existe para
+ * poder decidir si esperar a tener cobertura— pasaría a mentir por el doble.
+ * Se suben igual: lo que cambia es lo que se cuenta en voz alta.
+ */
+export const cuantosPendientes = () => db.outbox.where('tabla').notEqual('registro').count()
 
 /** Descarta de la cola lo que el servidor ya ha aceptado (o rechazado con motivo). */
 export const vaciarCola = (hastaOrden) =>
@@ -691,6 +803,19 @@ export async function clearBoughtShopItems(eventId) {
 export const NOMBRE_DEMO = 'Demo'
 
 export async function seedExample() {
+  // **Sembrar no es hacer** (§14.50). Sin esto, cargar el Demo deja 45 renglones
+  // —«Alguien dio de alta a los García», «Alguien apuntó a Curro»— y el recap se
+  // abre lleno antes de que nadie haya tocado nada. Medido en el navegador: son
+  // exactamente las 45 escrituras de esta función.
+  registrando = false
+  try {
+    return await sembrarElEjemplo()
+  } finally {
+    registrando = true
+  }
+}
+
+async function sembrarElEjemplo() {
   const eventId = await createEvent({
     name: NOMBRE_DEMO,
     // La marca que hace del Demo un cajón de arena: sus platos son suyos y no
@@ -709,7 +834,11 @@ export async function seedExample() {
   const bSolteros = await addBunga(eventId, { name: 'Bunga 3', alias: 'El del fondo', familyId: solteros })
   const curro = await addPerson(eventId, { name: 'Curro', familyId: garcia, edad: 'adulto' })
   await addPerson(eventId, { name: 'Marta', familyId: garcia, edad: 'adulto' })
-  await addPerson(eventId, { name: 'Fran', familyId: garcia, edad: 'niño', comeConMayores: true, cuentaComoAdultoReparto: true, pesoReparto: 1, apodo: 'el adolescente' })
+  // Fran es el caso que dio pie a §14.49: se apuntó de «niño» con las dos
+  // casillas puestas a mano —come con los mayores y cuenta como uno— porque la
+  // edad «Adolescente» todavía no existía, y así salía dentro de «Mayores» con
+  // la ficha diciendo «Niño». Ahora la edad lo dice sola.
+  await addPerson(eventId, { name: 'Fran', familyId: garcia, edad: 'adolescente', apodo: 'el adolescente' })
   const ana = await addPerson(eventId, { name: 'Ana', familyId: perez, edad: 'adulto' })
   await addPerson(eventId, { name: 'Luis', familyId: perez, edad: 'adulto' })
   const pablo = await addPerson(eventId, { name: 'Pablo', familyId: solteros, edad: 'adulto' })
@@ -717,7 +846,7 @@ export async function seedExample() {
   // Gastos de ejemplo (para que Saldos y Stats tengan datos).
   const all = await personsOf(eventId)
   const allPids = all.map((p) => p.id)
-  const soloMayores = all.filter((p) => p.cuentaComoAdultoReparto).map((p) => p.id)
+  const soloMayores = all.filter(esMayor).map((p) => p.id)
   await addExpense(eventId, { description: 'Compra grande Mercadona', amountCents: 14800, currency: 'EUR', amountOriginal: 148, rate: 1, category: 'compra_general', dateISO: now(), payers: [{ familyId: perez, amountCents: 14800 }], participantIds: allPids })
   await addExpense(eventId, { description: 'Gasolina ida', amountCents: 6000, currency: 'EUR', category: 'varios', dateISO: now(), payers: [{ familyId: solteros, amountCents: 6000 }], participantIds: soloMayores })
   await addExpense(eventId, { description: 'Hielo y birras 🍷', amountCents: 2430, currency: 'EUR', category: 'bebida', dateISO: now(), payers: [{ familyId: garcia, amountCents: 2430 }], participantIds: soloMayores })

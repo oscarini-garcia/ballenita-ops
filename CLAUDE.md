@@ -338,9 +338,22 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   perdía para siempre —se leía como «he vuelto a entrar y el evento ha desaparecido»—. Ahora
   se intenta subir; si no puede, **no borra**: dice cuántos y por qué, y salir es una segunda
   pulsación.
-- **Toda escritura pasa por `escribir()`/`removeRow()` en `db.js`**, que guardan el dato y su
-  entrada en la cola **en la misma transacción**. No escribas en `db.<tabla>` directamente:
-  el cambio no subiría nunca.
+- **Toda escritura pasa por `escribir()`/`removeRow()` en `db.js`**, que guardan el dato, su
+  entrada en la cola **y su renglón del recap** en la misma transacción. No escribas en
+  `db.<tabla>` directamente: el cambio no subiría nunca.
+- **Lo que hace el grupo se apunta, y al final se cuenta** (SPECS §14.50, tabla `registro`,
+  migración `0015`): la frase la compone `lib/registro.js` —puro— con la fila ya fusionada y
+  la de antes, que es lo único que separa «votó» de «cambió el día»; el Worker **no la
+  rehace**. Tres cosas no dejan rastro y las tres se vieron en el navegador, no en las
+  pruebas: **sembrar** el Demo (45 renglones de golpe), **recalcular** la compra de una cena
+  (seis «apuntó “Arroz bomba”» firmados por quien tenía la pantalla abierta) y **recibir** la
+  instantánea (el renglón ya viene hecho). Lo mismo repetido dentro de 10 min actualiza el
+  renglón en vez de añadir otro, y el registro **no cuenta** como «cambio sin subir», que si
+  no el punto de la cabecera diría el doble. El recap vive al final de Números
+  (`lib/recap.js`), con el diario detrás de «ver todo».
+- **«Mayores» lo dice la edad** (SPECS §14.49, `personas.js` · `esMayor` y la columna `mayor`
+  de `EDADES`), no `cuentaComoAdultoReparto` — una casilla guardada que metía en «Mayores» a
+  un niño con la ficha diciendo «Niño». El adolescente entra. «Peques» se retiró del mando.
 - **Auth:** Sign in with Apple **solo en la app de iOS**; el Worker firma una sesión propia
   (JWT HS256, 90 días). Quien entra queda apuntado en una **sala de espera** y no entra hasta que
   el administrador **lo enlaza con una persona** (SPECS §14.18). Administrador hay **uno y escrito
