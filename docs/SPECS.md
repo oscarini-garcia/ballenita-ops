@@ -3844,6 +3844,35 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   equivocar. Incluye la guarda de los **dos regresos a la vez**, que si no
   descargarían el mismo paquete dos veces.
 
+### 14.47 Pulsar Agenda lleva al calendario, y en un emoji caben tres
+
+- **✅ Pulsar «Agenda» abre «Días»**, esté donde esté. Es el calendario del
+  viaje y lo que se viene a mirar cuando se pulsa esa pestaña; «Hoy» se sigue
+  viendo **al abrir la app** —ahí no hay pulsación y el titular del día es con
+  lo que se quiere abrir— y a un toque en el mando. Las otras cuatro secciones
+  siguen recordando dónde estabas (`lib/areas.js`), que es lo suyo: solo Agenda
+  tiene destino fijo.
+- Para eso `useArea` aprende a escuchar (`ponerArea` + evento propio): quien
+  cambia el área desde **fuera** de la pantalla —la barra de abajo— tiene que
+  despertar al mando ya montado, porque el mapa de áreas es memoria muda.
+- **✅ En un campo de emoji caben tres dibujos** (`lib/emojis.js`). Antes había
+  un `maxLength={4}` que cuenta **unidades UTF-16**, y eso hacía dos cosas raras
+  a la vez: dejaba poner **dos** caritas —🙂 son dos unidades— y **ninguna
+  familia**, porque 👨‍👩‍👧 son **ocho**. O sea que el emoji que traen puestas las
+  familias de fábrica no se podía escribir a mano.
+- Se cuenta por **dibujos**: banderas (dos indicadores regionales), tonos de
+  piel, selectores de variante y cadenas con ZWJ. A mano y no con
+  `Intl.Segmenter` porque el binario admite **iOS 15** y el segmentador llega en
+  el 16.4 — un camino que a veces existe y a veces no se prueba una vez y falla
+  en el móvil de otro.
+- **✅ Y la casilla los encoge en vez de recortarlos.** Tres emoji a 19 px piden
+  57 pt y la casilla mide 36: sin esto el tercero se sale y, centrados, se
+  pierde por los dos lados. `data-emojis` en el avatar y dos reglas de tamaño;
+  a tres se dejan **doblar** con el interlineado apretado (dos renglones, 27 pt
+  de los 36). Medido en navegador: caja de 36 × 36, letra a 12,88 px, **sin
+  desbordar ni a lo ancho ni a lo alto**. La casilla **no crece**: es la unidad
+  de la fila, y una fila más alta por el emoji de alguien descuadra la lista.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

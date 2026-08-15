@@ -399,6 +399,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 - **Tema** (`lib/tema.js`, SPECS §14.12): **uno solo**, Abisal Sobrio, con sus dos caras
   diseñadas por separado. En Ajustes solo se elige Automático · Claro · Oscuro. Los nueve
   skins y el modo aleatorio se retiraron.
+- **Los emoji se cuentan por dibujos, y caben tres** (SPECS §14.47, `lib/emojis.js`):
+  `maxLength` cuenta unidades UTF-16, así que dejaba dos caritas y **ninguna familia**
+  (👨‍👩‍👧 son ocho unidades). `cortarEmojis` agrupa banderas, tonos, variantes y cadenas con
+  ZWJ **a mano** —`Intl.Segmenter` llega en iOS 16.4 y el binario admite el 15— y la casilla
+  del avatar los encoge con `data-emojis` en vez de recortarlos.
 - **Iconos** (`components/Icono.jsx`, SPECS §14.13): dibujo de línea sobre rejilla de 24,
   trazo 1,8, en una tabla única; heredan el color de quien los coloca. **Los emoji que
   elige el usuario se quedan** (avatar, estado); los del cromo, no. Las cinco categorías de
@@ -584,7 +589,9 @@ lleva la palabra puesta («+ Gasto»). **Cada sección se parte en áreas** con 
 Números —los días con su capa para editar cada uno, y **Números es Estadísticas**, que dejó
 Ajustes porque se mira, no se ajusta; el rótulo corto es porque «Estadísticas» mide 121,2 pt
 y la casilla del mando da 103,3— y Comidas es Cenas · Platos · Compra, con el catálogo de
-platos por fin editable. **Un solo tema** (Abisal Sobrio, claro y oscuro),
+platos por fin editable. **Pulsar «Agenda» abre «Días»** (§14.47, `ponerArea`): es el
+calendario y es lo que se viene a mirar; «Hoy» se sigue viendo al abrir la app, donde no hay
+pulsación. Las otras cuatro secciones recuerdan dónde estabas. **Un solo tema** (Abisal Sobrio, claro y oscuro),
 **iconos de línea** con tono por categoría, pesos de letra más bajos y un solo botón lleno
 por pantalla (§14.12–14.13).
 

@@ -416,6 +416,19 @@ body.modal-abierto .body { overflow: hidden; }
 
 .av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
   font-size: var(--t-body); color: #fff; overflow: hidden; }
+/* Con dos o tres dibujos, la casilla **los encoge** en vez de recortarlos
+   (§14.47): la caja mide 36 y tres emoji a 19 px piden 57, así que sin esto el
+   tercero se sale y el primero se corta por la izquierda —centrados, se pierde
+   por los dos lados—. Los números salen de medir: a 2 caben con `--t-sub`
+   (15,7 px) y a 3 con `--t-micro` (12,9). La casilla **no crece**: es la unidad
+   de la fila, y una fila más alta por el emoji de alguien descuadra la lista. */
+.av[data-emojis="2"] { font-size: var(--t-sub); }
+/* Tres no entran en una línea ni encogiendo —39 pt de ancho para una caja de
+   36—, así que se dejan **doblar** y se les aprieta el interlineado: dos
+   renglones a 1,05 son 27 pt de los 36, y quedan centrados. */
+.av[data-emojis="3"] { font-size: var(--t-micro); letter-spacing: -.04em; line-height: 1.05; }
+.av.chica[data-emojis="2"] { font-size: var(--t-label); }
+.av.chica[data-emojis="3"] { font-size: calc(9px * var(--escala)); letter-spacing: -.05em; line-height: 1.05; }
 
 /* El icono de línea que sustituye al emoji. La caja es de 34 y el dibujo de 20
    sobre rejilla de 24, con trazo de 1,8 — el mismo que la barra de abajo, que es

@@ -14,6 +14,7 @@ import { SIN_ENTREGA, SIN_PLUGIN, SIN_TOKEN_PORQUE, escucharUnAviso, estadoDePus
 import { asegurarPush } from '../lib/push.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
+import { contarEmojis } from '../lib/emojis.js'
 import { porNombre } from '../lib/asignacion.js'
 import { formatearHace } from '../lib/hace.js'
 
@@ -167,7 +168,7 @@ export default function CuentasSection({ eventId, sincronizar }) {
               const suya = persona(c.personId)
               return (
                 <div className="row" key={c.id}>
-                  <span className={`av${suya ? '' : ' sin'}`}>{suya?.avatar ?? '🔑'}</span>
+                  <span className={`av${suya ? '' : ' sin'}`} data-emojis={contarEmojis(suya?.avatar ?? '🔑')}>{suya?.avatar ?? '🔑'}</span>
                   <span className="main">
                     <span className="n">{c.nombre?.trim() || c.email || 'Sin nombre'}</span>
                     <span className="sub">

@@ -22,6 +22,7 @@ import { finPara } from '../lib/fechas.js'
 import { useTema, TEMAS } from '../lib/tema.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
+import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
 import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { aplicarSiguienteMigracion, eliminarMiCuenta, gestionarCuenta, hayApi, leerMigraciones, listarCuentas } from '../sync/api.js'
@@ -286,10 +287,15 @@ const ESTADOS = [
 // Emojis rápidos para el avatar (también se escribe a mano).
 const AVATARES = ['🧑', '👩', '👨', '🧔', '👵', '👴', '🧒', '🐳', '🦑', '🦀', '🏄', '🕶️', '🍹', '🐙']
 
-/** Tu cara: la foto de este móvil si la hay, si no el emoji. */
+/**
+ * Tu cara: la foto de este móvil si la hay, si no el emoji.
+ *
+ * `data-emojis` es cuántos dibujos lleva, para que la casilla los encoja en vez
+ * de recortarlos (§14.47). Con foto no se pone: ahí manda la imagen.
+ */
 function Cara({ emoji, foto, className }) {
   return (
-    <span className={className}>
+    <span className={className} data-emojis={foto ? undefined : contarEmojis(emoji || '🐳')}>
       {foto ? <img src={foto} alt="" className="ufoto" /> : (emoji || '🐳')}
     </span>
   )
@@ -393,7 +399,7 @@ function QuienEresSection({ eventId, persons }) {
               <button key={a} className={`chip${avatar === a ? ' on' : ''}`} onClick={() => { tap(); setAvatar(a) }}>{a}</button>
             ))}
           </div>
-          <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} placeholder="🙂" aria-label="Emoji a mano" />
+          <input type="text" value={avatar} onChange={(e) => setAvatar(cortarEmojis(e.target.value, TOPE_EMOJIS))} placeholder="🙂" aria-label="Emoji a mano" />
 
           <label>Tu estado</label>
           <div className="chips">

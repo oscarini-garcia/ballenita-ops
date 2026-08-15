@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.44.0',
+    fecha: '2026-08-15',
+    titulo: 'Agenda abre el calendario, y caben tres emojis',
+    lineas: [
+      'Pulsar «Agenda» lleva a los días del viaje. «Hoy» sigue siendo lo primero al abrir la app, y está a un toque.',
+      'En el emoji de una persona o una familia caben ahora tres, y por fin cabe uno de familia (👨‍👩‍👧), que antes no entraba de ninguna manera.',
+    ],
+  },
+  {
     version: '0.43.0',
     fecha: '2026-08-14',
     titulo: 'Lo nuevo aparece al minuto',

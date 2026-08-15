@@ -17,6 +17,7 @@ import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCo
 import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
 import { EDADES, EMOJIS_PERSONA, pesoDe } from '../lib/personas.js'
+import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
 import { esAdministrador } from '../lib/admin.js'
 import { leerSesion } from '../auth/sesion.js'
 
@@ -91,7 +92,7 @@ export default function GrupoSection({ eventId }) {
           <div className="ficha-fam" key={f.id}>
             <div className="ficha-cab">
               <button type="button" className="ficha-quien" onClick={() => abrir({ tipo: 'familia', id: f.id })}>
-                <span className="av" style={{ background: f.color }}>{f.avatar}</span>
+                <span className="av" data-emojis={contarEmojis(f.avatar)} style={{ background: f.color }}>{f.avatar}</span>
                 <span className="main">
                   <span className="n">{f.name}</span>
                   {f.estado && <span className="sub">{f.estado}</span>}
@@ -110,7 +111,7 @@ export default function GrupoSection({ eventId }) {
             <div className="ficha-cuerpo">
               {genteDe(f.id).map((p) => (
                 <button type="button" className="mini" key={p.id} onClick={() => abrir({ tipo: 'persona', id: p.id })}>
-                  <span className="av chica" style={{ background: f.color }}>{p.avatar}</span>
+                  <span className="av chica" data-emojis={contarEmojis(p.avatar)} style={{ background: f.color }}>{p.avatar}</span>
                   <span className="quien">{p.name}{p.apodo ? ` «${p.apodo}»` : ''}</span>
                   <span className="dato">{p.edad}</span>
                 </button>
@@ -152,7 +153,7 @@ export default function GrupoSection({ eventId }) {
             {sueltosGente.map((p) => (
               <div className="row" key={p.id}>
                 <button type="button" className="row-quien" onClick={() => abrir({ tipo: 'persona', id: p.id })}>
-                  <span className="av sin"> {p.avatar}</span>
+                  <span className="av sin" data-emojis={contarEmojis(p.avatar)}>{p.avatar}</span>
                   <span className="main">
                     <span className="n">{p.name}</span>
                     <span className="sub">sin familia · {p.edad}</span>
@@ -383,7 +384,7 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
         </div>
         <div>
           <label htmlFor="fam-emoji">Emoji</label>
-          <input id="fam-emoji" type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} />
+          <input id="fam-emoji" type="text" value={avatar} onChange={(e) => setAvatar(cortarEmojis(e.target.value, TOPE_EMOJIS))} />
         </div>
       </div>
       <div className="pista">Dos letras. Firman las ideas. Se propone del nombre; cámbialo si quieres.</div>
@@ -565,7 +566,7 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
         </div>
         <div>
           <label htmlFor="per-emoji">Emoji</label>
-          <input id="per-emoji" type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} maxLength={4} />
+          <input id="per-emoji" type="text" value={avatar} onChange={(e) => setAvatar(cortarEmojis(e.target.value, TOPE_EMOJIS))} />
         </div>
       </div>
       {/* Además del campo, unos cuantos a un toque: teclear un emoji en el móvil
