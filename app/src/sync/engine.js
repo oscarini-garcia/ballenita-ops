@@ -4,7 +4,7 @@
 // Sube la cola de cambios, el servidor la aplica y devuelve la instantánea, que
 // **sustituye** a la copia local: el servidor es la autoridad, así que aquí no
 // hay merge ni tombstones. Se sincroniza al abrir, al volver la red, al pasar a
-// primer plano y cada 90 s — en iOS no hay background sync, así que todo pasa
+// primer plano y cada 60 s — en iOS no hay background sync, así que todo pasa
 // en primer plano.
 import { useEffect, useState } from 'react'
 import { colaPendiente, importSnapshot, vaciarCola, db } from '../db.js'
@@ -12,6 +12,16 @@ import { actualizarCuenta, haySesion } from '../auth/sesion.js'
 import * as api from './api.js'
 
 let syncing = false
+
+/**
+ * Cada cuánto se trae lo nuevo con la app delante (SPECS §14.46).
+ *
+ * Eran 90 s y pasan a **60**: el viaje se usa a la vez desde nueve móviles, y
+ * el minuto es lo que separa «lo apunto y se entera el grupo» de «¿lo has
+ * apuntado o no?» en la cola del supermercado. La petición es pequeña y solo
+ * sale con la app **visible**, así que no despierta a nadie de fondo.
+ */
+export const LATIDO_DATOS_MS = 60 * 1000
 
 /**
  * Cuándo fue la última vez que se sincronizó **bien**.
@@ -104,7 +114,7 @@ export async function syncNow() {
 }
 
 // Hook que orquesta la sync: al montar, al volver online, al volver a foreground,
-// tras un cambio (con debounce) y cada 90 s con la app visible. Sin background sync
+// tras un cambio (con debounce) y cada 60 s con la app visible. Sin background sync
 // real en iOS — este patrón es el de counter-ops (§14.3).
 //
 // Expone lo que necesita el indicador de la cabecera:
@@ -119,7 +129,7 @@ export async function syncNow() {
 // **`sesion` es una dependencia, no un adorno.** El motor se monta con la app,
 // o sea antes de que nadie haya entrado: su primera vuelta devuelve
 // `sin-sesion` y se acaba ahí. Con las dependencias vacías que tenía, volver de
-// Apple no despertaba a nadie —había que esperar al latido de 90 s, a un
+// Apple no despertaba a nadie —había que esperar al latido, a un
 // `visibilitychange` o a que se escribiera algo—, y mientras tanto la app
 // enseñaba una libreta vacía a quien acababa de ser aceptado: «he entrado y no
 // está mi viaje». Reiniciar lo arreglaba porque entonces el motor montaba con
@@ -179,7 +189,7 @@ export function useSyncEngine(sesion) {
     window.addEventListener('online', onOnline)
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('ballena:changed', onChanged)
-    const iv = setInterval(() => { if (document.visibilityState === 'visible') go() }, 90 * 1000)
+    const iv = setInterval(() => { if (document.visibilityState === 'visible') go() }, LATIDO_DATOS_MS)
 
     return () => {
       vivo = false

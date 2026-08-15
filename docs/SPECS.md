@@ -3814,6 +3814,36 @@ Dos correcciones sobre lo anterior, las dos del uso.
   guardan la pastilla y el botón nuevo, y dos copias de la misma regla —el
   `estadoEl` que escribe el cliente, §14.36-bis— se separan a la primera.
 
+### 14.46 Al minuto: los datos se traen y la versión se vigila
+
+Con la app abierta, lo nuevo del grupo tardaba **90 s** en aparecer y la versión
+de la app no se miraba **nunca** — solo al arrancar (`initNative`). Publicar un
+OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
+
+- **✅ Los datos, cada 60 s** (`LATIDO_DATOS_MS`, en `sync/engine.js`). Sigue
+  saliendo **solo con la app visible**, así que no despierta a nadie de fondo.
+- **✅ La versión, también cada 60 s, pero solo la pregunta.** `hayOtaNueva()`
+  lee el manifiesto —un JSON de **204 bytes**— y lo compara con el paquete
+  instalado, **sin descargar** los ~380 KB del bundle. Por eso se puede
+  preguntar al minuto; bajar al minuto no. Y en cuanto la respuesta es que sí,
+  **se deja de preguntar**: ya lo sabemos.
+- **✅ Y se pone al volver a primer plano**, no en el latido. Aplicar un OTA
+  **recarga la webview**, y eso se lleva por delante lo que haya a medio
+  escribir —el formulario de un gasto no está en la base hasta que se guarda—.
+  Al volver del fondo el contexto ya estuvo suspendido, nadie tiene el dedo
+  encima y una recarga es lo que hace cualquier app. Es la misma decisión que
+  ya tomó `checkForOtaUpdate` al separar `set()` de `next()`.
+- **La consecuencia, dicha:** con la app abierta y **sin soltarla**, la versión
+  nueva se detecta pero no se pone hasta cambiar de app y volver. Es el precio
+  de no quitarle a nadie un gasto a medio teclear, y se paga una vez por
+  versión. El botón de siempre —el punto de la cabecera— sigue aplicándola en
+  el acto para quien no quiera esperar.
+- **✅ Quién decide qué está en `lib/vigilante.js`**, puro y con las
+  dependencias inyectadas: `native.js` no se puede probar dentro de jsdom
+  —importa el plugin de Capacitor— y esta lógica sí, que es la que se puede
+  equivocar. Incluye la guarda de los **dos regresos a la vez**, que si no
+  descargarían el mismo paquete dos veces.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

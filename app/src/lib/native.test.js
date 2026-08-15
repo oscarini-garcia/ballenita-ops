@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
-  isNative, tap, share, checkForOtaUpdate, registerPush, initNative,
+  isNative, tap, share, checkForOtaUpdate, hayOtaNueva, registerPush, initNative,
   urlDelManifiestoOta,
 } from './native.js'
 import { olvidarConfiguracion } from './config.js'
@@ -20,6 +20,12 @@ describe('native (fuera de la cáscara iOS)', () => {
   it('share() devuelve false si no hay soporte, sin lanzar', async () => {
     await expect(share({ title: 'x', text: 'y', url: 'https://e.x' })).resolves.toBe(false)
     await expect(share()).resolves.toBe(false)
+  })
+
+  // La pregunta barata del latido (§14.46): en web tampoco hay noticia que dar
+  // —allí la versión la sirve el servidor al recargar— y sobre todo **no lanza**.
+  it('hayOtaNueva() dice que no en web, sin lanzar', async () => {
+    await expect(hayOtaNueva()).resolves.toEqual({ hay: false })
   })
 
   it('checkForOtaUpdate() se salta el OTA en web', async () => {

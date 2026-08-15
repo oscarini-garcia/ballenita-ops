@@ -45,8 +45,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
 - **Sincronización** (`app/src/sync/`): se sube la **cola de cambios** (`POST /api/cambios`),
   el servidor la aplica y devuelve la instantánea, que **sustituye** la copia local. El
   servidor es la autoridad → **no hay merge en el cliente ni tombstones**. Sync al abrir /
-  online / foreground / cada 90 s. Sin `config.json` apuntando a una API, la app va **solo
-  local** (indicador `● local` en la cabecera).
+  online / foreground / **cada 60 s** (`LATIDO_DATOS_MS`). Sin `config.json` apuntando a una API,
+  la app va **solo local** (indicador `● local` en la cabecera).
+- **La versión se vigila al minuto y se pone al volver** (SPECS §14.46, `lib/vigilante.js`): en
+  cada latido se **pregunta** (`hayOtaNueva`, un JSON de 204 bytes, sin bajar los 380 KB) y se
+  deja de preguntar en cuanto hay noticia; se **aplica** en el `visibilitychange` a visible,
+  porque aplicar recarga la webview y eso se lleva un gasto a medio escribir. Con la app abierta
+  y sin soltarla, la nueva se detecta pero no entra hasta cambiar de app y volver.
 - **Cuando falla, se dice qué ha fallado** (SPECS §14.9-bis, figura de `garciadoral-ops`):
   el error lleva el **estado HTTP** (`sync/api.js`), lo que el servidor **rechaza** sale en
   la lista de pasos —la interfaz es optimista, callarlo se lee como que la app pierde
