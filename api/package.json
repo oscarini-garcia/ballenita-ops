@@ -28,7 +28,9 @@
     "migrar:remoto12": "wrangler d1 execute ballena-ops --remote --file=migraciones/0012_reparto_del_gasto.sql",
     "migrar:remoto13": "wrangler d1 execute ballena-ops --remote --file=migraciones/0013_cuando_se_puso_el_estado.sql",
     "migrar:remoto14": "wrangler d1 execute ballena-ops --remote --file=migraciones/0014_avisos_por_clase.sql",
-    "generar:migraciones": "node herramientas/generar-migraciones.mjs"
+    "generar:migraciones": "node herramientas/generar-migraciones.mjs",
+    "migrar:local15": "wrangler d1 execute ballena-ops --local --file=migraciones/0015_registro.sql",
+    "migrar:remoto15": "wrangler d1 execute ballena-ops --remote --file=migraciones/0015_registro.sql"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

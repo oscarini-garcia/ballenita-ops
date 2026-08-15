@@ -17,14 +17,32 @@
  * `dinero`, que es quién puede escribir en Gastos y Saldos (SPECS §14.41).
  * Si algún día hace falta el bebé a 0, se añade aquí y sale en todos los
  * sitios a la vez.
+ *
+ * `mayor` es quién entra en el atajo «Mayores» de un gasto (§14.49). Es una
+ * columna y no `peso === 1` porque son dos preguntas distintas —cuánto cuestas
+ * y si eres de los mayores— que hoy contestan igual y mañana a lo mejor no.
  */
 export const EDADES = [
-  { id: 'adulto', etiqueta: 'Adulto', peso: 1, organiza: true },
-  { id: 'adolescente', etiqueta: 'Adolescente', peso: 1, organiza: false },
-  { id: 'niño', etiqueta: 'Niño', peso: 0.6, organiza: false },
+  { id: 'adulto', etiqueta: 'Adulto', peso: 1, organiza: true, mayor: true },
+  { id: 'adolescente', etiqueta: 'Adolescente', peso: 1, organiza: false, mayor: true },
+  { id: 'niño', etiqueta: 'Niño', peso: 0.6, organiza: false, mayor: false },
 ]
 
 export const pesoDe = (edad) => EDADES.find((e) => e.id === edad)?.peso ?? 1
+
+/**
+ * Si esta persona es de los mayores, **por su edad** (SPECS §14.49).
+ *
+ * Antes lo decía `cuentaComoAdultoReparto`, una casilla guardada en cada
+ * persona: se ponía sola al crearla y luego se quedaba quieta, así que un niño
+ * apuntado antes de que existiera «Adolescente» —Fran, en el Demo— salía dentro
+ * de «Mayores» aunque su ficha dijera «Niño». Una casilla que nadie ve y que
+ * contradice a la edad que sí se ve no es un dato, es una trampa.
+ *
+ * Edad desconocida cuenta como mayor: es lo que menos daño hace —entrar en el
+ * reparto de un gasto— frente a desaparecer de él sin que nadie lo pida.
+ */
+export const esMayor = (persona) => EDADES.find((e) => e.id === persona?.edad)?.mayor ?? true
 
 /**
  * Quién escribe lo que **organiza el viaje** (SPECS §14.41 y §14.43): el dinero

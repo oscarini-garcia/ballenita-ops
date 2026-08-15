@@ -112,6 +112,14 @@ export const TABLAS = {
     columnas: ['texto', 'hecho', 'autorId', 'apuntadaEl', 'eventId'],
     booleanos: ['hecho'],
   },
+  registro: {
+    // La bitácora del viaje: qué ha hecho cada uno, para el recap del final
+    // (§14.50). `texto` viaja **ya compuesto** por el móvil que lo hizo, y no se
+    // rehace aquí: la frase depende de cómo estaba la fila en ese momento, y una
+    // cena borrada en octubre no puede volver a decir de qué día era.
+    // `tabla` + `filaId` son solo para juntar lo repetido; el recap no los mira.
+    columnas: ['eventId', 'personId', 'tabla', 'filaId', 'accion', 'clase', 'texto', 'cuando'],
+  },
 };
 
 /**

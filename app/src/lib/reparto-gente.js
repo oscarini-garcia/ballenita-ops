@@ -9,22 +9,35 @@
 // a cada uno lo sigue diciendo `lib/reparto.js`, que es la regla de oro.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Quien cuenta como mayor a efectos de reparto (no es la edad: es el peso). */
-export const mayoresDe = (persons) => persons.filter((p) => p.cuentaComoAdultoReparto)
-/** Y el contrario, que hasta ahora no tenía atajo aunque es la merienda de la playa. */
-export const pequesDe = (persons) => persons.filter((p) => !p.cuentaComoAdultoReparto)
+import { esMayor } from './personas.js'
 
 /**
- * Los cuatro atajos, en el orden en que se pintan.
+ * **Mayores son todos los que no son niños, por su edad** (SPECS §14.49).
  *
- * «Nadie» no es un estado como los otros tres —un gasto sin nadie dentro no se
+ * Lo decidía `cuentaComoAdultoReparto`, una casilla guardada por persona que se
+ * ponía sola al crearla y luego no se movía: quien se apuntó de niño antes de
+ * que existiera «Adolescente» salía dentro de «Mayores» con la ficha diciendo
+ * «Niño». Ahora manda la edad, que es lo único que se ve.
+ */
+export const mayoresDe = (persons) => persons.filter(esMayor)
+/** Y el contrario. Ya no tiene atajo —§14.49—, pero sigue nombrando el reparto. */
+export const pequesDe = (persons) => persons.filter((p) => !esMayor(p))
+
+/**
+ * Los tres atajos, en el orden en que se pintan.
+ *
+ * «Peques» se retiró (§14.49): un gasto solo de los niños no lo apunta nadie
+ * —la merienda de la playa la paga alguien y se reparte entre todos—, y su
+ * casilla costaba un cuarto del mando para no usarse nunca. Quien lo necesite
+ * lo tiene a dos toques: «Nadie» y marcar la familia.
+ *
+ * «Nadie» no es un estado como los otros dos —un gasto sin nadie dentro no se
  * puede guardar— pero es el que hace baratos los repartos raros: vaciar y marcar
  * dos, en vez de quitar siete.
  */
 export const ATAJOS = [
   { id: 'todos', etiqueta: 'Todos' },
   { id: 'mayores', etiqueta: 'Mayores' },
-  { id: 'peques', etiqueta: 'Peques' },
   { id: 'nadie', etiqueta: 'Nadie' },
 ]
 
@@ -32,7 +45,6 @@ export const ATAJOS = [
 export function genteDeAtajo(atajo, persons = []) {
   if (atajo === 'todos') return persons.map((p) => p.id)
   if (atajo === 'mayores') return mayoresDe(persons).map((p) => p.id)
-  if (atajo === 'peques') return pequesDe(persons).map((p) => p.id)
   return []
 }
 

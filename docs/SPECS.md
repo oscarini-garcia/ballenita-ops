@@ -3899,6 +3899,96 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   que aún no existe no puede quedarse con nada—. Ahora manda al sitio donde sí
   se puede: «Guarda esta y créale el suyo desde su pastilla».
 
+### 14.49 «Mayores» son los mayores, y «Peques» se retira
+
+- **El defecto:** el atajo «Mayores» de un gasto no miraba la edad sino
+  `cuentaComoAdultoReparto`, una **casilla guardada en cada persona** que se
+  pone sola al crearla y luego se queda quieta. Fran, en el Demo, está apuntado
+  como `edad: 'niño'` con esa casilla a `true` —se hizo así cuando «Adolescente»
+  no existía—, así que salía **dentro de «Mayores»** con su ficha diciendo
+  «Niño». Una casilla que nadie ve y que contradice al dato que sí se ve no es
+  un dato, es una trampa.
+- **✅ Ahora lo dice la edad** (`lib/personas.js` · `esMayor`, columna `mayor`
+  de `EDADES`). Es una columna y no `peso === 1` porque son dos preguntas
+  —cuánto cuestas y si eres de los mayores— que hoy contestan igual y mañana a
+  lo mejor no; y el día que haga falta el bebé se declara en un sitio, como el
+  peso y como `organiza`. El **adolescente entra**: la edad se creó diciendo que
+  «pesa como un adulto, come y cuesta como uno», y lo único que lo distingue es
+  que no toca Dinero (§14.41). Sacarlo del reparto de la cena de los mayores
+  sería inventar una regla que nadie ha pedido — si se quiere fuera, es cambiar
+  ese `mayor: true` por `false` y nada más.
+- Edad desconocida cuenta como mayor: entrar en un reparto hace menos daño que
+  desaparecer de él sin que nadie lo pida.
+- **✅ Y «Peques» se retira.** Un gasto solo de los niños no lo apunta nadie —la
+  merienda de la playa la paga alguien y se reparte entre todos—, y su casilla
+  se llevaba un cuarto de un mando de 328 pt para no usarse nunca. Quien lo
+  necesite lo tiene en dos toques más: «Nadie» y marcar. `pequesDe` **se queda**,
+  porque «solo los peques» sigue siendo una de las dos formas de reparto que
+  `comoSeReparte` sabe nombrar.
+- Con esto `cuentaComoAdultoReparto` deja de leerse en toda la app. La columna
+  y su escritura se quedan —quitarlas es una migración a cambio de nada— pero
+  ya no decide.
+
+### 14.50 Lo que hace el grupo se apunta, y al final se cuenta
+
+- **✅ Hay bitácora** (tabla sincronizada `registro`, migración `0015`): cada
+  cosa que alguien hace deja un renglón con **quién, cuándo y qué**, y al final
+  del viaje eso es el recap. Se escribe dentro de `escribir()` y `removeRow()`,
+  que es por donde pasa **toda** escritura de la app: no hay que acordarse de
+  apuntar nada en cada pantalla, y una pantalla nueva queda apuntada sola.
+- **La frase viaja compuesta**, no el campo. «Marta apuntó “Cena del sábado”» es
+  un renglón de recap; «`description` pasó de X a Y» es un log de programador.
+  La compone `lib/registro.js` (puro) con la fila **ya fusionada** y la de
+  antes, que es lo único que separa «votó» de «cambió el día» cuando las dos
+  cosas son un `upsert` sobre `plans`. El Worker **no la rehace**: una cena
+  borrada en agosto no puede volver a decir de qué día era, y rehacerlo allí
+  obligaría al servidor a saber de cenas, de planes y de la compra.
+- **Tres cosas no dejan rastro, y las tres se descubrieron mirándolo en el
+  navegador**, no en las pruebas:
+  - **Sembrar no es hacer.** Cargar el Demo dejaba **45 renglones** —«Alguien
+    dio de alta a los García», «Alguien apuntó a Curro»— y el recap se abría
+    lleno antes de que nadie tocara nada.
+  - **Recalcular no es hacer.** Abrir Comidas → Compra rehace las líneas que
+    salen de una receta (§14.20), y quien tuviera la pantalla delante firmaba
+    **seis** «apuntó “Arroz bomba”» que no había escrito. Las líneas con
+    `origen: 'cena'` no se apuntan al nacer ni al morir; **tacharlas sí**, que
+    eso lo hace un dedo en el pasillo del súper.
+  - **Recibir no es hacer.** Lo que llega en la instantánea ya trae su renglón
+    del móvil donde se hizo; volver a apuntarlo multiplicaría cada hecho por los
+    teléfonos del grupo.
+- **Lo mismo repetido es una vez** (`MISMA_COSA_MS`, 10 min): si el último
+  renglón es de la misma persona sobre la misma fila y con la misma acción, se
+  **actualiza** en vez de añadir otro. Sin esto, el recap del viaje lo escribe
+  quien más dudó al teclear —corregir un gasto cuatro veces son cuatro
+  escrituras y **un** hecho—. Crear y editar no se juntan: son dos cosas.
+- **El registro no cuenta como «cambio sin subir».** Sube por la misma cola, sí,
+  pero el número del punto de la cabecera existe para decidir si esperar a tener
+  cobertura (§14.9-quinquies): si cada gasto contara dos, mentiría por el doble.
+  `cuantosPendientes` lo filtra; `hayCambiosPendientes` no, porque antes de
+  borrar la libreta hay que subirlo todo (§14.9-ter).
+- **El recap vive al final de Números** (`lib/recap.js`, puro): las cuentas
+  —cuántas cosas, quién ha andado más, el día más movido, el desglose por
+  clase— y el **diario por días**, del más nuevo al más viejo. De fábrica sale
+  solo el último día y el resto está detrás de «ver todo», por la misma razón
+  que el pique está detrás de su interruptor: en un viaje de una semana son
+  cientos de renglones y ninguno es lo que vienes a ver un martes. Va **dentro
+  de Números** y no en un área propia porque una cuarta casilla en el mando de
+  Agenda deja las cuatro por debajo de 77 pt.
+- **El renglón dobla en vez de recortarse** (`.row.recap-linea`). En una lista
+  de filas gemelas el recorte con puntos suspensivos es lo correcto —el nombre
+  entero está a un toque—; aquí no hay toque y **la frase es el dato**. Medido
+  en navegador: ocho de los cuarenta y cinco renglones del Demo se recortaban, y
+  «Curro apuntó “Tomate de un…» no cuenta nada.
+- **Nada de esto ordena a la gente de mejor a peor**: el podio es de «quién ha
+  estado más encima», y un podio de una sola persona no se enseña —sería esa
+  persona leyendo su nombre—, igual que un «día más movido» de un solo día. Lo
+  que señala sigue detrás del interruptor de §7.
+- **Lo que crece:** es la única tabla que suma una fila por cada toque, y la
+  instantánea se baja entera en cada latido (§14.9). Con el juntado, un viaje de
+  una semana y nueve personas son unos cientos de renglones — decenas de KB. Si
+  algún día molesta, lo que toca es lo de la evaluación de WebSockets: un
+  marcador de «¿cambió algo?» que evite bajar la instantánea entera cada minuto.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

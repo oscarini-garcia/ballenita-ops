@@ -412,6 +412,15 @@ body.modal-abierto .body { overflow: hidden; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row .main .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
 .row .amt { font-weight: 620; font-size: var(--t-row); white-space: nowrap; }
+
+/* El renglón del recap **dobla en vez de recortarse** (§14.50). En una lista de
+   filas gemelas —un gasto, una cena, un plan— el recorte con puntos suspensivos
+   es lo correcto: el nombre entero está a un toque. Aquí no hay toque y la
+   frase **es** el dato: «Curro apuntó “Tomate de untar” en la compra» mide 318
+   pt de los 300 que quedan con el emoji puesto, así que recortada dice «Curro
+   apuntó “Tomate de un…» y el recap deja de contar nada. Medido en navegador:
+   ocho de los cuarenta y cinco renglones del Demo se recortaban. */
+.row.recap-linea .main .n { white-space: normal; overflow: visible; font-weight: 500; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
 .av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
