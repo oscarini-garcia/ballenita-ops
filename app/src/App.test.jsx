@@ -75,32 +75,48 @@ describe('App — navegación', () => {
     expect(await screen.findByPlaceholderText(/Apunta algo/)).toBeInTheDocument()
   })
 
-  it('«Agenda» se abre en Hoy y guarda al lado la lista de días', async () => {
+  // Al **abrir** la app manda el titular del día (no hay pulsación); **pulsar**
+  // Agenda lleva al calendario (§14.47).
+  it('la app abre en Hoy, y pulsar Agenda lleva a Días', async () => {
     await abrirEjemplo()
+    expect(await screen.findByRole('tab', { name: 'Hoy' })).toHaveAttribute('aria-selected', 'true')
+
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[0])
 
-    expect(await screen.findByRole('tab', { name: 'Hoy' })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('tab', { name: 'Días' }))
-
+    expect(await screen.findByRole('tab', { name: 'Días' })).toHaveAttribute('aria-selected', 'true')
     // Los ocho días del ejemplo, vacíos incluidos. Ya no llevan lápiz: la fila
     // entera abre, y su rótulo es la fecha larga (agenda-dia.html · A1).
     const dias = await screen.findAllByRole('button', { name: /de agosto:/ })
     expect(dias).toHaveLength(8)
   })
 
+  it('y desde Hoy, volver a pulsar Agenda también lleva a Días', async () => {
+    await abrirEjemplo()
+    const barra = document.querySelectorAll('.tabbar .tab')
+
+    await userEvent.click(barra[0])                                   // → Días
+    await userEvent.click(await screen.findByRole('tab', { name: 'Hoy' }))
+    expect(screen.getByRole('tab', { name: 'Hoy' })).toHaveAttribute('aria-selected', 'true')
+
+    await userEvent.click(barra[0])                                   // → Días otra vez
+    expect(await screen.findByRole('tab', { name: 'Días' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  // La memoria de área sigue valiendo para las demás secciones: solo Agenda
+  // tiene destino fijo.
   it('el área elegida no se olvida al ir y volver de otra sección', async () => {
     await abrirEjemplo()
     const barra = document.querySelectorAll('.tabbar .tab')
 
-    await userEvent.click(barra[0])
-    await userEvent.click(await screen.findByRole('tab', { name: 'Días' }))
-    await screen.findAllByRole('button', { name: /de agosto:/ })
+    await userEvent.click(barra[2])           // a Comidas…
+    await userEvent.click(await screen.findByRole('tab', { name: 'Compra' }))
+    expect(screen.getByRole('tab', { name: 'Compra' })).toHaveAttribute('aria-selected', 'true')
 
     await userEvent.click(barra[1])           // a Dinero…
     await screen.findByText('Gasto total del evento')
-    await userEvent.click(barra[0])           // …y de vuelta
+    await userEvent.click(barra[2])           // …y de vuelta
 
-    expect(await screen.findByRole('tab', { name: 'Días' })).toHaveAttribute('aria-selected', 'true')
+    expect(await screen.findByRole('tab', { name: 'Compra' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('Ajustes es la quinta pestaña de la barra, y ya no un ⚙️ en la cabecera', async () => {

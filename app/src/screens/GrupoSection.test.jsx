@@ -178,6 +178,52 @@ describe('El grupo — la ficha por familia (G2)', () => {
     })
   })
 
+  // §14.47: el campo contaba unidades UTF-16 (`maxLength={4}`), así que dejaba
+  // dos caritas y **ninguna familia** —👨‍👩‍👧 son ocho—. Ahora cuenta dibujos.
+  it('en el emoji de una persona caben tres dibujos, y el cuarto no', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+    await userEvent.click((await screen.findAllByText('+ Persona'))[0])
+    const hoja = within(await screen.findByRole('dialog'))
+
+    await userEvent.type(hoja.getByLabelText('Nombre'), 'Teo')
+    const emoji = hoja.getByLabelText('Emoji')
+    await userEvent.clear(emoji)
+    await userEvent.paste('🐳🦑🦀🏄')
+    await userEvent.click(hoja.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(async () => {
+      expect((await personsOf(eventId)).find((p) => p.name === 'Teo')?.avatar).toBe('🐳🦑🦀')
+    })
+  })
+
+  it('y una familia entera cabe, que antes no cabía ninguna', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+    await userEvent.click((await screen.findAllByText('+ Persona'))[0])
+    const hoja = within(await screen.findByRole('dialog'))
+
+    await userEvent.type(hoja.getByLabelText('Nombre'), 'Ana')
+    const emoji = hoja.getByLabelText('Emoji')
+    await userEvent.clear(emoji)
+    await userEvent.paste('\u{1F468}\u200D\u{1F469}\u200D\u{1F467}')
+    await userEvent.click(hoja.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(async () => {
+      const ana = (await personsOf(eventId)).find((p) => p.name === 'Ana')
+      expect(ana?.avatar).toBe('\u{1F468}\u200D\u{1F469}\u200D\u{1F467}')
+    })
+  })
+
+  it('la casilla del avatar dice cuántos dibujos lleva, para encogerlos', async () => {
+    const eventId = await createEvent({ name: 'Ballenita', currency: 'EUR' })
+    await addFamily(eventId, { name: 'García', color: '#E5544B', avatar: '🐳🦑🦀' })
+    const { container } = render(<GrupoSection eventId={eventId} />)
+    await screen.findByText('García')
+
+    expect(container.querySelector('.av')?.dataset.emojis).toBe('3')
+  })
+
   it('no hay ningún botón de borrar en las filas', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)

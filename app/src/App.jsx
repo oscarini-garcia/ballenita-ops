@@ -30,6 +30,7 @@ import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
 import { enDemo, salirDemo } from './lib/demo.js'
 import { asegurarPush } from './lib/push.js'
 import { LATIDO_MS, asegurarTanda } from './lib/tanda.js'
+import { ponerArea } from './lib/areas.js'
 import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
@@ -315,9 +316,18 @@ export default function App() {
         />
       )}
 
+      {/* Pulsar **Agenda** lleva a «Días» (§14.47): es el calendario del viaje y
+          lo que se viene a mirar. «Hoy» se sigue viendo al abrir la app —ahí no
+          hay pulsación, y el titular del día es con lo que se quiere abrir— y a
+          un toque en el mando. Las otras cuatro pestañas recuerdan dónde
+          estabas, como siempre (`lib/areas.js`). */}
       <nav className="tabbar">
         {TABS.map((t) => (
-          <button key={t.id} className={`tab${tab === t.id ? ' on' : ''}`} onClick={() => { tap(); setTab(t.id) }}>
+          <button
+            key={t.id}
+            className={`tab${tab === t.id ? ' on' : ''}`}
+            onClick={() => { tap(); if (t.id === 'agenda') ponerArea('agenda', 'dias'); setTab(t.id) }}
+          >
             <Icono nombre={t.icono} />
             <span>{t.label}</span>
           </button>

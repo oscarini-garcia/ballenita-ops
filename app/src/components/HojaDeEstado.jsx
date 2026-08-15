@@ -3,6 +3,7 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import { estadoConGracia, estadosSugeridos, hayApi } from '../sync/api.js'
 import { ESTADOS_DE_SIEMPRE, cincoAlAzar, partirEstado } from '../lib/estados.js'
+import { TOPE_EMOJIS, cortarEmojis } from '../lib/emojis.js'
 
 /**
  * Tu estado, en una capa centrada (`docs/diseño/estado.html` · M2 · I1 · I3).
@@ -113,8 +114,7 @@ export default function HojaDeEstado({ eventId, persona, onGuardar, onCerrar }) 
             type="text"
             className="estado-emoji"
             value={emoji}
-            onChange={(e) => setEmoji(e.target.value)}
-            maxLength={4}
+            onChange={(e) => setEmoji(cortarEmojis(e.target.value, TOPE_EMOJIS))}
             placeholder="🙂"
             aria-label="El emoji de tu estado"
           />

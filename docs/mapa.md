@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.43.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  862 pruebas en 94 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.44.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  875 pruebas en 95 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -150,7 +150,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `alias.js` — El alias de una familia: **dos letras**.
   ↳ aliasSugerido, aliasDe, aliasSigueAlNombre
 - `areas.js` — El área elegida dentro de una sección, que no se olvida al salir y volver.
-  ↳ useArea, olvidarAreas
+  ↳ useArea, ponerArea, olvidarAreas
 - `asignacion.js` — Quién se queda con qué bunga: el emparejamiento familia ↔ bunga.
   ↳ bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre
 - `avatares.js` — Foto de avatar de una persona.
@@ -173,6 +173,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ enDemo, activarDemo, salirDemo
 - `dias.js` — Los días de un evento, y qué se hace en cada uno.
   ↳ diasDe, numeroYDia, diasEntre, platoQueManda, resumenDeDia, diaQueEnsenaHoy · +9 más
+- `emojis.js` — Contar y cortar emoji **por dibujos**, y no por unidades de texto (SPECS §14.47).
+  ↳ racimos, contarEmojis, cortarEmojis, TOPE_EMOJIS
 - `estados.js` — Un estado es **un emoji y una frase corta**: «🍺 de resaca».
   ↳ partirEstado, cincoAlAzar, quienTieneEstado, ESTADOS_DE_SIEMPRE, estadoEnUnaLinea
 - `evento.js` — Qué se cae fuera al cambiar las fechas de un evento.
@@ -394,3 +396,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
 - **§14.45** Quien administra sí cambia de persona, y «Hoy» invita a decir tu estado → `HoyScreen.jsx`, `db.js`, `identidad.js`
 - **§14.46** Al minuto: los datos se traen y la versión se vigila → `App.jsx`, `engine.js`, `native.js`, `vigilante.js`
+- **§14.47** Pulsar Agenda lleva al calendario, y en un emoji caben tres → `App.jsx`, `EventSettingsScreen.jsx`, `areas.js`, `emojis.js`
