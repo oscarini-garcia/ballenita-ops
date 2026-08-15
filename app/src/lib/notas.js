@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.47.0',
+    fecha: '2026-08-15',
+    titulo: 'Un «pagado» sin querer ya se deshace',
+    lineas: [
+      'En Saldos, desliza una fila de «Pagos apuntados» y sale «Deshacer». Antes, un toque sin querer en «pagado» dejaba un pago que no había forma de quitar y descuadraba el saldo de dos familias.',
+      'La pregunta dice qué vuelve a deberse y a quién, y ahora se enseña sola: antes podía abrirse fuera de la pantalla y parecía que el botón no hacía nada. Vale para todos los borrados de la app.',
+    ],
+  },
+  {
     version: '0.46.0',
     fecha: '2026-08-15',
     titulo: 'El recap del viaje, y «Mayores» son los mayores',

@@ -73,6 +73,9 @@ describe('dinero solo adultos, grupo solo lectura', () => {
     render(<BalancesScreen eventId={evento.id} event={evento} />)
     await screen.findByText('Saldo por familia')
     expect(screen.queryByRole('button', { name: 'pagado' })).toBeNull()
+    // Ni el «Deshacer» de un pago ya apuntado (§14.51), que mueve el mismo
+    // saldo en el sentido contrario: sin gesto detrás de la fila.
+    expect(document.querySelector('.deslizable')).toBeNull()
   })
 
   it('con sesión de miembro, El grupo es el censo: sin añadir ni editar', async () => {

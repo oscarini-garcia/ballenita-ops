@@ -3,13 +3,21 @@
 // No guarda nada: los saldos se **calculan** en local a partir de los hechos
 // (`lib/reparto.js`), que es la regla de oro del proyecto. Un saldo no se
 // sincroniza jamás.
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { expensesOf, familiesOf, personsOf, settlementsOf, addSettlement } from '../db.js'
+import {
+  expensesOf, familiesOf, personsOf, settlementsOf, addSettlement, removeSettlement,
+} from '../db.js'
 import { computeFamilyBalances, simplifyDebts } from '../lib/reparto.js'
 import { formatCents } from '../lib/money.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { puedeOrganizar } from '../lib/personas.js'
+import { queSeLlevaUnPago } from '../lib/borrados.js'
+import { tap } from '../lib/native.js'
 import Alias from '../components/Alias.jsx'
+import Deslizable from '../components/Deslizable.jsx'
+import Confirmar from '../components/Confirmar.jsx'
+import Icono from '../components/Icono.jsx'
 
 /**
  * Saldos, decidido en `docs/diseño/saldos.html` · **F3 · R2 · E1**.
@@ -47,6 +55,8 @@ export default function BalancesScreen({ eventId, event }) {
   // puesta, el botón no está (SPECS §14.41). Los saldos se miran igual.
   const { me } = useIdentidad(eventId, persons)
   const soloMirar = !puedeOrganizar(me)
+  // El pago que se está a punto de deshacer, o null.
+  const [deshaciendo, setDeshaciendo] = useState(null)
 
   /**
    * Quién es el dueño de un saldo. Una persona sin familia es una **familia de
@@ -118,23 +128,63 @@ export default function BalancesScreen({ eventId, event }) {
           {anySettled && (
             <>
               <div className="sec-h">Pagos apuntados</div>
-              <div className="card tight">
+              {/* Deslizables, así que la lista deja de ser una tarjeta con
+                  filas pegadas y pasa a ser filas separadas: cada una es su
+                  propio objeto y su propio gesto (`.lista-deslizable`). */}
+              <div className={soloMirar ? 'card tight' : 'lista-deslizable'}>
                 {/* La misma figura en pasado: dos listas hermanas que se
                     escribieran distinto se leerían como dos cosas. El ✓ verde
                     se queda porque ahí el dibujo dice el estado, no la familia. */}
-                {settlements.map((s) => (
-                  <div className="row" key={s.id}>
-                    <div className="main">
-                      <div className="n">{nombre(s.fromFamilyId)} <span className="flecha">→</span> {nombre(s.toFamilyId)}</div>
-                      <div className="sub tnum">
-                        {new Date(s.dateISO).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                        {' · '}{formatCents(s.amountCents, event.currency)}
+                {settlements.map((s) => {
+                  const cuerpo = (
+                    <>
+                      <div className="main">
+                        <div className="n">{nombre(s.fromFamilyId)} <span className="flecha">→</span> {nombre(s.toFamilyId)}</div>
+                        <div className="sub tnum">
+                          {new Date(s.dateISO).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                          {' · '}{formatCents(s.amountCents, event.currency)}
+                        </div>
                       </div>
-                    </div>
-                    <div className="amt owed" aria-label="Pagado">✓</div>
-                  </div>
-                ))}
+                      <div className="amt owed" aria-label="Pagado">✓</div>
+                    </>
+                  )
+                  if (soloMirar) return <div className="row" key={s.id}>{cuerpo}</div>
+                  return (
+                    <Deslizable
+                      key={s.id}
+                      // 96 y no los 76 de Gastos: «Deshacer» son dos letras más
+                      // que «Borrar», y en la talla Enorme (§14.11) no cabía.
+                      ancho={96}
+                      verbos={
+                        <button className="verbo deshacer" onClick={() => { tap(); setDeshaciendo(s) }}>
+                          <Icono nombre="deshacer" className="g" />Deshacer
+                        </button>
+                      }
+                    >
+                      <div className="row">{cuerpo}</div>
+                    </Deslizable>
+                  )
+                })}
               </div>
+
+              {/* Un pago deshecho **vuelve a poner una deuda**, y ese número
+                  vive dos secciones más arriba: quien deshace está mirando la
+                  lista de pagos hechos, no el saldo. Es el mismo motivo por el
+                  que un gasto pregunta (borrar-confirmaciones.html · A2). */}
+              {deshaciendo && (
+                <Confirmar
+                  queSeLleva={queSeLlevaUnPago(deshaciendo, {
+                    // Con `comoFamilia`, que es quien sabe que una persona sin
+                    // familia es una familia de uno (`solo:`) y tiene nombre.
+                    familias: [deshaciendo.fromFamilyId, deshaciendo.toFamilyId]
+                      .map(comoFamilia).filter(Boolean),
+                    importe: formatCents(deshaciendo.amountCents, event.currency),
+                  })}
+                  onDejarlo={() => { tap(); setDeshaciendo(null) }}
+                  onBorrar={async () => { tap(); await removeSettlement(deshaciendo.id); setDeshaciendo(null) }}
+                  borrar="Sí, deshacer"
+                />
+              )}
             </>
           )}
         </>

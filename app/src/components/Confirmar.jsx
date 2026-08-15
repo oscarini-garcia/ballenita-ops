@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react'
+
 /**
  * La pregunta antes de borrar, en su sitio y diciendo qué se lleva.
  *
@@ -24,8 +26,18 @@ export default function Confirmar({
   dejarlo = 'Dejarlo',
   borrar = 'Sí, borrar',
 }) {
+  // **Y se enseña sola.** El bloque nace al final de su lista, así que con la
+  // lista rodada hacia abajo cae fuera de la ventana: medido en Saldos con un
+  // solo pago apuntado y la letra en Enorme, se abría en el 788 y acababa en el
+  // 984 de una pantalla de 844. Desde el móvil eso se lee como que el botón no
+  // ha hecho nada — y el siguiente toque es otra vez el mismo botón.
+  const yo = useRef(null)
+  useEffect(() => {
+    try { yo.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }) } catch { /* jsdom */ }
+  }, [])
+
   return (
-    <div className="confirmar" role="alert">
+    <div className="confirmar" role="alert" ref={yo}>
       <div className="que-se-lleva">{queSeLleva}</div>
       <div className="grid2">
         <button type="button" className="btn ghost" onClick={onDejarlo}>{dejarlo}</button>

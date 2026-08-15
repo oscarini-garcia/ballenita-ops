@@ -1,10 +1,18 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import BalancesScreen from './BalancesScreen.jsx'
 import {
   db, createEvent, getEvent, addFamily, addPerson, addExpense, settlementsOf,
 } from '../db.js'
+
+/** Abre la fila arrastrándola hacia la izquierda, como haría un pulgar. */
+function deslizar(cara) {
+  fireEvent.pointerDown(cara, { clientX: 300, clientY: 100, pointerId: 1, pointerType: 'touch' })
+  fireEvent.pointerMove(cara, { clientX: 240, clientY: 100, pointerId: 1 })
+  fireEvent.pointerMove(cara, { clientX: 160, clientY: 100, pointerId: 1 })
+  fireEvent.pointerUp(cara, { clientX: 160, clientY: 100, pointerId: 1 })
+}
 
 /**
  * Saldos, decidido en `docs/diseño/saldos.html` · F3 · R2 · E1.
@@ -146,6 +154,53 @@ describe('BalancesScreen', () => {
     expect(screen.queryByText('Sin familia')).toBeNull()
     // Sin familia dueña no hay color, pero sí sus dos letras.
     expect(berta.querySelector('.alias').textContent).toBe('BE')
+  })
+
+  /**
+   * §14.51: `removeSettlement` existía en `db.js` desde siempre y **no lo
+   * llamaba nadie**. Un toque sin querer en «pagado» metía una liquidación que
+   * ya no se quitaba desde la app y descuadraba el saldo de dos familias.
+   */
+  it('un pago apuntado se puede deshacer, y la pregunta dice qué vuelve a deberse', async () => {
+    const { eventId, event } = await sembrar()
+    render(<BalancesScreen eventId={eventId} event={event} />)
+    await screen.findByText('Quién paga a quién')
+
+    const fila = await esperaFila('García → Pérez')
+    await userEvent.click(fila.querySelector('button'))
+    await screen.findByText('Pagos apuntados')
+    await waitFor(async () => expect(await settlementsOf(eventId)).toHaveLength(1))
+
+    // El verbo vive detrás del gesto, como en Gastos: no ocupa sitio en la fila.
+    const cara = document.querySelector('.lista-deslizable .deslizable-cara')
+    expect(document.querySelector('.lista-deslizable .deslizable-verbos').style.visibility).toBe('hidden')
+    deslizar(cara)
+    await userEvent.click(screen.getByRole('button', { name: /Deshacer/ }))
+
+    // Y pregunta diciendo el efecto, que es el contrario del que se ve.
+    expect(await screen.findByText(/vuelve a deber/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Sí, deshacer' }))
+
+    await waitFor(async () => expect(await settlementsOf(eventId)).toHaveLength(0))
+    // Y la deuda vuelve a estar donde estaba.
+    expect(await esperaFila('García → Pérez')).toBeTruthy()
+  })
+
+  it('«Dejarlo» no deshace nada', async () => {
+    const { eventId, event } = await sembrar()
+    render(<BalancesScreen eventId={eventId} event={event} />)
+    await screen.findByText('Quién paga a quién')
+
+    await userEvent.click((await esperaFila('García → Pérez')).querySelector('button'))
+    await screen.findByText('Pagos apuntados')
+    await waitFor(async () => expect(await settlementsOf(eventId)).toHaveLength(1))
+
+    deslizar(document.querySelector('.lista-deslizable .deslizable-cara'))
+    await userEvent.click(screen.getByRole('button', { name: /Deshacer/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Dejarlo' }))
+
+    expect(await settlementsOf(eventId)).toHaveLength(1)
+    expect(screen.queryByText(/vuelve a deber/)).toBeNull()
   })
 
   it('sin gastos no hay cuentas que echar', async () => {
