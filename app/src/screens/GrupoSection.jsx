@@ -220,6 +220,7 @@ export default function GrupoSection({ eventId }) {
           bungas={bungas}
           onCerrar={() => setEligiendo(null)}
           onCrear={() => { setEligiendo(null); setEditor({ tipo: 'bunga', familyId: eligiendo.id }) }}
+          onEditar={(id) => { setEligiendo(null); setEditor({ tipo: 'bunga', id }) }}
         />
       )}
       {eligiendo?.que === 'familia' && (
@@ -234,8 +235,17 @@ export default function GrupoSection({ eventId }) {
   )
 }
 
-/** La hoja de A3 vista desde una familia: qué bunga se le da. */
-function ElegirBunga({ eventId, familyId, families, bungas, onCerrar, onCrear }) {
+/**
+ * La hoja de A3 vista desde una familia: qué bunga se le da.
+ *
+ * Y **corregir el que ya tiene** (§14.48). Un bunga con familia desaparece de
+ * «Sueltos», que es el único sitio donde su renglón abría el editor: en cuanto
+ * se asignaba, su nombre y su mote quedaban escritos para siempre. En el Demo,
+ * donde los tres bungas tienen familia, eso son los tres. La salida vive aquí y
+ * no en un lápiz de la pastilla porque la pastilla mide lo que mide y ya tiene
+ * un verbo; y esto es lo que se busca justo después de tocarla.
+ */
+function ElegirBunga({ eventId, familyId, families, bungas, onCerrar, onCrear, onEditar }) {
   const puesto = bungaDeFamilia(bungas, familyId)
   const libres = new Set(bungasLibres(bungas, families, { paraFamilia: familyId }).map((b) => b.id))
   const familia = (id) => families.find((f) => f.id === id)?.name
@@ -254,7 +264,12 @@ function ElegirBunga({ eventId, familyId, families, bungas, onCerrar, onCrear })
       ]}
       onElegir={async (id) => { await asignarBungaAFamilia(eventId, familyId, id); onCerrar() }}
       onCerrar={onCerrar}
-      extra={{ etiqueta: '+ Bunga nuevo…', onClick: onCrear }}
+      extra={[
+        // El nombre va en la etiqueta: «Editar» a secas, en una hoja que acaba
+        // de listar cinco bungas, no dice cuál de los cinco.
+        ...(puesto ? [{ etiqueta: `Editar «${etiquetaCorta(puesto)}»…`, onClick: () => onEditar(puesto.id) }] : []),
+        { etiqueta: '+ Bunga nuevo…', onClick: onCrear },
+      ]}
     />
   )
 }
@@ -399,12 +414,15 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
           <button type="button" className={`pastilla grande${elegido ? '' : ' vacia'}`} onClick={() => { tap(); setEligiendo(true) }}>
             {elegido ? etiquetaBunga(elegido) : '— ninguno —'}
           </button>
+          {/* La lista de aquí no lleva la salida de N4 —una familia que aún no
+              existe no puede quedarse con nada—, así que la nota manda al sitio
+              donde sí se puede en vez de prometer un botón que no está. */}
           {bungas.length > 0 && libres.length === 0 && (
-            <div className="note">🐳 Todos los bungas tienen ya familia. Puedes crear uno nuevo desde la misma lista.</div>
+            <div className="note">🐳 Todos los bungas tienen ya familia. Guarda esta y créale el suyo desde su pastilla.</div>
           )}
         </>
       ) : (
-        <div className="dato-fijo">{suBunga ? etiquetaBunga(suBunga) : 'sin bunga'} — se cambia desde la pastilla de la ficha.</div>
+        <div className="dato-fijo">{suBunga ? etiquetaBunga(suBunga) : 'sin bunga'} — se cambia y se corrige desde la pastilla de la ficha.</div>
       )}
 
       <label>Color</label>

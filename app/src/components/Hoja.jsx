@@ -51,9 +51,12 @@ export default function Hoja({ titulo, onCerrar, children }) {
  * entender por qué.
  *
  * `extra` es la salida de N4 —«+ Bunga nuevo…»—: sin ella, quedarse sin nada
- * libre es un callejón que obliga a cerrar, buscar otra lista y volver.
+ * libre es un callejón que obliga a cerrar, buscar otra lista y volver. Admite
+ * **una o varias**: elegir de una lista y corregir lo que hay son dos salidas
+ * distintas y las dos se buscan aquí (§14.48).
  */
 export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, extra, notaDebajo = false }) {
+  const salidas = extra ? (Array.isArray(extra) ? extra : [extra]) : []
   return (
     <Hoja titulo={titulo} onCerrar={onCerrar}>
       {/* `notaDebajo` cuando la nota es una frase y no un dato de dos palabras:
@@ -75,11 +78,16 @@ export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, ex
             )}
           </button>
         ))}
-        {extra && (
-          <button type="button" className="eleccion-op nueva" onClick={() => { tap(); extra.onClick() }}>
-            <span className="et">{extra.etiqueta}</span>
+        {salidas.map((s) => (
+          <button
+            key={s.etiqueta}
+            type="button"
+            className="eleccion-op nueva"
+            onClick={() => { tap(); s.onClick() }}
+          >
+            <span className="et">{s.etiqueta}</span>
           </button>
-        )}
+        ))}
       </div>
     </Hoja>
   )

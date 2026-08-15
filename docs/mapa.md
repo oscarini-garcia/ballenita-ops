@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.44.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  875 pruebas en 95 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.45.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  877 pruebas en 95 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -397,3 +397,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.45** Quien administra sí cambia de persona, y «Hoy» invita a decir tu estado → `HoyScreen.jsx`, `db.js`, `identidad.js`
 - **§14.46** Al minuto: los datos se traen y la versión se vigila → `App.jsx`, `engine.js`, `native.js`, `vigilante.js`
 - **§14.47** Pulsar Agenda lleva al calendario, y en un emoji caben tres → `App.jsx`, `EventSettingsScreen.jsx`, `areas.js`, `emojis.js`
+- **§14.48** Un bunga con familia también se corrige → `GrupoSection.jsx`, `Hoja.jsx`
