@@ -3873,6 +3873,32 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   desbordar ni a lo ancho ni a lo alto**. La casilla **no crece**: es la unidad
   de la fila, y una fila más alta por el emoji de alguien descuadra la lista.
 
+### 14.48 Un bunga con familia también se corrige
+
+- **El defecto:** en cuanto un bunga tenía familia, sus datos quedaban escritos
+  para siempre. `EditorBunga` existía desde §14.14 y se abría desde **un solo
+  renglón**, el de «Sueltos»; y «Sueltos» lo pinta `bungasLibres`, que por
+  definición **no incluye** los que ya tienen familia. Desde la ficha de la
+  familia, la pastilla lleva a «¿Qué bunga?», que es *cuál*, no *cómo se llama*.
+  En el Demo los tres bungas tienen familia: hoy no se puede corregir ninguno.
+  Cambiarle el nombre a «Bunga 1» pedía desasignarlo, editarlo y volvérselo a
+  dar, con la cascada de cenas colgando en medio.
+- **✅ La salida vive en esa misma hoja**: bajo la lista, `Editar «El de la
+  piscina»…` junto a `+ Bunga nuevo…`. Es donde se mira justo después de tocar
+  la pastilla, y no cuesta un pixel de la ficha —la hoja mide **433,0 pt** de
+  los 844 de la ventana, con los dos renglones de 48 y sin recorte de la
+  etiqueta (326 px de 326 medidos en navegador)—. No es un lápiz en la
+  pastilla: la pastilla mide lo que mide y ya tiene su verbo.
+- El nombre va **en la etiqueta**: «Editar» a secas, debajo de una lista de
+  cinco bungas, no dice cuál de los cinco.
+- `HojaDeEleccion` admite ahora **una o varias** salidas (`extra` acepta objeto
+  o lista). Elegir de una lista y corregir lo que hay son dos cosas distintas y
+  las dos se buscan en el mismo sitio.
+- **Y la nota de la familia nueva dejó de mentir**: decía «puedes crear uno
+  nuevo desde la misma lista» y esa lista no lleva la salida de N4 —una familia
+  que aún no existe no puede quedarse con nada—. Ahora manda al sitio donde sí
+  se puede: «Guarda esta y créale el suyo desde su pastilla».
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

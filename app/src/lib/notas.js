@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.45.0',
+    fecha: '2026-08-15',
+    titulo: 'Un bunga se puede corregir aunque tenga familia',
+    lineas: [
+      'Toca la pastilla del bunga en la ficha de una familia y ahora, además de cambiárselo, puedes editar el que tiene: su nombre y su mote.',
+      'Hasta ahora solo se podían corregir los bungas que no eran de nadie, así que en cuanto se repartían quedaban escritos para siempre.',
+    ],
+  },
+  {
     version: '0.44.0',
     fecha: '2026-08-15',
     titulo: 'Agenda abre el calendario, y caben tres emojis',

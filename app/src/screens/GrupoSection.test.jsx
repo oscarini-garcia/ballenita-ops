@@ -119,6 +119,45 @@ describe('El grupo — la ficha por familia (G2)', () => {
     })
   })
 
+  // §14.48: un bunga con familia se cae de «Sueltos», que era el único renglón
+  // que abría su editor. Su nombre y su mote quedaban escritos para siempre.
+  it('la hoja de la pastilla lleva al editor del bunga que ya tiene', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+
+    // Bunga 1 es de los García, así que no está en «Sueltos»: no hay más
+    // camino que este.
+    await userEvent.click(await screen.findByText('el de la piscina'))
+    const hoja = within(await screen.findByRole('dialog'))
+    await userEvent.click(hoja.getByRole('button', { name: 'Editar «el de la piscina»…' }))
+
+    expect(await screen.findByText('Editar bunga')).toBeTruthy()
+    const nombre = screen.getByLabelText('Nombre')
+    expect(nombre).toHaveValue('Bunga 1')
+    await userEvent.clear(nombre)
+    await userEvent.type(nombre, 'Bunga 7')
+    const alias = screen.getByLabelText('Alias (opcional)')
+    await userEvent.clear(alias)
+    await userEvent.type(alias, 'el de la barbacoa')
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(async () => {
+      const b = (await bungasOf(eventId)).find((x) => x.name === 'Bunga 7')
+      expect(b?.alias).toBe('el de la barbacoa')
+      // Y sigue siendo de los García: corregir sus datos no lo desasigna.
+      expect(b?.familyId).toBe((await familiesOf(eventId)).find((f) => f.name === 'García').id)
+    })
+  })
+
+  it('una familia sin bunga no ofrece editar ninguno, solo crearlo', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} />)
+    await userEvent.click(await screen.findByText('+ Bunga'))
+    const hoja = within(await screen.findByRole('dialog'))
+    expect(hoja.getByText('+ Bunga nuevo…')).toBeTruthy()
+    expect(hoja.queryByRole('button', { name: /^Editar / })).toBe(null)
+  })
+
   it('crear una persona desde su ficha no pregunta la familia (N2)', async () => {
     const { eventId, garcia } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
