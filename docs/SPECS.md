@@ -3396,6 +3396,48 @@ al día y de sus dos listas de progreso.
   tarjetas siguen siendo cuatro y de lado (`.relnotas`). Lo que cambia es de qué
   cuelgan.
 
+### 14.34-quater «La app» son cuatro hechos y dos botones
+
+Sacadas las novedades (§14.34-ter), lo que quedaba seguía siendo **tres bloques
+con sus tres rótulos, tres estados, tres botones y tres listas de progreso**, y
+cada dato salía **dentro de una frase**: «Versión en curso: v0.50.0. Paquete
+puesto: v0.49.0», «Última actualización: hoy a las 14:03», «Un toque sube lo
+pendiente, trae la última copia del grupo y de paso mira si hay versión nueva».
+Lo que se viene a mirar aquí son cuatro números y un sí o un no, y estaban
+repartidos entre seis párrafos.
+
+- **✅ Una ficha de cuatro renglones** (`.hechos`, rótulo a la izquierda y dato a
+  la derecha): **Binario** · **Paquete OTA** · **Última sincronización** ·
+  **Base de datos**. En el navegador no hay binario ni paquete, así que esos dos
+  se funden en **Versión**, y el renglón lo dice en vez de dejar dos guiones.
+- **Los dos números de versión se enseñan siempre, coincidan o no.** Esa
+  diferencia es justo la que separa «no ha actualizado» de «el binario se ha
+  quedado atrás», y solo se decía —dentro de una frase— cuando no coincidían.
+- **✅ Dos botones, uno por cosa:** «Poner la app al día» y «Poner la base al
+  día». El de la base sale **siempre** para quien administra y va **apagado**
+  cuando no hay nada que aplicar: aparecer solo a veces obliga a saber de
+  antemano si iba a estar, y este apartado se abre justo para buscarlo.
+- **El tercer botón, «Sincronizar todo», se retira.** Hacía exactamente lo mismo
+  que el punto de la cabecera (§14.10) —datos y versión en una pasada—, y ese
+  está en todas las pantallas y con su propia lista de progreso. Aquí se queda
+  **cuándo fue la última**, que es el dato, no el verbo.
+- **La segunda línea de un renglón solo sale cuando hace falta:** qué migraciones
+  faltan, que la sincronización no va bien, que acaba de actualizarse. Un
+  renglón que dice «Al día» no necesita explicarse, y «Al día» debajo de la hora
+  de la última sincronización se lee como ruido.
+- **Se acaba el silencio del primer instante**, que era lo único que §14.37-bis
+  dejó vivo: el renglón de la base existe siempre y solo cambia su palabra —
+  «Preguntando…», «Al día», «1 por detrás», «No se ha podido preguntar», «No te
+  toca»—.
+- **La lista de paquetes se guarda para cuando falla** (§14.37). Es un volcado
+  crudo del plugin y estaba siempre puesta; ahora sale detrás de una respuesta
+  que **no** fue bien, que es el caso para el que se escribió. Su dato útil —la
+  versión del binario— subió al primer renglón.
+- **Medido en Chromium a 390 pt**, en el mismo estado (demostración, navegador,
+  sin sesión, con las tres segundas líneas puestas): el apartado pasa de
+  **657,2 pt a 447,8**. En el móvil de quien administra, con los renglones sin
+  segunda línea, son cuatro de 38.
+
 ### 14.35 Saldos: la familia con su pastilla, y quién paga a quién
 
 Decidido en `docs/diseño/saldos.html` · **F3 · R2 · E1**, más los tres arreglos

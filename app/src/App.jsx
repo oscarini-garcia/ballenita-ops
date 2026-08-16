@@ -470,7 +470,6 @@ export default function App() {
           event={event}
           onPickEvent={pick}
           sync={sync}
-          onSincronizarTodo={sincronizarTodoAhora}
         />
       )}
 

@@ -8,7 +8,7 @@ import {
 import MejorasSection from './MejorasSection.jsx'
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
-import SyncDot, { estadoSync } from '../components/SyncDot.jsx'
+import { estadoSync } from '../components/SyncDot.jsx'
 import { ListaDePasos } from '../components/ProgresoModal.jsx'
 import { formatearHace } from '../lib/hace.js'
 import { NOTAS } from '../lib/notas.js'
@@ -126,115 +126,6 @@ function ListaDePaquetes({ paquetes }) {
         onClick={copiar}
       >{informe}</pre>
       {aviso && <div className="note" role="status">{aviso}</div>}
-    </>
-  )
-}
-
-/**
- * Sincronización, y es el apartado que se abre.
- *
- * Sigue siendo lo que se viene a mirar cuando algo no cuadra, y el botón hace lo
- * mismo que el punto de la cabecera: datos y app en una sola lista
- * (`lib/sincronizarTodo.js`). Tener dos botones que hacen media cosa cada uno
- * obligaba a acertar cuál era tu problema antes de dejarte mirar.
- */
-/**
- * El apartado de Sincronización, con la figura de `garciadoral-ops`: el progreso
- * se pinta **aquí**, debajo del botón, y se queda. No es un modal porque lo que
- * ha ido pasando se lee después —para saber si aquello se subió o no— y una
- * ventana que se cierra no deja nada.
- *
- * El punto de la cabecera sigue abriendo el suyo, porque allí un toque sin
- * respuesta a la vista no diría nada; aquí, con el apartado abierto, la ventana
- * sobra.
- */
-function SyncSection({ sync, onSincronizarTodo }) {
-  const [pasos, setPasos] = useState(null)
-  const [ocupado, setOcupado] = useState(false)
-  const [aviso, setAviso] = useState(null)
-  // La configuración se lee en caliente de config.json, así que llega después
-  // del primer pintado en vez de estar horneada en el bundle.
-  const [detectada, setDetectada] = useState(false)
-  useEffect(() => {
-    if (sync) return undefined
-    let vivo = true
-    hayApi().then((si) => { if (vivo) setDetectada(si) })
-    return () => { vivo = false }
-  }, [sync])
-
-  const estado = sync ?? { isConfigured: detectada, online: true, status: 'idle' }
-  const d = estadoSync(estado)
-  const ultima = estado.ultima ?? null
-
-  // El botón hace el ciclo entero y lo va contando aquí mismo. Lo que ya está
-  // escrito se conserva: sin eso, cada fase borraría el relato de la anterior.
-  async function comprobarAhora() {
-    if (ocupado) return
-    tap()
-    setOcupado(true)
-    setAviso(null)
-    setPasos([])
-    await onSincronizarTodo?.({ alAvanzar: setPasos })
-    setOcupado(false)
-  }
-  // Hay grupo al otro lado, pero este móvil eligió seguir sin entrar.
-  const enLocal = estado.isConfigured && modoLocal() && !leerSesion()
-
-  // La puerta se vuelve a abrir recargando: App decide qué pintar al arrancar y
-  // así no hay dos sitios que recuerden si se entró o no.
-  function volverAIntentarlo() {
-    tap()
-    salirDeModoLocal()
-    window.location.reload()
-  }
-
-  return (
-    <>
-      {/* Los tres bloques de este apartado llevan rótulo (§14.34-bis). Sin
-          ellos, «La app» era una cinta de tres estados, tres botones y tres
-          listas de pasos seguidas, y el de la base de datos —que aparece solo a
-          veces— salía como una coletilla del de la versión. */}
-      <div className="sec-h">Los datos del grupo</div>
-      <div className="card tight">
-        <div className="row">
-          <SyncDot sync={estado} onClick={onSincronizarTodo} />
-          <div className="main">
-            <div className="n">{d.title}</div>
-            <div className="sub">{d.detalle}</div>
-          </div>
-        </div>
-      </div>
-      {/* En palabras y no en cifras: es un dato que se lee para tranquilizarse,
-          y «hoy a las 14:03» tranquiliza de un vistazo. */}
-      <div className="pista">
-        {ultima
-          ? `Última actualización: ${formatearHace(ultima)}.`
-          : 'Todavía no se ha podido actualizar.'}
-      </div>
-
-      <button className="btn block" disabled={ocupado} onClick={comprobarAhora}>
-        {ocupado ? 'Comprobando…' : '↻ Sincronizar todo'}
-      </button>
-
-      {pasos && <ListaDePasos pasos={pasos} onCopiado={setAviso} />}
-      {aviso && <div className="note" role="status">{aviso}</div>}
-      {enLocal && (
-        <>
-          <div className="note">
-            Estás usando Ballena Ops <b>sin entrar</b>: lo que apuntas se queda en este móvil,
-            encolado. En cuanto consigas entrar con Apple sube todo de una vez —no hay que
-            volver a teclear nada—.
-          </div>
-          <button className="btn sm" onClick={volverAIntentarlo}>
-            Probar a entrar con Apple
-          </button>
-        </>
-      )}
-      {!enLocal && (estado.isConfigured ? (
-        <div className="note">Un toque sube lo pendiente, trae la última copia del grupo y de paso mira si hay versión nueva de la app. Lo hace solo al abrir, al volver la conexión y cada poco: esto es para cuando tengas prisa.</div>
-      ) : (
-        <div className="note">Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es donde vive el acceso con Apple.</div>
-      ))}
     </>
   )
 }
@@ -483,126 +374,52 @@ export function EditorEvento({ event, onCerrar }) {
  * de datos a mano para dejar entrar a nadie.
  */
 /**
- * La base de datos, al día desde el móvil (SPECS §14.23).
+ * Un hecho de la app: el rótulo a la izquierda y el dato a la derecha.
  *
- * Las migraciones siguen sin lanzarse solas, pero ya no exigen un portátil:
- * si administras y la base va por detrás del código, aquí sale cuántas le
- * faltan y un botón que las aplica **una a una**, contando el progreso en su
- * sitio con la lista de pasos —la figura de Sincronización—. El SQL no viaja
- * desde el móvil: vive dentro del Worker, y de aquí solo sale «aplica la
- * siguiente».
- *
- * **Y siempre dice en cuál de los cuatro estados está**, que es la corrección de
- * §14.37-bis. El bloque tenía tres formas distintas de no pintar nada —no
- * administras, todavía no ha contestado, o la base ya está al día— y una cuarta
- * que tampoco pintaba nada porque se tragaba su error. Desde el móvil las cuatro
- * se ven igual: no se ve nada. Y quien entra justo a lanzar una migración se
- * queda mirando el hueco donde debería estar el botón sin poder saber cuál de
- * las cuatro le ha tocado. Ahora cada una tiene su renglón; el único silencio
- * que queda es el del primer instante, antes de que conteste la API.
+ * `sub` es la segunda línea, y solo sale cuando hace falta —qué migraciones
+ * faltan, que la sincronización no va bien—: un renglón que dice «Al día» no
+ * necesita explicarse.
  */
-function MigracionesBloque({ esAdmin = false }) {
-  // null = todavía no se sabe (o no hay API): no se pinta nada.
-  const [pendientes, setPendientes] = useState(null)
-  const [pasos, setPasos] = useState(null)
-  const [ocupado, setOcupado] = useState(false)
-  // Por qué no se sabe. La consulta se tragaba su error y el bloque no aparecía:
-  // desde el móvil, «la base está al día» y «no he podido preguntarlo» se ven
-  // exactamente igual —no se ve nada—, y quien viene justo a lanzar una
-  // migración se queda buscando un botón que no existe. Es el mismo principio
-  // del informe de sincronización (§14.9-bis) en el sitio donde faltaba.
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    if (!esAdmin) return undefined
-    let vivo = true
-    leerMigraciones()
-      .then((r) => { if (vivo) setPendientes(r.migraciones.filter((m) => m.pendiente).map((m) => m.id)) })
-      .catch((e) => { if (vivo) setError(String(e.message ?? e)) })
-    return () => { vivo = false }
-  }, [esAdmin])
-
-  async function ponerAlDia() {
-    if (ocupado) return
-    tap()
-    setOcupado(true)
-    const lista = pendientes.map((id) => ({ texto: id, estado: 'pendiente' }))
-    const pinta = () => setPasos([...lista])
-    pinta()
-
-    for (let i = 0; i < lista.length; i += 1) {
-      lista[i].estado = 'curso'
-      pinta()
-      try {
-        const r = await aplicarSiguienteMigracion()
-        lista[i].estado = 'hecho'
-        // Media migración ya estaba (aplicada a mano, a medias): se dice, no se
-        // esconde — un «✓» que ejecutó cero cosas se leería como que las hizo.
-        if (r.aplicada?.saltadas) lista[i].texto = `${lista[i].texto} · ${r.aplicada.saltadas} ya estaban`
-      } catch (e) {
-        // El fallo con su estado HTTP, y el renglón se toca para copiarlo
-        // (§14.9-bis): un error de SQL no se transcribe a mano desde un móvil.
-        lista[i].estado = 'fallo'
-        lista[i].informe = String(e.message ?? e)
-        pinta()
-        setOcupado(false)
-        return
-      }
-      pinta()
-    }
-    setPendientes([])
-    setOcupado(false)
-  }
-
-  // Quien no administra no ve un botón que le iba a devolver un 403 al pulsarlo,
-  // pero sí ve **por qué** no lo ve: si no, buscar el botón que le han dicho que
-  // está aquí es una búsqueda sin final.
-  // El silencio del primer instante es el único que se queda, y por eso el
-  // rótulo va **dentro** y no fuera: un «La base de datos» solo, con el hueco
-  // debajo mientras contesta la API, es la quinta forma de no decir nada
-  // (§14.37-bis).
-  if (esAdmin && pendientes === null && !error) return null
-
-  const titulo = <div className="sec-h">La base de datos</div>
-
-  if (!esAdmin) {
-    return (
-      <>
-        {titulo}
-        <div className="pista">La base de datos la pone al día quien administra el grupo.</div>
-      </>
-    )
-  }
-  if (error) {
-    return (
-      <>
-        {titulo}
-        <pre className="traza mal" role="status">
-          {`No se ha podido preguntar por las migraciones: ${error}`}
-        </pre>
-      </>
-    )
-  }
-
+function Hecho({ titulo, valor, sub }) {
   return (
-    <>
-      {titulo}
-      <div className="pista">
-        {pendientes.length
-          ? `La base de datos va ${pendientes.length === 1 ? '1 migración' : `${pendientes.length} migraciones`} por detrás del código (${pendientes.join(', ')}).`
-          : 'La base de datos está al día.'}
-      </div>
-      {pendientes.length > 0 && (
-        <button className="btn ghost block" disabled={ocupado} onClick={ponerAlDia}>
-          {ocupado ? 'Aplicando…' : 'Poner la base al día'}
-        </button>
-      )}
-      {pasos && <ListaDePasos pasos={pasos} />}
-    </>
+    <div className="hecho">
+      <dt>{titulo}</dt>
+      <dd>
+        {valor}
+        {sub ? <span className="sub">{sub}</span> : null}
+      </dd>
+    </div>
   )
 }
 
-function AppSection({ esAdmin = false }) {
+/**
+ * «La app»: **cuatro hechos y dos botones** (SPECS §14.34-quater).
+ *
+ * Este apartado era tres bloques con sus tres rótulos, tres estados, tres
+ * botones y tres listas de progreso —los datos del grupo, la versión, la base de
+ * datos—, y contaba cada cosa en prosa: «Versión en curso: v0.50.0. Paquete
+ * puesto: v0.49.0», «Un toque sube lo pendiente, trae la última copia…». Lo que
+ * se viene a mirar aquí son cuatro números y un sí o un no, y estaban repartidos
+ * entre seis párrafos.
+ *
+ * Ahora son una ficha de cuatro renglones —**binario · paquete OTA · última
+ * sincronización · base de datos**— y debajo los dos botones que hacen algo:
+ * **poner la app al día** y **poner la base al día**. Cada renglón se lee de un
+ * vistazo y cada botón dice qué mueve.
+ *
+ * **El botón de sincronizar se retira**, que era el tercero. Hacía exactamente
+ * lo mismo que el punto de la cabecera —datos y versión en una pasada, §14.10—,
+ * y ese está en todas las pantallas y con su propia lista de progreso; aquí
+ * quedaba el renglón que dice **cuándo fue la última**, que es lo que se viene a
+ * mirar. Lo que sí se queda son los dos avisos que no son estado sino salida:
+ * «estás sin entrar» con su botón, y «aquí es solo local».
+ *
+ * **La lista de paquetes se guarda para cuando falla** (§14.37). Es un volcado
+ * crudo del plugin y estaba siempre puesta; ahora sale detrás de una respuesta
+ * que **no** fue bien, que es el caso para el que se escribió: «se descarga y no
+ * se queda». Su dato útil —la versión del binario— sube al primer renglón.
+ */
+function AppSection({ sync, esAdmin = false }) {
   // null = en reposo · si no, la clave del paso actual (UPDATE_STEPS).
   const [paso, setPaso] = useState(null)
   const busy = paso !== null
@@ -620,8 +437,8 @@ function AppSection({ esAdmin = false }) {
   // La versión del **paquete que se está ejecutando**, que dentro de la app es la
   // que cuenta: la de `package.json` es la que se horneó en el binario.
   const [enCurso, setEnCurso] = useState(null)
-  // Y lo que el plugin tiene de verdad, que es donde está la respuesta cuando la
-  // app se queda en la versión de antes.
+  // Y lo que el plugin tiene de verdad. De aquí sale la versión del binario, que
+  // es el otro número de la ficha, y el volcado para cuando algo falla.
   const [paquetes, setPaquetes] = useState(null)
   useEffect(() => {
     versionInstalada().then(setEnCurso).catch(() => {})
@@ -636,6 +453,99 @@ function AppSection({ esAdmin = false }) {
     // saber si la actualización llegó a pasar.
     caja.current?.scrollIntoView({ block: 'center' })
   }, [recienActualizada])
+
+  // --- La sincronización, que aquí es un dato y ya no un botón ---------------
+  //
+  // La configuración se lee en caliente de config.json, así que llega después
+  // del primer pintado en vez de estar horneada en el bundle.
+  const [detectada, setDetectada] = useState(false)
+  useEffect(() => {
+    if (sync) return undefined
+    let vivo = true
+    hayApi().then((si) => { if (vivo) setDetectada(si) })
+    return () => { vivo = false }
+  }, [sync])
+  const estado = sync ?? { isConfigured: detectada, online: true, status: 'idle' }
+  const d = estadoSync(estado)
+  const ultima = estado.ultima ?? null
+  // Hay grupo al otro lado, pero este móvil eligió seguir sin entrar.
+  const enLocal = estado.isConfigured && modoLocal() && !leerSesion()
+
+  // La puerta se vuelve a abrir recargando: App decide qué pintar al arrancar y
+  // así no hay dos sitios que recuerden si se entró o no.
+  function volverAIntentarlo() {
+    tap()
+    salirDeModoLocal()
+    window.location.reload()
+  }
+
+  // --- La base de datos ------------------------------------------------------
+  //
+  // Las migraciones siguen sin lanzarse solas (SPECS §14.23), pero ya no exigen
+  // un portátil: si administras y la base va por detrás del código, el renglón
+  // lo dice y el botón las aplica **una a una**, contando el progreso debajo. El
+  // SQL no viaja desde el móvil: vive dentro del Worker, y de aquí solo sale
+  // «aplica la siguiente».
+  //
+  // null = todavía no se sabe. `errorBd` es por qué no se sabe: la consulta se
+  // tragaba su error y el bloque no aparecía, y desde el móvil «la base está al
+  // día» y «no he podido preguntarlo» se ven exactamente igual (§14.37-bis).
+  const [pendientes, setPendientes] = useState(null)
+  const [pasosBd, setPasosBd] = useState(null)
+  const [ocupadoBd, setOcupadoBd] = useState(false)
+  const [errorBd, setErrorBd] = useState(null)
+  useEffect(() => {
+    if (!esAdmin) return undefined
+    let vivo = true
+    leerMigraciones()
+      .then((r) => { if (vivo) setPendientes(r.migraciones.filter((m) => m.pendiente).map((m) => m.id)) })
+      .catch((e) => { if (vivo) setErrorBd(String(e.message ?? e)) })
+    return () => { vivo = false }
+  }, [esAdmin])
+
+  async function ponerLaBaseAlDia() {
+    if (ocupadoBd || !pendientes?.length) return
+    tap()
+    setOcupadoBd(true)
+    const lista = pendientes.map((id) => ({ texto: id, estado: 'pendiente' }))
+    const pinta = () => setPasosBd([...lista])
+    pinta()
+
+    for (let i = 0; i < lista.length; i += 1) {
+      lista[i].estado = 'curso'
+      pinta()
+      try {
+        const r = await aplicarSiguienteMigracion()
+        lista[i].estado = 'hecho'
+        // Media migración ya estaba (aplicada a mano, a medias): se dice, no se
+        // esconde — un «✓» que ejecutó cero cosas se leería como que las hizo.
+        if (r.aplicada?.saltadas) lista[i].texto = `${lista[i].texto} · ${r.aplicada.saltadas} ya estaban`
+      } catch (e) {
+        // El fallo con su estado HTTP, y el renglón se toca para copiarlo
+        // (§14.9-bis): un error de SQL no se transcribe a mano desde un móvil.
+        lista[i].estado = 'fallo'
+        lista[i].informe = String(e.message ?? e)
+        pinta()
+        setOcupadoBd(false)
+        return
+      }
+      pinta()
+    }
+    setPendientes([])
+    setOcupadoBd(false)
+  }
+
+  /** El renglón de la base: los cinco estados, cada uno con su palabra. */
+  const laBase = () => {
+    if (!esAdmin) return { valor: 'No te toca', sub: 'La pone al día quien administra.' }
+    if (errorBd) return { valor: 'No se ha podido preguntar', sub: errorBd }
+    if (pendientes === null) return { valor: 'Preguntando…' }
+    if (!pendientes.length) return { valor: 'Al día' }
+    return {
+      valor: pendientes.length === 1 ? '1 por detrás' : `${pendientes.length} por detrás`,
+      sub: pendientes.join(', '),
+    }
+  }
 
   async function actualizar() {
     if (busy) return
@@ -677,38 +587,48 @@ function AppSection({ esAdmin = false }) {
     })
   }
 
+  const base = laBase()
+
   return (
     <div ref={caja}>
-      {/* Dos renglones, un botón y lo que va pasando debajo, como en
-          `garciadoral-ops`. Antes esto era una ficha con dibujo de ballena, un
-          rótulo, la versión en grande y **un modal encima de la pantalla**: el
-          modal tapaba justo lo que se venía a mirar, obligaba a un «Ok» para
-          seguir y se llevaba por delante lo que había contado en cuanto se
-          cerraba. Contado en su sitio se queda ahí y se puede releer.
+      {/* Los cuatro hechos, en una ficha y sin prosa. Dentro de la app hay dos
+          números y no siempre coinciden —el que se horneó en el binario y el del
+          paquete OTA puesto encima—, y esa diferencia es justo la que separa «no
+          ha actualizado» de «se ha quedado atrás el binario». Antes iban en una
+          frase, y solo cuando no coincidían. */}
+      <dl className="hechos" aria-label="Cómo está la app">
+        {isNative() ? (
+          <>
+            <Hecho titulo="Binario" valor={paquetes?.nativa ? `v${paquetes.nativa}` : '—'} />
+            <Hecho
+              titulo="Paquete OTA"
+              valor={enCurso && enCurso !== 'builtin' ? `v${enCurso}` : 'Ninguno'}
+              sub={recienActualizada ? 'Recién actualizada ✓' : null}
+            />
+          </>
+        ) : (
+          <Hecho
+            titulo="Versión"
+            valor={`v${APP_VERSION}`}
+            // En la web no hay binario ni paquete: la versión es la que sirve el
+            // servidor, y se pone al día recargando.
+            sub={recienActualizada ? 'Recién actualizada ✓' : 'En la web no hay paquete OTA.'}
+          />
+        )}
+        <Hecho
+          titulo="Última sincronización"
+          valor={ultima ? formatearHace(ultima) : 'Todavía ninguna'}
+          // El estado solo cuando **no** es «Al día»: si algo va mal, el renglón
+          // que dice cuándo fue la última buena se lee como que todo va bien.
+          sub={d.title === 'Al día' ? null : d.title}
+        />
+        <Hecho titulo="Base de datos" valor={base.valor} sub={base.sub} />
+      </dl>
 
-          **Y los dos «al día» se escriben igual** (SPECS §14.34-bis): rótulo,
-          en qué estado está, el botón, y el progreso debajo. Este bloque tenía
-          las novedades metidas entre el estado y su propio botón, así que de
-          los dos que hacen lo mismo —poner la app al día y poner la base al
-          día— uno salía partido en dos y el otro entero. */}
-      {/* «La versión» y no «La app»: el acordeón que lo contiene ya se llama
-          así, y un rótulo que repite el de su apartado no dice dónde estás. */}
-      <div className="sec-h">La versión</div>
-      <div className="pista">
-        Versión en curso: <b className="tnum">v{APP_VERSION}</b>.
-        {/* Dentro de la app hay dos números y no siempre coinciden: el que se
-            horneó en el binario y el del paquete OTA que está puesto encima.
-            Cuando difieren, decirlo es la diferencia entre «no ha actualizado» y
-            saber cuál de los dos se ha quedado atrás. */}
-        {enCurso && enCurso !== APP_VERSION ? ` Paquete puesto: v${enCurso}.` : ''}
-        {recienActualizada ? ' Recién actualizada ✓' : ''}
-      </div>
-      <div className="pista">
-        {isNative()
-          ? 'El paquete nuevo se descarga aquí y se aplica al volver a abrir la app.'
-          : 'Estás en la versión web, que se actualiza sola al recargar.'}
-      </div>
-
+      {/* Y los dos botones, uno por cosa. El de la base sale siempre para quien
+          administra —y apagado cuando no hay nada que aplicar—: aparecer solo a
+          veces obliga a saber de antemano si iba a estar, y este apartado se
+          abre justo para buscarlo. */}
       <button className="btn ghost block" disabled={busy} onClick={actualizar}>
         {busy ? 'Comprobando…' : 'Poner la app al día'}
       </button>
@@ -734,15 +654,45 @@ function AppSection({ esAdmin = false }) {
         <pre className={`traza ${respuesta.bien ? 'bien' : 'mal'}`} role="status">{respuesta.texto}</pre>
       )}
 
-      {/* Los paquetes que hay bajados y en qué estado. Cuando la app se queda en
-          la versión de antes no había **nada** que mirar: el manifiesto decía
-          una cosa, el release estaba publicado, el zip constaba descargado, y la
-          pantalla seguía con el número viejo. Un paquete en `error` es el plugin
-          devolviéndolo —hace rollback si el nuevo no llama a `notifyAppReady()`
-          a tiempo—, y eso desde fuera se ve igual que «no se ha bajado». */}
-      {paquetes && <ListaDePaquetes paquetes={paquetes} />}
+      {/* Los paquetes que hay bajados y en qué estado, **solo cuando la
+          actualización no ha ido bien** (§14.37). Un paquete en `error` es el
+          plugin devolviéndolo —hace rollback si el nuevo no llama a
+          `notifyAppReady()` a tiempo—, y eso desde fuera se ve igual que «no se
+          ha bajado». Es lo único que hay para distinguirlos, y no hace falta
+          verlo el resto del tiempo. */}
+      {respuesta && !respuesta.bien && paquetes && <ListaDePaquetes paquetes={paquetes} />}
 
-      <MigracionesBloque esAdmin={esAdmin} />
+      {esAdmin && (
+        <button
+          className="btn ghost block"
+          disabled={ocupadoBd || !pendientes?.length}
+          onClick={ponerLaBaseAlDia}
+        >
+          {ocupadoBd ? 'Aplicando…' : 'Poner la base al día'}
+        </button>
+      )}
+      {pasosBd && <ListaDePasos pasos={pasosBd} />}
+
+      {/* Y las dos salidas, que no son estado sino qué hacer al respecto. */}
+      {enLocal && (
+        <>
+          <div className="note">
+            Estás usando Ballena Ops <b>sin entrar</b>: lo que apuntas se queda en este móvil,
+            encolado. En cuanto consigas entrar con Apple sube todo de una vez —no hay que
+            volver a teclear nada—.
+          </div>
+          <button className="btn sm" onClick={volverAIntentarlo}>
+            Probar a entrar con Apple
+          </button>
+        </>
+      )}
+      {!enLocal && !estado.isConfigured && (
+        <div className="note">
+          Aquí Ballena Ops es <b>solo local</b>: todo funciona igual, pero se queda en este
+          dispositivo. Compartir gastos con el grupo requiere la <b>app de iOS</b>, que es
+          donde vive el acceso con Apple.
+        </div>
+      )}
     </div>
   )
 }
@@ -790,7 +740,7 @@ function NovedadesSection() {
  * barra inferior para algo que se mira al volver del viaje, y ahora son un
  * apartado como los demás.
  */
-export default function EventSettingsScreen({ eventId, event, onPickEvent, sync, onSincronizarTodo }) {
+export default function EventSettingsScreen({ eventId, event, onPickEvent, sync }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const { me } = useIdentidad(eventId, persons)
@@ -860,8 +810,7 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
           en una pasada (datos + versión, §14.10)—, así que aquí van juntas y el
           apartado se llama por lo que es: la app (SPECS §14.41). */}
       <Acordeon titulo="La app" icono="sincronizar" nota={`v${APP_VERSION}`}>
-        <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
-        <AppSection esAdmin={esAdmin} />
+        <AppSection sync={sync} esAdmin={esAdmin} />
       </Acordeon>
 
       {/* Y detrás, en su propio apartado, lo que trajo cada versión (§14.34-ter).

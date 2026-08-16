@@ -16,7 +16,7 @@
  */
 export const NOTAS = [
   {
-    version: '0.52.0',
+    version: '0.53.0',
     fecha: '2026-08-16',
     titulo: 'Los bungas se cuentan solos',
     lineas: [
@@ -25,6 +25,17 @@ export const NOTAS = [
       'Los bungas admiten comentarios, como los planes y los gastos. Avisan a la familia que duerme ahí y a quien ya escribió en el hilo, y tocar el aviso abre ese bunga.',
       'Y en la lista, de quién es cada uno se ve por el emoji y las dos letras de su familia, que es como se firman las ideas y los votos.',
       'El estado de la familia se retira: quien dice en qué anda es cada persona, y el de la casa lo ponía uno en junio y ahí se quedaba.',
+    ],
+  },
+  {
+    version: '0.52.0',
+    fecha: '2026-08-16',
+    titulo: '«La app», de seis párrafos a cuatro renglones',
+    lineas: [
+      'Ajustes → 🐳 La app es ahora una ficha de cuatro datos —la versión del binario, la del paquete OTA, cuándo fue la última sincronización y si la base de datos está al día— y dos botones: poner la app al día y poner la base al día.',
+      'Los dos números de versión salen siempre, coincidan o no: esa diferencia es la que distingue «no ha actualizado» de «el binario se ha quedado atrás», y antes solo se decía dentro de una frase.',
+      'El botón de la base ya no aparece y desaparece: está siempre y se apaga cuando no hay nada que aplicar. Y el renglón dice en qué estado está en vez de dejar el hueco en blanco mientras pregunta.',
+      'Se retira «Sincronizar todo», que hacía lo mismo que el punto verde de la cabecera —y ese está en todas las pantallas—. Aquí se queda el dato: cuándo fue la última.',
     ],
   },
   {
