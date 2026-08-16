@@ -2035,10 +2035,10 @@ contando el verde de la pastilla, el rojo de «borrar», el azul del enlace y lo
 tres emoji de voto.
 
 **El reparto.** Aquí solo se vota. **El día se pone en Agenda**, tocando el día
-del viaje, que es donde está el calendario y donde ya se podía. Lo de administrar
-—devolver un plan al catálogo— vive dentro del plan abierto y solo lo ve quien
-administra. Cada plan queda en una fila de **70,7 pt**: caben ocho, y los colores
-bajan a tres.
+del viaje, que es donde está el calendario y donde ya se podía. Lo de organizar
+—devolver un plan al catálogo— vive dentro del plan abierto y lo ven **los
+adultos** (§14.43-bis; hasta entonces, solo quien administra). Cada plan queda en
+una fila de **70,7 pt**: caben ocho, y los colores bajan a tres.
 
 **Y un plan no se crea en esta pantalla: sale de proponer una idea.** Había un
 «+ Plan» con su propio formulario, así que un plan podía nacer por dos caminos —
@@ -3761,6 +3761,30 @@ apartan cenas y planes de todo el grupo (§14.10-quater), las cambiaba cualquier
   aparta cenas y planes de todos.
 - **Sin sesión no se capa nada** —libreta local y demostración—, como en todo lo
   demás: ahí el viaje es de quien tiene el móvil en la mano.
+
+### 14.43-bis Devolver un plan al catálogo también es organizar
+
+- **El defecto:** «Devolver a ideas» —dentro del plan abierto— iba por
+  `esAdministrador`, y proponer una idea iba por `puedeOrganizar` desde §14.43.
+  Son **los dos sentidos del mismo movimiento**, y con dos reglas distintas
+  cualquier adulto podía traer una idea al viaje y **nadie más que quien
+  administra** podía deshacerlo. Quien lo trajo por error no podía retirarlo:
+  tenía que pedírselo a otro.
+- **✅ Pasa a `puedeOrganizar`** (`screens/PlanesScreen.jsx`). Los dos cerrojos
+  de la app resuelven cosas distintas y aquí se habían cruzado:
+  `esAdministrador` es el del **grupo** —quién entra, quién es quién, las fechas
+  del evento, la clave de la IA—, y `puedeOrganizar` es el del **viaje** —el
+  dinero, las cenas, los planes y el día—. Un plan del viaje es de los segundos.
+- **La identidad se saca de la persona, no de la sesión.** La pantalla ya tenía
+  `useIdentidad` para votar, pero solo le pedía el `meId`; el predicado necesita
+  la fila entera, porque lo que decide es la **edad** (`EDADES.organiza`).
+- **Y de paso se destapa donde no había que capar nada**: con `esAdministrador`,
+  la libreta local y la demostración —que no tienen sesión— no enseñaban el
+  botón a nadie. `puedeOrganizar` no capa sin identidad, que es la regla de
+  §14.43 y la de toda la app.
+- **Votar sigue siendo de todos**, incluido el niño que no puede devolverlo: es
+  el mismo reparto de §14.43 —opinar es de todos, escribir lo que organiza el
+  viaje es de los adultos—.
 
 ### 14.44 Los estados, uno debajo de otro; el recado, bajo el selector
 

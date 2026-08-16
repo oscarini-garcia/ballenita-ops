@@ -7,8 +7,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { plansOf, updatePlan, personsOf, familiesOf, devolverPlanAIdea } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
-import { esAdministrador } from '../lib/admin.js'
-import { leerSesion } from '../auth/sesion.js'
+import { puedeOrganizar } from '../lib/personas.js'
 import { porDia } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
 import { tap } from '../lib/native.js'
@@ -48,10 +47,17 @@ export default function PlanesScreen({ eventId, event }) {
   const plans = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
-  const { meId: me } = useIdentidad(eventId, persons)
+  const { meId: me, me: yo } = useIdentidad(eventId, persons)
   const [abierto, setAbierto] = useState(null)
 
-  const esAdmin = esAdministrador(leerSesion())
+  // **Devolver un plan al catálogo lo hacen los adultos** (SPECS §14.43-bis).
+  // Estaba en `esAdministrador`, que es el cerrojo del **grupo** —quién entra,
+  // quién es quién, las fechas del evento— y aquí no pintaba nada: devolver una
+  // propuesta es organizar el viaje, lo mismo que proponerla, y proponer ya iba
+  // por `puedeOrganizar` desde §14.43. Con dos reglas para los dos sentidos del
+  // mismo movimiento, cualquier adulto podía traer una idea al viaje y **nadie
+  // más que el administrador** podía deshacerlo.
+  const organiza = puedeOrganizar(yo)
 
   // Lo que se cayó fuera de las fechas sigue apartado (§14.10-quater): un plan en
   // un día que el viaje ya no tiene no es un plan elegido.
@@ -150,7 +156,7 @@ export default function PlanesScreen({ eventId, event }) {
           families={families}
           me={me}
           evento={event}
-          esAdmin={esAdmin}
+          organiza={organiza}
           onClose={() => setAbierto(null)}
         />
       )}
@@ -159,8 +165,8 @@ export default function PlanesScreen({ eventId, event }) {
 }
 
 /**
- * El plan abierto: se vota, se ve quién ha votado qué, y quien administra puede
- * devolverlo al catálogo.
+ * El plan abierto: se vota, se ve quién ha votado qué, y los adultos pueden
+ * devolverlo al catálogo (§14.43-bis).
  *
  * **Se ve como una capa** (`docs/diseño/plan-voto.html` · P1 · F1+F4 · V2):
  * centrado, con el papel de las tarjetas, borde y sombra, y el velo un punto más
@@ -188,7 +194,7 @@ export default function PlanesScreen({ eventId, event }) {
  * ahí es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
  * gastaba 34 pt en decir lo mismo dos pantallas seguidas.
  */
-function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) {
+function PlanAbierto({ plan, persons, families, me, evento, organiza, onClose }) {
   useBloqueoDeScroll()
   const [confirmando, setConfirmando] = useState(false)
 
@@ -266,7 +272,7 @@ function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) 
           El día se pone en <b>Agenda</b>, tocando el día del viaje. Aquí solo se vota.
         </div>
 
-        {esAdmin && (
+        {organiza && (
           <div style={{ marginTop: 10 }}>
             {confirmando ? (
               <>

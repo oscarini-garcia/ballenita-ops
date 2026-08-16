@@ -376,7 +376,9 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   estado lo escribe un solo sitio (`ponerEstado`, en `db.js`). Y los cerrojos de pantalla, todos con la misma guarda —**sin sesión (libreta local,
   demostración) no se capa nada**—: **organizar el viaje es de los adultos** (§14.43,
   `puedeOrganizar`, un solo predicado sobre la columna `organiza` de `EDADES`) —gastos y
-  liquidaciones, montar y borrar cenas, «Proponer» una idea y los tres renglones del día—,
+  liquidaciones, montar y borrar cenas, «Proponer» una idea, **devolverla al catálogo**
+  (§14.43-bis: iba por `esAdministrador`, y son los dos sentidos del mismo movimiento) y
+  los tres renglones del día—,
   mientras **votar, apuntar ideas, marcar la compra y mirarlo todo siguen siendo de todos**;
   **El grupo y el evento los edita quien administra** (miembro = censo y ficha de solo lectura);
   y Sincronización + Actualizar son un solo acordeón, **«La app»**, con la versión en el rótulo.

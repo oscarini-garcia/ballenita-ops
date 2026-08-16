@@ -9,7 +9,7 @@ import { db, createEvent, getEvent, addPerson, addFamily, addPlan, plansOf, list
  *
  * Lo que fijan estos tests es lo que se puede romper sin que se note: que el
  * día no se toca desde aquí, que el orden significa algo, que la fila dice
- * quién falta y que devolver a ideas es solo de quien administra.
+ * quién falta y que devolver a ideas lo hacen los adultos (§14.43-bis).
  */
 async function viaje() {
   const eventId = await createEvent({ name: 'Viaje', startDate: '2026-08-15', endDate: '2026-08-22' })
@@ -189,8 +189,12 @@ describe('el plan abierto', () => {
     expect(votantes.map((v) => v.textContent).sort()).toEqual(['🍷AnaPE', '🎉LuisSO', '🏖️CurroGA'].sort())
   })
 
-  it('sin ser administrador no se puede devolver a ideas', async () => {
+  // El cerrojo es la edad y no el rol: devolver una propuesta es organizar el
+  // viaje, igual que proponerla (§14.43-bis).
+  it('con identidad de niño no se puede devolver a ideas', async () => {
     const { eventId, event } = await viaje()
+    const fran = await addPerson(eventId, { name: 'Fran', edad: 'niño' })
+    localStorage.setItem(`ballena.me:${eventId}`, fran)
     await addPlan(eventId, { titulo: 'Cuevas' })
 
     render(<PlanesScreen eventId={eventId} event={event} />)
@@ -198,8 +202,8 @@ describe('el plan abierto', () => {
     expect(screen.queryByRole('button', { name: 'Devolver a ideas' })).not.toBeInTheDocument()
   })
 
-  it('quien administra lo devuelve, y la idea se queda en el catálogo', async () => {
-    localStorage.setItem('ballena.sesion', JSON.stringify({ token: 't', cuenta: { rol: 'administrador' } }))
+  it('un adulto que no administra lo devuelve, y la idea se queda en el catálogo', async () => {
+    localStorage.setItem('ballena.sesion', JSON.stringify({ token: 't', cuenta: { rol: 'miembro' } }))
     const { eventId, event } = await viaje()
     await addPlanIdea({ titulo: 'Cuevas' })
     await traerIdeaAlViaje(eventId, (await listPlanIdeas())[0])
@@ -217,7 +221,6 @@ describe('el plan abierto', () => {
   })
 
   it('un plan escrito a mano se guarda como idea antes de irse', async () => {
-    localStorage.setItem('ballena.sesion', JSON.stringify({ token: 't', cuenta: { rol: 'administrador' } }))
     const { eventId, event } = await viaje()
     await addPlan(eventId, { titulo: 'Petanca', descripcion: 'En la pista' })
 
