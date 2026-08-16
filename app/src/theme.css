@@ -332,6 +332,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .acor-ido .main .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
 .acor-ido .v { color: var(--ink-faint); font-size: 18px; flex: none; }
 
+/* El resumen con guasa de un bunga (§14.66). Dentro de su pantalla va en una
+   tarjeta, para que se lea como lo que es —una frase sobre el sitio— y no como
+   otro campo del formulario. El viejo se apaga y se dice por qué: esconderlo
+   dejaría la ficha peor que antes, sin frase y sin saber que la hubo. */
+.resumen-bunga { background: var(--foam-2); border: 1px solid var(--line-soft);
+  border-radius: var(--r); padding: 10px 12px; margin-top: 4px; }
+.resumen-bunga.viejo { border-left: 3px solid var(--gold); }
+.rb-frase { display: block; font-size: var(--t-row); line-height: 1.4; }
+.rb-viejo { display: block; margin-top: 5px; font-size: var(--t-micro); color: var(--ink-faint); }
+/* En la lista, la frase desfasada se apaga un punto: sigue diciendo casi todo,
+   pero no lo último. */
+.row .sub.viejo { opacity: .72; font-style: italic; }
+/* La pastilla de quién lo tiene: el emoji de la familia y su alias, que es la
+   misma pareja que firma una idea y un voto. */
+.pastilla.de-quien { display: inline-flex; align-items: center; gap: 5px; }
+.pastilla.de-quien .cara { font-size: var(--t-sub); line-height: 1; }
+
 /* El recordatorio de los avisos (SPECS §14.65). Tarjeta y no `note`: pide algo,
    y una nota gris se lee como una explicación de algo que ya has hecho. Lleva
    el ámbar de «pendiente» (§14.32) y no el rojo, que aquí es deuda y borrar. */

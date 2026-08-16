@@ -36,7 +36,9 @@
     "migrar:local17": "wrangler d1 execute ballena-ops --local --file=migraciones/0017_enlace_de_acceso.sql",
     "migrar:remoto17": "wrangler d1 execute ballena-ops --remote --file=migraciones/0017_enlace_de_acceso.sql",
     "migrar:local18": "wrangler d1 execute ballena-ops --local --file=migraciones/0018_receta_del_plato.sql",
-    "migrar:remoto18": "wrangler d1 execute ballena-ops --remote --file=migraciones/0018_receta_del_plato.sql"
+    "migrar:remoto18": "wrangler d1 execute ballena-ops --remote --file=migraciones/0018_receta_del_plato.sql",
+    "migrar:local19": "wrangler d1 execute ballena-ops --local --file=migraciones/0019_resumen_del_bunga.sql",
+    "migrar:remoto19": "wrangler d1 execute ballena-ops --remote --file=migraciones/0019_resumen_del_bunga.sql"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

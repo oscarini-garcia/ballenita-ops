@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.53.0',
+    fecha: '2026-08-16',
+    titulo: 'Los bungas se cuentan solos',
+    lineas: [
+      'En Grupo → Bungas, cada uno lleva debajo una frase con guasa que resume sus pegatinas y sus notas: cuál es el bueno se ve sin abrir los seis.',
+      'La escribe la IA sola, en cuanto cambias una nota o una pegatina dentro del bunga, y se guarda con el sitio: la rehace quien lo toca y la leemos todos. No hay que acordarse de pulsar nada.',
+      'Los bungas admiten comentarios, como los planes y los gastos. Avisan a la familia que duerme ahí y a quien ya escribió en el hilo, y tocar el aviso abre ese bunga.',
+      'Y en la lista, de quién es cada uno se ve por el emoji y las dos letras de su familia, que es como se firman las ideas y los votos.',
+      'El estado de la familia se retira: quien dice en qué anda es cada persona, y el de la casa lo ponía uno en junio y ahí se quedaba.',
+    ],
+  },
+  {
     version: '0.52.0',
     fecha: '2026-08-16',
     titulo: '«La app», de seis párrafos a cuatro renglones',

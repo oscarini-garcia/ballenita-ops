@@ -282,6 +282,19 @@ export const estadosSugeridos = ({ eventId, hoy }) =>
  * La figura de «Mejorarla» de una idea: lo que vuelve **rellena el campo** y no
  * guarda nada — se puede deshacer y Guardar sigue siendo el botón de siempre.
  */
+/**
+ * El bunga, resumido en una frase con guasa (§14.66).
+ *
+ * Se manda lo que hay escrito en él —sus pegatinas y sus notas— y vuelve la
+ * frase. No se guarda sola: quien llama la escribe en el alojamiento, que es
+ * donde vive lo que no cambia de un año a otro.
+ */
+export const resumenDeBunga = ({ nombre, alias, notas, pegatinas }) =>
+  peticion('/api/bunga/resumen', {
+    method: 'POST',
+    body: JSON.stringify({ nombre, alias, notas, pegatinas }),
+  }).then((r) => r.resumen || null)
+
 export const estadoConGracia = ({ emoji, texto }) =>
   peticion('/api/estados/gracia', {
     method: 'POST',

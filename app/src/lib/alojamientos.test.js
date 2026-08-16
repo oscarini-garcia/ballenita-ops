@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { conPegatina, historicoDe, pegatinasPuestas, resumenDelHistorico } from './alojamientos.js'
+import {
+  conPegatina, hayQueResumir, historicoDe, huellaDelSitio, pegatinasPuestas, resumenDelHistorico, resumenDelSitio,
+} from './alojamientos.js'
 
 const EVENTOS = [
   { id: 'e24', name: 'Playa 2024', startDate: '2024-08-10' },
@@ -79,5 +81,49 @@ describe('el bunga como sitio (§14.56)', () => {
     const catalogo = [{ id: 'a' }, { id: 'b' }, { id: 'c' }]
     // Dos bungas con las mismas tres pegatinas tienen que verse iguales.
     expect(pegatinasPuestas(['c', 'a'], catalogo).map((p) => p.id)).toEqual(['a', 'c'])
+  })
+})
+
+/**
+ * El resumen con guasa (§14.66). Lo que se prueba es la parte que decide si una
+ * frase **sigue diciendo la verdad**: sin eso, un resumen escrito antes de
+ * «se ha roto el aire» se lee igual de convincente que uno recién hecho.
+ */
+describe('el resumen del sitio', () => {
+  const sitio = { notas: 'la nevera congela', pegatinas: ['nevera', 'bichos'] }
+
+  it('la huella no cambia por el orden de las pegatinas ni por un espacio', () => {
+    expect(huellaDelSitio({ notas: 'la nevera congela  ', pegatinas: ['bichos', 'nevera'] }))
+      .toBe(huellaDelSitio(sitio))
+  })
+
+  it('y sí cambia en cuanto se apunta algo', () => {
+    expect(huellaDelSitio({ ...sitio, notas: 'la nevera congela. y se ha roto el aire' }))
+      .not.toBe(huellaDelSitio(sitio))
+    expect(huellaDelSitio({ ...sitio, pegatinas: ['nevera'] })).not.toBe(huellaDelSitio(sitio))
+  })
+
+  it('sin frase no hay nada que decir', () => {
+    expect(resumenDelSitio(null)).toBe(null)
+    expect(resumenDelSitio({ ...sitio, resumen: '   ' })).toBe(null)
+  })
+
+  it('una frase escrita con lo que hay ahora está vigente', () => {
+    const con = { ...sitio, resumen: 'nevera de sobra y bichos de propina', resumenDe: huellaDelSitio(sitio) }
+    expect(resumenDelSitio(con)).toEqual({ frase: 'nevera de sobra y bichos de propina', vigente: true })
+  })
+
+  // Se sigue enseñando, marcada: esconderla dejaría la fila peor que antes
+  // —sin frase y sin saber que la hubo—.
+  it('una escrita antes de la última nota se enseña, pero marcada', () => {
+    const con = { ...sitio, resumen: 'nevera de sobra', resumenDe: 'huella_vieja' }
+    expect(resumenDelSitio(con)).toEqual({ frase: 'nevera de sobra', vigente: false })
+  })
+
+  it('con el sitio en blanco no hay nada que resumir: el modelo se lo inventaría', () => {
+    expect(hayQueResumir({ notas: '', pegatinas: [] })).toBe(false)
+    expect(hayQueResumir({ notas: '  ' })).toBe(false)
+    expect(hayQueResumir({ pegatinas: ['nevera'] })).toBe(true)
+    expect(hayQueResumir({ notas: 'chirría el sofá' })).toBe(true)
   })
 })

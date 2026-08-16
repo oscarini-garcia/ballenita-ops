@@ -205,6 +205,19 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cinco desenlaces del OTA **no son un fallo** (`otaFueBien`) y salían en rojo por llamarse
   `fallo` la variable; y el bloque de migraciones **se callaba** al no poder preguntar, que
   desde el móvil se lee igual que «está al día».
+- **Un bunga se resume en una frase, y se comenta** (SPECS §14.66, `api/src/bunga.js`):
+  las pegatinas y las notas del sitio vivían **dentro** de su pantalla, así que «cuál es el
+  bueno» —la pregunta que se hace al repartirlos— no se contestaba sin abrir los seis. El
+  modelo escribe una frase que **dice lo que hay** además de tener guasa; entra **por un
+  botón** (§14.19-bis) y se guarda **en el sitio** (`alojamientos.resumen`, migración `0019`),
+  así que la pide uno y la leen los nueve. `resumenDe` es la huella de las notas con que se
+  escribió: una frase anterior a «se ha roto el aire» **se enseña marcada**, no se esconde.
+  Comentarios como en un plan (§14.55), avisando **a la familia que duerme ahí**; y la
+  pastilla dice de quién es con **emoji + alias** (`Alias.jsx`). **El botón se retiró a
+  petición** (§14.66-bis): la frase se rehace sola al cambiar una nota o una pegatina, y lo
+  que impide que sean nueve llamadas es que eso vive **dentro de la pantalla del bunga** —la
+  que abre quien lo toca—, con huella, respiro de 1,5 s y un solo intento por huella. El **estado de la familia se
+  retira**: quien dice en qué anda es cada persona.
 - **Los avisos se recuerdan, no se vuelven a pedir** (SPECS §14.65,
   `lib/recordatorioDeAvisos.js`): el permiso se pide en Ajustes y no al arrancar, y quien no
   pasa por ahí no lo enciende nunca. «Hoy» lo recuerda **cada siete días** —donde ya estabas,
