@@ -46,7 +46,8 @@
 import { verificarTokenDeApple } from './apple.js';
 import { enviarAviso, hayApnsConfigurado } from './apns.js';
 import {
-  CLASES_DE_AVISO, ES_CLASE, avisoDeEstado, avisoDeGasto, avisoDeLiquidacion, elGastoMueveElSaldo,
+  CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGastoBorrado,
+  avisoDeLiquidacion, avisosDeGasto, elGastoMueveElSaldo,
 } from './avisos.js';
 import {
   coincideEnTiempoConstante, emitirPaseDeEspera, emitirSesion, verificarPaseDeEspera, verificarSesion,
@@ -540,17 +541,44 @@ async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuent
   const sobres = [];
   for (const [i, cambio] of cambios.entries()) {
     const resultado = resultados[i];
-    if (!resultado?.aplicado || cambio?.op === 'borrar') continue;
+    if (!resultado?.aplicado) continue;
     const campos = cambio.campos || {};
 
+    // **Un borrado también avisa, y solo a quien lleva las cuentas** (§14.58 ·
+    // L6). Hasta hoy este bucle se saltaba los borrados enteros: la regla era
+    // «se avisa de lo que mueve el saldo» y nadie se paró a ver que un gasto
+    // borrado lo mueve hacia atrás. Se usa `resultado.anterior`, que es la fila
+    // tal como estaba: después de aplicarlo ya no hay de dónde sacar ni el
+    // nombre ni el importe.
+    if (cambio?.op === 'borrar') {
+      if (cambio.tabla === 'expenses' && resultado.anterior) {
+        sobres.push(avisoDeGastoBorrado(resultado.anterior, { personas, moneda, autor }));
+      }
+      continue;
+    }
+
     if (cambio.tabla === 'expenses' && elGastoMueveElSaldo(resultado.anterior, campos)) {
-      sobres.push(avisoDeGasto({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
+      // Dos sobres como mucho, y nunca dos avisos a la misma persona: quien
+      // lleva las cuentas y además le toca el gasto recibe uno solo.
+      sobres.push(...avisosDeGasto({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
     }
     if (cambio.tabla === 'settlements' && resultado.nuevo) {
       sobres.push(avisoDeLiquidacion({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
     }
     if (cambio.tabla === 'persons') {
       sobres.push(avisoDeEstado({ id: cambio.id, ...campos }, resultado.anterior, { autor }));
+    }
+    // Un comentario **nuevo**, no uno corregido: arreglar una falta de ortografía
+    // no es algo de lo que enterar a nadie, y es la misma regla que ya separa un
+    // gasto que mueve el saldo de uno al que se le toca la descripción.
+    if (cambio.tabla === 'comentarios' && !resultado.anterior) {
+      sobres.push(avisoDeComentario({ id: cambio.id, ...campos }, {
+        personas,
+        planes: instantanea?.plans ?? [],
+        gastos: instantanea?.expenses ?? [],
+        hilo: instantanea?.comentarios ?? [],
+        autor,
+      }));
     }
   }
 
@@ -567,7 +595,14 @@ async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuent
         categoria: sobre.clase,
         agrupa: sobre.agrupa,
         urgente: false,
-        datos: { ir: sobre.clase === 'dinero' ? 'dinero' : 'hoy' },
+        // **El destino y el evento** (§14.60 · R2·R3). El sobre ya llevaba `ir`
+        // desde el primer día y nadie lo leía en el móvil; ahora además va el
+        // evento, porque un aviso de un viaje que no es el abierto llevaría a
+        // una pantalla donde esa fila no existe.
+        datos: {
+          ir: sobre.ir || (sobre.clase === 'estado' ? 'hoy' : 'dinero'),
+          evento: instantanea?.events?.[0]?.id ?? undefined,
+        },
       });
       if (r.caducado) await olvidarTokenPush(env.DB, token);
     }

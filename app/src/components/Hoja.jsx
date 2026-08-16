@@ -54,11 +54,17 @@ export default function Hoja({ titulo, onCerrar, children }) {
  * libre es un callejón que obliga a cerrar, buscar otra lista y volver. Admite
  * **una o varias**: elegir de una lista y corregir lo que hay son dos salidas
  * distintas y las dos se buscan aquí (§14.48).
+ *
+ * `pista` es la pregunta, cuando el título es **el sujeto y no la pregunta**:
+ * al proponer una idea el título es su nombre —«Kayaks en la cala»— y lo que se
+ * decide es otra cosa (§14.59). Sin ella habría que meter la pregunta dentro
+ * del título, que entonces se parte en dos líneas y deja de nombrar la cosa.
  */
-export function HojaDeEleccion({ titulo, opciones, valor, onElegir, onCerrar, extra, notaDebajo = false }) {
+export function HojaDeEleccion({ titulo, pista, opciones, valor, onElegir, onCerrar, extra, notaDebajo = false }) {
   const salidas = extra ? (Array.isArray(extra) ? extra : [extra]) : []
   return (
     <Hoja titulo={titulo} onCerrar={onCerrar}>
+      {pista && <div className="pista">{pista}</div>}
       {/* `notaDebajo` cuando la nota es una frase y no un dato de dos palabras:
           «0 👍 · faltan 5 por votar» a la derecha parte el título en dos líneas y
           estrecha a los dos. Medido en el navegador con la hoja de planes. */}

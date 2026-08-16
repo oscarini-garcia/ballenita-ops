@@ -2,18 +2,21 @@
 //
 // Aquí solo se vota; el día se pone en Agenda y un plan solo nace de una idea
 // del catálogo (SPECS §14.19).
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { plansOf, updatePlan, personsOf, familiesOf, devolverPlanAIdea } from '../db.js'
+import { plansOf, updatePlan, personsOf, familiesOf, devolverPlanAIdea, anclaDe, comentariosDelEvento } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
+import { puedeOrganizar } from '../lib/personas.js'
 import { esAdministrador } from '../lib/admin.js'
 import { leerSesion } from '../auth/sesion.js'
 import { porDia } from '../lib/evento.js'
-import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
+import { ESTADO_SE_HACE, ESTADO_VOTANDO, quienFaltaPorVotar, seHace, votosDe } from '../lib/planes.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
+import Comentarios from '../components/Comentarios.jsx'
+import { sinLeer } from '../lib/comentarios.js'
 
 const VOTES = ['👍', '🤷', '👎']
 const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
@@ -44,20 +47,40 @@ const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { we
  * hay un solo camino, y la pantalla **lo dice** en vez de dejar buscando el botón:
  * apúntalo en Ideas y dale a «Proponer».
  */
-export default function PlanesScreen({ eventId, event }) {
+export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
   const plans = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const { meId: me } = useIdentidad(eventId, persons)
   const [abierto, setAbierto] = useState(null)
+  // Todos los del evento de una vez: el globo de cada fila se cuenta en memoria,
+  // que es más barato que una consulta por plan y no parpadea al abrir la lista.
+  const comentarios = useLiveQuery(() => comentariosDelEvento(eventId), [eventId], [])
+
+  // Llegar desde un aviso abre el plan del que hablaba (§14.60 · R2). Se espera
+  // a que los planes estén: con la app recién arrancada el toque llega antes que
+  // la instantánea, y abrir un plan que aún no está sería no abrir nada.
+  useEffect(() => {
+    if (!abrir || !plans.length) return
+    if (plans.some((p) => p.id === abrir)) { setAbierto(abrir); onAbierta?.() }
+  }, [abrir, plans.length])
 
   const esAdmin = esAdministrador(leerSesion())
 
   // Lo que se cayó fuera de las fechas sigue apartado (§14.10-quater): un plan en
   // un día que el viaje ya no tiene no es un plan elegido.
   const { dentro, fuera } = porDia(plans, event)
-  const elegidos = dentro.filter((p) => p.dia)
-  const disponibles = dentro.filter((p) => !p.dia)
+  // **Tres grupos, y el primero es nuevo** (§14.59). Antes eran «Elegidos» —los
+  // que tenían día— y «Disponibles»; ahora manda el estado, porque «esto se
+  // hace» y «esto tiene día» son dos cosas distintas y muchas veces se decide
+  // la primera antes que la segunda: «a los kayaks vamos fijo, ya veremos
+  // cuándo». Un plan que se hace y aún no tiene día sale arriba, diciendo que
+  // le falta el día.
+  const seHacen = dentro.filter(seHace)
+    .sort((a, b) => (a.dia || '9999').localeCompare(b.dia || '9999')
+      || (a.titulo || '').localeCompare(b.titulo || '', 'es'))
+  const elegidos = dentro.filter((p) => !seHace(p) && p.dia)
+  const disponibles = dentro.filter((p) => !seHace(p) && !p.dia)
     .sort((a, b) => votosDe(b) - votosDe(a) || (a.titulo || '').localeCompare(b.titulo || '', 'es'))
 
   /**
@@ -69,15 +92,39 @@ export default function PlanesScreen({ eventId, event }) {
     // Quién falta lo dice `lib/planes.js`, que es de donde lo saca también la
     // hoja de planes libres de Agenda: dos sitios contando lo mismo con palabras
     // distintas se leen como dos cosas distintas.
-    const detalle = elegido ? fmtDay(plan.dia) : quienFaltaPorVotar(plan, persons)
+    //
+    // **Lo que se hace no cuenta votos ni quién falta** (§14.59): ya está
+    // decidido, y lo único pendiente es el día. Su icono va ámbar mientras le
+    // falte —el ámbar es «pendiente» en esta app desde §14.32— y verde cuando
+    // lo tiene.
+    const decidido = seHace(plan)
+    const suyos = comentarios.filter((c) => c.ancla === anclaDe('plan', plan.id))
+    const conComentarios = suyos.length
+    const nuevos = sinLeer(suyos, { eventId, ancla: anclaDe('plan', plan.id), meId: me })
+    const detalle = decidido
+      ? (plan.dia ? fmtDay(plan.dia) : 'falta el día')
+      : (elegido ? fmtDay(plan.dia) : quienFaltaPorVotar(plan, persons))
     return (
       <button className="row fila-plan" onClick={() => { tap(); setAbierto(plan.id) }}>
-        <div className={`ico${elegido ? ' verde' : ''}`}><Icono nombre="plan" /></div>
+        <div className={`ico${(decidido && plan.dia) || elegido ? ' verde' : ''}${decidido && !plan.dia ? ' ambar' : ''}`}>
+          <Icono nombre="plan" />
+        </div>
         <div className="main">
           <div className="n">{plan.titulo}</div>
           <div className="sub">{detalle}</div>
         </div>
-        <span className={`pill ${elegido ? 'owed' : 'neutral'} tnum`}>{votosDe(plan)}</span>
+        {/* **La fila lo dice sin abrir nada** (K4): el globo con cuántos hay y
+            un punto cuando alguno no lo has visto tú. Cuesta 0 pt de alto —va
+            donde ya va el recuento— y es lo que hace que un hilo se lea, igual
+            que «faltan Ana y Luis» hace que se vote. */}
+        {conComentarios > 0 && (
+          <span className={`globo${nuevos > 0 ? ' nuevo' : ''}`} aria-label={`${conComentarios} comentarios${nuevos ? `, ${nuevos} sin leer` : ''}`}>
+            💬 {conComentarios}
+          </span>
+        )}
+        {decidido
+          ? <span className="pill owed">se hace</span>
+          : <span className={`pill ${elegido ? 'owed' : 'neutral'} tnum`}>{votosDe(plan)}</span>}
       </button>
     )
   }
@@ -100,6 +147,15 @@ export default function PlanesScreen({ eventId, event }) {
         </div>
       )}
 
+      {seHacen.length > 0 && (
+        <>
+          <div className="sec-h"><span>Se hacen · {seHacen.length}</span><span>sin votación</span></div>
+          <div className="card tight">
+            {seHacen.map((p) => <Fila key={p.id} plan={p} />)}
+          </div>
+        </>
+      )}
+
       {elegidos.length > 0 && (
         <>
           <div className="sec-h"><span>Elegidos · {elegidos.length}</span></div>
@@ -111,7 +167,7 @@ export default function PlanesScreen({ eventId, event }) {
 
       {disponibles.length > 0 && (
         <>
-          <div className="sec-h"><span>Disponibles · {disponibles.length}</span><span>por votos</span></div>
+          <div className="sec-h"><span>A votación · {disponibles.length}</span><span>por votos</span></div>
           <div className="card tight">
             {disponibles.map((p) => <Fila key={p.id} plan={p} />)}
           </div>
@@ -149,6 +205,9 @@ export default function PlanesScreen({ eventId, event }) {
           persons={persons}
           families={families}
           me={me}
+          // Marcar «se hace» es organizar el viaje, así que va con la misma
+          // guarda que «Proponer» (§14.43): un solo predicado sobre la edad.
+          puedeDecidir={puedeOrganizar(persons.find((p) => p.id === me))}
           evento={event}
           esAdmin={esAdmin}
           onClose={() => setAbierto(null)}
@@ -188,13 +247,15 @@ export default function PlanesScreen({ eventId, event }) {
  * ahí es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
  * gastaba 34 pt en decir lo mismo dos pantallas seguidas.
  */
-function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) {
+function PlanAbierto({ plan, persons, families, me, puedeDecidir, evento, esAdmin, onClose }) {
   useBloqueoDeScroll()
   const [confirmando, setConfirmando] = useState(false)
 
   const votos = plan.votos ?? {}
   const mio = votos[me]
   const conVoto = (v) => persons.filter((p) => votos[p.id] === v)
+  const decidido = seHace(plan)
+  const votosGuardados = Object.keys(votos).length
 
   function votar(emoji) {
     if (!me) return
@@ -222,48 +283,89 @@ function PlanAbierto({ plan, persons, families, me, evento, esAdmin, onClose }) 
           <p className="pista"><a href={plan.enlace} target="_blank" rel="noreferrer">{plan.enlace}</a></p>
         )}
 
-        <label>Tu voto</label>
-        <div className="chips">
-          {VOTES.map((v) => (
-            <button
-              key={v}
-              className={`chip${mio === v ? ' on' : ''}`}
-              aria-pressed={mio === v}
-              aria-label={`Votar ${v}`}
-              onClick={() => votar(v)}
-              disabled={!me}
-            >{v}</button>
-          ))}
-        </div>
-
-        <label>Quién ha votado</label>
-        <div className="votantes">
-          {VOTES.map((v) => (
-            <div className="votantes-fila" key={v}>
-              <span className="votantes-voto" aria-hidden>{v}</span>
-              <span
-                className={`votantes-cuenta tnum${conVoto(v).length === 0 ? ' cero' : ''}`}
-                aria-label={`${conVoto(v).length} ${conVoto(v).length === 1 ? 'voto' : 'votos'}`}
-              >
-                {conVoto(v).length}
-              </span>
-              <span className="votantes-nombres">
-                {conVoto(v).length === 0
-                  ? <span className="pista">nadie</span>
-                  : conVoto(v).map((p) => (
-                    <span className="votante" key={p.id}>
-                      <span className="cara" aria-hidden>{p.avatar || '🙂'}</span>
-                      {p.apodo || p.name}
-                      <Alias familia={families.find((f) => f.id === p.familyId)} />
-                    </span>
-                  ))}
-              </span>
+        {/* **Lo que se hace no enseña votos** (§14.59). No es que se escondan:
+            es que no significan nada cuando la decisión ya está tomada, y
+            enseñarlos era exactamente la queja — un plan decidido con «faltan
+            Ana y Luis» debajo dice que aún se está decidiendo. Se guardan por
+            si vuelve a votación. */}
+        {decidido ? (
+          <div className="note">
+            🐳 Esto <b>se hace y punto</b>: no hay que votarlo.
+            {votosGuardados > 0 && ` Los ${votosGuardados} votos de antes se quedan guardados por si vuelve a votación.`}
+          </div>
+        ) : (
+          <>
+            <label>Tu voto</label>
+            <div className="chips">
+              {VOTES.map((v) => (
+                <button
+                  key={v}
+                  className={`chip${mio === v ? ' on' : ''}`}
+                  aria-pressed={mio === v}
+                  aria-label={`Votar ${v}`}
+                  onClick={() => votar(v)}
+                  disabled={!me}
+                >{v}</button>
+              ))}
             </div>
-          ))}
-        </div>
+
+            <label>Quién ha votado</label>
+            <div className="votantes">
+              {VOTES.map((v) => (
+                <div className="votantes-fila" key={v}>
+                  <span className="votantes-voto" aria-hidden>{v}</span>
+                  <span
+                    className={`votantes-cuenta tnum${conVoto(v).length === 0 ? ' cero' : ''}`}
+                    aria-label={`${conVoto(v).length} ${conVoto(v).length === 1 ? 'voto' : 'votos'}`}
+                  >
+                    {conVoto(v).length}
+                  </span>
+                  <span className="votantes-nombres">
+                    {conVoto(v).length === 0
+                      ? <span className="pista">nadie</span>
+                      : conVoto(v).map((p) => (
+                        <span className="votante" key={p.id}>
+                          <span className="cara" aria-hidden>{p.avatar || '🙂'}</span>
+                          {p.apodo || p.name}
+                          <Alias familia={families.find((f) => f.id === p.familyId)} />
+                        </span>
+                      ))}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* El interruptor (P3). Solo para quien organiza, y **sin borrar los
+            votos**: es lo que permite tocarlo sin pensárselo. */}
+        {puedeDecidir && (
+          <div className="seg" role="group" aria-label="Cómo se decide este plan" style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className={decidido ? '' : 'on'}
+              aria-pressed={!decidido}
+              onClick={() => { tap(); updatePlan(plan.id, { estado: ESTADO_VOTANDO }) }}
+            >
+              Se vota
+            </button>
+            <button
+              type="button"
+              className={decidido ? 'on' : ''}
+              aria-pressed={decidido}
+              onClick={() => { tap(); updatePlan(plan.id, { estado: ESTADO_SE_HACE }) }}
+            >
+              Se hace y punto
+            </button>
+          </div>
+        )}
+
+        {/* El hilo, con la misma pieza que en un gasto y en un día (§14.55). */}
+        <Comentarios eventId={plan.eventId} ancla={anclaDe('plan', plan.id)} />
 
         <div className="note" style={{ marginTop: 12 }}>
-          El día se pone en <b>Agenda</b>, tocando el día del viaje. Aquí solo se vota.
+          El día se pone en <b>Agenda</b>, tocando el día del viaje.
+          {decidido ? '' : ' Aquí solo se vota.'}
         </div>
 
         {esAdmin && (

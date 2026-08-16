@@ -49,6 +49,8 @@ describe('IdeasScreen', () => {
 
     const filas = await screen.findAllByRole('button', { name: 'Proponer' })
     await userEvent.click(filas[1]) // «Playa de la Cala», que va segunda por nombre
+    // Desde §14.59 proponer pregunta cómo entra: a votación o decidida.
+    await userEvent.click(await screen.findByRole('button', { name: /A votación/ }))
 
     // Ahora hay dos grupos, y cada idea está en el suyo.
     expect(await screen.findByText(/^Propuestas · 1$/)).toBeInTheDocument()
@@ -62,6 +64,7 @@ describe('IdeasScreen', () => {
     render(<IdeasScreen eventId={eventId} event={event} />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Proponer' }))
+    await userEvent.click(await screen.findByRole('button', { name: /A votación/ }))
 
     // El plan existe y ha llegado limpio.
     const planes = await plansOf(eventId)
@@ -107,6 +110,7 @@ describe('IdeasScreen', () => {
 
     const filas = await screen.findAllByRole('button', { name: 'Proponer' })
     await userEvent.click(filas[1]) // «Playa de la Cala»
+    await userEvent.click(await screen.findByRole('button', { name: /A votación/ }))
 
     // Y ya propuesta, cuándo se propuso a **este** viaje, que es de ahora mismo:
     // en el catálogo lleva desde 2020 y esa fecha ahí no contesta nada.
@@ -171,6 +175,7 @@ describe('IdeasScreen', () => {
     render(<IdeasScreen eventId={eventId} event={event} />)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Proponer' }))
+    await userEvent.click(await screen.findByRole('button', { name: /A votación/ }))
     expect(await screen.findByText(/^Propuestas · 1$/)).toBeInTheDocument()
     // Se edita tocando la fila: el lápiz de la derecha se fue.
     await userEvent.click(await screen.findByText('Playa de la Cala'))

@@ -7,6 +7,8 @@ import {
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { puedeOrganizar } from '../lib/personas.js'
+import { ESTADO_SE_HACE, ESTADO_VOTANDO } from '../lib/planes.js'
+import { HojaDeEleccion } from '../components/Hoja.jsx'
 import Alias from '../components/Alias.jsx'
 import { formatearHace } from '../lib/hace.js'
 import { tap } from '../lib/native.js'
@@ -59,6 +61,10 @@ export default function IdeasScreen({ eventId, event }) {
   const organiza = puedeOrganizar(me)
   const [editando, setEditando] = useState(null)
   const [sugiriendo, setSugiriendo] = useState(false)
+  // La idea que está esperando a que se diga **cómo** entra: a votación o
+  // decidida (§14.59 · P4). La pregunta se hace al proponer y no después,
+  // porque es cuando uno la tiene en la cabeza.
+  const [proponiendo, setProponiendo] = useState(null)
 
   // Propuestas primero, y dentro por lo más reciente: en ese grupo la pregunta
   // es «¿qué se ha sacado ya?», y lo de esta semana manda sobre lo de julio.
@@ -68,9 +74,10 @@ export default function IdeasScreen({ eventId, event }) {
   // ni fecha de propuesta, el nombre es el único orden que no cambia solo.
   const posibles = ideas.filter((i) => !propuestas.has(i.id))
 
-  async function proponer(idea) {
+  async function proponer(idea, estado) {
     tap()
-    await traerIdeaAlViaje(eventId, idea)
+    await traerIdeaAlViaje(eventId, idea, { estado })
+    setProponiendo(null)
   }
 
   return (
@@ -115,7 +122,7 @@ export default function IdeasScreen({ eventId, event }) {
                 persons={persons}
                 families={families}
                 onEditar={() => { tap(); setEditando(idea) }}
-                onProponer={organiza ? () => proponer(idea) : null}
+                onProponer={organiza ? () => { tap(); setProponiendo(idea) } : null}
               />
             ))}
           </div>
@@ -123,6 +130,20 @@ export default function IdeasScreen({ eventId, event }) {
       )}
 
       <Sugerencias eventId={eventId} evento={event} meId={meId} abierto={sugiriendo} onAbrir={setSugiriendo} />
+
+      {proponiendo && (
+        <HojaDeEleccion
+          titulo={`«${proponiendo.titulo}»`}
+          pista="¿Se somete a votación, o se hace y punto?"
+          valor={null}
+          opciones={[
+            { id: ESTADO_VOTANDO, etiqueta: 'A votación', nota: 'El grupo vota y se ve quién falta' },
+            { id: ESTADO_SE_HACE, etiqueta: 'Se hace y punto', nota: 'Sin votos: solo falta ponerle día' },
+          ]}
+          onElegir={(estado) => proponer(proponiendo, estado)}
+          onCerrar={() => setProponiendo(null)}
+        />
+      )}
 
       {editando && (
         <ModalIdea

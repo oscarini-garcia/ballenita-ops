@@ -28,13 +28,13 @@ const AREAS = [
   { id: 'stats', label: 'Números' },
 ]
 
-export default function AgendaScreen({ eventId, event, onGoTab }) {
+export default function AgendaScreen({ eventId, event, onGoTab, abrir, onAbierta }) {
   const [area, setArea] = useArea('agenda', 'hoy')
   return (
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />
       {area === 'hoy' && <HoyScreen eventId={eventId} event={event} onGoTab={onGoTab} />}
-      {area === 'dias' && <DiasScreen eventId={eventId} event={event} />}
+      {area === 'dias' && <DiasScreen eventId={eventId} event={event} abrir={abrir} onAbierta={onAbierta} />}
       {area === 'stats' && <StatsScreen eventId={eventId} event={event} />}
     </>
   )

@@ -63,7 +63,7 @@ describe('la lista', () => {
 
     expect(titulos()).toEqual(['Ya elegido', 'Con dos', 'Con uno', 'Sin votos'])
     expect(screen.getByText(/Elegidos · 1/)).toBeInTheDocument()
-    expect(screen.getByText(/Disponibles · 3/)).toBeInTheDocument()
+    expect(screen.getByText(/A votación · 3/)).toBeInTheDocument()
   })
 
   it('la fila dice quién falta por votar, que es lo accionable', async () => {
@@ -252,5 +252,65 @@ describe('un plan no se crea aquí: sale de proponer una idea', () => {
     // Es donde aparece la pregunta: se recorre la lista, no está lo que buscabas.
     expect(await screen.findByText(/Un plan sale de/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Añadir plan' })).not.toBeInTheDocument()
+  })
+})
+
+describe('se hace y punto (§14.59)', () => {
+  it('lo decidido va en su grupo, sin votos ni «faltan N por votar»', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Paella del sábado', dia: '2026-08-15', estado: 'sehace' })
+    await addPlan(eventId, { titulo: 'Kayaks en la cala', votos: { x: '👍' } })
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    expect(await screen.findByText(/Se hacen · 1/)).toBeInTheDocument()
+    expect(screen.getByText(/A votación · 1/)).toBeInTheDocument()
+    // No sale en «Elegidos» aunque tenga día: manda el estado.
+    expect(screen.queryByText(/Elegidos/)).not.toBeInTheDocument()
+
+    // Su fila lleva la pastilla en palabras y **ningún recuento**: enseñar los
+    // 👍 de algo ya decidido era exactamente la queja.
+    const fila = screen.getByRole('button', { name: /Paella del sábado/ })
+    expect(within(fila).getByText('se hace')).toBeInTheDocument()
+    expect(within(fila).queryByText(/falta/)).not.toBeInTheDocument()
+  })
+
+  it('sin día lo dice, que es lo único que le queda pendiente', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Cena de despedida', estado: 'sehace' })
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    // Con `waitFor` y **volviendo a buscar** cada vez: la fila se repinta cuando
+    // llega la segunda consulta viva (la de personas), así que un nodo capturado
+    // por `findBy` antes de eso ya está fuera del documento cuando se comprueba.
+    // Es la misma carrera que documenta el ayudante `abrir` de este fichero.
+    await waitFor(() => { expect(screen.getByText('falta el día')).toBeInTheDocument() })
+  })
+
+  it('quien organiza lo cambia desde dentro, y los votos siguen ahí', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Kayaks en la cala', votos: { a: '👍', b: '👎' } })
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    await abrir('Kayaks en la cala')
+    await userEvent.click(await screen.findByRole('button', { name: 'Se hace y punto' }))
+
+    await waitFor(async () => {
+      const [plan] = await plansOf(eventId)
+      expect(plan.estado).toBe('sehace')
+      // Y los votos no se han tocado: volver a votación los devuelve enteros.
+      expect(Object.keys(plan.votos)).toHaveLength(2)
+    })
+  })
+
+  it('con la identidad de un niño el interruptor no está: decidir es organizar', async () => {
+    const { eventId, event } = await viaje()
+    const nino = await addPerson(eventId, { name: 'Fran', edad: 'niño' })
+    localStorage.setItem(`ballena.me:${eventId}`, nino)
+    await addPlan(eventId, { titulo: 'Kayaks en la cala' })
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    await abrir('Kayaks en la cala')
+    expect(await screen.findByText('Tu voto')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Se hace y punto' })).not.toBeInTheDocument()
   })
 })

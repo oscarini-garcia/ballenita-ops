@@ -1,8 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CLASES_DE_AVISO, ES_CLASE, avisoDeEstado, avisoDeGasto, avisoDeLiquidacion,
-  elGastoMueveElSaldo, familiasDeUnGasto, importe,
+  CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGasto, avisoDeGastoBorrado, avisoDeLiquidacion, avisosDeGasto, contables, deQueEs, destinoDeAncla, elGastoMueveElSaldo, familiasDeUnGasto, importe,
 } from '../src/avisos.js';
 
 /**
@@ -122,4 +121,176 @@ test('cambiar el apodo no es cambiar el estado', () => {
 test('borrar el estado tampoco avisa: no hay nada que contar', () => {
   const aviso = avisoDeEstado({ id: 'p1', name: 'Ana', estado: '' }, { estado: 'Algo' }, { autor: 'p2' });
   assert.equal(aviso, null);
+});
+
+// ── Quién lleva las cuentas (§14.58) ──
+const gente = [
+  { id: 'curro', familyId: 'garcia' },
+  { id: 'ana', familyId: 'perez', llevaLasCuentas: true },
+  { id: 'luis', familyId: 'perez' },
+  { id: 'pablo', familyId: 'solteros', llevaLasCuentas: true },
+];
+const familias = [
+  { id: 'garcia', name: 'García' },
+  { id: 'perez', name: 'Pérez' },
+  { id: 'solteros', name: 'Solteros' },
+];
+const gasto = {
+  id: 'exp1',
+  description: 'Cañas',
+  amountCents: 2430,
+  payers: [{ familyId: 'garcia', amountCents: 2430 }],
+  participantIds: ['curro'],
+};
+
+test('§14.58 · manda dos sobres: el de siempre y el de los contables que no estaban', () => {
+  const sobres = avisosDeGasto(gasto, { personas: gente, familias, autor: null });
+  assert.equal(sobres.length, 2);
+  assert.equal(sobres[0].clase, 'dinero');
+  assert.deepEqual(sobres[0].personIds, ['curro']);
+  // Ana lleva las cuentas y el gasto no le toca; Pablo igual. Van en el
+  // segundo, con su clase propia.
+  assert.equal(sobres[1].clase, 'gastoTodos');
+  assert.deepEqual(sobres[1].personIds, ['ana', 'pablo']);
+});
+
+test('§14.58 · a quien le toca el gasto **y** lleva las cuentas le llega uno solo', () => {
+  // El gasto es de los Pérez, así que a Ana ya le llega por saldo.
+  const suyo = { ...gasto, participantIds: ['ana'], payers: [{ familyId: 'perez', amountCents: 2430 }] };
+  const sobres = avisosDeGasto(suyo, { personas: gente, familias, autor: null });
+  assert.ok(sobres[0].personIds.includes('ana'));
+  // Y no se repite en el segundo: dos avisos del mismo hecho en el mismo
+  // teléfono es lo que hace que se apaguen los avisos enteros.
+  const segundo = sobres.find((s) => s.clase === 'gastoTodos');
+  assert.deepEqual(segundo.personIds, ['pablo']);
+});
+
+test('§14.58 · el aviso del contable dice por qué le llega', () => {
+  const sobres = avisosDeGasto(gasto, { personas: gente, familias, autor: null });
+  assert.match(sobres[1].cuerpo, /llevas las cuentas/);
+  assert.match(sobres[0].cuerpo, /Te mueve el saldo/);
+});
+
+test('§14.58 · nunca a quien lo hizo, tampoco por llevar las cuentas', () => {
+  const sobres = avisosDeGasto(gasto, { personas: gente, familias, autor: 'ana' });
+  const todos = sobres.flatMap((s) => s.personIds);
+  assert.ok(!todos.includes('ana'));
+});
+
+test('§14.58 · sin nadie marcado, sigue habiendo un solo sobre y es el de siempre', () => {
+  const solos = gente.map(({ llevaLasCuentas, ...p }) => p);
+  const sobres = avisosDeGasto(gasto, { personas: solos, familias, autor: null });
+  assert.equal(sobres.length, 1);
+  assert.equal(sobres[0].clase, 'dinero');
+});
+
+test('§14.58 · un gasto borrado avisa solo a los contables', () => {
+  const sobre = avisoDeGastoBorrado(gasto, { personas: gente, autor: null });
+  assert.deepEqual(sobre.personIds, ['ana', 'pablo']);
+  assert.equal(sobre.clase, 'gastoTodos');
+  assert.match(sobre.cuerpo, /ya no está/);
+  assert.match(sobre.cuerpo, /2?4,30 €/);
+});
+
+test('§14.58 · un gasto borrado sin contables no avisa a nadie', () => {
+  const solos = gente.map(({ llevaLasCuentas, ...p }) => p);
+  assert.equal(avisoDeGastoBorrado(gasto, { personas: solos }), null);
+});
+
+test('§14.58 · un gasto sin descripción se nombra por su importe', () => {
+  const anonimo = { ...gasto, description: '' };
+  const sobre = avisoDeGastoBorrado(anonimo, { personas: gente });
+  assert.match(sobre.cuerpo, /^Un gasto de 24,30 €/);
+});
+
+// ── Comentarios (§14.55) ──
+
+const PLANES = [{ id: 'p1', titulo: 'Kayaks en la cala', votos: { curro: '👍', ana: '🤷' } }];
+const GENTE = [
+  { id: 'curro', familyId: 'garcia' },
+  { id: 'ana', familyId: 'perez' },
+  { id: 'luis', familyId: 'perez' },
+  { id: 'pablo', familyId: 'solteros' },
+];
+
+test('§14.55 · un comentario en un plan avisa a quien lo votó', () => {
+  const sobre = avisoDeComentario(
+    { id: 'c1', ancla: 'plan:p1', texto: '¿A qué hora?', autorId: 'pablo' },
+    { personas: GENTE, planes: PLANES, autor: 'pablo' },
+  );
+  // Curro y Ana votaron; Luis no dijo nada, así que no se le despierta.
+  assert.deepEqual(sobre.personIds.sort(), ['ana', 'curro']);
+  assert.equal(sobre.clase, 'comentario');
+  assert.match(sobre.titulo, /ha comentado en «Kayaks en la cala»/);
+});
+
+test('§14.55 · y también a quien ya había escrito en el hilo, aunque no votara', () => {
+  const hilo = [{ id: 'c0', ancla: 'plan:p1', autorId: 'luis' }];
+  const sobre = avisoDeComentario(
+    { id: 'c1', ancla: 'plan:p1', texto: 'A las 10', autorId: 'pablo' },
+    { personas: GENTE, planes: PLANES, hilo, autor: 'pablo' },
+  );
+  // Sin esto, contestarle a Luis no le llega — que es lo primero que rompe una
+  // conversación.
+  assert.ok(sobre.personIds.includes('luis'));
+});
+
+test('§14.55 · nunca a quien lo escribe', () => {
+  const sobre = avisoDeComentario(
+    { id: 'c1', ancla: 'plan:p1', texto: 'Yo voy', autorId: 'curro' },
+    { personas: GENTE, planes: PLANES, autor: 'curro' },
+  );
+  assert.ok(!sobre.personIds.includes('curro'));
+});
+
+test('§14.55 · en un gasto son las familias a las que les mueve el saldo', () => {
+  const gastos = [{ id: 'g1', description: 'Cañas', participantIds: ['curro'], payers: [{ familyId: 'perez' }] }];
+  const sobre = avisoDeComentario(
+    { id: 'c1', ancla: 'gasto:g1', texto: '¿Esto qué era?', autorId: 'pablo' },
+    { personas: GENTE, gastos, autor: 'pablo' },
+  );
+  // García (Curro) por entrar en el reparto, y Pérez (Ana, Luis) por pagarlo.
+  assert.deepEqual(sobre.personIds.sort(), ['ana', 'curro', 'luis']);
+});
+
+test('§14.55 · en un día son todos: un día del viaje es de todos', () => {
+  const sobre = avisoDeComentario(
+    { id: 'c1', ancla: 'dia:2026-08-15', texto: 'Llego tarde', autorId: 'curro' },
+    { personas: GENTE, autor: 'curro' },
+  );
+  assert.deepEqual(sobre.personIds.sort(), ['ana', 'luis', 'pablo']);
+});
+
+test('§14.55 · si no le importa a nadie, no se manda nada', () => {
+  const sinVotos = [{ id: 'p1', titulo: 'Kayaks', votos: {} }];
+  assert.equal(avisoDeComentario(
+    { id: 'c1', ancla: 'plan:p1', texto: 'Hola', autorId: 'curro' },
+    { personas: GENTE, planes: sinVotos, autor: 'curro' },
+  ), null);
+});
+
+test('§14.55 · se agrupa por hilo: seis mensajes dejan un aviso, no seis', () => {
+  const sobre = avisoDeComentario(
+    { id: 'c9', ancla: 'plan:p1', texto: 'Vale', autorId: 'pablo' },
+    { personas: GENTE, planes: PLANES, autor: 'pablo' },
+  );
+  assert.equal(sobre.agrupa, 'comentario:plan:p1');
+});
+
+test('§14.60 · el aviso lleva a dónde ir, y lo desconocido lleva a Hoy', () => {
+  assert.equal(destinoDeAncla('plan:abc'), 'planes/planes/abc');
+  assert.equal(destinoDeAncla('gasto:def'), 'dinero/gastos/def');
+  assert.equal(destinoDeAncla('dia:2026-08-15'), 'agenda/dias/2026-08-15');
+  // Mejor la portada que una pantalla vacía.
+  assert.equal(destinoDeAncla('cosa-rara:1'), 'hoy');
+  assert.equal(destinoDeAncla(null), 'hoy');
+});
+
+test('§14.55 · los votos llegan como texto desde SQLite y se leen igual', () => {
+  const comoEnD1 = [{ id: 'p1', titulo: 'Kayaks', votos: '{"curro":"👍"}' }];
+  const sobre = avisoDeComentario(
+    { id: 'c1', ancla: 'plan:p1', texto: 'Hola', autorId: 'pablo' },
+    { personas: GENTE, planes: comoEnD1, autor: 'pablo' },
+  );
+  assert.deepEqual(sobre.personIds, ['curro']);
 });

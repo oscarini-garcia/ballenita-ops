@@ -6,6 +6,7 @@ import { MISMA_COSA_MS, apunteDe } from './lib/registro.js'
 import { getMeId } from './lib/identidad.js'
 import { loQueHayQueComprar } from './lib/compra.js'
 import { olvidarTandas } from './lib/tanda.js'
+import { olvidarTodosLosLeidos } from './lib/comentarios.js'
 
 // IndexedDB desde el día 1 (§14). Cada tabla guarda registros con `id` de cliente
 // y `updatedAt`. Desde la migración a la API propia (Worker + D1), IndexedDB deja
@@ -86,6 +87,28 @@ db.version(7).stores({
 // y por cuándo, que es exactamente como se lee.
 db.version(8).stores({
   registro: '&id, eventId, cuando',
+})
+
+// v9: la tanda de §14.52–§14.57, cuatro tablas de una vez.
+//
+// Van juntas porque salen de la misma vuelta y porque ninguna necesita índices
+// que las demás no tengan; separarlas en cuatro versiones de Dexie sería contar
+// cuatro veces la misma migración vacía.
+//
+//  · `trucos` — lo que hay que acordarse de un viaje a otro. **Compartido entre
+//    eventos**, como `dishes` y `planIdeas`: un truco no caduca en septiembre.
+//    Sin estado por evento a propósito (§14.53).
+//  · `comentarios` — el hilo de cualquier cosa, con **ancla** (`plan:abc`) en
+//    vez de una columna por tabla, que es lo que hace que el octavo sitio donde
+//    se enchufe cueste tres líneas y no una migración (§14.55).
+//  · `alojamientos` — el catálogo que hace que un bunga sea **el mismo bunga**
+//    de un año a otro, y por tanto que pueda tener notas e histórico (§14.56).
+//  · `cacharros` — el que trae cada familia, y sus votos (§14.57).
+db.version(9).stores({
+  trucos: '&id',
+  comentarios: '&id, eventId, ancla',
+  alojamientos: '&id',
+  cacharros: '&id, eventId',
 })
 
 // ── Señal de cambios locales (para disparar la sync) ──
@@ -305,6 +328,9 @@ export async function olvidarTodo() {
   // servidor, no un hecho del grupo—, así que hay que llevárselas aparte. Si no,
   // el que entre después en este móvil leería las bromas del viaje del anterior.
   olvidarTandas()
+  // Y las marcas de qué comentarios has leído tú, por lo mismo (§14.55 · K6):
+  // son del móvil y no se sincronizan, así que nadie más se las lleva.
+  olvidarTodosLosLeidos()
 }
 
 // ── Eventos ──
@@ -344,8 +370,11 @@ export async function borrarFamilia(eventId, familyId) {
 }
 
 // ── Bungas ──
-export async function addBunga(eventId, { name, alias = '', familyId = null }) {
-  return escribir('bungas', uid('bunga'), { eventId, name, alias, familyId })
+export async function addBunga(eventId, { name, alias = '', familyId = null, alojamientoId = null }) {
+  // `alojamientoId` es lo que hace que éste sea **el mismo bunga** que el del
+  // año pasado, y por tanto que tenga notas e histórico (§14.56). Nulo = un
+  // bunga suelto de este viaje, que es lo que eran todos hasta ahora.
+  return escribir('bungas', uid('bunga'), { eventId, name, alias, familyId, alojamientoId })
 }
 export const bungasOf = (eventId) => db.bungas.where({ eventId }).toArray()
 export const updateBunga = (id, patch) => escribir('bungas', id, patch)
@@ -382,6 +411,9 @@ export async function addPerson(eventId, p) {
     pesoReparto: p.pesoReparto ?? pesoDe(edad),
     avatar: p.avatar ?? '🧑',
     estado: p.estado ?? '',
+    // Quién se entera de **todos** los gastos, le toquen o no (§14.58). Nace
+    // apagado: es un encargo, no un rasgo, y lo pone quien administra.
+    llevaLasCuentas: p.llevaLasCuentas ?? false,
   })
 }
 export const personsOf = (eventId) => db.persons.where({ eventId }).toArray()
@@ -576,6 +608,147 @@ export const updateMejora = (id, patch) => escribir('mejoras', id, {
 })
 export const removeMejora = (id) => removeRow('mejoras', id)
 
+// ── Trucos: lo que hay que acordarse de un viaje a otro (§14.53) ──
+//
+// Hermano de `mejoras` en la forma y distinto en el fondo: una mejora se hace y
+// se tacha, y un truco **no se tacha nunca** porque no es una tarea, es algo que
+// sigue siendo verdad el año que viene. Por eso no hay `hecho` ni estado por
+// evento: se pensó una lista de embarque que se tildara cada viaje y se
+// descartó a propósito — lo que se pidió es saber, no una tarea más.
+//
+// Compartido entre eventos como los otros dos catálogos, con la misma excepción
+// del Demo (§14.9-quater).
+export const TOPE_DE_TRUCO = 2000
+
+export const TRUCO_CATEGORIAS = [
+  { id: 'antes', label: 'Antes de salir', icon: '🎒' },
+  { id: 'coche', label: 'El coche', icon: '🚗' },
+  { id: 'camping', label: 'El camping', icon: '⛺️' },
+  { id: 'cocina', label: 'La cocina', icon: '🍳' },
+  { id: 'playa', label: 'La playa', icon: '🏖️' },
+  { id: 'otros', label: 'Otros', icon: '🐳' },
+]
+
+export async function addTruco({ texto, categoria = 'otros', autorId = null }, evento = null) {
+  const eventId = evento?.esDemo ? evento.id : null
+  return escribir('trucos', uid('truco'), {
+    texto: String(texto).slice(0, TOPE_DE_TRUCO),
+    categoria,
+    autorId,
+    apuntadoEl: now(),
+    eventId,
+  })
+}
+
+/** Los de esta instalación, agrupados por quien los pinte. Nuevos arriba. */
+export async function listTrucos(evento = null) {
+  const todos = await db.trucos.toArray()
+  const suyos = evento?.esDemo
+    ? todos.filter((t) => t.eventId === evento.id)
+    : todos.filter((t) => !t.eventId)
+  return suyos.sort((a, b) => (b.apuntadoEl || '').localeCompare(a.apuntadoEl || ''))
+}
+
+export const updateTruco = (id, patch) => escribir('trucos', id, {
+  ...patch,
+  ...(typeof patch.texto === 'string' ? { texto: patch.texto.slice(0, TOPE_DE_TRUCO) } : {}),
+})
+export const removeTruco = (id) => removeRow('trucos', id)
+
+// ── Comentarios: el hilo de cualquier cosa (§14.55) ──
+//
+// **Una tabla con ancla, y no una columna por tabla.** El ancla es
+// `'<tipo>:<id>'` —`plan:abc`, `gasto:def`, `dia:2026-08-15`—, y con ella el
+// mismo componente sirve en las ocho pantallas donde un comentario pide salir.
+// La alternativa era un JSON dentro de cada fila, y tenía dos defectos que no se
+// arreglan después: una migración por sitio, y **dos personas comentando a la
+// vez se pisan**, porque cada una sube la fila entera del plan.
+export const TOPE_DE_COMENTARIO = 2000
+
+/** El ancla de una cosa. Un solo sitio, para que las dos puntas coincidan. */
+export const anclaDe = (tipo, id) => `${tipo}:${id}`
+
+export async function addComentario(eventId, { ancla, texto, autorId = null }) {
+  return escribir('comentarios', uid('com'), {
+    eventId,
+    ancla,
+    texto: String(texto).slice(0, TOPE_DE_COMENTARIO),
+    autorId,
+    escritoEl: now(),
+  })
+}
+
+/** El hilo de una cosa, del más viejo al más nuevo: se lee como una conversación. */
+export const comentariosDe = (eventId, ancla) => db.comentarios
+  .where({ ancla }).toArray()
+  .then((filas) => filas
+    .filter((c) => !eventId || c.eventId === eventId)
+    .sort((a, b) => String(a.escritoEl).localeCompare(String(b.escritoEl))))
+
+/** Todos los del evento, para contar sin abrir nada (el globo de la fila). */
+export const comentariosDelEvento = (eventId) => db.comentarios.where({ eventId }).toArray()
+
+export const updateComentario = (id, patch) => escribir('comentarios', id, {
+  ...patch,
+  ...(typeof patch.texto === 'string' ? { texto: patch.texto.slice(0, TOPE_DE_COMENTARIO) } : {}),
+})
+export const removeComentario = (id) => removeRow('comentarios', id)
+
+// ── Alojamientos: el catálogo que hace que un bunga tenga historia (§14.56) ──
+//
+// `bungas` cuelga de un evento, así que el «Bunga 12» de 2025 y el de 2026 eran
+// **dos filas sin nada que las una**: una nota escrita este agosto se iba con el
+// evento y el histórico no existía. El catálogo es la misma figura que
+// `dishes` ↔ `dinners` y `planIdeas` ↔ `plans`, por cuarta vez.
+//
+// Lo que vive aquí es lo que **no cambia de un año a otro**: cómo es el sitio.
+// Lo que vive en el bunga del evento es de ese agosto: qué familia lo tiene.
+export const PEGATINAS = [
+  { id: 'nevera', label: 'buena nevera', icon: '🧊' },
+  { id: 'bano', label: 'baño bien', icon: '🚿' },
+  { id: 'tranquilo', label: 'tranquilo', icon: '🔇' },
+  { id: 'sombra', label: 'sombra', icon: '🌳' },
+  { id: 'enchufes', label: 'enchufes', icon: '🔌' },
+  { id: 'bichos', label: 'bichos', icon: '🐜' },
+  { id: 'cobertura', label: 'sin cobertura', icon: '📶' },
+]
+
+export async function addAlojamiento({ name, notas = '', pegatinas = [] }, evento = null) {
+  const eventId = evento?.esDemo ? evento.id : null
+  return escribir('alojamientos', uid('aloj'), { name, notas, pegatinas, eventId })
+}
+
+export async function listAlojamientos(evento = null) {
+  const todos = await db.alojamientos.toArray()
+  const suyos = evento?.esDemo
+    ? todos.filter((a) => a.eventId === evento.id)
+    : todos.filter((a) => !a.eventId)
+  return suyos.sort((a, b) => String(a.name).localeCompare(String(b.name), 'es'))
+}
+
+export const updateAlojamiento = (id, patch) => escribir('alojamientos', id, patch)
+export const removeAlojamiento = (id) => removeRow('alojamientos', id)
+
+/** Todos los bungas de todos los eventos: es de donde sale el histórico. */
+export const todosLosBungas = () => db.bungas.toArray()
+
+// ── Cacharros: el que trae cada familia, y quién vota cuál (§14.57) ──
+//
+// Es un plan con otro nombre —`votos` es el mismo mapa persona → voto— con dos
+// reglas propias: **uno por familia**, que es lo que lo convierte en un ranking
+// y no en una lista, y **un voto por cabeza**, que es lo que hace que haya
+// ganador. Con 👍 múltiple los tres empatan a nueve.
+export const cacharrosOf = (eventId) => db.cacharros.where({ eventId }).toArray()
+
+export async function addCacharro(eventId, { familyId, texto }) {
+  return escribir('cacharros', uid('cach'), {
+    eventId, familyId, texto, votos: {}, apuntadoEl: now(),
+  })
+}
+
+export const updateCacharro = (id, patch) => escribir('cacharros', id, patch)
+export const removeCacharro = (id) => removeRow('cacharros', id)
+
 /**
  * Traer una idea al viaje: **se copia, no se enlaza**
  * (`docs/diseño/planes-catalogo.html` · C1).
@@ -590,12 +763,16 @@ export const removeMejora = (id) => removeRow('mejoras', id)
  * otro evento, «confirmado» fue una decisión de aquel agosto y el día de
  * entonces no es un día de este viaje.
  */
-export function traerIdeaAlViaje(eventId, idea) {
+export function traerIdeaAlViaje(eventId, idea, { estado } = {}) {
   return addPlan(eventId, {
     titulo: idea.titulo,
     descripcion: idea.descripcion,
     enlace: idea.enlace,
     ideaId: idea.id,
+    // Y desde §14.59, con qué cara nace: a votación (lo de siempre) o decidida.
+    // La pregunta se hace **aquí**, al proponer, porque es donde uno la tiene en
+    // la cabeza: proponer «la paella del sábado» ya es haberlo decidido.
+    ...(estado ? { estado } : {}),
   })
 }
 
@@ -691,6 +868,11 @@ export const SHOP_CATEGORIES = [
 export async function addShopItem(eventId, { texto, categoria = 'otros', ...resto }) {
   return escribir('shop', uid('shop'), {
     eventId, texto, categoria, comprado: false, compradoPor: null, compradoEn: null,
+    // **De quién es la línea** (§14.54). Nula = común, que es como nace todo lo
+    // de siempre y lo que calculan las cenas. Con valor, es de esa familia — y
+    // se sigue viendo: en esta app no hay nada privado, y quien sale hacia el
+    // súper mira la pantalla y pregunta una vez en vez de nueve.
+    familyId: resto.familyId ?? null,
     // De dónde sale la línea. `mano` es lo de siempre —hielos, bolsas de
     // basura— y **no se toca nunca** al recalcular; `cena` viene de una receta
     // y es lo único que se puede rehacer solo (SPECS §14.20).

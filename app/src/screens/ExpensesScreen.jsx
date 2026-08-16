@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { expensesOf, familiesOf, personsOf, removeExpense } from '../db.js'
 import { formatCents } from '../lib/money.js'
@@ -22,7 +22,7 @@ function hora(iso) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-export default function ExpensesScreen({ eventId, event }) {
+export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
   const expenses = useLiveQuery(() => expensesOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
@@ -35,6 +35,14 @@ export default function ExpensesScreen({ eventId, event }) {
   const { me } = useIdentidad(eventId, persons)
   const soloMirar = !puedeOrganizar(me)
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
+
+  // Llegar desde un aviso abre ese gasto (§14.60 · R2). Se espera a que la lista
+  // esté: con la app recién arrancada el toque llega antes que la instantánea.
+  useEffect(() => {
+    if (!abrir || !expenses.length) return
+    const gasto = expenses.find((g) => g.id === abrir)
+    if (gasto) { setFicha(gasto); onAbierta?.() }
+  }, [abrir, expenses.length])
 
   const total = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)
 
