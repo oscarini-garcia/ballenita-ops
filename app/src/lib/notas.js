@@ -16,6 +16,17 @@
  */
 export const NOTAS = [
   {
+    version: '0.51.0',
+    fecha: '2026-08-16',
+    titulo: 'La app se acuerda de los avisos',
+    lineas: [
+      'Si tienes los avisos apagados, «Hoy» te lo recuerda una vez por semana con el botón para encenderlos. «Ahora no» lo aparta otros siete días.',
+      'Si ya dijiste que no en su día, te dice dónde se encienden: iOS no vuelve a preguntar por su cuenta, así que hay que ir a los Ajustes del iPhone.',
+      'En Grupo, la ficha de cada familia vuelve a decir su bunga —por su nombre— y tocarlo lleva a su pantalla: sus notas, sus pegatinas y quién ha estado otros años.',
+      'Y en Ajustes se retira el renglón que decía que «El grupo» se había mudado a su pestaña: lleva tiempo ahí abajo, en la barra.',
+    ],
+  },
+  {
     version: '0.50.0',
     fecha: '2026-08-16',
     titulo: 'Grupo en tres áreas, y los avisos que no llegaban',

@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.50.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1033 pruebas en 112 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.51.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1053 pruebas en 114 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   242 pruebas en 24 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -121,6 +121,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `Acordeon.jsx` — Un apartado plegable, con `<details>` y `<summary>` del propio navegador.
 - `Alias.jsx` — El alias de una familia, en pastilla y con su color (`docs/diseño/planes-ideas.html` · B3).
+- `AvisoDeAvisos.jsx` — El recordatorio de los avisos, en «Hoy» (SPECS §14.65).
 - `BotonDePerfil.jsx` — Emojis rápidos para el avatar (también se escribe a mano).
   ↳ Cara
 - `BotonIA.jsx` — Un botón que le pregunta algo al modelo, y **dice que está pensando**.
@@ -231,6 +232,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ componerRecap, porDias, diaDe
 - `receta.js` — Una receta con cantidades, y cómo se estira para la gente que hay.
   ↳ normalizarIngredientes, estirar, cifra, loQueSeCompra, partirCantidad, juntarCantidad · +3 más
+- `recordatorioDeAvisos.js` — Volver a acordarse de los avisos, cada tanto (SPECS §14.65).
+  ↳ ultimoRecordatorio, apuntarRecordatorio, queDecir, tocaRecordar, CADA_MS
 - `registro.js` — La bitácora del viaje: qué ha hecho cada uno, para el recap del final.
   ↳ apunteDe, MISMA_COSA_MS, TABLAS_QUE_SE_APUNTAN, CLASES, claseDe
 - `reparto-gente.js` — Entre quién se divide un gasto: los atajos, las familias y el buscador.
@@ -398,6 +401,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `Confirmar.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `borrados.js`, `evento.js` · +1 más
 - **§14.15** Quién entra: la sala de espera, las cuentas y los avisos → `index.js`
 - **§14.16** La IA: la clave vive en el servidor → `api.js`, `cocina.js`, `encargos.js`, `ia.js`, `index.js`, `receta.js` · +1 más
+- **§14.17** Avisos al móvil: APNs directo, sin SDK de nadie → `recordatorioDeAvisos.js`
 - **§14.18** El día es el de aquí, no el de Greenwich → `db.js`, `planes.js`
 - **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx`, `api.js` · +8 más
 - **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js` · +7 más
@@ -441,3 +445,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.62** Tu perfil vive detrás de tu emoji, y «Quién eres» se retira → `App.jsx`, `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`
 - **§14.63** El grupo, en tres áreas y con tres niveles de permiso → `Acordeon.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `permisos.js`
 - **§14.64** Un plato dice qué lleva y ahora también cómo se hace → `PlatosScreen.jsx`, `db.js`, `tablas.js`
+- **§14.65** Los avisos se recuerdan cada semana, y el bunga vuelve a su familia → `AvisoDeAvisos.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `HoyScreen.jsx`, `recordatorioDeAvisos.js`

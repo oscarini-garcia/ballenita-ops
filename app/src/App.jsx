@@ -467,7 +467,6 @@ export default function App() {
           eventId={activeId}
           event={event}
           onPickEvent={pick}
-          onGoTab={(id) => { setVolverA(id); setTab(id) }}
           sync={sync}
           onSincronizarTodo={sincronizarTodoAhora}
         />

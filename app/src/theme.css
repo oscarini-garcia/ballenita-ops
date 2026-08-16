@@ -332,6 +332,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .acor-ido .main .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
 .acor-ido .v { color: var(--ink-faint); font-size: 18px; flex: none; }
 
+/* El recordatorio de los avisos (SPECS §14.65). Tarjeta y no `note`: pide algo,
+   y una nota gris se lee como una explicación de algo que ya has hecho. Lleva
+   el ámbar de «pendiente» (§14.32) y no el rojo, que aquí es deuda y borrar. */
+/* El bunga dentro de la ficha de su familia (§14.65). Es una fila `mini` como
+   las de la gente —misma diana, mismo ritmo— con el icono de casa en el sitio
+   del avatar, para que se lea como «aquí duerme esta gente» y no como una
+   persona más. */
+.mini.bunga-de-la-casa .ico { width: 26px; height: 26px; border-radius: 7px; flex: none;
+  display: grid; place-items: center; background: var(--foam-2); color: var(--ink-soft); }
+.mini.bunga-de-la-casa .ico svg { width: 16px; height: 16px; display: block; }
+
+.recordar-avisos { background: var(--foam-2); border: 1px solid var(--line);
+  border-left: 3px solid var(--gold); border-radius: var(--r); padding: 12px 13px; margin: 0 0 12px; }
+.ra-titulo { font-size: var(--t-row); font-weight: 620; }
+.ra-texto { margin: 4px 0 0; font-size: var(--t-sub); line-height: 1.45; color: var(--ink-soft); }
+.ra-verbos { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
 /* Una casilla con su explicación debajo (§14.58). No es un `checkbox` desnudo
    porque lo que hay que leer no es la etiqueta sino la consecuencia —«le llegan
    todos los gastos»—, y eso no cabe al lado de una casilla de 24 pt. La diana es

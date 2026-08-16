@@ -4,6 +4,7 @@ import { dinnersOf, plansOf, bungasOf, personsOf, familiesOf, listDishes, ponerE
 import Icono from '../components/Icono.jsx'
 import PieDeVersion from '../components/PieDeVersion.jsx'
 import Recado from '../components/Recado.jsx'
+import AvisoDeAvisos from '../components/AvisoDeAvisos.jsx'
 import Alias from '../components/Alias.jsx'
 import HojaDeEstado from '../components/HojaDeEstado.jsx'
 import { useIdentidad } from '../lib/identidad.js'
@@ -88,6 +89,11 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
       {/* El recado, **bajo el selector** y no al final del scroll
           (SPECS §14.44): al final no lo lee nadie — en una lista larga
           hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
+      {/* Los avisos, si están apagados y hace una semana que no se dice
+          (SPECS §14.65). Va lo primero porque es lo único de esta pantalla que
+          pide algo, y se retira solo en cuanto están encendidos. */}
+      <AvisoDeAvisos />
+
       <Recado evento={event} />
 
       {/* El titular. Es lo único grande de la pantalla: si compite con otra
