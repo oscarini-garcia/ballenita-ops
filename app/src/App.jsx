@@ -33,7 +33,7 @@ import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
 import { enDemo, salirDemo } from './lib/demo.js'
 import { asegurarPush } from './lib/push.js'
 import { LATIDO_MS, asegurarTanda } from './lib/tanda.js'
-import { ponerArea } from './lib/areas.js'
+import { AREA_DE_ORIGEN, ponerArea } from './lib/areas.js'
 import { destinoDeAviso, guardarDestino, tomarDestino } from './lib/destino.js'
 import { guardarSesion, haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 import { canjearEnlace, limpiarLaUrl, paseDeLaUrl } from './auth/enlace.js'
@@ -485,7 +485,17 @@ export default function App() {
             className={`tab${tab === t.id ? ' on' : ''}`}
             onClick={() => {
               tap()
-              if (t.id === 'agenda') ponerArea('agenda', 'dias')
+              // **Pulsar la pestaña donde ya estás vuelve a su primera área**
+              // (§14.47-bis): es el gesto de toda la vida en iOS —tocar la
+              // pestaña activa devuelve a la raíz—, y aquí la raíz de una
+              // sección es la primera casilla de su mando. Sin esto, la única
+              // salida de un área era volver a buscarla en el mando, y la
+              // pestaña encendida no hacía nada al tocarla.
+              if (tab === t.id) ponerArea(t.id, AREA_DE_ORIGEN[t.id])
+              // Entrar en Agenda **desde fuera** sigue abriendo el calendario
+              // (§14.47): es lo que se viene a mirar. La segunda pulsación es la
+              // de arriba, y lleva a «Hoy».
+              else if (t.id === 'agenda') ponerArea('agenda', 'dias')
               setVolverA(t.id)
               setTab(t.id)
             }}

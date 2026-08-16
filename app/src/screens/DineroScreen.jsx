@@ -14,7 +14,7 @@ const AREAS = [
 ]
 
 export default function DineroScreen({ eventId, event, abrir, onAbierta }) {
-  const [area, setArea] = useArea('dinero', 'gastos')
+  const [area, setArea] = useArea('dinero')
   return (
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />

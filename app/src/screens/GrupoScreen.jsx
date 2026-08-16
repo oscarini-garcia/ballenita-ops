@@ -21,7 +21,7 @@ const AREAS = [
 ]
 
 export default function GrupoScreen({ eventId, event, abrir, onAbierta }) {
-  const [area, setArea] = useArea('grupo', 'familias')
+  const [area, setArea] = useArea('grupo')
 
   // Llegar desde el aviso de un comentario abre **su** bunga (§14.60 · R2), y
   // eso incluye traer el área: el hilo está en Bungas, y dejar al que toca el

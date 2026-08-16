@@ -31,7 +31,7 @@ const AREAS = [
 ]
 
 export default function ComidasScreen({ eventId, event }) {
-  const [area, setArea] = useArea('comidas', 'cenas')
+  const [area, setArea] = useArea('comidas')
   return (
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />

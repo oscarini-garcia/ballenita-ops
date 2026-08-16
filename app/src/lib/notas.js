@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.57.0',
+    fecha: '2026-08-16',
+    titulo: 'Tocar la pestaña donde ya estás te devuelve al principio',
+    lineas: [
+      'Estés en el área que estés, tocar la pestaña encendida vuelve a la primera: Agenda a «Hoy», Dinero a «Gastos», Comidas a «Cenas», Planes a «Planes» y Grupo a «Familias».',
+      'En Agenda, entrar desde otra sección sigue abriendo el calendario, así que dos toques seguidos son «llévame al día de hoy». Y al abrir la app se sigue viendo «Hoy».',
+    ],
+  },
+  {
     version: '0.56.0',
     fecha: '2026-08-16',
     titulo: '«Ver todos los comentarios» ya se ve entero',
