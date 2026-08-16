@@ -112,13 +112,24 @@ describe('colocar el día', () => {
  * llevan la misma regla.
  */
 describe('devolver un plan al catálogo', () => {
-  // La pantalla tiene dos consultas vivas —planes y personas— y el subtítulo de
-  // la fila depende de las dos: pulsar entre una y otra le da al nodo que React
-  // acaba de sustituir. Se espera al subtítulo y se vuelve a buscar la fila.
+  /**
+   * Abrir el plan, **insistiendo hasta que abra**.
+   *
+   * La pantalla tiene **tres** consultas vivas —planes, personas y los
+   * comentarios del evento (§14.55)— y la fila depende de las tres: entre que
+   * se la encuentra y se la pulsa, React puede haberla sustituido, y el clic se
+   * lo lleva un nodo que ya no está en la página. Esperar a que el subtítulo
+   * esté puesto reduce la ventana pero no la cierra: falló en CI justo después
+   * de pasar dos veces en local, que es la peor forma de tener razón.
+   *
+   * Volver a pulsar no tiene efecto secundario —abrir el que ya está abierto es
+   * el mismo `setAbierto`—, así que se pulsa hasta que aparezca la capa.
+   */
   const abrirElPlan = async () => {
-    await waitFor(() => expect(document.querySelectorAll('.fila-plan .sub').length).toBeGreaterThan(0))
-    await userEvent.click(screen.getByRole('button', { name: /Cuevas del Drach/ }))
-    await screen.findByText('Quién ha votado')
+    await waitFor(async () => {
+      await userEvent.click(screen.getByRole('button', { name: /Cuevas del Drach/ }))
+      expect(screen.getByText('Quién ha votado')).toBeInTheDocument()
+    })
   }
 
   it('el niño lo abre y vota, pero no lo devuelve', async () => {
