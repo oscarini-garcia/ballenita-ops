@@ -17,14 +17,17 @@ database_name = "ballena-ops"
 database_id = "862d4478-3a64-4810-b12c-239c20f03507"
 
 [vars]
-# Quien habla con esta API es la app de iOS, y no pasa por el navegador: con
-# `CapacitorHttp` activado la petición la hace el sistema, sin CORS de por medio.
-# La web es una libreta local y no llama aquí.
+# Quien habla con esta API es la app de iOS —que no pasa por el navegador: con
+# `CapacitorHttp` activado la petición la hace el sistema, sin CORS de por
+# medio— **y ahora también la web**, que desde el enlace de acceso (SPECS
+# §14.52) ya no es solo una libreta local.
 #
-# La lista se queda por dos motivos: `wrangler dev` contra un navegador durante
-# el desarrollo, y no dejar la puerta abierta de par en par si algún día se
-# recupera el acceso web. Sin coincidencia no se emiten cabeceras CORS.
-ORIGENES_PERMITIDOS = "http://localhost:5173"
+# Esa parte sí pasa por CORS de verdad, así que el dominio de Pages tiene que
+# estar aquí: sin él, el navegador tira todas las peticiones y lo que se ve es
+# un enlace que no entra sin decir por qué. `localhost` se queda para
+# `wrangler dev` contra un navegador durante el desarrollo. Sin coincidencia no
+# se emiten cabeceras CORS.
+ORIGENES_PERMITIDOS = "https://ballenita-ops.galoopa.store,http://localhost:5173"
 
 # Audiencia admitida del token de Apple: el identificador del paquete de la app.
 # No hay Services ID porque no hay acceso con Apple en la web.

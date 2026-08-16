@@ -210,7 +210,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de
   lado, y `lib/notas.test.js` ata la entrada de arriba a `package.json`: **subir versión sin
   describirla pone las pruebas en rojo**. Al cerrar una vuelta que sube versión, añade su
-  nota arriba del todo.
+  nota arriba del todo. **Y van al final, con rótulo** (§14.34-bis): estaban entre el estado
+  de la versión y su botón, partiendo en dos el bloque de actualizar, mientras el gemelo
+  —«Poner la base al día»— salía entero y sin rótulo. Ahora «La app» son tres bloques
+  rotulados con el mismo esqueleto —estado, botón, progreso— y el mismo verbo: **poner al
+  día** la app y la base.
 - **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,
@@ -376,9 +380,16 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   estado lo escribe un solo sitio (`ponerEstado`, en `db.js`). Y los cerrojos de pantalla, todos con la misma guarda —**sin sesión (libreta local,
   demostración) no se capa nada**—: **organizar el viaje es de los adultos** (§14.43,
   `puedeOrganizar`, un solo predicado sobre la columna `organiza` de `EDADES`) —gastos y
-  liquidaciones, montar y borrar cenas, «Proponer» una idea y los tres renglones del día—,
+  liquidaciones, montar y borrar cenas, «Proponer» una idea, **devolverla al catálogo**
+  (§14.43-bis: iba por `esAdministrador`, y son los dos sentidos del mismo movimiento) y
+  los tres renglones del día—,
   mientras **votar, apuntar ideas, marcar la compra y mirarlo todo siguen siendo de todos**;
   **El grupo y el evento los edita quien administra** (miembro = censo y ficha de solo lectura);
+  **tu perfil vive detrás de tu emoji de la cabecera** (§14.62, `components/BotonDePerfil.jsx`):
+  «Quién eres» era un apartado de Ajustes que contestaba una pregunta que ya no existe —lo dice
+  la cuenta desde §14.42—, y lo que guardaba dentro era el perfil, que no es un ajuste. La lista
+  de personas se queda **solo donde la cuenta no puede contestar** (libreta local, demostración,
+  persona de otro evento);
   y Sincronización + Actualizar son un solo acordeón, **«La app»**, con la versión en el rótulo.
 - **La clave de la IA vive en el servidor** (tabla `configuracion`, SPECS §14.16) y no vuelve
   entera a ningún móvil: es una credencial de pago. **El modelo se elige de una lista** que trae
@@ -402,9 +413,18 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **traza** (`<pre class="traza">`, `bien`/`mal`) y no en prosa. En **Actualizar** el progreso
   se pinta en su sitio, como en Sincronización: el modal tapaba lo que se venía a mirar y
   borraba lo que había contado al cerrarse.
-- **La web NO sincroniza**, a propósito: en navegador y PWA la app es una libreta local
-  (`hayApi()` devuelve `false` si no es nativa). Ahorra todo el montaje web de Apple
-  —Services ID, verificación de dominio— a cambio de exigir la app para participar.
+- **La web sincroniza solo con sesión, y a la web se entra por enlace** (SPECS §14.61,
+  `auth/enlace.js`): la puerta la firma Apple y esa hoja vive en la cáscara nativa, así que
+  quien no tiene iPhone no tenía por dónde entrar. `hayApi()` decía la regla por donde
+  estaba mal dicha —«solo si es nativa», cuando lo que decide es **si hay con qué
+  autenticarse**— y ahora abre también en el navegador **con sesión**; sin ella, la web es
+  la libreta local de siempre. Quien administra genera el enlace en Ajustes → Cuentas
+  **eligiendo a la persona** (quien no ha podido entrar nunca no está en la lista de
+  cuentas), y las tres reglas salen todas de que un enlace es una **credencial al
+  portador**: un solo uso (`cuenta.enlaceJti`, migración `0016`), generar otro revoca el
+  anterior, y tres días. Va en el **fragmento** (`#pase=`), que no viaja al servidor. Se
+  sigue ahorrando el montaje web de Apple —Services ID, verificación de dominio—, y lo que
+  no hay en el navegador son **avisos**: el push es un plugin nativo.
 - **Configuración en caliente:** `app/public/config.json` (API, cliente de Apple, manifiesto
   OTA). Se lee al arrancar, así que cambiarla **no** exige reconstruir ni publicar un OTA.
 - **Offline-first**: iOS Safari no tiene background sync → se sincroniza en foreground

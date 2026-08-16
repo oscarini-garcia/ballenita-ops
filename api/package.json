@@ -32,7 +32,9 @@
     "migrar:local15": "wrangler d1 execute ballena-ops --local --file=migraciones/0015_registro.sql",
     "migrar:remoto15": "wrangler d1 execute ballena-ops --remote --file=migraciones/0015_registro.sql",
     "migrar:local16": "wrangler d1 execute ballena-ops --local --file=migraciones/0016_grupo_en_su_pestana.sql",
-    "migrar:remoto16": "wrangler d1 execute ballena-ops --remote --file=migraciones/0016_grupo_en_su_pestana.sql"
+    "migrar:remoto16": "wrangler d1 execute ballena-ops --remote --file=migraciones/0016_grupo_en_su_pestana.sql",
+    "migrar:local17": "wrangler d1 execute ballena-ops --local --file=migraciones/0017_enlace_de_acceso.sql",
+    "migrar:remoto17": "wrangler d1 execute ballena-ops --remote --file=migraciones/0017_enlace_de_acceso.sql"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

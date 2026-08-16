@@ -122,7 +122,7 @@ export default function CacharrosSection({ eventId, event }) {
       )}
 
       {!meId && persons.length > 0 && (
-        <div className="note">Para votar hace falta saber quién eres: dilo en <b>Ajustes → Quién eres</b>.</div>
+        <div className="note">Para votar hace falta saber quién eres: tócate el <b>emoji de arriba</b> y dilo.</div>
       )}
 
       {sinCacharro.length > 0 && (

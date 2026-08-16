@@ -177,13 +177,16 @@ describe('App — navegación', () => {
     expect(document.querySelector('.appbar .userbadge')).toBeNull()
   })
 
-  it('Ajustes recoge en apartados el aspecto, quién eres y el evento', async () => {
+  it('Ajustes recoge en apartados el aspecto y el evento', async () => {
     await abrirEjemplo()
     await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
 
-    for (const titulo of ['Aspecto', 'Quién eres', 'Evento', 'La app']) {
+    for (const titulo of ['Aspecto', 'Evento', 'La app']) {
       expect(await screen.findByText(titulo)).toBeInTheDocument()
     }
+    // «Quién eres» se fue con el perfil al emoji de la cabecera (§14.62): lo que
+    // guardaba no era un ajuste, y la identidad ya la dice la cuenta (§14.42).
+    expect(screen.queryByText('Quién eres')).toBeNull()
     // Las estadísticas ya no son un apartado: se miran, no se ajustan, y viven
     // en Agenda como tercera área.
     expect(screen.queryByText('Estadísticas')).toBeNull()
@@ -205,23 +208,34 @@ describe('App — navegación', () => {
     expect(screen.getByText('Quién más adelanta')).toBeInTheDocument()
   })
 
-  it('«Quién eres» se ha comido el perfil que estaba en la cabecera', async () => {
+  // El perfil vive detrás de tu emoji, en la cabecera (§14.62): es tuyo, se
+  // toca a menudo y se mira desde cualquier pantalla, que es lo contrario de
+  // estar a tres toques detrás de la rueda de Ajustes.
+  it('tu emoji de la cabecera abre el perfil, y la lista de personas cuando no hay cuenta', async () => {
     await abrirEjemplo()
-    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
-    await userEvent.click(await screen.findByText('Quién eres'))
+    await userEvent.click(await screen.findByRole('button', { name: /Di quién eres|Tu perfil/ }))
 
     // Sin identidad todavía no hay perfil que editar: primero se elige persona.
     expect(screen.queryByRole('button', { name: 'Guardar mi perfil' })).not.toBeInTheDocument()
 
-    const opciones = document.querySelectorAll('.acordeon .persona-opcion')
+    const opciones = document.querySelectorAll('.modal .persona-opcion')
     expect(opciones.length).toBeGreaterThan(0)
     await userEvent.click(opciones[0])
 
-    // Y al elegirla aparecen ahí mismo el emoji, el estado y la foto.
+    // Y al elegirla aparecen ahí mismo el emoji y la foto; el estado abre su
+    // hoja, que es la misma que la de la pastilla de la cabecera.
     expect(await screen.findByRole('button', { name: 'Guardar mi perfil' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Estado a mano')).toBeInTheDocument()
     expect(screen.getByLabelText('Emoji a mano')).toBeInTheDocument()
     expect(screen.getByLabelText('Elegir foto de avatar')).toBeInTheDocument()
+  })
+
+  it('y el botón va antes del punto de sincronizar', async () => {
+    await abrirEjemplo()
+    const botones = [...document.querySelectorAll('.appbar button')]
+    const perfil = botones.findIndex((b) => b.classList.contains('perfil'))
+    const punto = botones.findIndex((b) => b.classList.contains('sync-dot'))
+    expect(perfil).toBeGreaterThanOrEqual(0)
+    expect(perfil).toBeLessThan(punto)
   })
 
   it('el apartado «Aspecto» deja cambiar el tamaño del texto', async () => {

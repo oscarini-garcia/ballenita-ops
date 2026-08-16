@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
-  familiesOf, bungasOf, personsOf, updatePerson, olvidarTodo, listEvents,
+  familiesOf, bungasOf, personsOf, olvidarTodo, listEvents,
   updateEvent, dinnersOf, plansOf, expensesOf, removeDinner, removePlan,
   listMejoras,
 } from '../db.js'
@@ -21,8 +21,6 @@ import { finPara } from '../lib/fechas.js'
 import { useTema, TEMAS } from '../lib/tema.js'
 import { useTamano, TAMANOS } from '../lib/tamano.js'
 import { useIdentidad } from '../lib/identidad.js'
-import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
-import { comprimirFoto, guardarFoto, leerFoto } from '../lib/avatares.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { aplicarSiguienteMigracion, eliminarMiCuenta, gestionarCuenta, hayApi, leerMigraciones, listarCuentas } from '../sync/api.js'
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
@@ -192,6 +190,11 @@ function SyncSection({ sync, onSincronizarTodo }) {
 
   return (
     <>
+      {/* Los tres bloques de este apartado llevan rótulo (§14.34-bis). Sin
+          ellos, «La app» era una cinta de tres estados, tres botones y tres
+          listas de pasos seguidas, y el de la base de datos —que aparece solo a
+          veces— salía como una coletilla del de la versión. */}
+      <div className="sec-h">Los datos del grupo</div>
       <div className="card tight">
         <div className="row">
           <SyncDot sync={estado} onClick={onSincronizarTodo} />
@@ -275,178 +278,12 @@ function AspectoSection() {
   )
 }
 
-// Estados de coña para tocar rápido (se puede escribir cualquiera igualmente).
-const ESTADOS = [
-  '🍺 de resaca', '🏖️ tirado en la toalla', '😴 echando la siesta',
-  '🐳 avistando ballenas', '💸 sin blanca', '🍷 vino en mano',
-  '🔥 a la parrilla', '🤿 buceando', '🫥 desaparecido en combate',
-  '🍤 en modo gamba', '🚗 haciendo de chófer', '🧴 poniéndome crema',
-]
-
-// Emojis rápidos para el avatar (también se escribe a mano).
-const AVATARES = ['🧑', '👩', '👨', '🧔', '👵', '👴', '🧒', '🐳', '🦑', '🦀', '🏄', '🕶️', '🍹', '🐙']
-
-/**
- * Tu cara: la foto de este móvil si la hay, si no el emoji.
- *
- * `data-emojis` es cuántos dibujos lleva, para que la casilla los encoja en vez
- * de recortarlos (§14.47). Con foto no se pone: ahí manda la imagen.
- */
-function Cara({ emoji, foto, className }) {
-  return (
-    <span className={className} data-emojis={foto ? undefined : contarEmojis(emoji || '🐳')}>
-      {foto ? <img src={foto} alt="" className="ufoto" /> : (emoji || '🐳')}
-    </span>
-  )
-}
-
-/**
- * Quién eres, y tu perfil.
- *
- * Aquí vivía solo el «cambiar de persona»; el resto —emoji, estado y foto— se
- * editaba tocando tu nombre en la cabecera. Ese badge se ha retirado: en un
- * móvil que es tuyo, recordarte quién eres cien veces al día es gastar el sitio
- * de la cabecera en una pregunta que ya sabes. Así que el perfil baja aquí
- * entero, y de paso deja de ser un modal: dentro de un apartado que ya está
- * abierto, un modal encima era una ventana de más.
- *
- * El emoji y el estado son hechos del grupo y sincronizan. La foto no: vive solo
- * en este móvil (`lib/avatares.js`, SPECS §14.10).
- */
-function QuienEresSection({ eventId, persons }) {
-  const { meId, me, elegir, salir, deLaCuenta } = useIdentidad(eventId, persons)
-  const [foto, setFoto] = useState(null)
-  const [estado, setEstado] = useState('')
-  const [avatar, setAvatar] = useState('🧑')
-  // Borrador de la foto: `undefined` = sin tocar, `null` = quitarla, string = nueva.
-  const [fotoNueva, setFotoNueva] = useState(undefined)
-  const [aviso, setAviso] = useState(null)
-  const [guardado, setGuardado] = useState(false)
-  const archivo = useRef(null)
-
-  useEffect(() => { setFoto(leerFoto(eventId, meId)) }, [eventId, meId])
-
-  // Al cambiar de persona, resembrar los campos con los suyos.
-  useEffect(() => {
-    setEstado(me?.estado ?? '')
-    setAvatar(me?.avatar ?? '🧑')
-    setFotoNueva(undefined)
-    setAviso(null)
-    setGuardado(false)
-  }, [me])
-
-  const fotoActual = fotoNueva === undefined ? foto : fotoNueva
-
-  async function elegirFoto(e) {
-    const file = e.target.files?.[0]
-    e.target.value = '' // permite volver a elegir la misma foto
-    if (!file) return
-    setAviso(null)
-    try {
-      setFotoNueva(await comprimirFoto(file))
-    } catch (error) {
-      setAviso(String(error?.message ?? error))
-    }
-  }
-
-  async function guardar() {
-    tap()
-    await updatePerson(me.id, { estado: estado.trim(), avatar: avatar || '🧑' })
-    if (fotoNueva !== undefined) {
-      guardarFoto(eventId, meId, fotoNueva)
-      setFoto(fotoNueva)
-      setFotoNueva(undefined)
-    }
-    setGuardado(true)
-  }
-
-  return (
-    <>
-      <div className="card tight">
-        <div className="row">
-          <Cara className="av" emoji={avatar} foto={fotoActual} />
-          <div className="main">
-            <div className="n">{me ? me.name : 'Sin elegir'}</div>
-            <div className="sub">{me ? (me.estado || 'Sin estado') : 'Nadie ha dicho quién es en este móvil'}</div>
-          </div>
-          {/* «Salir» olvida la identidad de este móvil, y eso solo tiene sentido
-              cuando se eligió aquí: con la cuenta enlazada volvería a ponerse
-              sola en el acto (§14.42), o sea un botón que no hace nada. */}
-          {me && !deLaCuenta && <button className="btn sm ghost" onClick={() => { tap(); salir() }}>Salir</button>}
-        </div>
-      </div>
-
-      {me && (
-        <>
-          <label>Tu foto <span className="solo-movil">(solo en este móvil)</span></label>
-          <div className="chips">
-            <button className="chip" onClick={() => { tap(); archivo.current?.click() }}>📷 {fotoActual ? 'Cambiar foto' : 'Poner foto'}</button>
-            {fotoActual && <button className="chip" onClick={() => { tap(); setFotoNueva(null) }}>🗑️ Quitar foto</button>}
-          </div>
-          <input
-            ref={archivo}
-            type="file"
-            accept="image/*"
-            onChange={elegirFoto}
-            className="oculto"
-            aria-label="Elegir foto de avatar"
-          />
-
-          <label>Tu emoji</label>
-          <div className="chips">
-            {AVATARES.map((a) => (
-              <button key={a} className={`chip${avatar === a ? ' on' : ''}`} onClick={() => { tap(); setAvatar(a) }}>{a}</button>
-            ))}
-          </div>
-          <input type="text" value={avatar} onChange={(e) => setAvatar(cortarEmojis(e.target.value, TOPE_EMOJIS))} placeholder="🙂" aria-label="Emoji a mano" />
-
-          <label>Tu estado</label>
-          <div className="chips">
-            {ESTADOS.map((x) => (
-              <button key={x} className={`chip${estado === x ? ' on' : ''}`} onClick={() => { tap(); setEstado(x) }}>{x}</button>
-            ))}
-          </div>
-          <input type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="a mi bola…" aria-label="Estado a mano" />
-
-          {aviso && <div className="note" role="status">{aviso}</div>}
-
-          <button className="btn block" onClick={guardar}>Guardar mi perfil</button>
-          {guardado && <div className="pill owed" style={{ display: 'inline-block' }} role="status">✓ Guardado</div>}
-        </>
-      )}
-
-      {/* Quién eres lo dice el enlace de tu cuenta, y por eso no se elige aquí
-          (pedido expreso, SPECS §14.42). La lista solo sale donde no hay cuenta
-          que lo diga —libreta local y demostración— o cuando la persona
-          enlazada no es de este evento, que es su única salida. */}
-      {!deLaCuenta && (<>
-      <div className="sec-h">{me ? 'Cambiar de persona' : 'Elige quién eres'}</div>
-      <div className="lista-personas">
-        {persons.length === 0 && <div className="empty" style={{ padding: 14 }}>Aún no hay gente en el evento. Añádela en «Gente».</div>}
-        {persons.map((p) => (
-          <button
-            key={p.id}
-            className={`persona-opcion btn ghost${p.id === me?.id ? ' on' : ''}`}
-            onClick={() => { tap(); elegir(p.id) }}
-          >
-            <span className="pe">{p.avatar}</span>
-            <span>{p.name}{p.apodo ? ` · «${p.apodo}»` : ''}</span>
-          </button>
-        ))}
-      </div>
-      </>)}
-
-      {deLaCuenta ? (
-        <div className="note">
-          🐳 Eres <b>{me.name}</b> porque tu cuenta está enlazada con esa persona: lo decide quien
-          lleva el grupo, no este móvil. Tu emoji y tu estado sí los cambias tú, y los ve el grupo.
-        </div>
-      ) : (
-        <div className="note">Quién eres se guarda <b>en este móvil</b> y no se sincroniza: cada uno elige la suya. El emoji y el estado sí los ve el grupo. «Salir» solo olvida la identidad aquí: no borra a nadie.</div>
-      )}
-    </>
-  )
-}
+/* Aquí vivieron `Cara`, `AVATARES`, `ESTADOS` y `QuienEresSection`, que ahora
+   son el botón de tu emoji en la cabecera (`components/BotonDePerfil.jsx`,
+   SPECS §14.62). El apartado nació de una pregunta que ya no existe —«¿quién
+   eres en este móvil?», que desde §14.42 contesta la cuenta—, y lo que quedaba
+   dentro era tu perfil: no un ajuste, sino algo tuyo que se toca a menudo y que
+   estaba a tres toques detrás de una rueda. */
 
 /** El evento en curso, y la lista para saltar a otro sin pasar por la portada. */
 function EventoSection({ event, onPickEvent }) {
@@ -720,20 +557,36 @@ function MigracionesBloque({ esAdmin = false }) {
   // Quien no administra no ve un botón que le iba a devolver un 403 al pulsarlo,
   // pero sí ve **por qué** no lo ve: si no, buscar el botón que le han dicho que
   // está aquí es una búsqueda sin final.
+  // El silencio del primer instante es el único que se queda, y por eso el
+  // rótulo va **dentro** y no fuera: un «La base de datos» solo, con el hueco
+  // debajo mientras contesta la API, es la quinta forma de no decir nada
+  // (§14.37-bis).
+  if (esAdmin && pendientes === null && !error) return null
+
+  const titulo = <div className="sec-h">La base de datos</div>
+
   if (!esAdmin) {
-    return <div className="pista">La base de datos la pone al día quien administra el grupo.</div>
+    return (
+      <>
+        {titulo}
+        <div className="pista">La base de datos la pone al día quien administra el grupo.</div>
+      </>
+    )
   }
   if (error) {
     return (
-      <pre className="traza mal" role="status">
-        {`No se ha podido preguntar por las migraciones: ${error}`}
-      </pre>
+      <>
+        {titulo}
+        <pre className="traza mal" role="status">
+          {`No se ha podido preguntar por las migraciones: ${error}`}
+        </pre>
+      </>
     )
   }
-  if (pendientes === null) return null
 
   return (
     <>
+      {titulo}
       <div className="pista">
         {pendientes.length
           ? `La base de datos va ${pendientes.length === 1 ? '1 migración' : `${pendientes.length} migraciones`} por detrás del código (${pendientes.join(', ')}).`
@@ -831,7 +684,16 @@ function AppSection({ esAdmin = false }) {
           rótulo, la versión en grande y **un modal encima de la pantalla**: el
           modal tapaba justo lo que se venía a mirar, obligaba a un «Ok» para
           seguir y se llevaba por delante lo que había contado en cuanto se
-          cerraba. Contado en su sitio se queda ahí y se puede releer. */}
+          cerraba. Contado en su sitio se queda ahí y se puede releer.
+
+          **Y los dos «al día» se escriben igual** (SPECS §14.34-bis): rótulo,
+          en qué estado está, el botón, y el progreso debajo. Este bloque tenía
+          las novedades metidas entre el estado y su propio botón, así que de
+          los dos que hacen lo mismo —poner la app al día y poner la base al
+          día— uno salía partido en dos y el otro entero. */}
+      {/* «La versión» y no «La app»: el acordeón que lo contiene ya se llama
+          así, y un rótulo que repite el de su apartado no dice dónde estás. */}
+      <div className="sec-h">La versión</div>
       <div className="pista">
         Versión en curso: <b className="tnum">v{APP_VERSION}</b>.
         {/* Dentro de la app hay dos números y no siempre coinciden: el que se
@@ -847,23 +709,8 @@ function AppSection({ esAdmin = false }) {
           : 'Estás en la versión web, que se actualiza sola al recargar.'}
       </div>
 
-      {/* Qué cambió, una tarjeta por versión y de lado (SPECS §14.34, la
-          figura de `meeting-ops-air`): la que llevas puesta y las tres de
-          antes. La prosa vive en `lib/notas.js`, escrita a mano en cada vuelta
-          y atada a la versión por su test — así esta pantalla contesta «¿qué
-          me trajo la actualización?» y no solo «¿cuál tengo puesta?». */}
-      <div className="relnotas" aria-label="Qué cambió, por versión">
-        {NOTAS.slice(0, 4).map((n) => (
-          <div className="relnota" key={n.version}>
-            <div className="rn-meta tnum">v{n.version} · {n.fecha}</div>
-            <div className="rn-titulo">{n.titulo}</div>
-            {n.lineas.map((l, i) => <p className="rn-linea" key={i}>{l}</p>)}
-          </div>
-        ))}
-      </div>
-
       <button className="btn ghost block" disabled={busy} onClick={actualizar}>
-        {busy ? 'Comprobando…' : 'Comprobar ahora'}
+        {busy ? 'Comprobando…' : 'Poner la app al día'}
       </button>
 
       {busy && (
@@ -896,6 +743,27 @@ function AppSection({ esAdmin = false }) {
       {paquetes && <ListaDePaquetes paquetes={paquetes} />}
 
       <MigracionesBloque esAdmin={esAdmin} />
+
+      {/* Qué cambió, una tarjeta por versión y de lado (SPECS §14.34, la figura
+          de `meeting-ops-air`): la que llevas puesta y las tres de antes. La
+          prosa vive en `lib/notas.js`, escrita a mano en cada vuelta y atada a
+          la versión por su test — así esta pantalla contesta «¿qué me trajo la
+          actualización?» y no solo «¿cuál tengo puesta?».
+
+          **Va al final y con su rótulo** (§14.34-bis). Estaba entre el estado
+          de la versión y el botón de actualizar, que es el peor sitio de los
+          tres: se lee cuando la actualización ya ha pasado —«¿qué me ha
+          traído?»—, no mientras se decide si pulsar. */}
+      <div className="sec-h">Qué ha cambiado</div>
+      <div className="relnotas" aria-label="Qué cambió, por versión">
+        {NOTAS.slice(0, 4).map((n) => (
+          <div className="relnota" key={n.version}>
+            <div className="rn-meta tnum">v{n.version} · {n.fecha}</div>
+            <div className="rn-titulo">{n.titulo}</div>
+            {n.lineas.map((l, i) => <p className="rn-linea" key={i}>{l}</p>)}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -956,10 +824,6 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, onGoT
         </span>
         <span className="v" aria-hidden>›</span>
       </button>
-
-      <Acordeon titulo="Quién eres" icono="persona" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
-        <QuienEresSection eventId={eventId} persons={persons} />
-      </Acordeon>
 
       <Acordeon titulo="Notificaciones" icono="aviso" nota={pendientes || null}>
         <NotificacionesSection />

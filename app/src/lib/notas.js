@@ -16,6 +16,19 @@
  */
 export const NOTAS = [
   {
+    version: '0.49.0',
+    fecha: '2026-08-16',
+    titulo: 'Quien no tiene iPhone ya puede entrar',
+    lineas: [
+      'En Ajustes → Cuentas hay «Entrar sin iPhone»: eliges a quién, sale un enlace y se lo mandas. Lo abre en el navegador de cualquier móvil u ordenador y entra con todo lo del grupo.',
+      'El enlace vale una sola vez y caduca a los tres días. Si se pierde o acaba donde no debía, genera otro: el anterior deja de valer en el acto.',
+      'En el navegador no hay avisos, y la app se ve como un móvil grande en un portátil. Sin enlace, la web sigue siendo la libreta local de siempre.',
+      'Y en Planes, «Devolver a ideas» lo puede hacer cualquier adulto, no solo quien lleva el grupo: si tú puedes proponer un plan, puedes retirarlo.',
+      'Ajustes → 🐳 La app queda ordenada en tres bloques con su rótulo —los datos, la versión y la base de datos—, con «Qué ha cambiado» al final en vez de en medio del botón de actualizar.',
+      'Tu perfil está ahora detrás de tu emoji, arriba a la derecha: el emoji, la foto y el estado, a un toque desde cualquier pantalla. El apartado «Quién eres» de Ajustes se retira — quién eres lo dice tu cuenta desde hace tiempo.',
+    ],
+  },
+  {
     version: '0.48.0',
     fecha: '2026-08-16',
     titulo: 'La pestaña «Grupo», y seis cosas nuevas',
