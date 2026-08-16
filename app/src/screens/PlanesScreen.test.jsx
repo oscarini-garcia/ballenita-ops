@@ -28,6 +28,19 @@ async function viaje() {
 const titulos = () => [...document.querySelectorAll('.fila-plan .n')].map((e) => e.textContent)
 
 /**
+ * «Esto se ve», volviendo a buscarlo en cada intento.
+ *
+ * `findByText` devuelve **el nodo que encontró**, y esta pantalla tiene ahora
+ * **tres** consultas vivas —planes, personas y comentarios—: cuando la última
+ * llega, React sustituye la fila y el nodo capturado ya no está en el
+ * documento, así que `toBeInTheDocument()` falla sobre algo que sí se ve. Pasó
+ * en CI y no aquí, que es lo que hace a esta clase de carrera cara: la máquina
+ * lenta pierde la que la rápida gana. `waitFor` con `getByText` vuelve a
+ * preguntar cada vez, así que no hay nodo viejo que sostener.
+ */
+const seVe = (texto) => waitFor(() => { expect(screen.getByText(texto)).toBeInTheDocument() })
+
+/**
  * Abrir un plan, esperando a que la lista deje de moverse.
  *
  * La pantalla tiene dos consultas vivas —planes y personas— y el subtítulo de la
@@ -71,7 +84,7 @@ describe('la lista', () => {
     await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍', [ana]: '🤷' } })
 
     render(<PlanesScreen eventId={eventId} event={event} />)
-    expect(await screen.findByText('falta por votar Luis')).toBeInTheDocument()
+    await seVe('falta por votar Luis')
   })
 
   it('con más de dos sin votar da el número, que es lo que cabe', async () => {
@@ -80,7 +93,7 @@ describe('la lista', () => {
     await addPlan(eventId, { titulo: 'Cuevas', votos: { [curro]: '👍' } })
 
     render(<PlanesScreen eventId={eventId} event={event} />)
-    expect(await screen.findByText('faltan 3 por votar')).toBeInTheDocument()
+    await seVe('faltan 3 por votar')
   })
 
   it('sin votos y con todos votados lo dice con otras palabras', async () => {
@@ -89,8 +102,8 @@ describe('la lista', () => {
     await addPlan(eventId, { titulo: 'Todos', votos: { [curro]: '👍', [ana]: '👎', [luis]: '🤷' } })
 
     render(<PlanesScreen eventId={eventId} event={event} />)
-    expect(await screen.findByText('sin votos todavía')).toBeInTheDocument()
-    expect(screen.getByText('han votado todos')).toBeInTheDocument()
+    await seVe('sin votos todavía')
+    await seVe('han votado todos')
   })
 
   it('el día ya no se toca desde aquí: no hay ningún selector de fecha', async () => {
@@ -279,11 +292,7 @@ describe('se hace y punto (§14.59)', () => {
     await addPlan(eventId, { titulo: 'Cena de despedida', estado: 'sehace' })
     render(<PlanesScreen eventId={eventId} event={event} />)
 
-    // Con `waitFor` y **volviendo a buscar** cada vez: la fila se repinta cuando
-    // llega la segunda consulta viva (la de personas), así que un nodo capturado
-    // por `findBy` antes de eso ya está fuera del documento cuando se comprueba.
-    // Es la misma carrera que documenta el ayudante `abrir` de este fichero.
-    await waitFor(() => { expect(screen.getByText('falta el día')).toBeInTheDocument() })
+    await seVe('falta el día')
   })
 
   it('quien organiza lo cambia desde dentro, y los votos siguen ahí', async () => {
@@ -310,7 +319,7 @@ describe('se hace y punto (§14.59)', () => {
     render(<PlanesScreen eventId={eventId} event={event} />)
 
     await abrir('Kayaks en la cala')
-    expect(await screen.findByText('Tu voto')).toBeInTheDocument()
+    await seVe('Tu voto')
     expect(screen.queryByRole('button', { name: 'Se hace y punto' })).not.toBeInTheDocument()
   })
 })
