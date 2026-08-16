@@ -468,13 +468,16 @@ export const DISH_CATEGORIES = [
  * Las cenas, los planes, los gastos y la compra ya colgaban de su evento y
  * nunca se mezclaron. Los platos eran la única tabla suelta.
  */
-export async function addDish({ name, categorias = [], esFavorito = false, ingredientes = [], raciones = null }, evento = null) {
+export async function addDish({ name, categorias = [], esFavorito = false, ingredientes = [], raciones = null, receta = '' }, evento = null) {
   const eventId = evento?.esDemo ? evento.id : null
   // `raciones` es **para cuántos es la receta**, y sin él una cantidad no se
   // puede estirar (SPECS §14.20). Va una vez por plato y no por ingrediente: el
   // arroz para 12 y el pan para 20 es exactamente el lío que hace que nadie
   // rellene nada.
-  return escribir('dishes', uid('dish'), { name, categorias, esFavorito, ingredientes, raciones, eventId })
+  // `receta` es **cómo se hace**, texto libre (§14.64). Va aparte de
+  // `ingredientes` porque son dos preguntas: de la lista sale la compra, y de
+  // esto sale lo que se lee delante del fuego. Vacío = sin receta escrita.
+  return escribir('dishes', uid('dish'), { name, categorias, esFavorito, ingredientes, raciones, receta, eventId })
 }
 
 export async function listDishes(evento = null) {

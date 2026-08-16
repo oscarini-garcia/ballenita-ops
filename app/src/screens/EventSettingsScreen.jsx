@@ -743,27 +743,35 @@ function AppSection({ esAdmin = false }) {
       {paquetes && <ListaDePaquetes paquetes={paquetes} />}
 
       <MigracionesBloque esAdmin={esAdmin} />
+    </div>
+  )
+}
 
-      {/* Qué cambió, una tarjeta por versión y de lado (SPECS §14.34, la figura
-          de `meeting-ops-air`): la que llevas puesta y las tres de antes. La
-          prosa vive en `lib/notas.js`, escrita a mano en cada vuelta y atada a
-          la versión por su test — así esta pantalla contesta «¿qué me trajo la
-          actualización?» y no solo «¿cuál tengo puesta?».
-
-          **Va al final y con su rótulo** (§14.34-bis). Estaba entre el estado
-          de la versión y el botón de actualizar, que es el peor sitio de los
-          tres: se lee cuando la actualización ya ha pasado —«¿qué me ha
-          traído?»—, no mientras se decide si pulsar. */}
-      <div className="sec-h">Qué ha cambiado</div>
-      <div className="relnotas" aria-label="Qué cambió, por versión">
-        {NOTAS.slice(0, 4).map((n) => (
-          <div className="relnota" key={n.version}>
-            <div className="rn-meta tnum">v{n.version} · {n.fecha}</div>
-            <div className="rn-titulo">{n.titulo}</div>
-            {n.lineas.map((l, i) => <p className="rn-linea" key={i}>{l}</p>)}
-          </div>
-        ))}
-      </div>
+/**
+ * «Qué ha cambiado»: una tarjeta por versión y de lado (SPECS §14.34, la figura
+ * de `meeting-ops-air`), la que llevas puesta y las tres de antes. La prosa vive
+ * en `lib/notas.js`, escrita a mano en cada vuelta y atada a la versión por su
+ * test — así Ajustes contesta «¿qué me trajo la actualización?» y no solo
+ * «¿cuál tengo puesta?».
+ *
+ * **Apartado propio, y no el final de «La app»** (§14.34-ter). Dentro de «La
+ * app» era el tercer bloque de un acordeón que ya contaba dos operaciones —poner
+ * la app al día y poner la base al día—, así que para leer lo que trajo la
+ * actualización había que pasar por encima de los dos botones que la hacen. Son
+ * dos preguntas distintas y se contestan de distinta manera: «¿estoy al día?» se
+ * toca, «¿qué me ha traído?» se lee. §14.34-bis lo sacó de en medio del botón de
+ * actualizar y lo dejó al final del mismo apartado, que era la mitad del camino.
+ */
+function NovedadesSection() {
+  return (
+    <div className="relnotas" aria-label="Qué cambió, por versión">
+      {NOTAS.slice(0, 4).map((n) => (
+        <div className="relnota" key={n.version}>
+          <div className="rn-meta tnum">v{n.version} · {n.fecha}</div>
+          <div className="rn-titulo">{n.titulo}</div>
+          {n.lineas.map((l, i) => <p className="rn-linea" key={i}>{l}</p>)}
+        </div>
+      ))}
     </div>
   )
 }
@@ -863,6 +871,22 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, onGoT
       <Acordeon titulo="La app" icono="sincronizar" nota={`v${APP_VERSION}`}>
         <SyncSection sync={sync} onSincronizarTodo={onSincronizarTodo} />
         <AppSection esAdmin={esAdmin} />
+      </Acordeon>
+
+      {/* Y detrás, en su propio apartado, lo que trajo cada versión (§14.34-ter).
+          Detrás y no delante: se lee **después** de actualizar.
+
+          **Sin nota en la solapa**, y es lo único de este apartado que se probó
+          y se cayó: el titular de la última versión pide 370 pt y en el renglón
+          quedan 174,8, así que salía por la mitad y encima empujaba el rótulo a
+          dos líneas (48 → 73,2 pt de alto). Y «v0.50.0» ya lo dice la solapa de
+          justo encima. El rótulo solo se basta.
+
+          El icono es el de «hecho» y no la bombilla, que es la de «Mejoras»
+          —dos solapas con el mismo dibujo en la misma pantalla—: puestas cerca
+          se leen como el par que son, lo que falta y lo que ya está. */}
+      <Acordeon titulo="Qué ha cambiado" icono="visto">
+        <NovedadesSection />
       </Acordeon>
 
     </div>

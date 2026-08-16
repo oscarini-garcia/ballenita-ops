@@ -3,13 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react'
 import 'fake-indexeddb/auto'
 
 /**
- * El apartado «La app», por dentro (SPECS §14.34-bis).
+ * El apartado «La app», por dentro (SPECS §14.34-bis), y las novedades fuera de
+ * él (§14.34-ter).
  *
  * Lo que se fija aquí es el **orden**, que es lo único que se puede romper sin
  * que salte nada: las novedades estaban metidas entre el estado de la versión y
  * el botón de actualizar, así que de los dos bloques que hacen lo mismo —poner
  * la app al día y poner la base al día— uno salía partido en dos y el otro
- * entero.
+ * entero. Ahora «La app» son esos dos y nada más, y lo que trajo cada versión es
+ * un apartado que se abre por su cuenta.
  */
 const leerMigraciones = vi.fn()
 vi.mock('../sync/api.js', async (original) => ({
@@ -21,6 +23,7 @@ vi.mock('../sync/api.js', async (original) => ({
 }))
 
 const { default: EventSettingsScreen } = await import('./EventSettingsScreen.jsx')
+const { NOTAS } = await import('../lib/notas.js')
 
 const pintar = () => render(
   <EventSettingsScreen eventId="ev_1" event={{ id: 'ev_1', name: 'Viaje 2026' }} sync={{ recheck: vi.fn() }} />,
@@ -37,15 +40,25 @@ beforeEach(() => {
 afterEach(() => localStorage.clear())
 
 describe('el apartado «La app»', () => {
-  it('lleva sus tres bloques rotulados, y las novedades al final', async () => {
+  it('lleva sus dos bloques rotulados, y las novedades ya no son uno de ellos', async () => {
     pintar()
     await screen.findByText('La base de datos está al día.')
 
     const mios = rotulos().filter((t) => ['Los datos del grupo', 'La versión', 'La base de datos', 'Qué ha cambiado'].includes(t))
-    expect(mios).toEqual(['Los datos del grupo', 'La versión', 'La base de datos', 'Qué ha cambiado'])
+    expect(mios).toEqual(['Los datos del grupo', 'La versión', 'La base de datos'])
   })
 
-  it('las novedades van detrás del botón de actualizar, no en medio', async () => {
+  it('«Qué ha cambiado» es un apartado suyo, y el último', async () => {
+    pintar()
+    await screen.findByText('La base de datos está al día.')
+
+    const titulos = [...document.querySelectorAll('.acordeon-titulo')].map((e) => e.textContent)
+    expect(titulos.at(-1)).toBe('Qué ha cambiado')
+    // Dentro va la prosa de `notas.js`, que es de donde sale la primera tarjeta.
+    expect(screen.getByText(NOTAS[0].titulo, { selector: '.rn-titulo' })).toBeInTheDocument()
+  })
+
+  it('las novedades van detrás de los dos botones de poner al día, no en medio', async () => {
     pintar()
     await screen.findByText('La base de datos está al día.')
 

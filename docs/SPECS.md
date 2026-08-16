@@ -3368,6 +3368,34 @@ la memoria de nadie.
 - **«La versión» y no «La app»**, que es como se llama el acordeón que lo
   contiene: un rótulo que repite el de su apartado no dice dónde estás.
 
+### 14.34-ter «Qué ha cambiado» es un apartado, no el final de otro
+
+§14.34-bis sacó las novedades de en medio del botón de actualizar y las dejó al
+final del mismo acordeón. Eso era **la mitad del camino**: seguían siendo el
+tercer bloque de un apartado que ya contaba dos operaciones, y para leerlas
+había que desplegar «La app» y pasar por encima de los dos botones que la ponen
+al día y de sus dos listas de progreso.
+
+- **Son dos preguntas distintas y se contestan de distinta manera:** «¿estoy al
+  día?» **se toca** —dos botones y lo que va pasando debajo—; «¿qué me ha
+  traído?» **se lee**. Meterlas en la misma solapa obliga a abrir la de tocar
+  para llegar a la de leer, y son las dos únicas cosas de Ajustes que se hacen
+  el mismo día.
+- **✅ Acordeón propio, `Qué ha cambiado`, el último de Ajustes** y detrás de
+  «La app», no delante: se lee **después** de actualizar. «La app» se queda con
+  sus dos bloques —**Los datos del grupo** y **La versión**, más **La base de
+  datos** para quien administra— y ninguno más.
+- **La solapa va sin nota**, que es lo único de esta vuelta que se probó y se
+  cayó. El titular de la última versión —«Grupo en tres áreas, y los avisos que
+  no llegaban»— pide **370 pt** y en el renglón quedan **174,8**: salía por la
+  mitad y además empujaba el rótulo a dos líneas, de **48 a 73,2 pt** de alto
+  entre nueve solapas de 48. Y el número, que sí cabe, ya lo dice «La app» dos
+  renglones más arriba: repetirlo se lee como un descuido. «Qué ha cambiado» se
+  basta solo.
+- La prosa no se mueve: sigue en `lib/notas.js` con su guardia (§14.34), y las
+  tarjetas siguen siendo cuatro y de lado (`.relnotas`). Lo que cambia es de qué
+  cuelgan.
+
 ### 14.35 Saldos: la familia con su pastilla, y quién paga a quién
 
 Decidido en `docs/diseño/saldos.html` · **F3 · R2 · E1**, más los tres arreglos
@@ -4561,6 +4589,37 @@ un comentario a Dani y no me ha ido»— y que no se parecen en nada al síntoma
   reventando, porque devolver una lista vacía ahí sería decirle al móvil que el
   grupo no tiene gastos.
 
+### 14.64 Un plato dice qué lleva y ahora también cómo se hace
+
+Un plato sabía **qué lleva** —`ingredientes` con sus cantidades y `raciones`
+para poder estirarlas (§14.20)— y no sabía **cómo se hace**. Son dos cosas
+distintas y las dos hacen falta: de los ingredientes sale la lista de la compra,
+y de esto sale lo que se lee delante del fuego. Sin el campo, quien cocinaba el
+martes tenía la compra hecha y la receta en la cabeza de otro.
+
+- **✅ `dishes.receta`, texto libre y multilínea** (migración `0018`, columna
+  `TEXT` sin `NOT NULL` ni `DEFAULT`: los platos ya apuntados no se tocan, y
+  `NULL` y cadena vacía significan lo mismo). Viaja en la sincronización como
+  cualquier campo del catálogo, así que la receta que escribe uno la lee todo el
+  grupo.
+- **Texto y no pasos numerados**, a propósito. Una receta de este grupo es
+  «sofríes la cebolla, echas el arroz y cuando empiece a hervir bajas el fuego»:
+  obligar a partirla en pasos es pedir una estructura que nadie rellena, y es el
+  mismo descarte que las cinco estrellas del bunga (§14.56 · B3). Un `textarea`
+  de cinco renglones, opcional, con «Sofríes la cebolla, echas el arroz…» de
+  ejemplo.
+- **Va después de los ingredientes y de las raciones**, que es el orden en que
+  se rellena: primero qué lleva y para cuántos, luego qué hacer con ello. Y con
+  su pista, porque los dos campos se parecen y solo uno va a la compra: «Lo que
+  se lee delante del fuego. Los ingredientes de arriba son los que van a la
+  compra».
+- **Se ve sin abrirlo:** la fila del catálogo dice `· 📖 con receta` en el
+  subtítulo que ya tenía. Cuesta **cero puntos** de alto y es lo que se busca
+  cuando hay veinte platos y toca cocinar uno.
+- **Sin tope de caracteres**, al revés que mejoras, trucos y comentarios
+  (2000). Aquellos son listas a las que se añade; esto es un campo de una fila
+  que ya existe y que se edita encima, así que no hay por dónde crecer — y 2000
+  sí es corto para una receta larga.
 
 ### 🟡 Aún abiertas (nivel implementación, no bloquean producto)
 | # | Decisión | Recomendación |

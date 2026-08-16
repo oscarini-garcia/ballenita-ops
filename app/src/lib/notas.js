@@ -16,16 +16,29 @@
  */
 export const NOTAS = [
   {
+    version: '0.50.0',
+    fecha: '2026-08-16',
+    titulo: 'Grupo en tres áreas, y los avisos que no llegaban',
+    lineas: [
+      'Grupo se parte en tres: Familias, Bungas y Gadgets. Cada familia es un desplegable que dice su estado y cuántos son, así que la lista entera cabe de un vistazo y se abre solo la que buscas.',
+      'Y ya no hace falta esperar a que lo haga uno: cada adulto edita lo de su familia y lo de los bungas —colocarlos, ponerles alias, apuntar sus notas— y el gadget de su casa. Crear o borrar familias y mover gente entre ellas siguen siendo de quien administra, porque cambian el reparto de todos.',
+      'Los avisos de gastos y de comentarios ya llegan de verdad: el servidor los componía sin la lista de personas y no mandaba ninguno, sin fallar ni decirlo. «Gastos que te tocan» no había avisado nunca desde que existe.',
+      'Y una tabla nueva sin migrar ya no deja al grupo entero sin sincronizar: llega vacía en vez de tumbar la instantánea.',
+      'Un plato guarda ahora cómo se hace: un campo de texto libre debajo de los ingredientes, para lo que se lee delante del fuego. En el catálogo, los que tienen receta escrita lo dicen en su fila.',
+      'Y «Qué ha cambiado» —esto que estás leyendo— es su propio apartado de Ajustes, el último, en vez del final de «La app»: se lee después de actualizar, no hay que abrir la solapa de los botones para llegar.',
+    ],
+  },
+  {
     version: '0.49.0',
     fecha: '2026-08-16',
     titulo: 'Quien no tiene iPhone ya puede entrar',
     lineas: [
       'En Ajustes → Cuentas hay «Entrar sin iPhone»: eliges a quién, sale un enlace y se lo mandas. Lo abre en el navegador de cualquier móvil u ordenador y entra con todo lo del grupo.',
-      'El enlace vale una sola vez y caduca a los tres días; si se pierde, genera otro y el anterior deja de valer en el acto. En el navegador no hay avisos, y sin enlace la web sigue siendo la libreta local de siempre.',
-      'En Planes, «Devolver a ideas» lo puede hacer cualquier adulto: si tú puedes proponer un plan, puedes retirarlo. Y Ajustes → 🐳 La app queda en tres bloques con su rótulo, con «Qué ha cambiado» al final en vez de en medio del botón de actualizar.',
+      'El enlace vale una sola vez y caduca a los tres días. Si se pierde o acaba donde no debía, genera otro: el anterior deja de valer en el acto.',
+      'En el navegador no hay avisos, y la app se ve como un móvil grande en un portátil. Sin enlace, la web sigue siendo la libreta local de siempre.',
+      'Y en Planes, «Devolver a ideas» lo puede hacer cualquier adulto, no solo quien lleva el grupo: si tú puedes proponer un plan, puedes retirarlo.',
+      'Ajustes → 🐳 La app queda ordenada en tres bloques con su rótulo —los datos, la versión y la base de datos—, con «Qué ha cambiado» al final en vez de en medio del botón de actualizar.',
       'Tu perfil está ahora detrás de tu emoji, arriba a la derecha: el emoji, la foto y el estado, a un toque desde cualquier pantalla. El apartado «Quién eres» de Ajustes se retira — quién eres lo dice tu cuenta desde hace tiempo.',
-      'Grupo se parte en tres: Familias, Bungas y Gadgets. Cada familia es un desplegable que dice su estado y cuántos son, así que la lista entera cabe de un vistazo y se abre solo la que buscas.',
-      'Y ya no hace falta esperar a que lo haga uno: cada adulto edita lo de su familia y lo de los bungas —colocarlos, ponerles alias, apuntar sus notas— y el gadget de su casa. Crear o borrar familias y mover gente entre ellas siguen siendo de quien administra, porque cambian el reparto de todos.',
     ],
   },
   {

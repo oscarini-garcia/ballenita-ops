@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.49.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1029 pruebas en 112 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.50.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1033 pruebas en 112 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   242 pruebas en 24 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -432,7 +432,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.53** Los trucos: lo que hay que acordarse de un viaje a otro → `PlanesConAreasScreen.jsx`, `TrucosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.54** La compra, por familia → `CompraScreen.jsx`, `compra-familias.js`, `db.js`, `tablas.js`
 - **§14.55** Los comentarios: una tabla con ancla, y un componente → `Comentarios.jsx`, `DiasScreen.jsx`, `FichaDeGasto.jsx`, `PlanesScreen.jsx`, `avisos.js`, `comentarios.js` · +2 más
-- **§14.56** El bunga es un sitio, y por eso puede tener historia → `GrupoSection.jsx`, `alojamientos.js`, `db.js`, `permisos.js`, `tablas.js`
+- **§14.56** El bunga es un sitio, y por eso puede tener historia → `GrupoSection.jsx`, `PlatosScreen.jsx`, `alojamientos.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.57** El cacharro del año → `CacharrosSection.jsx`, `cacharros.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.58** Quién lleva las cuentas → `GrupoSection.jsx`, `avisos.js`, `db.js`, `index.js`, `tablas.js`, `tables.js`
 - **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `planes.js`
@@ -440,3 +440,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.61** Entrar sin iPhone: un enlace que abre la puerta una vez → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `GrupoSection.jsx`, `api.js`, `enlace.js` · +3 más
 - **§14.62** Tu perfil vive detrás de tu emoji, y «Quién eres» se retira → `App.jsx`, `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`
 - **§14.63** El grupo, en tres áreas y con tres niveles de permiso → `Acordeon.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `permisos.js`
+- **§14.64** Un plato dice qué lleva y ahora también cómo se hace → `PlatosScreen.jsx`, `db.js`, `tablas.js`

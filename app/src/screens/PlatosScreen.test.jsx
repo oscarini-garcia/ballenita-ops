@@ -256,3 +256,38 @@ describe('preguntarle al modelo', () => {
     expect(await listDishes()).toHaveLength(1)
   })
 })
+
+describe('la receta del plato (§14.64)', () => {
+  it('se escribe en el editor y se guarda', async () => {
+    await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    render(<PlatosScreen />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Abrir Paella mixta' }))
+    const campo = await screen.findByLabelText(/Cómo se hace/)
+    await userEvent.type(campo, 'Sofríes la cebolla y echas el arroz.')
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(async () => {
+      const platos = await listDishes()
+      expect(platos.find((p) => p.name === 'Paella mixta').receta)
+        .toBe('Sofríes la cebolla y echas el arroz.')
+    })
+  })
+
+  it('la fila dice cuál la tiene, para no abrir veinte', async () => {
+    await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    await addDish({ name: 'Tortilla', receta: 'Bate los huevos.' })
+    render(<PlatosScreen />)
+
+    expect(await screen.findByText(/con receta/)).toBeInTheDocument()
+    // Y el que no la tiene no dice nada: el subtítulo ya lleva dos cosas.
+    expect(screen.getAllByText(/con receta/)).toHaveLength(1)
+  })
+
+  it('un plato de siempre no tiene receta y sigue valiendo igual', async () => {
+    await addDish({ name: 'Paella mixta', categorias: ['principal'] })
+    const platos = await listDishes()
+    // Los platos ya apuntados no se tocan: la columna nace vacía.
+    expect(platos.every((p) => !p.receta)).toBe(true)
+  })
+})
