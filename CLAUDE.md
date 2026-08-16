@@ -402,9 +402,18 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **traza** (`<pre class="traza">`, `bien`/`mal`) y no en prosa. En **Actualizar** el progreso
   se pinta en su sitio, como en Sincronización: el modal tapaba lo que se venía a mirar y
   borraba lo que había contado al cerrarse.
-- **La web NO sincroniza**, a propósito: en navegador y PWA la app es una libreta local
-  (`hayApi()` devuelve `false` si no es nativa). Ahorra todo el montaje web de Apple
-  —Services ID, verificación de dominio— a cambio de exigir la app para participar.
+- **La web sincroniza solo con sesión, y a la web se entra por enlace** (SPECS §14.52,
+  `auth/enlace.js`): la puerta la firma Apple y esa hoja vive en la cáscara nativa, así que
+  quien no tiene iPhone no tenía por dónde entrar. `hayApi()` decía la regla por donde
+  estaba mal dicha —«solo si es nativa», cuando lo que decide es **si hay con qué
+  autenticarse**— y ahora abre también en el navegador **con sesión**; sin ella, la web es
+  la libreta local de siempre. Quien administra genera el enlace en Ajustes → Cuentas
+  **eligiendo a la persona** (quien no ha podido entrar nunca no está en la lista de
+  cuentas), y las tres reglas salen todas de que un enlace es una **credencial al
+  portador**: un solo uso (`cuenta.enlaceJti`, migración `0016`), generar otro revoca el
+  anterior, y tres días. Va en el **fragmento** (`#pase=`), que no viaja al servidor. Se
+  sigue ahorrando el montaje web de Apple —Services ID, verificación de dominio—, y lo que
+  no hay en el navegador son **avisos**: el push es un plugin nativo.
 - **Configuración en caliente:** `app/public/config.json` (API, cliente de Apple, manifiesto
   OTA). Se lee al arrancar, así que cambiarla **no** exige reconstruir ni publicar un OTA.
 - **Offline-first**: iOS Safari no tiene background sync → se sincroniza en foreground

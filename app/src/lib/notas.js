@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.48.0',
+    fecha: '2026-08-16',
+    titulo: 'Quien no tiene iPhone ya puede entrar',
+    lineas: [
+      'En Ajustes → Cuentas hay «Entrar sin iPhone»: eliges a quién, sale un enlace y se lo mandas. Lo abre en el navegador de cualquier móvil u ordenador y entra con todo lo del grupo.',
+      'El enlace vale una sola vez y caduca a los tres días. Si se pierde o acaba donde no debía, genera otro: el anterior deja de valer en el acto.',
+      'En el navegador no hay avisos, y la app se ve como un móvil grande en un portátil. Sin enlace, la web sigue siendo la libreta local de siempre.',
+    ],
+  },
+  {
     version: '0.47.0',
     fecha: '2026-08-15',
     titulo: 'Un «pagado» sin querer ya se deshace',

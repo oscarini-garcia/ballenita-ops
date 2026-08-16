@@ -9,7 +9,7 @@
  */
 
 import { cargarConfiguracion, estaConfigurada } from '../lib/config.js'
-import { borrarSesion, leerSesion } from '../auth/sesion.js'
+import { borrarSesion, haySesion, leerSesion } from '../auth/sesion.js'
 import { isNative } from '../lib/native.js'
 import { uid } from '../lib/ids.js'
 
@@ -33,12 +33,20 @@ function idDeDispositivo() {
 /**
  * ¿Este dispositivo sincroniza con el grupo?
  *
- * Solo la app de iOS. En el navegador y en la PWA instalada, Ballena Ops es una
- * libreta local: no hay forma de entrar —el acceso con Apple vive en la cáscara
- * nativa— y por tanto tampoco se habla con la API.
+ * La app de iOS, siempre; y el navegador **cuando hay sesión** (SPECS §14.52).
+ *
+ * Aquí ponía «solo la app de iOS», y el motivo era bueno: la única puerta era
+ * Apple, que vive en la cáscara nativa, así que en el navegador no había forma
+ * de tener una sesión y preguntar por la API era preguntar por algo que no
+ * podía existir. Con el enlace de acceso sí la hay, y la regla se corrige por
+ * donde estaba mal dicha: lo que decide no es dónde corre la app sino si tiene
+ * con qué autenticarse.
+ *
+ * Sin sesión el navegador sigue siendo exactamente lo de antes —una libreta
+ * local, y la demostración—, porque ni el modo local ni el Demo guardan sesión.
  */
 export async function hayApi() {
-  if (!isNative()) return false
+  if (!isNative() && !haySesion()) return false
   return estaConfigurada(await cargarConfiguracion())
 }
 

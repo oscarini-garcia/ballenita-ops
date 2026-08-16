@@ -392,27 +392,41 @@ Pages esté publicando ([`APPSTORE.md`](APPSTORE.md), fase 4).
 ```json
 {
   "api": "https://ballena-ops-api.oscarini.workers.dev",
+  "web": "https://ballenita-ops.galoopa.store",
   "otaManifiesto": "https://github.com/oscarini-garcia/ballenita-ops/releases/latest/download/latest.json"
 }
 ```
 
 Se lee **en caliente** al arrancar, así que cambiarlo no obliga a reconstruir
-nada ni a publicar un OTA. No hay secretos: las dos direcciones son públicas.
+nada ni a publicar un OTA. No hay secretos: las tres direcciones son públicas.
+
+`web` es la base de los **enlaces de acceso** (SPECS §14.52). La compone el
+móvil de quien administra, donde `location.origin` es `capacitor://localhost` y
+no le sirve a nadie: si esta clave falta o apunta a otro sitio, los enlaces
+salen rotos. Tiene que ser el mismo dominio que se declara en
+`ORIGENES_PERMITIDOS` (§4.4).
 
 El workflow de OTA se niega a publicar si aparece el marcador `EJEMPLO`.
 
 ### 4.4 Los orígenes permitidos
 
-Quien habla con la API es la app de iOS, y **no pasa por el navegador**: con
-`CapacitorHttp` activado la petición la hace el sistema, así que no hay CORS de
-por medio. La lista se queda corta a propósito:
+La app de iOS **no pasa por el navegador**: con `CapacitorHttp` activado la
+petición la hace el sistema, así que no hay CORS de por medio. Pero desde los
+enlaces de acceso (SPECS §14.52) la web sí habla con la API, y esa parte pasa
+por CORS de verdad:
 
 ```toml
-ORIGENES_PERMITIDOS = "http://localhost:5173"
+ORIGENES_PERMITIDOS = "https://ballenita-ops.galoopa.store,http://localhost:5173"
 ```
 
-Está ahí para `wrangler dev` durante el desarrollo, y para no dejar la puerta
-abierta si algún día se recupera el acceso web.
+El dominio de Pages tiene que estar ahí. Sin él, el navegador tira todas las
+peticiones y lo que se ve es un enlace que no entra **sin decir por qué** —el
+error se queda en la consola del navegador, que es donde no mira nadie desde el
+móvil—. `localhost` se queda para `wrangler dev` durante el desarrollo.
+
+Las variables de `[vars]` se aplican **al publicar el Worker**, así que esto
+viaja con el despliegue de siempre y no hay nada que tocar a mano en el panel.
+Si el dominio de la web cambia, se cambia aquí y en `config.json` (§4.3).
 
 ---
 

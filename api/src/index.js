@@ -16,10 +16,11 @@
  *   GET  /api/salud     · comprobación sin autenticar
  *   POST /api/sesion    · canjea un token de Apple por una sesión propia
  *   POST /api/sesion/espera · «¿ya me han dejado entrar?», con el pase y sin Apple
+ *   POST /api/sesion/enlace · canjea el pase de un enlace de acceso, para quien no tiene iPhone
  *   GET  /api/sync      · instantánea completa del grupo
  *   POST /api/cambios   · aplica la cola del dispositivo y devuelve la instantánea
  *   GET  /api/cuentas   · quién tiene acceso (administradores)
- *   POST /api/cuentas   · enlazar con persona, eliminar, activar y renombrar (administradores)
+ *   POST /api/cuentas   · enlazar con persona, eliminar, activar, renombrar y generar enlace (administradores)
  *   POST /api/cuenta/baja · eliminar la cuenta propia (directriz 5.1.1(v) de Apple)
  *   POST /api/push      · apunta el token de APNs de este aparato, o lo silencia
  *   POST /api/push/prueba · se manda un aviso a sí mismo, y cuenta qué pasó
@@ -49,14 +50,15 @@ import {
   CLASES_DE_AVISO, ES_CLASE, avisoDeEstado, avisoDeGasto, avisoDeLiquidacion, elGastoMueveElSaldo,
 } from './avisos.js';
 import {
-  coincideEnTiempoConstante, emitirPaseDeEspera, emitirSesion, verificarPaseDeEspera, verificarSesion,
+  coincideEnTiempoConstante, emitirPaseDeEnlace, emitirPaseDeEspera, emitirSesion,
+  verificarPaseDeEnlace, verificarPaseDeEspera, verificarSesion,
 } from './sesion.js';
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
 import { esCorreoDelAdministrador, esNombreDelAdministrador } from './administrador.js';
 import {
   administradoresRestantes, anotarAcceso, anotarDispositivo, aplicarCambio, crearCuenta,
-  avisosDeCuenta, cuentaPorApple, cuentaPorId, darDeBajaCuenta, eliminarCuenta,
-  enlazarCuentaConPersona, guardarAvisosDeCuenta, tokensParaAviso,
+  avisosDeCuenta, cuentaPorApple, cuentaPorId, cuentaPorPersona, darDeBajaCuenta, eliminarCuenta,
+  enlazarCuentaConPersona, guardarAvisosDeCuenta, ponerJtiDeEnlace, tokensParaAviso,
   hayAdministradorActivo, hayAlgunaCuenta, importarInstantanea, leerInstantanea,
   leerMejorasPendientes, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
@@ -297,6 +299,72 @@ async function mirarLaEspera(peticion, env) {
   });
 }
 
+/**
+ * Entrar con el pase de un enlace, sin Apple y sin iPhone (SPECS §14.52).
+ *
+ * Quien administra genera el enlace desde Ajustes → Cuentas y se lo manda a
+ * quien no tiene iPhone; abrirlo en cualquier navegador acaba aquí. Lo que
+ * devuelve es **la sesión de siempre** —el mismo JWT de noventa días que sale de
+ * la puerta de Apple—, porque a partir de este punto no hay nada distinto: la
+ * app sincroniza igual y el Worker no tiene por qué acordarse de por dónde
+ * entró nadie.
+ *
+ * Lo que decide es lo mismo que en las otras dos puertas —`activa`— más una
+ * comprobación que aquí es la que importa: **que este sea el pase vivo**. La
+ * firma dice que el papel salió de este Worker; el `jti` guardado en la cuenta
+ * dice que no lo ha canjeado ya alguien y que no se ha generado otro después.
+ * Canjearlo lo quema, así que el enlace reenviado a un grupo de WhatsApp no
+ * vuelve a abrir nada.
+ *
+ * Los tres finales se dicen por separado a propósito: «ya se ha usado» se
+ * arregla pidiendo otro, «esta cuenta está desactivada» no se arregla desde el
+ * navegador, y «el pase no vale» es un enlace roto al copiarlo. Con un solo 401
+ * para los tres, quien lo abre no sabe a quién escribirle.
+ */
+async function entrarPorEnlace(peticion, env) {
+  const { pase } = await peticion.json();
+
+  let papel;
+  try {
+    papel = await verificarPaseDeEnlace(env.SESION_SECRETO, pase);
+  } catch (error) {
+    // Caducado y mal formado se separan porque no se arreglan igual: uno se
+    // pide otra vez, el otro se copia otra vez.
+    const caducado = /caducad/i.test(String(error.message || error));
+    return json({
+      estado: 'no-vale',
+      mensaje: caducado
+        ? 'Este enlace ha caducado. Pídele otro a quien lleva el grupo.'
+        : 'Este enlace no vale. Comprueba que lo has copiado entero.',
+    }, 401);
+  }
+
+  const cuenta = await cuentaPorId(env.DB, papel.cuentaId);
+  if (!cuenta) {
+    return json({ estado: 'no-vale', mensaje: 'Esta cuenta ya no existe.' }, 401);
+  }
+
+  if (!cuenta.enlaceJti || !papel.jti || !coincideEnTiempoConstante(cuenta.enlaceJti, papel.jti)) {
+    return json({
+      estado: 'usado',
+      mensaje: 'Este enlace ya se ha usado o se ha generado otro más nuevo. Pídele uno a quien lleva el grupo.',
+    }, 401);
+  }
+
+  if (!cuenta.activa) {
+    return json({ estado: 'desactivada', mensaje: 'Tu acceso al grupo está desactivado.' }, 403);
+  }
+
+  await ponerJtiDeEnlace(env.DB, cuenta.id, null);
+  await anotarAcceso(env.DB, cuenta.id);
+
+  return json({
+    estado: 'dentro',
+    token: await emitirSesion(env.SESION_SECRETO, cuenta, 'web'),
+    cuenta: cuentaPublica(cuenta),
+  });
+}
+
 async function sincronizar(peticion, env) {
   const cuenta = await cuentaAutenticada(peticion, env);
 
@@ -361,6 +429,41 @@ async function cuentas(peticion, env) {
   if (peticion.method === 'GET') return json({ cuentas: await listarCuentas(env.DB) });
 
   const { accion, identificador, nombre = '', id, rol, personId } = await peticion.json();
+
+  if (accion === 'enlace') {
+    // Un enlace de acceso para quien no tiene iPhone (SPECS §14.52). Se pide
+    // **por persona** y no por cuenta, porque el caso normal es que esa cuenta
+    // todavía no exista: quien no tiene iPhone no ha podido entrar nunca, así
+    // que no aparece en la lista de «quién ha pedido entrar». Si ya la tiene
+    // —porque se le generó otro enlace antes— se le renueva el pase a esa, y no
+    // se crea una segunda cuenta para la misma persona.
+    if (!personId) return json({ error: 'falta la persona' }, 400);
+
+    let cuenta = await cuentaPorPersona(env.DB, personId);
+    if (!cuenta) {
+      // El prefijo lo separa de una cuenta de Apple igual que `invitacion:`, y
+      // cumple además con que `appleSub` es NOT NULL UNIQUE. Si esa persona se
+      // compra un iPhone algún día, entrará con Apple y aparecerá en la lista
+      // como una cuenta nueva, que es donde se decide qué hacer con las dos.
+      const nueva = idDeCuenta();
+      cuenta = await crearCuenta(env.DB, {
+        id: nueva,
+        appleSub: `enlace:${nueva}`,
+        nombre: String(nombre ?? '').trim(),
+        rol: 'miembro',
+        activa: 1,
+        personId,
+      });
+    } else if (!cuenta.activa) {
+      // Desactivar una cuenta es cerrarle la puerta a propósito. Generarle un
+      // enlace la reabriría por la puerta de al lado sin decirlo.
+      return json({ error: 'esa cuenta está desactivada: actívala antes de darle un enlace' }, 400);
+    }
+
+    const jti = crypto.randomUUID();
+    await ponerJtiDeEnlace(env.DB, cuenta.id, jti);
+    return json({ pase: await emitirPaseDeEnlace(env.SESION_SECRETO, cuenta.id, jti), id: cuenta.id });
+  }
 
   if (accion === 'invitar') {
     // Se guarda el identificador que Apple mostró al aspirante, prefijado, para
@@ -1141,6 +1244,7 @@ const RUTAS = [
   ['GET', '/api/salud', async () => json({ estado: 'ok', ahora: new Date().toISOString() })],
   ['POST', '/api/sesion', abrirSesion],
   ['POST', '/api/sesion/espera', mirarLaEspera],
+  ['POST', '/api/sesion/enlace', entrarPorEnlace],
   ['GET', '/api/sync', sincronizar],
   ['POST', '/api/cambios', recibirCambios],
   ['GET', '/api/cuentas', cuentas],

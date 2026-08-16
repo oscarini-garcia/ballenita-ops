@@ -108,6 +108,60 @@ export async function verificarPaseDeEspera(secreto, pase) {
 }
 
 /**
+ * El pase de enlace: con qué entra quien no tiene iPhone (SPECS §14.52).
+ *
+ * El acceso de esta app lo firma Apple, y eso deja fuera a quien no tiene un
+ * iPhone donde sacar esa hoja — no por una decisión sobre quién entra, sino por
+ * dónde vive el botón. Este pase es el otro camino: quien administra lo genera
+ * para una persona del grupo y le manda el enlace, y abrirlo en cualquier
+ * navegador canjea el pase por una sesión de las de siempre.
+ *
+ * Tres cosas lo separan del pase de espera, y las tres son porque **esto es una
+ * credencial al portador**: quien tenga el enlace entra como esa persona.
+ *
+ *   1. **Dura tres días.** Los treinta del pase de espera valen para un papel
+ *      que solo sirve para preguntar; este abre la puerta.
+ *   2. **Es de un solo uso**, y de eso no puede encargarse el papel —un JWT no
+ *      sabe cuántas veces lo han leído—. Lleva un `jti` que se guarda en su
+ *      cuenta (`cuenta.enlaceJti`) y se borra al canjearlo: el mismo enlace
+ *      reenviado por WhatsApp ya no vale, y generar otro invalida el anterior,
+ *      que es lo que hace de «generar» una forma de revocar.
+ *   3. **Viaja en el fragmento** de la URL (`#pase=…`), no en la consulta. El
+ *      fragmento no se manda al servidor, así que no acaba en los registros de
+ *      nadie ni en la cabecera `Referer` de la primera página que se visite
+ *      después.
+ *
+ * Lo que **no** cambia es el cierre de siempre: `tipo` lo separa de una sesión y
+ * `verificarSesion` rechaza cualquier papel que lo lleve.
+ */
+const VIGENCIA_ENLACE = 60 * 60 * 24 * 3;
+
+export async function emitirPaseDeEnlace(secreto, cuentaId, jti) {
+  const ahora = Math.floor(Date.now() / 1000);
+  const cabecera = textoABase64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const cuerpo = textoABase64url(
+    JSON.stringify({
+      tipo: 'enlace', sub: cuentaId, jti, iat: ahora, exp: ahora + VIGENCIA_ENLACE,
+    }),
+  );
+  const firma = await crypto.subtle.sign(
+    'HMAC',
+    await clave(secreto),
+    new TextEncoder().encode(`${cabecera}.${cuerpo}`),
+  );
+  return `${cabecera}.${cuerpo}.${datosABase64url(firma)}`;
+}
+
+/** `{ cuentaId, jti }` del pase de enlace, o lanza. El `jti` lo compara quien
+ *  canjea contra el que guarda la cuenta: la firma dice que el papel es bueno,
+ *  no que siga sin usarse. */
+export async function verificarPaseDeEnlace(secreto, pase) {
+  const datos = await verificarFirmado(secreto, pase);
+  if (datos.tipo !== 'enlace') throw new Error('el pase de enlace no es un pase de enlace');
+  return { cuentaId: datos.sub, jti: datos.jti };
+}
+
+/**
  * Firma y vigencia, sin mirar para qué sirve el papel. Lo comparten la sesión y
  * el pase de espera, que es lo único que tienen en común.
  */

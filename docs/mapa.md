@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.47.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  918 pruebas en 99 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.48.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  943 pruebas en 103 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  204 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  221 pruebas en 23 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -24,10 +24,11 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 | `GET` | `/api/salud` | — | comprobación sin autenticar |
 | `POST` | `/api/sesion` | — | canjea un token de Apple por una sesión propia |
 | `POST` | `/api/sesion/espera` | — | «¿ya me han dejado entrar?», con el pase y sin Apple |
+| `POST` | `/api/sesion/enlace` | — | canjea el pase de un enlace de acceso, para quien no tiene iPhone |
 | `GET` | `/api/sync` | sesión | instantánea completa del grupo |
 | `POST` | `/api/cambios` | sesión | aplica la cola del dispositivo y devuelve la instantánea |
 | `GET` | `/api/cuentas` | sesión | quién tiene acceso (administradores) |
-| `POST` | `/api/cuentas` | sesión | enlazar con persona, eliminar, activar y renombrar (administradores) |
+| `POST` | `/api/cuentas` | sesión | enlazar con persona, eliminar, activar, renombrar y generar enlace (administradores) |
 | `POST` | `/api/cuenta/baja` | sesión | eliminar la cuenta propia (directriz 5.1.1(v) de Apple) |
 | `POST` | `/api/push` | sesión | apunta el token de APNs de este aparato, o lo silencia |
 | `POST` | `/api/push/prueba` | sesión | se manda un aviso a sí mismo, y cuenta qué pasó |
@@ -74,11 +75,11 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 - `APPLE_CLAVE_P8` — no declarada en `wrangler.toml` (secreto u opcional)
 - `APPLE_EQUIPO` — no declarada en `wrangler.toml` (secreto u opcional)
 - `DB` — binding de D1 (`wrangler.toml`)
-- `ORIGENES_PERMITIDOS` — `[vars]` = "http://localhost:5173"
+- `ORIGENES_PERMITIDOS` — `[vars]` = "https://ballenita-ops.galoopa.store,http://localhost:5173"
 - `SESION_SECRETO` — no declarada en `wrangler.toml` (secreto u opcional)
 - `TOKEN_SERVICIO` — no declarada en `wrangler.toml` (secreto u opcional)
 
-**PWA** (`app/public/config.json`, leído al arrancar): `api`, `otaManifiesto`
+**PWA** (`app/public/config.json`, leído al arrancar): `api`, `web`, `otaManifiesto`
 
 ## Automatizaciones
 
@@ -109,6 +110,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `apple.js` — Acceso con Sign in with Apple — **solo dentro de la app de iOS**.
   ↳ codigoDeApple, explicarFalloDeApple, codigoDeAutorizacionDeApple, entrarConApple
+- `enlace.js` — El enlace de acceso, del lado del navegador (SPECS §14.52).
+  ↳ paseDeLaUrl, limpiarLaUrl, canjearEnlace, urlDeEnlace
 - `espera.js` — La sala de espera, del lado del móvil.
   ↳ leerEspera, guardarEspera, olvidarEspera, preguntarSiYaEntro
 - `sesion.js` — La sesión de este dispositivo: el token que firmó el Worker y a quién corresponde.
@@ -252,6 +255,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ useCuentas, NotificacionesSection, IASection
 - `DiasScreen.jsx` — «Días»: la lista de días del evento, con un resumen de cada uno.
 - `DineroScreen.jsx` — «Dinero» une las dos caras de lo económico: metes el gasto y ves quién debe a quién sin cambiar de pestaña.
+- `EnlaceScreen.jsx` — Lo que se ve mientras un enlace de acceso se canjea, y cuando no puede (SPECS §14.52).
 - `EventSettingsScreen.jsx` — Lo que la lista terminada se queda en pantalla antes de recargar, para poder leerla.
   ↳ motivoDelOta, EditorEvento, otaFueBien
 - `EventsScreen.jsx` — La lista de eventos: cuál está activo, y crear o editar uno.
@@ -310,11 +314,11 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `receta.js` — Los dos encargos del editor de una receta (SPECS §14.20-bis).
   ↳ materialDeLaLista, materialDelPlatoParecido, leerArreglo, leerParecidos, pedirArreglo, pedirParecidos · +2 más
 - `repositorio.js` — Lectura y escritura del registro del grupo sobre D1.
-  ↳ cuentaPorApple, cuentaPorId, hayAlgunaCuenta, crearCuenta, listarCuentas, enlazarCuentaConPersona · +30 más
+  ↳ cuentaPorApple, cuentaPorId, cuentaPorPersona, hayAlgunaCuenta, crearCuenta, ponerJtiDeEnlace · +32 más
 - `revocacion.js` — Revocación del token de Sign in with Apple al darse de baja.
   ↳ hayRevocacionConfigurada, secretoDeCliente, revocarEnApple
 - `sesion.js` — Sesión propia: un JWT HS256 corto que el dispositivo presenta en cada petición.
-  ↳ emitirSesion, emitirPaseDeEspera, verificarPaseDeEspera, verificarSesion, coincideEnTiempoConstante
+  ↳ emitirSesion, emitirPaseDeEspera, verificarPaseDeEspera, emitirPaseDeEnlace, verificarPaseDeEnlace, verificarSesion · +1 más
 - `sugerencias.js` — Cinco planes propuestos para un viaje.
   ↳ retratoDelGrupo, materialDelViaje, leerPropuestas, pedirPropuestas, INSTRUCCION
 - `tablas.js` — Descripción de las tablas sincronizadas: qué columnas tiene cada una y cuáles necesitan conversión al cruzar la frontera entre SQLite y JavaScript.
@@ -387,7 +391,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `importe.js` · +3 más
 - **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `Confirmar.jsx`, `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
-- **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`
+- **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`, `EnlaceScreen.jsx`
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`
 - **§14.31** Los elegidores del día: al centro, con borrador y buscador → `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
@@ -405,3 +409,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.49** «Mayores» son los mayores, y «Peques» se retira → `db.js`, `personas.js`, `reparto-gente.js`
 - **§14.50** Lo que hace el grupo se apunta, y al final se cuenta → `StatsScreen.jsx`, `db.js`, `recap.js`, `registro.js`, `tablas.js`
 - **§14.51** Un pago apuntado se puede deshacer → `borrados.js`
+- **§14.52** Entrar sin iPhone: un enlace que abre la puerta una vez → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `api.js`, `enlace.js`, `index.js` · +2 más

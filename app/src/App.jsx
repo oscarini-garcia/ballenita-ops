@@ -8,6 +8,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getEvent, listEvents } from './db.js'
 import WhaleLogo from './components/WhaleLogo.jsx'
 import AccesoScreen from './screens/AccesoScreen.jsx'
+import EnlaceScreen from './screens/EnlaceScreen.jsx'
 import BienvenidaScreen from './screens/BienvenidaScreen.jsx'
 import EventsScreen from './screens/EventsScreen.jsx'
 import AgendaScreen from './screens/AgendaScreen.jsx'
@@ -31,7 +32,8 @@ import { enDemo, salirDemo } from './lib/demo.js'
 import { asegurarPush } from './lib/push.js'
 import { LATIDO_MS, asegurarTanda } from './lib/tanda.js'
 import { ponerArea } from './lib/areas.js'
-import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
+import { guardarSesion, haySesion, leerSesion, modoLocal } from './auth/sesion.js'
+import { canjearEnlace, limpiarLaUrl, paseDeLaUrl } from './auth/enlace.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
 
@@ -83,12 +85,55 @@ export default function App() {
   const [demo, setDemo] = useState(enDemo)
   useEffect(() => { cargarConfiguracion().then(setConfiguracion) }, [])
 
+  // Un enlace de acceso en la URL (SPECS §14.52). Se mira **al construir** y no
+  // en un efecto: mientras haya pase, esta pantalla es la del enlace, y pintar
+  // la app un instante antes de quitarla se lee como que el enlace no ha hecho
+  // nada. `null` es que no hay ninguno, que es el caso de siempre.
+  const [enlace, setEnlace] = useState(() => (paseDeLaUrl() ? { estado: 'yendo' } : null))
+
   // Si hay sesión pero este móvil no ha sincronizado **nunca**, lo que viene
   // ahora es la primera bajada y hay que contarla (SPECS §14.29 · C2). Se
   // decide una sola vez al arrancar: en cuanto se entra, se apaga.
   const [bienvenida, setBienvenida] = useState(() => Boolean(leerSesion()) && !ultimaSincronizacion())
 
   const sync = useSyncEngine(sesion)
+
+  /**
+   * Canjear el enlace de acceso por una sesión (SPECS §14.52).
+   *
+   * Espera a `configuracion` porque de ahí sale la dirección de la API, y se
+   * dispara otra vez cuando el estado vuelve a `yendo`, que es lo que hace el
+   * botón de reintentar cuando lo que falló fue la red.
+   *
+   * La URL se limpia con la respuesta y **no antes**: un fallo de red tiene que
+   * poder reintentarse recargando, y el pase sigue vivo porque el servidor solo
+   * lo quema al canjearlo de verdad. Sale de la demostración antes de entrar
+   * —lo sembrado es inventado y tiene su cola de cambios detrás—: sin eso, abrir
+   * el enlace desde una demostración le subiría al grupo un camping que no
+   * existe.
+   */
+  useEffect(() => {
+    if (!configuracion || enlace?.estado !== 'yendo') return undefined
+    const pase = paseDeLaUrl()
+    if (!pase) { setEnlace(null); return undefined }
+
+    let vivo = true
+    ;(async () => {
+      const respuesta = await canjearEnlace(configuracion, pase)
+      if (!vivo) return
+      if (respuesta.estado === 'sin-respuesta') { setEnlace(respuesta); return }
+
+      limpiarLaUrl()
+      if (respuesta.estado !== 'dentro') { setEnlace(respuesta); return }
+
+      if (enDemo()) { await salirDemo(); setDemo(false) }
+      guardarSesion(respuesta)
+      setSesion(respuesta)
+      setBienvenida(true)
+      setEnlace(null)
+    })()
+    return () => { vivo = false }
+  }, [configuracion, enlace?.estado])
 
   // Sincronizar todo: los datos y, detrás, la versión de la app. Vive en App
   // porque lo disparan dos sitios —el punto de la cabecera y el botón de
@@ -208,9 +253,24 @@ export default function App() {
     )
   }
 
-  // Solo la app de iOS entra: la sincronización con el grupo vive en la cáscara
-  // nativa. En el navegador y en la PWA instalada, Ballena Ops es una libreta
-  // local de ese dispositivo y no pide nada.
+  // Con un enlace de acceso por delante, esto es lo único que hay en pantalla
+  // hasta que entre o hasta que se sepa que no puede (SPECS §14.52).
+  if (enlace) {
+    return (
+      <div className="app">
+        <EnlaceScreen
+          estado={enlace.estado}
+          mensaje={enlace.mensaje}
+          onReintentar={() => setEnlace({ estado: 'yendo' })}
+          onSeguirSinEntrar={() => { limpiarLaUrl(); setEnlace(null) }}
+        />
+      </div>
+    )
+  }
+
+  // Por la puerta de Apple entra solo la app de iOS: esa hoja vive en la cáscara
+  // nativa. En el navegador se entra con un enlace de acceso (arriba), y sin él
+  // Ballena Ops es una libreta local de ese dispositivo y no pide nada.
   if (isNative() && estaConfigurada(configuracion) && !sesion && !soloLocal && !demo) {
     return (
       <div className="app">

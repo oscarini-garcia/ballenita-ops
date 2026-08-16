@@ -30,7 +30,9 @@
     "migrar:remoto14": "wrangler d1 execute ballena-ops --remote --file=migraciones/0014_avisos_por_clase.sql",
     "generar:migraciones": "node herramientas/generar-migraciones.mjs",
     "migrar:local15": "wrangler d1 execute ballena-ops --local --file=migraciones/0015_registro.sql",
-    "migrar:remoto15": "wrangler d1 execute ballena-ops --remote --file=migraciones/0015_registro.sql"
+    "migrar:remoto15": "wrangler d1 execute ballena-ops --remote --file=migraciones/0015_registro.sql",
+    "migrar:local16": "wrangler d1 execute ballena-ops --local --file=migraciones/0016_enlace_de_acceso.sql",
+    "migrar:remoto16": "wrangler d1 execute ballena-ops --remote --file=migraciones/0016_enlace_de_acceso.sql"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

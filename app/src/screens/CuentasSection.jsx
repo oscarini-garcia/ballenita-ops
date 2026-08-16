@@ -10,7 +10,9 @@ import { eliminarMiCuenta, gestionarCuenta, guardarAvisos, leerAvisos, leerIA, l
 import { codigoDeAutorizacionDeApple } from '../auth/apple.js'
 import { borrarSesion, leerSesion } from '../auth/sesion.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
-import { SIN_ENTREGA, SIN_PLUGIN, SIN_TOKEN_PORQUE, escucharUnAviso, estadoDePush, informeDelPuente, isNative, registerPush, tap } from '../lib/native.js'
+import { SIN_ENTREGA, SIN_PLUGIN, SIN_TOKEN_PORQUE, escucharUnAviso, estadoDePush, informeDelPuente, isNative, registerPush, share, tap } from '../lib/native.js'
+import { cargarConfiguracion } from '../lib/config.js'
+import { urlDeEnlace } from '../auth/enlace.js'
 import { asegurarPush } from '../lib/push.js'
 import { ADMINISTRADOR, esAdministrador } from '../lib/admin.js'
 import { avisosPara } from '../lib/avisos.js'
@@ -56,6 +58,9 @@ export default function CuentasSection({ eventId, sincronizar }) {
   const [enlazando, setEnlazando] = useState(null)
   const [borrando, setBorrando] = useState(null)
   const [baja, setBaja] = useState(null)
+  // El enlace de acceso (SPECS §14.52): a quién se le hace, y el que ha salido.
+  const [eligiendoParaEnlace, setEligiendoParaEnlace] = useState(false)
+  const [enlaceWeb, setEnlaceWeb] = useState(null)
   // Salir: null en reposo · 'yendo' mientras intenta subir la cola · el
   // resultado de `comprobarAntesDeSalir` cuando no ha podido y hay que decidir.
   const [salida, setSalida] = useState(null)
@@ -72,6 +77,28 @@ export default function CuentasSection({ eventId, sincronizar }) {
       setEnlazando(null)
       cargar()
     } catch (e) { setError(String(e.message ?? e)) }
+  }
+
+  /**
+   * Un enlace de acceso para quien no tiene iPhone (SPECS §14.52).
+   *
+   * Se pide **por persona** y no por cuenta porque el caso normal es que esa
+   * cuenta no exista todavía: quien no tiene iPhone no ha podido entrar nunca,
+   * así que no está en la lista de arriba. El Worker la crea o le renueva el
+   * pase a la que ya tuviera, y aquí solo se compone la dirección.
+   */
+  async function generarEnlace(personId) {
+    tap()
+    const quien = persona(personId)
+    try {
+      const { pase } = await gestionarCuenta({ accion: 'enlace', personId, nombre: quien?.name ?? '' })
+      setEligiendoParaEnlace(false)
+      setEnlaceWeb({ url: urlDeEnlace(await cargarConfiguracion(), pase), nombre: quien?.name ?? '' })
+      cargar()
+    } catch (e) {
+      setEligiendoParaEnlace(false)
+      setError(String(e.message ?? e))
+    }
   }
 
   async function eliminar(cuentaId) {
@@ -175,7 +202,12 @@ export default function CuentasSection({ eventId, sincronizar }) {
                       {suya
                         ? `es ${suya.name}${familia(suya) ? ` · ${familia(suya)}` : ''}`
                         : 'todavía no es nadie del grupo'}
+                      {c.porEnlace ? ' · por enlace' : ''}
                       {c.ultimoAcceso ? ` · ${formatearHace(c.ultimoAcceso)}` : ' · aún no ha entrado'}
+                      {/* Un enlace generado y sin canjear es lo que separa «se lo
+                          he mandado» de «ya ha entrado», que desde aquí se ven
+                          igual y se arreglan distinto. */}
+                      {c.enlaceVivo ? ' · enlace sin usar' : ''}
                     </span>
                   </span>
                   <button className="btn sm ghost" onClick={() => { tap(); setEnlazando(c) }}>
@@ -189,6 +221,21 @@ export default function CuentasSection({ eventId, sincronizar }) {
             🐳 Quien entra con Apple aparece aquí solo, con el nombre que Apple nos da. Hasta que no
             le digas <b>quién es</b>, no entra: enlazarlo con una persona es lo que le abre la puerta.
           </div>
+
+          {/* Entrar sin iPhone (SPECS §14.52). Va debajo de la lista y no dentro
+              de ella porque quien lo necesita **no está en la lista**: no ha
+              podido entrar nunca, así que no ha pedido nada. Se elige a la
+              persona, no a la cuenta. */}
+          <div className="sec-h">Entrar sin iPhone</div>
+          <div className="note">
+            La puerta de la app la abre Apple, así que quien no tiene iPhone no puede entrar. Con un
+            enlace sí: se abre en cualquier navegador y entra como esa persona, con todo lo del grupo.
+            Vale <b>una sola vez</b> y caduca a los tres días; generar otro deja el anterior sin
+            valor, que es cómo se anula uno que acabó donde no debía.
+          </div>
+          <button className="btn sm ghost" onClick={() => { tap(); setEligiendoParaEnlace(true) }}>
+            Crear un enlace de acceso…
+          </button>
         </>
       )}
 
@@ -241,6 +288,55 @@ export default function CuentasSection({ eventId, sincronizar }) {
               <button className="btn ghost" onClick={() => setBorrando(null)}>Dejarlo</button>
               <button className="btn danger" onClick={() => eliminar(borrando.id)}>Sí, eliminar</button>
             </div>
+          </div>
+        </Hoja>
+      )}
+
+      {eligiendoParaEnlace && (
+        <HojaDeEleccion
+          titulo="¿Para quién es el enlace?"
+          valor={null}
+          opciones={[...persons].sort(porNombre).map((p) => {
+            const ya = cuentas?.find((c) => c.personId === p.id)
+            return {
+              id: p.id,
+              etiqueta: `${p.avatar} ${p.name}`,
+              // Nadie se marca como «tomada»: a quien ya tiene cuenta se le
+              // renueva el pase, y eso es justo lo que hace falta cuando alguien
+              // pierde su enlace o hay que anularle el que tenía.
+              nota: ya ? (ya.porEnlace ? 'ya entra por enlace' : 'ya entra con Apple') : familia(p),
+            }
+          })}
+          onElegir={(personId) => { if (personId) generarEnlace(personId) }}
+          onCerrar={() => setEligiendoParaEnlace(false)}
+        />
+      )}
+
+      {enlaceWeb && (
+        <Hoja titulo={`El enlace de ${enlaceWeb.nombre || 'acceso'}`} onCerrar={() => setEnlaceWeb(null)}>
+          <p className="hoja-texto">
+            Mándaselo y entrará desde el navegador con todo lo del grupo. Quien lo tenga entra como{' '}
+            <b>{enlaceWeb.nombre || 'esa persona'}</b>, así que mándalo por donde solo lo lea ella.
+          </p>
+          {/* En monospace y entero: un enlace cortado con puntos suspensivos no
+              se puede copiar a mano cuando el portapapeles falla. */}
+          <pre className="traza">{enlaceWeb.url}</pre>
+          <div className="grid2" style={{ marginTop: 12 }}>
+            <button
+              className="btn ghost"
+              onClick={async () => {
+                tap()
+                try { await navigator.clipboard.writeText(enlaceWeb.url) } catch { /* está a la vista */ }
+              }}
+            >
+              Copiar
+            </button>
+            <button
+              className="btn"
+              onClick={() => { tap(); share({ title: 'Ballena Ops 🐳', url: enlaceWeb.url }) }}
+            >
+              Compartir
+            </button>
           </div>
         </Hoja>
       )}

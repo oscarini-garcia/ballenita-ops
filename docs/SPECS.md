@@ -4035,6 +4035,64 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   que sugiere la app, y un Bizum de 20 sobre una deuda de 34,67 no se puede
   decir. Es el hueco grande que queda frente a Splitwise, y es otra vuelta.
 
+### 14.52 Entrar sin iPhone: un enlace que abre la puerta una vez
+
+- **El defecto:** el acceso lo firma Apple, y esa hoja vive **en la cáscara
+  nativa**. Quien no tiene iPhone no es que tenga la app capada: no tiene por
+  dónde entrar. Y la guarda que lo escribía —`hayApi()` devolviendo `false` si
+  no es nativo (`sync/api.js`)— decía la regla por donde estaba mal dicha: lo
+  que decide no es **dónde corre la app** sino **si tiene con qué
+  autenticarse**. Mientras la única puerta fue Apple, las dos frases se
+  distinguían solo en teoría.
+- **✅ El enlace de acceso.** Quien administra lo genera en **Ajustes →
+  Cuentas → Entrar sin iPhone**, elige **a la persona** y le manda la dirección.
+  Abrirla en cualquier navegador canjea el pase por **la sesión de siempre** —el
+  mismo JWT de noventa días que sale de la puerta de Apple—, y a partir de ahí
+  no hay nada distinto: la app sincroniza igual y el Worker no se acuerda de por
+  dónde entró nadie.
+- **Se pide por persona y no por cuenta**, que es lo único que hacía falta
+  pensar: quien no tiene iPhone **no está en la lista** de «quién ha pedido
+  entrar», porque no ha podido pedir nada. El Worker crea la cuenta si no la hay
+  —con `appleSub` prefijado `enlace:`, como `invitacion:`— y le renueva el pase a
+  la que ya tuviera, así que generar dos veces no deja dos cuentas.
+- **Un enlace es una credencial al portador**, y de ahí salen las tres reglas
+  (`api/src/sesion.js`, migración `0016`):
+  - **Un solo uso.** El pase lleva un `jti` que se guarda en `cuenta.enlaceJti`
+    y se borra al canjearlo. Un JWT no sabe cuántas veces lo han leído, y el
+    reenvío a un grupo de WhatsApp es el caso normal, no el raro.
+  - **Generar es revocar.** El `jti` nuevo pisa al anterior, así que el botón
+    que sirve para «se me ha perdido» sirve también para «ha acabado donde no
+    debía». No hace falta un segundo verbo.
+  - **Tres días.** Los treinta del pase de espera valen para un papel que solo
+    sirve para preguntar; este abre la puerta.
+- **El pase viaja en el fragmento** (`#pase=…`), no en la consulta. El fragmento
+  no se manda al servidor: no acaba en los registros de Cloudflare, ni en el
+  `Referer` de la primera página que se visite después. Y la URL **se limpia al
+  recibir respuesta**, no antes: si lo que falla es la red, recargar tiene que
+  poder reintentar con el mismo pase, que el servidor todavía no ha quemado.
+- **Los cuatro finales se dicen por separado** (`auth/enlace.js`,
+  `screens/EnlaceScreen.jsx`): «ya se ha usado» se arregla pidiendo otro, «está
+  desactivada» hablando con quien te la cerró, «no vale» copiándolo entero, y
+  «sin respuesta» esperando —y es el único que se reintenta—. Con un solo «no se
+  pudo entrar», quien lo abre no sabe ni a quién escribirle. La pantalla es la
+  pantalla entera, como la sala de espera (§14.29 · B2): quien abre el enlace no
+  viene a usar la libreta local.
+- **Salir de la demostración antes de entrar** (`App.jsx`). Lo sembrado por el
+  Demo lleva su cola de cambios detrás; sin esto, abrir el enlace desde una
+  demostración le subiría al grupo un camping inventado.
+- **CORS deja de ser decorativo.** La app de iOS no pasa por el navegador, así
+  que `ORIGENES_PERMITIDOS` era una lista sin uso; ahora el dominio de Pages
+  tiene que estar en ella o el navegador tira todas las peticiones y lo que se
+  ve es un enlace que no entra **sin decir por qué**.
+- **Lo que sigue igual:** sin sesión, el navegador es exactamente la libreta
+  local de siempre —ni el modo local ni el Demo guardan sesión—, y la puerta de
+  Apple no aparece en la web, donde no puede funcionar.
+- **Lo que queda pendiente:** en el navegador **no hay avisos** —el push va por
+  APNs con un plugin nativo—; la app está dibujada a 390 pt, así que en un
+  portátil se ve como un móvil grande; y cuando la sesión web caduce a los
+  noventa días no hay puerta que enseñar, así que la app vuelve a ser una
+  libreta local y hace falta pedir otro enlace.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

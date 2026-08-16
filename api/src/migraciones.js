@@ -605,4 +605,33 @@ CREATE TABLE IF NOT EXISTS registro (
 CREATE INDEX IF NOT EXISTS idx_registro_evento ON registro (eventId, cuando);
 `,
   },
+  {
+    id: '0016_enlace_de_acceso',
+    sql: `-- Entrar sin iPhone: el papelito de un solo uso de cada cuenta (SPECS §14.52).
+--
+-- **\`cuenta.enlaceJti\`** — el identificador del último pase de enlace que se
+-- generó para esta cuenta, o NULL si no hay ninguno vivo.
+--
+-- El pase va firmado, así que la columna no guarda ningún secreto: guarda
+-- **cuál** de todos los pases que se han firmado para esta cuenta sigue
+-- valiendo. Eso es lo único que un JWT no sabe de sí mismo —cuántas veces lo
+-- han canjeado—, y es justo lo que aquí hace falta, porque un enlace es una
+-- credencial al portador y se reenvía sin pensarlo.
+--
+-- De esa comparación salen las dos propiedades por el mismo precio: canjearlo
+-- la borra (**un solo uso**) y generar otro la sobrescribe (**generar es
+-- revocar**, que es lo que hay que poder hacer cuando un enlace acaba donde no
+-- debía).
+--
+-- No es una tabla aparte porque no hay nada que apuntar más que esto: un pase
+-- por cuenta, y el anterior no interesa a nadie en cuanto deja de valer.
+--
+-- Como las demás, no se toca \`0001_esquema.sql\`: aplicar todas las migraciones
+-- en orden tiene que reproducir producción (\`test/d1.js\`).
+--
+--   npm run migrar:remoto16
+
+ALTER TABLE cuenta ADD COLUMN enlaceJti TEXT;
+`,
+  },
 ];
