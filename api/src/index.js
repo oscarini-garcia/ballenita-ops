@@ -42,7 +42,8 @@
  *   POST /api/recados      · una tanda de frases para el final de la lista (IA)
  *   POST /api/estados/sugerir · cinco estados para ponerse, del día que va el viaje (IA)
  *   POST /api/estados/gracia  · el estado que has escrito, con más gracia (IA)
- *   POST /api/bunga/resumen   · el bunga resumido en una frase, con guasa (IA)
+ *   POST /api/bunga/resumen   · cómo es el bunga, en una o dos frases (IA)
+ *   POST /api/bunga/comentario · un comentario para su hilo, a partir de cómo es (IA)
  */
 
 import { verificarTokenDeApple } from './apple.js';
@@ -77,7 +78,7 @@ import { materialDelPlato, pedirCantidades } from './cantidades.js';
 import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
 import { materialDeLaIdea, pedirMejora } from './idea.js';
 import { materialDeEstados, materialDeUnEstado, pedirEstados, pedirGracia } from './estados.js';
-import { materialDelBunga, pedirResumen } from './bunga.js';
+import { materialDelBunga, materialDelComentario, pedirComentario, pedirResumen } from './bunga.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 import { aplicarMigracion, estadoDeMigraciones } from './migrador.js';
 
@@ -1120,6 +1121,51 @@ async function resumenDeBunga(peticion, env) {
   }
 }
 
+/**
+ * Un comentario para el hilo de un bunga (SPECS §14.66-quater).
+ *
+ * El gemelo del de arriba con dos diferencias que importan: **entra la
+ * evaluación** —lo que se pidió que tuviera en cuenta— y **entra el hilo**, para
+ * que no repita lo que ya está dicho. Del hilo viaja lo que se dijo y no quién,
+ * como en todos los demás encargos.
+ *
+ * Lo que vuelve **no se guarda en ningún sitio**: rellena la casilla de
+ * escribir, y mandarlo sigue siendo el botón de siempre — la figura de
+ * «Mejorarla» de una idea. El comentario acaba firmado por quien lo manda,
+ * que es la única forma de que un hilo siga siendo una conversación.
+ */
+async function comentarioDeBunga(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const {
+    nombre = '', alias = '', notas = '', pegatinas = [], resumen = '', hilo = [], yaPropuestas = [],
+  } = await peticion.json();
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDelComentario({
+    nombre,
+    alias,
+    notas,
+    pegatinas: Array.isArray(pegatinas) ? pegatinas : [],
+    resumen,
+    hilo: Array.isArray(hilo) ? hilo : [],
+    yaPropuestas: Array.isArray(yaPropuestas) ? yaPropuestas : [],
+  });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.comentarioDeBunga,
+      hacer: (m) => pedirComentario({ clave, modelo: m, material, instruccion: encargos.comentarioDeBunga }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('comentarioDeBunga')]: m }),
+    });
+    return json({ comentario: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
 async function estadoConGracia(peticion, env) {
   await cuentaAutenticada(peticion, env);
 
@@ -1372,6 +1418,7 @@ const RUTAS = [
   ['POST', '/api/estados/sugerir', estadosSugeridos],
   ['POST', '/api/estados/gracia', estadoConGracia],
   ['POST', '/api/bunga/resumen', resumenDeBunga],
+  ['POST', '/api/bunga/comentario', comentarioDeBunga],
   ['POST', '/api/recados', recadosDelViaje],
   ['POST', '/api/importar', importar],
   ['GET', '/api/mejoras', mejorasPendientes],

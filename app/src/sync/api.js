@@ -295,6 +295,20 @@ export const resumenDeBunga = ({ nombre, alias, notas, pegatinas }) =>
     body: JSON.stringify({ nombre, alias, notas, pegatinas }),
   }).then((r) => r.resumen || null)
 
+/**
+ * Un comentario para el hilo de un bunga, escrito a partir de cómo es (§14.66-quater).
+ *
+ * Se manda lo del sitio **más la evaluación y lo que ya se ha dicho en el hilo**:
+ * lo primero es de lo que tiene que hablar y lo segundo lo que no puede repetir.
+ * `yaPropuestas` son los que ya ha traído este botón, que es lo que hace que
+ * volver a pulsarlo traiga otro y no el mismo.
+ */
+export const comentarioDeBunga = ({ nombre, alias, notas, pegatinas, resumen, hilo, yaPropuestas }) =>
+  peticion('/api/bunga/comentario', {
+    method: 'POST',
+    body: JSON.stringify({ nombre, alias, notas, pegatinas, resumen, hilo, yaPropuestas }),
+  }).then((r) => r.comentario || null)
+
 export const estadoConGracia = ({ emoji, texto }) =>
   peticion('/api/estados/gracia', {
     method: 'POST',

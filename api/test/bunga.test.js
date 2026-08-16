@@ -9,7 +9,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { INSTRUCCION, TOPE_DEL_RESUMEN, leerResumen, materialDelBunga, pedirResumen } from '../src/bunga.js';
+import {
+  INSTRUCCION, INSTRUCCION_COMENTARIO, TOPE_DEL_COMENTARIO, TOPE_DEL_RESUMEN,
+  leerComentario, leerResumen, materialDelBunga, materialDelComentario,
+  pedirComentario, pedirResumen,
+} from '../src/bunga.js';
 
 // ── El material ──────────────────────────────────────────────────────────────
 
@@ -101,6 +105,96 @@ test('un error del modelo sube con sus palabras y su estado', async () => {
     () => pedirResumen({ clave: 'k', modelo: 'm', material: 'x', buscar }),
     (e) => e.message === 'rate limited' && e.estado === 429,
   );
+});
+
+// ── El comentario que propone la ballena (§14.66-quater) ─────────────────────
+
+// Lo que se pidió con todas las letras: **que tenga en cuenta lo de cómo es**.
+// Sin la evaluación delante, lo que sale vale para cualquier bungalow.
+test('el material del comentario lleva la evaluación, las pegatinas y las notas', () => {
+  const material = materialDelComentario({
+    nombre: 'Bunga 12',
+    alias: 'el de la piscina',
+    notas: 'la nevera congela mucho',
+    pegatinas: ['bichos'],
+    resumen: 'La nevera va sobrada; hay bichos en la terraza.',
+  });
+
+  assert.match(material, /Cómo es, en una frase: La nevera va sobrada/);
+  assert.match(material, /bichos/);
+  assert.match(material, /congela mucho/);
+});
+
+test('sin evaluación escrita se dice, en vez de callarlo', () => {
+  const material = materialDelComentario({ nombre: 'Bunga 3', notas: 'hay grillos' });
+  assert.match(material, /ninguna evaluación/i);
+});
+
+// Del hilo viaja **lo que se dijo**, nunca quién lo dijo: la regla de todos los
+// encargos, y aquí además el autor no aporta nada.
+test('el hilo entra para no repetirse, y sin quién lo dijo', () => {
+  const material = materialDelComentario({
+    nombre: 'Bunga 12',
+    notas: 'hay bichos',
+    hilo: ['se ha vuelto a ir la luz', '¿os importa cambiarlo?'],
+  });
+
+  assert.match(material, /se ha vuelto a ir la luz/);
+  assert.match(material, /¿os importa cambiarlo\?/);
+  assert.doesNotMatch(material, /Curro|autor/i);
+});
+
+// De un hilo de ochenta no se manda el hilo de ochenta: los últimos seis son de
+// lo que se está hablando, y lo demás es pagar por contexto viejo.
+test('de un hilo largo van los últimos seis', () => {
+  const hilo = Array.from({ length: 20 }, (_, i) => `comentario ${i}`);
+  const material = materialDelComentario({ nombre: 'Bunga 12', notas: 'x', hilo });
+
+  assert.match(material, /comentario 19/);
+  assert.match(material, /comentario 14/);
+  assert.doesNotMatch(material, /comentario 13/);
+});
+
+// «Añade un botón que genere más»: el segundo toque tiene que traer otro, y lo
+// único que lo garantiza es decirle cuáles ya ha traído.
+test('lo ya propuesto viaja, para que el segundo toque traiga otro', () => {
+  const material = materialDelComentario({
+    nombre: 'Bunga 12', notas: 'hay bichos', yaPropuestas: ['¿alguien trae insecticida?'],
+  });
+
+  assert.match(material, /no ha valido/);
+  assert.match(material, /insecticida/);
+});
+
+test('el encargo manda hablar de cómo es el sitio, y no firmar', () => {
+  assert.match(INSTRUCCION_COMENTARIO, /hablar de lo que dice cómo es el sitio/);
+  assert.match(INSTRUCCION_COMENTARIO, new RegExp(String(TOPE_DEL_COMENTARIO)));
+  assert.match(INSTRUCCION_COMENTARIO, /no firmes/);
+  assert.match(INSTRUCCION_COMENTARIO, /"comentario"/);
+});
+
+test('se lee el comentario del JSON, y un párrafo se corta', () => {
+  assert.equal(leerComentario('{"comentario":"¿esta vez alguien mira lo del aire?"}'),
+    '¿esta vez alguien mira lo del aire?');
+  assert.ok(leerComentario(`{"comentario":"${'a'.repeat(400)}"}`).length <= TOPE_DEL_COMENTARIO + 40);
+  assert.equal(leerComentario('{"resumen":"esto es lo otro"}'), null);
+  assert.equal(leerComentario('pues no sé'), null);
+});
+
+test('el comentario se pide con su encargo, no con el de la evaluación', async () => {
+  let visto = null;
+  const buscar = async (url, opciones) => {
+    visto = JSON.parse(opciones.body);
+    return { ok: true, json: async () => ({ content: [{ type: 'text', text: '{"comentario":"la nevera otra vez"}' }] }) };
+  };
+
+  const r = await pedirComentario({
+    clave: 'sk-prueba', modelo: 'claude-sonnet-4-5', material: 'Bungalow: Bunga 12.', buscar,
+  });
+
+  assert.equal(r, 'la nevera otra vez');
+  assert.equal(visto.model, 'claude-sonnet-4-5');
+  assert.match(visto.system, /hilo de un bungalow/);
 });
 
 // ── El hilo de un bunga (§14.66) ─────────────────────────────────────────────
