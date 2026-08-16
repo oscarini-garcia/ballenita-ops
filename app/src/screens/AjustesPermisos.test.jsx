@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -23,7 +24,11 @@ vi.mock('../sync/api.js', async (original) => ({
 }))
 
 const { default: EventSettingsScreen } = await import('./EventSettingsScreen.jsx')
-const { addFamily, addPerson, createEvent, db } = await import('../db.js')
+// **«Quién eres» se mudó a Grupo** (§14.61): tu ficha es la primera del censo,
+// no un ajuste de la aplicación. El apartado se prueba donde vive ahora; lo del
+// evento sigue en Ajustes y se sigue pintando allí.
+const { default: QuienEresSection } = await import('./QuienEresSection.jsx')
+const { personsOf, addFamily, addPerson, createEvent, db } = await import('../db.js')
 
 let evento
 let mariona
@@ -38,9 +43,17 @@ const pintar = () => render(
   <EventSettingsScreen eventId={evento.id} event={evento} sync={{ recheck: vi.fn() }} />,
 )
 
-// Acotado a su apartado: «Salir» existe también en Cuentas —ahí cierra la
-// sesión, que es otra cosa— y buscarlo suelto encuentra el que no es.
-const apartado = () => within(screen.getByText('Quién eres').closest('details'))
+/** «Quién eres», ya suelto en su propio fichero y dentro de Grupo. */
+function QuienEres() {
+  const [gente, setGente] = useState([])
+  useEffect(() => { personsOf(evento.id).then(setGente) }, [])
+  return <QuienEresSection eventId={evento.id} persons={gente} />
+}
+const pintarQuienEres = () => render(<QuienEres />)
+
+// Ya no hay `<details>` que acotar: la sección se pinta sola, así que lo que
+// se busca es lo que hay en pantalla.
+const apartado = () => screen
 
 beforeEach(async () => {
   localStorage.clear()
@@ -56,7 +69,7 @@ afterEach(() => localStorage.clear())
 describe('quién eres, con la cuenta enlazada', () => {
   it('un miembro enlazado no elige ni sale: lo dice su cuenta', async () => {
     entrarComo('miembro', mariona)
-    pintar()
+    pintarQuienEres()
 
     await waitFor(() => expect(screen.getByText(/tu cuenta está enlazada/)).toBeInTheDocument())
     expect(screen.queryByText('Cambiar de persona')).toBeNull()
@@ -69,7 +82,7 @@ describe('quién eres, con la cuenta enlazada', () => {
   // y a él la cuenta solo le siembra el hueco.
   it('quien administra sí elige, y su elección no se la deshace la cuenta', async () => {
     entrarComo('administrador', mariona)
-    pintar()
+    pintarQuienEres()
 
     await waitFor(() => expect(screen.getByText('Cambiar de persona')).toBeInTheDocument())
     expect(apartado().getByRole('button', { name: 'Salir' })).toBeInTheDocument()
@@ -80,7 +93,7 @@ describe('quién eres, con la cuenta enlazada', () => {
   })
 
   it('sin sesión —libreta local, demostración— sí se elige', async () => {
-    pintar()
+    pintarQuienEres()
 
     await waitFor(() => expect(screen.getByText('Elige quién eres')).toBeInTheDocument())
     expect(apartado().getByText(/cada uno elige la suya/)).toBeInTheDocument()
@@ -88,7 +101,7 @@ describe('quién eres, con la cuenta enlazada', () => {
 
   it('con sesión pero sin persona de este evento, la lista es la salida', async () => {
     entrarComo('miembro', 'per_de_otro_evento')
-    pintar()
+    pintarQuienEres()
 
     await waitFor(() => expect(screen.getByText('Elige quién eres')).toBeInTheDocument())
   })

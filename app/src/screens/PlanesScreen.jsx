@@ -135,7 +135,7 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
     <div className="body">
       {!me && persons.length > 0 && (
         <div className="note">
-          Para votar hace falta saber quién eres: dilo en <b>Ajustes → Quién eres</b>.
+          Para votar hace falta saber quién eres: dilo en <b>Grupo → Quién eres</b>.
         </div>
       )}
 

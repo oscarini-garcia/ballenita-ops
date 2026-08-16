@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.49.0',
+    fecha: '2026-08-16',
+    titulo: 'Grupo, con sus tres pestañas — y los avisos que no salían',
+    lineas: [
+      'Grupo se parte en tres: Familias, Bungas y Gadgets. Cada familia es un desplegable que dice su estado y cuántos son, así que la lista entera cabe de un vistazo y se abre solo la que buscas.',
+      '«Quién eres» se ha mudado de Ajustes a Grupo → Familias, arriba del todo: tu ficha es la primera del censo, no un ajuste de la aplicación.',
+      'Y ya no hace falta esperar a que lo haga uno: cada adulto edita lo de su familia y lo de los bungas —colocarlos, ponerles alias, apuntar sus notas— y el gadget de su casa. Crear o borrar familias y mover gente entre ellas siguen siendo de quien administra, porque cambian el reparto de todos.',
+      'Arreglado que los avisos de gastos y de comentarios no llegaban a nadie: se mandaban a una lista de personas vacía, así que no sonaba ningún teléfono y tampoco fallaba nada. Solo funcionaba el de «en qué anda la gente».',
+      'Y arreglado que, justo después de una actualización y hasta aplicar la migración, la app dejaba de sincronizar para todo el grupo.',
+    ],
+  },
+  {
     version: '0.48.0',
     fecha: '2026-08-16',
     titulo: 'La pestaña «Grupo», y seis cosas nuevas',

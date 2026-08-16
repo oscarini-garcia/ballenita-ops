@@ -32,16 +32,27 @@ const guardar = (titulo, abierto) => {
   try { localStorage.setItem(CLAVE + titulo, abierto ? '1' : '0') } catch { /* modo privado */ }
 }
 
-export default function Acordeon({ titulo, icono, nota, abierta = false, children }) {
+/**
+ * `cabecera` sustituye al contenido de la solapa cuando lo que hay que enseñar
+ * no es un rótulo: una familia lleva su emoji sobre su color, su nombre y su
+ * estado, y eso no cabe en una cadena (§14.61). Cuando se usa, `clave` es lo que
+ * recuerda si estaba abierta — el rótulo ya no sirve de llave.
+ */
+export default function Acordeon({ titulo, icono, nota, abierta = false, cabecera, clave, children }) {
+  const llave = clave ?? titulo
   // Solo el valor de arranque: `<details>` se gobierna solo a partir de ahí, y
   // volver a pasarle `open` en cada render pelearía con el propio elemento.
-  const inicial = useRef(leer(titulo, abierta)).current
+  const inicial = useRef(leer(llave, abierta)).current
   return (
-    <details className="acordeon" open={inicial} onToggle={(e) => guardar(titulo, e.currentTarget.open)}>
+    <details className="acordeon" open={inicial} onToggle={(e) => guardar(llave, e.currentTarget.open)}>
       <summary onClick={() => tap()}>
-        {icono && <span className="acordeon-moneda ico"><Icono nombre={icono} /></span>}
-        <span className="acordeon-titulo">{titulo}</span>
-        {nota != null && nota !== '' && <span className="acordeon-nota">{nota}</span>}
+        {cabecera ?? (
+          <>
+            {icono && <span className="acordeon-moneda ico"><Icono nombre={icono} /></span>}
+            <span className="acordeon-titulo">{titulo}</span>
+            {nota != null && nota !== '' && <span className="acordeon-nota">{nota}</span>}
+          </>
+        )}
       </summary>
       <div className="acordeon-cuerpo">{children}</div>
     </details>

@@ -12,6 +12,8 @@ import {
   PEGATINAS, addAlojamiento, listAlojamientos, updateAlojamiento, todosLosBungas, listEvents,
 } from '../db.js'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
+import Acordeon from '../components/Acordeon.jsx'
+import QuienEresSection from './QuienEresSection.jsx'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
 import Confirmar from '../components/Confirmar.jsx'
@@ -19,9 +21,10 @@ import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCo
 import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
 import { EDADES, EMOJIS_PERSONA, pesoDe, puedeOrganizar } from '../lib/personas.js'
+import { useIdentidad } from '../lib/identidad.js'
 import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
 import { conPegatina, historicoDe, pegatinasPuestas, resumenDelHistorico } from '../lib/alojamientos.js'
-import { esAdministrador } from '../lib/admin.js'
+import { mandaEnTodo, porQueNoPuedes, puedeEditarBungas, puedeEditarFamilia } from '../lib/permisos.js'
 import { leerSesion } from '../auth/sesion.js'
 
 const COLORES = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
@@ -56,7 +59,7 @@ const COLORES = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B
  * familia, alguien sin familia que por tanto no entra en ningún reparto— deja de
  * ser un dato que no está en ninguna parte y pasa a ser una fila que se ve.
  */
-export default function GrupoSection({ eventId }) {
+export default function GrupoSection({ eventId, area = 'familias' }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
@@ -69,14 +72,24 @@ export default function GrupoSection({ eventId }) {
   // { que: 'bunga'|'familia', id } · qué emparejamiento se está eligiendo.
   const [eligiendo, setEligiendo] = useState(null)
 
-  // El grupo lo edita quien administra (SPECS §14.41): con sesión de miembro,
-  // esto es el censo para mirarlo. Sin sesión no se capa nada — la libreta
-  // local y la demostración son de quien tiene el móvil en la mano.
+  /**
+   * **Tres niveles y no dos** (SPECS §14.61, `lib/permisos.js`).
+   *
+   * Hasta ahora era «administra o mira». Con el bunga guardando notas y cada
+   * familia su gadget, eso convertía una pantalla que todos miran en una que
+   * solo uno puede rellenar. Ahora un adulto corrige **lo suyo** y **los
+   * bungas**; mover gente entre familias y crear o borrar una siguen siendo de
+   * quien administra, porque redistribuyen el reparto de todos.
+   */
   const sesion = leerSesion()
-  const soloLectura = Boolean(sesion) && !esAdministrador(sesion)
+  const { me } = useIdentidad(eventId, persons)
+  const puedoTodo = mandaEnTodo(sesion)
+  const miFamilia = (familyId) => puedeEditarFamilia(sesion, me, familyId)
+  const conBungas = puedeEditarBungas(sesion, me)
+  const razon = porQueNoPuedes(sesion, me)
 
-  const abrir = (e) => { if (soloLectura) return; tap(); setEditor(e) }
-  const emparejar = (e) => { if (soloLectura) return; tap(); setEligiendo(e) }
+  const abrir = (e) => { tap(); setEditor(e) }
+  const emparejar = (e) => { if (!conBungas) return; tap(); setEligiendo(e) }
   // Todo va ordenado por nombre: una lista de nueve nombres sin orden se recorre
   // entera cada vez, y el de la base es el de los ids, que son aleatorios.
   const genteDe = (familyId) => persons.filter((p) => p.familyId === familyId).sort(porNombre)
@@ -85,101 +98,181 @@ export default function GrupoSection({ eventId }) {
 
   return (
     <>
-      {families.length === 0 && bungas.length === 0 && persons.length === 0 && (
-        <div className="empty">Aún no hay nadie. Empieza por una familia.</div>
-      )}
-
-      {[...families].sort(porNombre).map((f) => {
-        const b = bungaDeFamilia(bungas, f.id)
-        return (
-          <div className="ficha-fam" key={f.id}>
-            <div className="ficha-cab">
-              <button type="button" className="ficha-quien" onClick={() => abrir({ tipo: 'familia', id: f.id })}>
-                <span className="av" data-emojis={contarEmojis(f.avatar)} style={{ background: f.color }}>{f.avatar}</span>
-                <span className="main">
-                  <span className="n">{f.name}</span>
-                  {f.estado && <span className="sub">{f.estado}</span>}
-                </span>
-              </button>
-              {(b || !soloLectura) && (
-                <button
-                  type="button"
-                  className={`pastilla${b ? '' : ' vacia'}`}
-                  onClick={() => emparejar({ que: 'bunga', id: f.id })}
-                >
-                  {b ? etiquetaCorta(b) : '+ Bunga'}
-                </button>
-              )}
-            </div>
-            <div className="ficha-cuerpo">
-              {genteDe(f.id).map((p) => (
-                <button type="button" className="mini" key={p.id} onClick={() => abrir({ tipo: 'persona', id: p.id })}>
-                  <span className="av chica" data-emojis={contarEmojis(p.avatar)} style={{ background: f.color }}>{p.avatar}</span>
-                  <span className="quien">{p.name}{p.apodo ? ` «${p.apodo}»` : ''}</span>
-                  <span className="dato">{p.edad}</span>
-                </button>
-              ))}
-              {!soloLectura && (
-                <button type="button" className="mini anadir" onClick={() => abrir({ tipo: 'persona', familyId: f.id })}>
-                  + Persona
-                </button>
-              )}
-            </div>
-          </div>
-        )
-      })}
-
-      {(sueltosBungas.length > 0 || sueltosGente.length > 0) && (
+      {area === 'familias' && (
         <>
-          <div className="sec-h">Sueltos</div>
-          <div className="card tight">
-            {sueltosBungas.map((b) => (
-              <div className="row" key={b.id}>
-                <button type="button" className="row-quien" onClick={() => abrir({ tipo: 'bunga', id: b.id })}>
-                  <span className="ico"><Icono nombre="casa" /></span>
-                  <span className="main">
-                    <span className="n">{b.name}</span>
-                    <span className="sub">{[b.alias, 'sin familia'].filter(Boolean).join(' · ')}</span>
-                  </span>
-                </button>
-                {!soloLectura && (
+          {/* **Tu ficha abre la lista** (§14.61). Vivía en un acordeón de
+              Ajustes, y ahí dejó de tener sentido el día que el grupo salió a su
+              propia pestaña: eres la primera de las nueve del censo, no un
+              ajuste de la aplicación. */}
+          <Acordeon
+            titulo="Quién eres"
+            icono="persona"
+            nota={me ? (me.apodo || me.name) : 'sin elegir'}
+            abierta={!me}
+          >
+            <QuienEresSection eventId={eventId} persons={persons} />
+          </Acordeon>
+
+          {families.length === 0 && persons.length === 0 && (
+            <div className="empty">Aún no hay nadie. Empieza por una familia.</div>
+          )}
+
+          {/* **Cada familia, plegable.** Con tres casas y nueve personas la
+              lista cabía; con seis no, y lo que se viene a buscar es una. La
+              solapa dice lo que la cerrada tiene que decir —quién es y cuántos
+              son— y **la tuya nace abierta**, que es la que se abre siempre. */}
+          {[...families].sort(porNombre).map((f) => {
+            const gente = genteDe(f.id)
+            const mia = me?.familyId === f.id
+            return (
+              <Acordeon
+                key={f.id}
+                clave={`grupo.familia.${f.id}`}
+                abierta={mia}
+                cabecera={(
+                  <>
+                    <span
+                      className="av chica"
+                      data-emojis={contarEmojis(f.avatar)}
+                      style={{ background: f.color }}
+                    >
+                      {f.avatar}
+                    </span>
+                    <span className="acordeon-titulo">{f.name}</span>
+                    <span className="acordeon-nota">
+                      {f.estado ? `${f.estado} · ` : ''}
+                      {gente.length} {gente.length === 1 ? 'persona' : 'personas'}
+                    </span>
+                  </>
+                )}
+              >
+                {gente.map((p) => (
                   <button
                     type="button"
-                    className="btn sm ghost"
-                    onClick={() => emparejar({ que: 'familia', id: b.id })}
+                    className="mini"
+                    key={p.id}
+                    disabled={!miFamilia(f.id)}
+                    onClick={() => abrir({ tipo: 'persona', id: p.id })}
                   >
-                    Asignar
+                    <span className="av chica" data-emojis={contarEmojis(p.avatar)} style={{ background: f.color }}>{p.avatar}</span>
+                    <span className="quien">{p.name}{p.apodo ? ` «${p.apodo}»` : ''}</span>
+                    <span className="dato">{p.edad}{p.llevaLasCuentas ? ' · cuentas' : ''}</span>
                   </button>
+                ))}
+                {miFamilia(f.id) && (
+                  <>
+                    <button type="button" className="mini anadir" onClick={() => abrir({ tipo: 'persona', familyId: f.id })}>
+                      + Persona
+                    </button>
+                    <button type="button" className="btn sm ghost block" onClick={() => abrir({ tipo: 'familia', id: f.id })}>
+                      Editar «{f.name}»
+                    </button>
+                  </>
                 )}
+              </Acordeon>
+            )
+          })}
+
+          {sueltosGente.length > 0 && (
+            <>
+              <div className="sec-h">Sin familia</div>
+              <div className="card tight">
+                {sueltosGente.map((p) => (
+                  <div className="row" key={p.id}>
+                    <button
+                      type="button"
+                      className="row-quien"
+                      disabled={!puedoTodo}
+                      onClick={() => abrir({ tipo: 'persona', id: p.id })}
+                    >
+                      <span className="av sin" data-emojis={contarEmojis(p.avatar)}>{p.avatar}</span>
+                      <span className="main">
+                        <span className="n">{p.name}</span>
+                        <span className="sub">sin familia · {p.edad}</span>
+                      </span>
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-            {sueltosGente.map((p) => (
-              <div className="row" key={p.id}>
-                <button type="button" className="row-quien" onClick={() => abrir({ tipo: 'persona', id: p.id })}>
-                  <span className="av sin" data-emojis={contarEmojis(p.avatar)}>{p.avatar}</span>
-                  <span className="main">
-                    <span className="n">{p.name}</span>
-                    <span className="sub">sin familia · {p.edad}</span>
-                  </span>
-                </button>
-              </div>
-            ))}
+            </>
+          )}
+
+          {/* Crear y borrar familias mueve el reparto de todos: solo administra. */}
+          {puedoTodo && (
+            <button className="btn block" onClick={() => abrir({ tipo: 'familia' })}>+ Familia</button>
+          )}
+          <div className="note">
+            {razon ?? (
+              <>🐳 Quien se queda <b>sin familia</b> no entra en el reparto de ninguna. La gente de
+                aquí es la que puede tener cuenta: las peticiones de acceso se enlazan con una persona.
+              </>
+            )}
           </div>
         </>
       )}
 
-      {soloLectura ? (
-        <div className="note">
-          🐳 El grupo lo edita quien administra; esto es el censo, para mirarlo. Lo tuyo —tu emoji,
-          tu foto y tu estado— se cambia en «Quién eres».
-        </div>
-      ) : (
+      {area === 'bungas' && (
         <>
-          <button className="btn block" onClick={() => abrir({ tipo: 'familia' })}>+ Familia</button>
-          <div className="note">
-            🐳 Quien se queda <b>sin familia</b> no entra en el reparto de ninguna. La gente de aquí es
-            la que puede tener cuenta: las peticiones de acceso se enlazan con una persona.
-          </div>
+          {/* **Los bungas, en su área y de todos** (§14.61). Colocar a las
+              familias lo hace quien llega primero al camping, y las notas del
+              sitio —«la nevera congela», «hay bichos»— las escribe quien ha
+              dormido ahí, no quien administra. */}
+          {bungas.length === 0 && (
+            <div className="empty">
+              <span className="e">🏠</span>Ningún bunga todavía.<br />
+              Apunta los del camping y dile a cada uno de quién es.
+            </div>
+          )}
+
+          {[...bungas].sort(porNombre).map((b) => {
+            const suya = families.find((f) => f.id === b.familyId) ?? null
+            return (
+              <div className="row" key={b.id}>
+                <button type="button" className="row-quien" disabled={!conBungas} onClick={() => abrir({ tipo: 'bunga', id: b.id })}>
+                  <span className="ico"><Icono nombre="casa" /></span>
+                  <span className="main">
+                    <span className="n">{b.name}</span>
+                    <span className="sub">{b.alias || 'sin alias'}</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={`pastilla${suya ? '' : ' vacia'}`}
+                  disabled={!conBungas}
+                  onClick={() => emparejar({ que: 'familia', id: b.id })}
+                >
+                  {suya ? suya.name : '— de nadie —'}
+                </button>
+              </div>
+            )
+          })}
+
+          {families.some((f) => !bungaDeFamilia(bungas, f.id)) && (
+            <>
+              <div className="sec-h">Sin bunga</div>
+              <div className="card tight">
+                {families.filter((f) => !bungaDeFamilia(bungas, f.id)).sort(porNombre).map((f) => (
+                  <div className="row" key={f.id}>
+                    <div className="main">
+                      <div className="n">{f.name}<Alias familia={f} /></div>
+                      <div className="sub">todavía sin bunga</div>
+                    </div>
+                    {conBungas && (
+                      <button type="button" className="btn sm ghost" onClick={() => emparejar({ que: 'bunga', id: f.id })}>
+                        Darle uno
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {conBungas ? (
+            <button className="btn block" onClick={() => abrir({ tipo: 'bunga' })}>+ Bunga</button>
+          ) : (
+            <div className="note">{razon}</div>
+          )}
         </>
       )}
 
@@ -190,6 +283,7 @@ export default function GrupoSection({ eventId }) {
           families={families}
           bungas={bungas}
           personas={persons}
+          puedeBorrar={puedoTodo}
           onCerrar={() => setEditor(null)}
         />
       )}
@@ -211,6 +305,7 @@ export default function GrupoSection({ eventId }) {
           familyIdFijo={editor.familyId ?? null}
           families={families}
           gastos={expenses}
+          puedeMover={puedoTodo}
           onCerrar={() => setEditor(null)}
         />
       )}
@@ -743,7 +838,7 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
           administra —es lo mismo que decide el resto de esta pantalla— y solo
           para quien puede escribir en Gastos: marcar de contable a un niño sería
           una casilla que no puede hacer nada, así que no sale. */}
-      {esAdministrador(leerSesion()) && puedeOrganizar({ edad }) && (
+      {mandaEnTodo(leerSesion()) && puedeOrganizar({ edad }) && (
         <>
           <label>Avisos</label>
           <button

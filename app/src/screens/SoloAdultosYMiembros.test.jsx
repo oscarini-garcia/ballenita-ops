@@ -78,14 +78,40 @@ describe('dinero solo adultos, grupo solo lectura', () => {
     expect(document.querySelector('.deslizable')).toBeNull()
   })
 
-  it('con sesión de miembro, El grupo es el censo: sin añadir ni editar', async () => {
+  /**
+   * **Ya no son dos estados sino tres** (§14.61). Un miembro sin identidad
+   * puesta sigue siendo el caso de antes: mira. Lo que cambia es que un adulto
+   * **con** identidad edita lo de su familia y los bungas, y eso se prueba en
+   * `lib/permisos.test.js` y en el propio Grupo.
+   */
+  it('con sesión de miembro y sin saber quién eres, El grupo es el censo', async () => {
     guardarSesion({ token: 'jwt', cuenta: { id: 'cta_m', rol: 'miembro' } })
     render(<GrupoSection eventId={evento.id} />)
     await screen.findByText('García')
 
     expect(screen.queryByText('+ Familia')).toBeNull()
     expect(screen.queryByText('+ Persona')).toBeNull()
-    expect(screen.getByText(/lo edita quien administra/)).toBeInTheDocument()
+    // Y se dice por qué: una pantalla que no reacciona y se calla es peor.
+    expect(screen.getByText(/lo lleva quien administra|adultos del grupo/)).toBeInTheDocument()
+  })
+
+  it('un adulto sí edita lo de su familia, y no la de al lado', async () => {
+    guardarSesion({ token: 'jwt', cuenta: { id: 'cta_m', rol: 'miembro' } })
+    localStorage.setItem(`ballena.me:${evento.id}`, adulto)
+    render(<GrupoSection eventId={evento.id} />)
+
+    expect(await screen.findByRole('button', { name: /Editar «García»/ })).toBeInTheDocument()
+    // Crear y borrar familias mueve el reparto de todos: eso sigue sin salir.
+    expect(screen.queryByText('+ Familia')).toBeNull()
+  })
+
+  it('y los bungas los toca cualquier adulto, aunque no sean el suyo', async () => {
+    guardarSesion({ token: 'jwt', cuenta: { id: 'cta_m', rol: 'miembro' } })
+    localStorage.setItem(`ballena.me:${evento.id}`, adulto)
+    render(<GrupoSection eventId={evento.id} area="bungas" />)
+
+    // Colocar a las familias lo hace quien llega primero al camping.
+    expect(await screen.findByText('+ Bunga')).toBeInTheDocument()
   })
 
   it('quien administra edita, y sin sesión —libreta local, demo— también', async () => {

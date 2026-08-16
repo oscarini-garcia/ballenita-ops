@@ -4345,6 +4345,76 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   por Apple.
 
 
+### 14.61 El grupo, en tres áreas y con tres niveles de permiso
+
+- **El defecto:** Grupo salió a su pestaña en §14.52 con el censo dentro, y en la
+  misma tanda se le metieron las notas del bunga, su histórico (§14.56) y el
+  gadget de cada casa (§14.57). Una sola columna con todo eso obliga a rodar
+  media pantalla para llegar a lo que se venía a mirar, y con seis familias la
+  lista de gente no cabe.
+- **✅ Tres áreas: Familias · Bungas · Gadgets.** Las tres palabras caben — la
+  casilla de un mando de tres da **103,3 pt** y la más larga es «Gadgets» con
+  83,8—. Los bungas salen de dentro de la ficha de cada familia y pasan a su
+  propia lista, que es donde se les puede dar alias, dueño y notas sin abrir
+  tres solapas.
+- **✅ Cada familia es un desplegable.** La solapa cerrada dice lo justo para no
+  abrirla —su emoji sobre su color, su nombre, su estado y cuántos son— y **la
+  tuya nace abierta**, que es la que se abre siempre. `Acordeon` gana `cabecera`
+  y `clave` para esto: una familia no cabe en una cadena de texto.
+- **✅ «Quién eres» se muda a Grupo → Familias**, arriba del todo. Vivía en un
+  acordeón de Ajustes, y ahí dejó de tener sentido el día que el grupo salió a
+  su pestaña: eres la primera de las nueve fichas del censo, no un ajuste de la
+  aplicación. Sale a su propio fichero, `screens/QuienEresSection.jsx`.
+- **✅ Tres niveles de permiso y no dos** (`lib/permisos.js`):
+  1. **Quien administra**, todo.
+  2. **Un adulto**, lo de **su** familia —su ficha, su gente, su gadget— y **los
+     bungas de cualquiera**. Los bungas se comparten a propósito: colocar a las
+     familias lo hace quien llega primero al camping, y el estado de un bunga
+     —«la nevera congela», «hay bichos»— lo sabe quien ha dormido ahí.
+  3. **El resto** —adolescentes y niños—, mirar.
+- **Lo que no se delega**: crear y borrar familias, y mover gente de una a otra.
+  Son las dos cosas que **redistribuyen el reparto de todos los demás**, y por
+  eso siguen siendo de quien administra.
+- **Sin sesión no se capa nada**, como en toda la casa (§14.41, §14.43): la
+  libreta local y la demostración son de quien tiene el móvil en la mano.
+- **Y a quien no puede se le dice por qué**, con la razón que le toca —«esto lo
+  llevan los adultos» o «puedes cambiar lo de tu familia y lo de los bungas»—:
+  una pantalla que no reacciona y se calla es peor que una que capa y lo explica.
+- **Se dice «gadget» y no «cacharro».** El módulo se llama `cacharros.js` porque
+  nació así; lo que lee el grupo es la palabra que pidió el grupo.
+
+### 14.61-bis Los avisos no mandaban nada, y una tabla que falta tumbaba la sincronización
+
+Dos fallos del servidor que salieron de una pregunta concreta —«he probado con
+un comentario a Dani y no me ha ido»— y que no se parecen en nada al síntoma.
+
+- **La instantánea se leía con la forma equivocada.** `leerInstantanea` devuelve
+  `{ v: 1, tables: { persons, families, … } }` y quien componía los sobres leía
+  `instantanea.persons`: **siempre `undefined`**. Con la lista de personas vacía,
+  `familiasDeUnGasto` no encuentra a nadie, `personIds` sale vacío y
+  `avisoDeGasto`, `avisoDeLiquidacion` y `avisoDeComentario` devuelven `null`.
+  **No se manda nada y no falla nada** — sin error, sin log, sin 500—, que es la
+  clase de fallo que no se nota hasta que alguien pregunta. Sobrevivía solo «En
+  qué anda la gente», porque `avisoDeEstado` no mira las personas y su
+  `personIds` es `null`. Lleva así desde §14.39: **«Gastos que te tocan» no ha
+  avisado nunca.**
+- **Por qué no lo cazó ningún test:** los de `avisos.test.js` prueban las
+  funciones puras pasándoles las listas a mano, así que verifican *a quién le
+  toca* y nunca *qué forma tiene lo que les llega*. El que compone los sobres es
+  ahora `sobresDeLosCambios`, exportado, y `avisos-cableado.test.js` le pasa una
+  instantánea **leída de una base** — más un test que fija la forma vieja y
+  comprueba que con ella no sale ningún sobre.
+- **Una tabla que aún no existe dejaba a todo el grupo sin sincronizar.** El
+  Worker se publica solo en cada entrada a `main` y las migraciones se aplican a
+  mano (§14.23): entre las dos cosas hay una ventana en la que el `SELECT` de la
+  instantánea nombra tablas que no están. Eso lanzaba y `/api/sync` y
+  `/api/cambios` contestaban **500**. Pasó con las cuatro tablas de §14.52–§14.60
+  y habría vuelto a pasar con la siguiente migración. Ahora la tabla que falta
+  llega **vacía** y sale en `faltan`; cualquier **otro** error de la base sigue
+  reventando, porque devolver una lista vacía ahí sería decirle al móvil que el
+  grupo no tiene gastos.
+
+
 ### 🟡 Aún abiertas (nivel implementación, no bloquean producto)
 | # | Decisión | Recomendación |
 |---|---|---|

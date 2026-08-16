@@ -13,6 +13,8 @@ import {
   cuantosHanVotado, loQueVoto, puedeVotar, quienesPuedenVotar, ranking, votar, votosDeCacharro,
 } from '../lib/cacharros.js'
 import { useIdentidad } from '../lib/identidad.js'
+import { puedeEditarCacharro } from '../lib/permisos.js'
+import { leerSesion } from '../auth/sesion.js'
 import { porNombre } from '../lib/asignacion.js'
 import { tap } from '../lib/native.js'
 import Alias from '../components/Alias.jsx'
@@ -27,6 +29,10 @@ export default function CacharrosSection({ eventId, event }) {
   const [apuntando, setApuntando] = useState(null)
   const [texto, setTexto] = useState('')
   const [quitando, setQuitando] = useState(null)
+  // El gadget de una casa lo apunta y lo quita esa casa (§14.61): quien
+  // administra puede con todos, y a un adolescente no le sale el botón.
+  const sesion = leerSesion()
+  const puedoTocar = (familyId) => puedeEditarCacharro(sesion, me, familyId)
 
   const famById = Object.fromEntries(families.map((f) => [f.id, f]))
   const lista = ranking(cacharros)
@@ -61,13 +67,13 @@ export default function CacharrosSection({ eventId, event }) {
   return (
     <>
       <div className="sec-h">
-        <span>El cacharro del año</span>
+        <span>El gadget del año</span>
         {lista.length > 0 && <span>{yaVotaron} de {pueden} han votado</span>}
       </div>
 
       {lista.length === 0 ? (
         <div className="note">
-          🏆 Cada familia trae un cacharro y el grupo vota cuál es el mejor. Apunta el vuestro
+          🏆 Cada familia trae un gadget y el grupo vota cuál es el mejor. Apunta el vuestro
           abajo y a votar — <b>el de tu propia familia no cuenta</b>.
         </div>
       ) : (
@@ -104,6 +110,7 @@ export default function CacharrosSection({ eventId, event }) {
                   </div>
                 </div>
                 <span className="amt tnum">{votos}</span>
+                {puedoTocar(c.familyId) && (
                 <button
                   type="button"
                   className={`btn sm ghost quitar${quitando === c.id ? ' seguro' : ''}`}
@@ -115,6 +122,7 @@ export default function CacharrosSection({ eventId, event }) {
                 >
                   {quitando === c.id ? '¿Seguro?' : <Icono nombre="papelera" className="g" />}
                 </button>
+                )}
               </div>
             )
           })}
@@ -122,7 +130,7 @@ export default function CacharrosSection({ eventId, event }) {
       )}
 
       {!meId && persons.length > 0 && (
-        <div className="note">Para votar hace falta saber quién eres: dilo en <b>Ajustes → Quién eres</b>.</div>
+        <div className="note">Para votar hace falta saber quién eres: dilo arriba, en <b>Familias → Quién eres</b>.</div>
       )}
 
       {sinCacharro.length > 0 && (
@@ -137,7 +145,7 @@ export default function CacharrosSection({ eventId, event }) {
                     onChange={(e) => setTexto(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') guardar(f.id) }}
                     placeholder={`Qué trae ${f.name}…`}
-                    aria-label={`Cacharro de ${f.name}`}
+                    aria-label={`Gadget de ${f.name}`}
                     style={{ flex: 1 }}
                     autoFocus
                   />
@@ -147,14 +155,16 @@ export default function CacharrosSection({ eventId, event }) {
                 <>
                   <div className="main">
                     <div className="n">{f.name}<Alias familia={f} /></div>
-                    <div className="sub">sin cacharro este año</div>
+                    <div className="sub">sin gadget este año</div>
                   </div>
-                  <button
-                    className="btn sm ghost"
-                    onClick={() => { tap(); setTexto(''); setApuntando(f.id) }}
-                  >
-                    + Cacharro
-                  </button>
+                  {puedoTocar(f.id) && (
+                    <button
+                      className="btn sm ghost"
+                      onClick={() => { tap(); setTexto(''); setApuntando(f.id) }}
+                    >
+                      + Gadget
+                    </button>
+                  )}
                 </>
               )}
             </div>

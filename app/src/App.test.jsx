@@ -181,7 +181,10 @@ describe('App — navegación', () => {
     await abrirEjemplo()
     await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
 
-    for (const titulo of ['Aspecto', 'Quién eres', 'Evento', 'La app']) {
+    // «Quién eres» se fue con el grupo en la v0.49.0 (§14.61): tu ficha es la
+    // primera del censo, no un ajuste de la aplicación.
+    expect(screen.queryByText('Quién eres')).toBeNull()
+    for (const titulo of ['Aspecto', 'Evento', 'La app']) {
       expect(await screen.findByText(titulo)).toBeInTheDocument()
     }
     // Las estadísticas ya no son un apartado: se miran, no se ajustan, y viven
@@ -205,9 +208,10 @@ describe('App — navegación', () => {
     expect(screen.getByText('Quién más adelanta')).toBeInTheDocument()
   })
 
-  it('«Quién eres» se ha comido el perfil que estaba en la cabecera', async () => {
+  it('«Quién eres» abre la lista de familias, y se ha comido el perfil de la cabecera', async () => {
     await abrirEjemplo()
-    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
+    // Desde §14.61 vive en Grupo → Familias, arriba del todo.
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
     await userEvent.click(await screen.findByText('Quién eres'))
 
     // Sin identidad todavía no hay perfil que editar: primero se elige persona.
