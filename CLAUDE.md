@@ -385,6 +385,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   los tres renglones del día—,
   mientras **votar, apuntar ideas, marcar la compra y mirarlo todo siguen siendo de todos**;
   **El grupo y el evento los edita quien administra** (miembro = censo y ficha de solo lectura);
+  **tu perfil vive detrás de tu emoji de la cabecera** (§14.62, `components/BotonDePerfil.jsx`):
+  «Quién eres» era un apartado de Ajustes que contestaba una pregunta que ya no existe —lo dice
+  la cuenta desde §14.42—, y lo que guardaba dentro era el perfil, que no es un ajuste. La lista
+  de personas se queda **solo donde la cuenta no puede contestar** (libreta local, demostración,
+  persona de otro evento);
   y Sincronización + Actualizar son un solo acordeón, **«La app»**, con la versión en el rótulo.
 - **La clave de la IA vive en el servidor** (tabla `configuracion`, SPECS §14.16) y no vuelve
   entera a ningún móvil: es una credencial de pago. **El modelo se elige de una lista** que trae

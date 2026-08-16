@@ -306,6 +306,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
    había regla ninguna, así que la rueda se pintaba en un botón vacío. El
    botón de antes llevaba un emoji, y por eso esto no se notó hasta ponerlo. */
 .appbar .iconbtn svg { width: 22px; height: 22px; display: block; }
+/* Tu emoji, que es la puerta de tu perfil (§14.62). Mismo botón de la cabecera
+   y misma diana que la rueda, con el dibujo a 22 px como el icono de al lado
+   —así los tres de la derecha pesan lo mismo— y la foto recortada en redondo:
+   con foto, un cuadrado dentro de un botón redondeado se ve como un parche. */
+.appbar .iconbtn.perfil { padding: 5px 6px; }
+.cara-barra { display: block; width: 24px; height: 24px; border-radius: 6px; overflow: hidden;
+  font-size: var(--t-row); line-height: 24px; text-align: center; }
+.cara-barra[data-emojis="2"] { font-size: var(--t-label); }
+.cara-barra[data-emojis="3"] { font-size: var(--t-micro); letter-spacing: -.04em; }
 
 /* El renglón que dice a dónde se ha ido «El grupo» (§14.52). No es un acordeón
    —no despliega nada— pero se lee en la misma columna que los nueve que había,

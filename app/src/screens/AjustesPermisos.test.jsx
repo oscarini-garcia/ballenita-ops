@@ -23,6 +23,7 @@ vi.mock('../sync/api.js', async (original) => ({
 }))
 
 const { default: EventSettingsScreen } = await import('./EventSettingsScreen.jsx')
+const { default: BotonDePerfil } = await import('../components/BotonDePerfil.jsx')
 const { addFamily, addPerson, createEvent, db } = await import('../db.js')
 
 let evento
@@ -38,9 +39,13 @@ const pintar = () => render(
   <EventSettingsScreen eventId={evento.id} event={evento} sync={{ recheck: vi.fn() }} />,
 )
 
-// Acotado a su apartado: «Salir» existe también en Cuentas —ahí cierra la
-// sesión, que es otra cosa— y buscarlo suelto encuentra el que no es.
-const apartado = () => within(screen.getByText('Quién eres').closest('details'))
+// El perfil ya no es un apartado de Ajustes: vive detrás de tu emoji en la
+// cabecera (§14.62). Se abre y se mira dentro de su capa.
+const abrirElPerfil = async () => {
+  render(<BotonDePerfil eventId={evento.id} />)
+  await userEvent.click(await screen.findByRole('button', { name: /Tu perfil|Di quién eres/ }))
+  return within(document.querySelector('.modal'))
+}
 
 beforeEach(async () => {
   localStorage.clear()
@@ -56,12 +61,12 @@ afterEach(() => localStorage.clear())
 describe('quién eres, con la cuenta enlazada', () => {
   it('un miembro enlazado no elige ni sale: lo dice su cuenta', async () => {
     entrarComo('miembro', mariona)
-    pintar()
+    const perfil = await abrirElPerfil()
 
-    await waitFor(() => expect(screen.getByText(/tu cuenta está enlazada/)).toBeInTheDocument())
+    expect(perfil.getByText(/tu cuenta está enlazada/)).toBeInTheDocument()
     expect(screen.queryByText('Cambiar de persona')).toBeNull()
     expect(screen.queryByText('Elige quién eres')).toBeNull()
-    expect(apartado().queryByRole('button', { name: 'Salir' })).toBeNull()
+    expect(perfil.queryByRole('button', { name: /Dejar de ser/ })).toBeNull()
   })
 
   // Cambió a propósito (§14.45): quien administra **sí** cambia de persona —es
@@ -69,28 +74,28 @@ describe('quién eres, con la cuenta enlazada', () => {
   // y a él la cuenta solo le siembra el hueco.
   it('quien administra sí elige, y su elección no se la deshace la cuenta', async () => {
     entrarComo('administrador', mariona)
-    pintar()
+    const perfil = await abrirElPerfil()
 
-    await waitFor(() => expect(screen.getByText('Cambiar de persona')).toBeInTheDocument())
-    expect(apartado().getByRole('button', { name: 'Salir' })).toBeInTheDocument()
+    expect(perfil.getByText('Cambiar de persona')).toBeInTheDocument()
+    expect(perfil.getByRole('button', { name: /Dejar de ser/ })).toBeInTheDocument()
 
     // Se pone en la piel de otro y ahí se queda: la cuenta no le corrige.
-    await userEvent.click(apartado().getByRole('button', { name: /Curro/ }))
+    await userEvent.click(perfil.getByRole('button', { name: /Curro/ }))
     await waitFor(() => expect(localStorage.getItem(`ballena.me:${evento.id}`)).toBe(curro))
   })
 
   it('sin sesión —libreta local, demostración— sí se elige', async () => {
-    pintar()
+    const perfil = await abrirElPerfil()
 
-    await waitFor(() => expect(screen.getByText('Elige quién eres')).toBeInTheDocument())
-    expect(apartado().getByText(/cada uno elige la suya/)).toBeInTheDocument()
+    expect(perfil.getByText('Elige quién eres')).toBeInTheDocument()
+    expect(perfil.getByText(/cada uno elige la suya/)).toBeInTheDocument()
   })
 
   it('con sesión pero sin persona de este evento, la lista es la salida', async () => {
     entrarComo('miembro', 'per_de_otro_evento')
-    pintar()
+    const perfil = await abrirElPerfil()
 
-    await waitFor(() => expect(screen.getByText('Elige quién eres')).toBeInTheDocument())
+    expect(perfil.getByText('Elige quién eres')).toBeInTheDocument()
   })
 })
 

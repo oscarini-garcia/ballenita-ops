@@ -4143,6 +4143,43 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   noventa días no hay puerta que enseñar, así que la app vuelve a ser una
   libreta local y hace falta pedir otro enlace.
 
+### 14.62 Tu perfil vive detrás de tu emoji, y «Quién eres» se retira
+
+- **El defecto:** «Quién eres» era un apartado de Ajustes, y nació para contestar
+  una pregunta que **ya no existe**: «¿quién eres en este móvil?». Desde §14.42
+  lo dice la cuenta —quien administra enlaza cada cuenta con su persona—, así
+  que con sesión ese apartado enseñaba una lista que no salía y un rótulo que
+  prometía una elección que no había. Lo que quedaba dentro no era una identidad
+  sino **tu perfil**: tu emoji, tu foto y tu estado.
+- **✅ Y un perfil no es un ajuste.** Es tuyo, se toca a menudo y se mira desde
+  cualquier pantalla, que es justo lo contrario del sitio donde estaba: **tres
+  toques**, detrás de la rueda que desde §14.52 guarda solo lo que casi nunca se
+  cambia. Pasa a la cabecera, detrás de **tu emoji**
+  (`components/BotonDePerfil.jsx`).
+- **Va antes del punto de sincronizar**, porque el orden de la cabecera es el de
+  lo que se toca: **tú · cómo van los datos · los ajustes**. Cuesta 34 pt de la
+  fila de 390, que salen de donde sobraban desde que el badge con tu nombre se
+  retiró (§14.10) — aquel gastaba 112 y decía menos.
+- **El emoji es el botón**, no un icono de cromo: es de las pocas cosas que el
+  usuario elige (§14.13), y ponerlo ahí hace que la puerta a tu perfil sea **tu
+  cara**. Con foto puesta, la foto; recortada en redondo, que un cuadrado dentro
+  de un botón redondeado se ve como un parche.
+- **La hoja del estado sustituye a la capa del perfil**, no se monta encima
+  (§14.31 · V2). Y es **la misma** `HojaDeEstado` que abre la pastilla de la
+  cabecera: una sola pieza para una sola cosa, con sus cinco de siempre, las
+  otras cinco de la IA y el «más gracioso».
+- **La pastilla de la cabecera se queda** (§14.36) y no es una puerta duplicada:
+  su trabajo es **enseñar** tu estado —y pedirlo cuando no lo has dicho—, y
+  tocar lo que se ve para cambiarlo es el gesto más corto que hay. El emoji es
+  la puerta a **todo** lo tuyo; la pastilla, el atajo a un renglón.
+- **La lista de personas sobrevive donde la cuenta no puede contestar**: libreta
+  local, demostración, y una persona enlazada que no es de este evento — la
+  regla de §14.42, intacta. Con cuenta enlazada no aparece, que es el caso de
+  todo el grupo. Borrarla del todo dejaría la demostración y la libreta local
+  sin manera de decir quién eres, y ahí no hay nadie que lo diga por ti.
+- «Para votar hace falta saber quién eres» ya no manda a un apartado que no
+  existe: manda **al emoji de arriba**.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

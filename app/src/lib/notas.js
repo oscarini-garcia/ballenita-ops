@@ -25,6 +25,7 @@ export const NOTAS = [
       'En el navegador no hay avisos, y la app se ve como un móvil grande en un portátil. Sin enlace, la web sigue siendo la libreta local de siempre.',
       'Y en Planes, «Devolver a ideas» lo puede hacer cualquier adulto, no solo quien lleva el grupo: si tú puedes proponer un plan, puedes retirarlo.',
       'Ajustes → 🐳 La app queda ordenada en tres bloques con su rótulo —los datos, la versión y la base de datos—, con «Qué ha cambiado» al final en vez de en medio del botón de actualizar.',
+      'Tu perfil está ahora detrás de tu emoji, arriba a la derecha: el emoji, la foto y el estado, a un toque desde cualquier pantalla. El apartado «Quién eres» de Ajustes se retira — quién eres lo dice tu cuenta desde hace tiempo.',
     ],
   },
   {

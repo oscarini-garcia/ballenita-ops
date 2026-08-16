@@ -20,6 +20,7 @@ import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
 import Icono from './components/Icono.jsx'
 import SyncDot from './components/SyncDot.jsx'
 import PastillaDeEstado from './components/PastillaDeEstado.jsx'
+import BotonDePerfil from './components/BotonDePerfil.jsx'
 import LineaDelHorizonte from './components/LineaDelHorizonte.jsx'
 import ProgresoModal from './components/ProgresoModal.jsx'
 import { sincronizarTodo } from './lib/sincronizarTodo.js'
@@ -396,6 +397,12 @@ export default function App() {
               estado de nadie que enseñar. */}
           <PastillaDeEstado eventId={activeId} lugar={event.lugar} />
         </div>
+        {/* **Tu emoji, y detrás tu perfil** (§14.62). Va antes del punto porque
+            el orden de la cabecera es el de lo que se toca: tú, cómo van los
+            datos, y los ajustes al final. Sustituye al apartado «Quién eres» de
+            Ajustes, que nació de una pregunta que ya contesta la cuenta. */}
+        {!demo && <BotonDePerfil eventId={activeId} />}
+
         {/* En demostración la pastilla **sustituye** al punto, no se suma a él.
             La cabecera tiene sitio para tres cosas y el punto no significa nada
             aquí: en una demostración no hay nada que sincronizar, y enseñarlo en

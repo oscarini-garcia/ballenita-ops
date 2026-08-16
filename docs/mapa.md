@@ -10,7 +10,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 ## Las dos piezas
 
 - **`app/`** v0.49.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1016 pruebas en 111 ficheros · `npm test` → `vitest run`
+  1017 pruebas en 111 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   242 pruebas en 24 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -121,6 +121,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 
 - `Acordeon.jsx` — Un apartado plegable, con `<details>` y `<summary>` del propio navegador.
 - `Alias.jsx` — El alias de una familia, en pastilla y con su color (`docs/diseño/planes-ideas.html` · B3).
+- `BotonDePerfil.jsx` — Emojis rápidos para el avatar (también se escribe a mano).
+  ↳ Cara
 - `BotonIA.jsx` — Un botón que le pregunta algo al modelo, y **dice que está pensando**.
 - `Campo.jsx` — Un campo: su rótulo, el control, y **debajo la línea que lo explica**.
 - `Comentarios.jsx` — El hilo de cualquier cosa, enchufable donde haga falta (SPECS §14.55).
@@ -407,19 +409,19 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`, `EnlaceScreen.jsx`
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`
-- **§14.31** Los elegidores del día: al centro, con borrador y buscador → `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
+- **§14.31** Los elegidores del día: al centro, con borrador y buscador → `BotonDePerfil.jsx`, `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
 - **§14.32** El semáforo del día, y el género del bunga → `PlanesScreen.jsx`
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `db.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `avisos.js`, `index.js`
 - **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +4 más
-- **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `EventSettingsScreen.jsx`, `identidad.js`
+- **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`, `identidad.js`
 - **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `CenasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `personas.js`
 - **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
 - **§14.45** Quien administra sí cambia de persona, y «Hoy» invita a decir tu estado → `HoyScreen.jsx`, `db.js`, `identidad.js`
 - **§14.46** Al minuto: los datos se traen y la versión se vigila → `App.jsx`, `engine.js`, `native.js`, `vigilante.js`
-- **§14.47** Pulsar Agenda lleva al calendario, y en un emoji caben tres → `App.jsx`, `EventSettingsScreen.jsx`, `areas.js`, `emojis.js`
+- **§14.47** Pulsar Agenda lleva al calendario, y en un emoji caben tres → `App.jsx`, `BotonDePerfil.jsx`, `areas.js`, `emojis.js`
 - **§14.48** Un bunga con familia también se corrige → `GrupoSection.jsx`, `Hoja.jsx`
 - **§14.49** «Mayores» son los mayores, y «Peques» se retira → `db.js`, `personas.js`, `reparto-gente.js`
 - **§14.50** Lo que hace el grupo se apunta, y al final se cuenta → `CacharrosSection.jsx`, `Comentarios.jsx`, `StatsScreen.jsx`, `db.js`, `recap.js`, `registro.js` · +1 más
@@ -434,3 +436,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `planes.js`
 - **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `PlanesScreen.jsx`, `avisos.js`, `destino.js` · +3 más
 - **§14.61** Entrar sin iPhone: un enlace que abre la puerta una vez → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `api.js`, `enlace.js`, `index.js` · +2 más
+- **§14.62** Tu perfil vive detrás de tu emoji, y «Quién eres» se retira → `App.jsx`, `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`
