@@ -84,3 +84,45 @@ export function conPegatina(pegatinas = [], id) {
  */
 export const pegatinasPuestas = (pegatinas = [], catalogo = []) =>
   catalogo.filter((p) => (pegatinas ?? []).includes(p.id))
+
+/**
+ * La huella de lo que se resumió: notas y pegatinas, y nada más (SPECS §14.66).
+ *
+ * Existe para poder decir **«este resumen ya no dice la verdad»**. Un bunga
+ * acumula notas viaje a viaje —«se ha roto el aire»— y una frase escrita antes
+ * de eso se lee igual de convincente que una recién hecha: en una lista que se
+ * mira para decidir con cuál te quedas, eso es peor que no tener ninguna.
+ *
+ * Las pegatinas se ordenan antes de sumarlas porque el orden en que se pulsan no
+ * es un cambio, y las notas se recortan por los lados: un espacio de más al
+ * final no vuelve viejo a nadie. Djb2 en base 36 — no es criptografía, es un
+ * «¿ha cambiado esto?» que cabe en una columna.
+ */
+export function huellaDelSitio(sitio) {
+  const material = JSON.stringify([
+    String(sitio?.notas ?? '').trim(),
+    [...(sitio?.pegatinas ?? [])].sort(),
+  ])
+  let h = 5381
+  for (let i = 0; i < material.length; i += 1) h = ((h * 33) ^ material.charCodeAt(i)) >>> 0
+  return h.toString(36)
+}
+
+/**
+ * Qué se puede decir del resumen de un sitio: `null` si no hay ninguno, y si lo
+ * hay, la frase y si sigue valiendo.
+ *
+ * Un resumen viejo **se sigue enseñando**, marcado. Esconderlo dejaría la fila
+ * peor de lo que estaba —sin frase y sin saber que hubo una—, y lo que hay
+ * escrito sigue siendo verdad en su mayor parte: lo que ha cambiado es que le
+ * falta algo.
+ */
+export function resumenDelSitio(sitio) {
+  const frase = String(sitio?.resumen ?? '').trim()
+  if (!frase) return null
+  return { frase, vigente: sitio.resumenDe === huellaDelSitio(sitio) }
+}
+
+/** ¿Hay algo que resumir? Con el sitio en blanco, el modelo se lo inventaría. */
+export const hayQueResumir = (sitio) =>
+  Boolean(String(sitio?.notas ?? '').trim() || (sitio?.pegatinas ?? []).length)

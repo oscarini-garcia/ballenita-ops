@@ -34,7 +34,12 @@ export const TABLAS = {
   families: {
     // `alias` son las dos letras que firman una idea —«GA»— y que caben donde
     // no cabe «García» (`docs/diseño/planes-ideas.html` · B3 · D3).
-    columnas: ['eventId', 'name', 'alias', 'color', 'avatar', 'estado'],
+    //
+    // **`estado` se retiró en §14.66** y por eso no está aquí: quien dice en qué
+    // anda es cada persona, y dos estados encima del mismo grupo se contradicen
+    // sin que nadie los actualice. La columna sigue en la base —no se tira una
+    // columna para no escribirla— y deja de viajar, que es lo que importa.
+    columnas: ['eventId', 'name', 'alias', 'color', 'avatar'],
   },
   bungas: {
     // `alojamientoId` apunta al catálogo (§14.56): es lo que hace que el
@@ -152,7 +157,10 @@ export const TABLAS = {
     // El catálogo que hace que un bunga tenga historia (§14.56). Aquí vive lo
     // que **no cambia de un año a otro** —cómo es el sitio—; qué familia lo
     // tiene es del bunga del evento.
-    columnas: ['name', 'notas', 'pegatinas', 'eventId'],
+    // `resumen` es la frase con guasa que sale en la lista, y `resumenDe` la
+    // huella de las notas con que se escribió: sin ella, un resumen que ya no
+    // dice la verdad se ve igual que uno recién hecho (§14.66).
+    columnas: ['name', 'notas', 'pegatinas', 'resumen', 'resumenDe', 'eventId'],
     json: ['pegatinas'],
   },
   cacharros: {

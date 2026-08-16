@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.51.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1053 pruebas en 114 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.52.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1070 pruebas en 115 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  242 pruebas en 24 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  253 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -45,6 +45,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 | `POST` | `/api/idea/mejorar` | sesión | la misma idea, mejor contada por el modelo (IA) |
 | `POST` | `/api/estados/sugerir` | sesión | cinco estados para ponerse, del día que va el viaje (IA) |
 | `POST` | `/api/estados/gracia` | sesión | el estado que has escrito, con más gracia (IA) |
+| `POST` | `/api/bunga/resumen` | sesión | el bunga resumido en una frase, con guasa (IA) |
 | `POST` | `/api/recados` | sesión | una tanda de frases para el final de la lista (IA) |
 | `POST` | `/api/importar` | servicio | siembra la base desde un volcado de JSONBin (servicio) |
 | `GET` | `/api/mejoras` | servicio | las mejoras pendientes, para quien hace el trabajo (servicio) |
@@ -157,7 +158,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `alias.js` — El alias de una familia: **dos letras**.
   ↳ aliasSugerido, aliasDe, aliasSigueAlNombre
 - `alojamientos.js` — El bunga como **sitio** y no como fila de un evento (SPECS §14.56, `docs/diseño/siete-encargos.html` · B2 · B4 · B5).
-  ↳ historicoDe, resumenDelHistorico, conPegatina, pegatinasPuestas
+  ↳ historicoDe, resumenDelHistorico, conPegatina, huellaDelSitio, resumenDelSitio, pegatinasPuestas · +1 más
 - `areas.js` — El área elegida dentro de una sección, que no se olvida al salir y volver.
   ↳ useArea, ponerArea, olvidarAreas
 - `asignacion.js` — Quién se queda con qué bunga: el emparejamiento familia ↔ bunga.
@@ -296,7 +297,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`app/src/sync/`**
 
 - `api.js` — Transporte contra la API propia (Worker + D1).
-  ↳ hayApi, PLAZO_API, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta · +19 más
+  ↳ hayApi, PLAZO_API, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta · +20 más
 - `engine.js` — El orquestador de la sincronización: cuándo se sube la cola y se baja la instantánea.
   ↳ ultimaSincronizacion, syncNow, useSyncEngine, LATIDO_DATOS_MS
 - `tables.js` — Tablas que se sincronizan (todo lo que es "hecho" del grupo).
@@ -312,6 +313,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ base64urlADatos, verificarTokenDeApple
 - `avisos.js` — A quién le importa lo que acaba de pasar, y qué se le dice.
   ↳ importe, familiasDeUnGasto, elGastoMueveElSaldo, avisosDeGasto, avisoDeGastoBorrado, avisoDeGasto · +9 más
+- `bunga.js` — El bunga, resumido en una línea y con guasa (SPECS §14.66).
+  ↳ materialDelBunga, leerResumen, pedirResumen, TOPE_DEL_RESUMEN, INSTRUCCION
 - `cantidades.js` — Cuánto de cada ingrediente, y en qué se compra.
   ↳ materialDelPlato, leerCantidades, pedirCantidades, INSTRUCCION
 - `cocina.js` — Con qué se cocina en este viaje (SPECS §14.20-quater).
@@ -403,7 +406,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.16** La IA: la clave vive en el servidor → `api.js`, `cocina.js`, `encargos.js`, `ia.js`, `index.js`, `receta.js` · +1 más
 - **§14.17** Avisos al móvil: APNs directo, sin SDK de nadie → `recordatorioDeAvisos.js`
 - **§14.18** El día es el de aquí, no el de Greenwich → `db.js`, `planes.js`
-- **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx`, `api.js` · +8 más
+- **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `GrupoSection.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx` · +10 más
 - **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js` · +7 más
 - **§14.21** El día del viaje: qué bungas, qué se cena y qué plan → `db.js`
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
@@ -435,14 +438,15 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.52** El grupo dejó de ser un ajuste, y Ajustes sube a un botón → `App.jsx`, `EventSettingsScreen.jsx`, `GrupoScreen.jsx`, `db.js`, `repositorio.js`, `tables.js`
 - **§14.53** Los trucos: lo que hay que acordarse de un viaje a otro → `PlanesConAreasScreen.jsx`, `TrucosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.54** La compra, por familia → `CompraScreen.jsx`, `compra-familias.js`, `db.js`, `tablas.js`
-- **§14.55** Los comentarios: una tabla con ancla, y un componente → `Comentarios.jsx`, `DiasScreen.jsx`, `FichaDeGasto.jsx`, `PlanesScreen.jsx`, `avisos.js`, `comentarios.js` · +2 más
+- **§14.55** Los comentarios: una tabla con ancla, y un componente → `Comentarios.jsx`, `DiasScreen.jsx`, `FichaDeGasto.jsx`, `GrupoSection.jsx`, `PlanesScreen.jsx`, `avisos.js` · +3 más
 - **§14.56** El bunga es un sitio, y por eso puede tener historia → `GrupoSection.jsx`, `PlatosScreen.jsx`, `alojamientos.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.57** El cacharro del año → `CacharrosSection.jsx`, `cacharros.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.58** Quién lleva las cuentas → `GrupoSection.jsx`, `avisos.js`, `db.js`, `index.js`, `tablas.js`, `tables.js`
 - **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `planes.js`
-- **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `PlanesScreen.jsx`, `avisos.js`, `destino.js` · +3 más
+- **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `PlanesScreen.jsx` · +5 más
 - **§14.61** Entrar sin iPhone: un enlace que abre la puerta una vez → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `GrupoSection.jsx`, `api.js`, `enlace.js` · +3 más
 - **§14.62** Tu perfil vive detrás de tu emoji, y «Quién eres» se retira → `App.jsx`, `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`
 - **§14.63** El grupo, en tres áreas y con tres niveles de permiso → `Acordeon.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `permisos.js`
 - **§14.64** Un plato dice qué lleva y ahora también cómo se hace → `PlatosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.65** Los avisos se recuerdan cada semana, y el bunga vuelve a su familia → `AvisoDeAvisos.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `HoyScreen.jsx`, `recordatorioDeAvisos.js`
+- **§14.66** El bunga se resume en una frase, se comenta, y la familia va en pastilla → `GrupoSection.jsx`, `alojamientos.js`, `api.js`, `avisos.js`, `bunga.js`, `db.js` · +2 más

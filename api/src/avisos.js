@@ -285,7 +285,7 @@ export function deQueEs(ancla) {
  * conversación. Nunca a quien escribe, como en todos los avisos de la casa.
  */
 export function avisoDeComentario(comentario, {
-  personas = [], planes = [], gastos = [], hilo = [], autor = null,
+  personas = [], planes = [], gastos = [], bungas = [], hilo = [], autor = null,
 } = {}) {
   const { tipo, id } = deQueEs(comentario?.ancla)
 
@@ -302,6 +302,13 @@ export function avisoDeComentario(comentario, {
     involucrados = gasto ? personasDeLasFamilias(familiasDeUnGasto(gasto, personas), personas) : []
   } else if (tipo === 'dia') {
     involucrados = personas.map((p) => p.id)
+  } else if (tipo === 'bunga') {
+    // **Un bunga: la familia que duerme ahí** (§14.66). Es el mismo criterio que
+    // el gasto —a quién le toca— y no «todos» como el día: «¿os importa
+    // cambiarlo?» le interesa a quien está dentro, y despertar a las otras ocho
+    // casas por eso es lo que hace que se apaguen los avisos.
+    const bunga = bungas.find((b) => b.id === id)
+    involucrados = bunga?.familyId ? personasDeLasFamilias([bunga.familyId], personas) : []
   }
 
   const enElHilo = hilo
@@ -318,6 +325,7 @@ export function avisoDeComentario(comentario, {
     plan: planes.find((p) => p.id === id)?.titulo,
     gasto: gastos.find((g) => g.id === id)?.description,
     dia: id,
+    bunga: bungas.find((b) => b.id === id)?.name,
   }[tipo];
 
   return {
@@ -346,6 +354,7 @@ export function destinoDeAncla(ancla) {
   if (tipo === 'plan') return `planes/planes/${id}`
   if (tipo === 'gasto') return `dinero/gastos/${id}`
   if (tipo === 'dia') return `agenda/dias/${id}`
+  if (tipo === 'bunga') return `grupo/bungas/${id}`
   return 'hoy'
 }
 

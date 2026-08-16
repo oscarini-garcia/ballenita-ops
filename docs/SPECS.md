@@ -4248,6 +4248,52 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   pestaña y dejó un renglón diciendo a dónde había ido. Un cartel de mudanza
   sirve las primeras veces y estorba el resto.
 
+### 14.66 El bunga se resume en una frase, se comenta, y la familia va en pastilla
+
+- **El defecto:** un bunga acumula pegatinas y **notas del sitio** que crecen
+  viaje a viaje —«la nevera congela, bájala al 2», «el segundo cuarto no tiene
+  enchufe»— y todo eso vivía **dentro** de su pantalla. La lista solo decía el
+  mote, así que *cuál es el bueno* —que es la pregunta que se hace al
+  repartirlos— no la contestaba nadie sin abrir los seis.
+- **✅ Una frase con guasa, escrita por el modelo** (`api/src/bunga.js`,
+  encargo `resumenDeBunga`, haiku). Sale bajo el nombre de cada bunga en la
+  lista, y el encargo pide dos cosas a la vez: que **diga lo que hay** —lo bueno
+  y lo malo— y que tenga la guasa del grupo. Una coña que no dice nada deja la
+  lista igual que estaba.
+- **Detrás de un botón, no al pintar.** Es la regla de §14.19-bis: la IA entra
+  cuando se le pide. Con nueve teléfonos abriendo Grupo, resumir al pintar serían
+  nueve llamadas de pago para leer **nueve bromas distintas sobre la misma
+  nevera**.
+- **Y se guarda en el sitio, no en el móvil** (`alojamientos.resumen`, migración
+  `0019`): lo pide uno y lo leen los nueve, y sigue ahí el año que viene, como
+  las notas de las que sale.
+- **`resumenDe` es la huella de lo que se resumió** (`huellaDelSitio`, puro). Sin
+  ella, una frase escrita antes de «se ha roto el aire» se lee igual de
+  convincente que una recién hecha, y en una lista que se mira **para decidir**
+  eso es peor que no tener ninguna. Con ella, la vieja **se sigue enseñando,
+  marcada**: esconderla dejaría la fila peor que antes —sin frase y sin saber que
+  la hubo—.
+- **Con el sitio en blanco no se pide.** Sin pegatinas ni notas, lo único que
+  puede hacer el modelo es inventarse cómo es el bungalow.
+- **✅ Comentarios en el bunga** (§14.55, la misma pieza que en un plan, un gasto
+  y un día). Es de las cosas que más se comentan —«¿os importa cambiarlo?», «se
+  ha vuelto a ir la luz»— y era de las pocas que no tenía dónde. La fila cuenta
+  los que hay y enciende el punto de los que no has visto.
+- **A quién avisa: a la familia que duerme ahí**, y a quien ya escribió en el
+  hilo. Es el criterio del gasto —a quién le toca— y no el del día —todos—:
+  despertar a las otras ocho casas por «¿os importa cambiarlo?» es lo que hace
+  que se apaguen los avisos. Y **tocarlo abre ese bunga** (§14.60):
+  `destinoDeAncla` lo mandaba a «Hoy», que para un hilo que sí existe es mentir.
+- **✅ De quién es, con el emoji y el alias** (`Alias.jsx`) en vez del nombre
+  entero. Es la misma pareja que firma una idea y un voto, así que las cosas de
+  una familia se reconocen **sin leer ningún nombre** — y cabe al lado de una
+  frase larga, que «— de nadie —» y «Solteros» no.
+- **✅ Y el estado de la familia se retira.** Quien dice en qué anda es **cada
+  persona** (§14.36), y dos estados encima del mismo grupo se contradicen sin que
+  nadie los actualice: el de la familia lo ponía uno en junio y ahí se quedaba. La
+  columna sigue en la base —no se tira una columna para dejar de escribirla— y
+  deja de viajar (`api/src/tablas.js`), que es lo que importa.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

@@ -8,6 +8,7 @@
 //
 // Las tres palabras caben: la casilla de un mando de tres da 103,3 pt y la más
 // larga es «Gadgets» con 83,8 (`docs/diseño/siete-encargos.html` · parte cero).
+import { useEffect } from 'react'
 import SubNav from '../components/SubNav.jsx'
 import GrupoSection from './GrupoSection.jsx'
 import CacharrosSection from './CacharrosSection.jsx'
@@ -19,8 +20,14 @@ const AREAS = [
   { id: 'gadgets', label: 'Gadgets' },
 ]
 
-export default function GrupoScreen({ eventId, event }) {
+export default function GrupoScreen({ eventId, event, abrir, onAbierta }) {
   const [area, setArea] = useArea('grupo', 'familias')
+
+  // Llegar desde el aviso de un comentario abre **su** bunga (§14.60 · R2), y
+  // eso incluye traer el área: el hilo está en Bungas, y dejar al que toca el
+  // aviso en «Familias» es la mitad del camino.
+  useEffect(() => { if (abrir) setArea('bungas') }, [abrir])
+
   return (
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />
@@ -29,7 +36,9 @@ export default function GrupoScreen({ eventId, event }) {
             editores —familia, bunga y persona— y las dos hojas de emparejar son
             los mismos, y partirlos en dos ficheros duplicaría el estado que
             decide cuál está abierto. */}
-        {area !== 'gadgets' && <GrupoSection eventId={eventId} area={area} />}
+        {area !== 'gadgets' && (
+          <GrupoSection eventId={eventId} area={area} abrir={abrir} onAbierta={onAbierta} />
+        )}
         {area === 'gadgets' && <CacharrosSection eventId={eventId} event={event} />}
       </div>
     </>
