@@ -150,4 +150,14 @@ describe('Comentarios', () => {
     expect(await screen.findByText('del gasto')).toBeInTheDocument()
     expect(screen.queryByText('del plan')).not.toBeInTheDocument()
   })
+  // El botón de la ballena lo enchufa quien coloca el hilo (§14.66-quater): sin
+  // `sugerir` no existe, que es el caso de un plan, un gasto y un día — no
+  // tienen ninguna evaluación detrás de la que hablar.
+  it('sin quien lo enchufe, no hay botón de la ballena', async () => {
+    const { eventId, ancla } = await viaje()
+    render(<Comentarios eventId={eventId} ancla={ancla} />)
+
+    await screen.findByLabelText('Escribe un comentario')
+    expect(screen.queryByRole('button', { name: /ballena/i })).toBeNull()
+  })
 })

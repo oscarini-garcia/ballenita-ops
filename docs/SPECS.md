@@ -4418,6 +4418,40 @@ encendida no hacía nada.
 - **El tope sube de 90 a 180 caracteres.** Noventa era lo que cabía compartiendo
   renglón, y obligaba a elegir entre decir lo bueno o decir lo malo.
 
+### 14.66-quater El comentario que propone la ballena, y sale de cómo es el sitio
+
+- **El defecto:** en el hilo de un bunga había un botón para mandar y ninguno
+  para escribir. La evaluación —«la nevera va sobrada; hay bichos en la
+  terraza»— estaba tres dedos más arriba en la misma hoja y **no la usaba
+  nadie**: comentar seguía siendo empezar de cero delante de una casilla vacía,
+  que es donde se abandona la mitad de los hilos.
+- **✅ «Que lo escriba la ballena» trae uno, y trae uno de este bunga.** Al
+  material del resumen (§14.66) se le añaden dos cosas: **la evaluación** —lo que
+  se pidió que tuviera en cuenta— y **los últimos seis del hilo**. Sin la
+  primera, lo que sale vale para cualquier bungalow del camping —«¡qué ganas
+  ya!»—, que es lo mismo que no escribir nada; sin la segunda, repite lo que hay
+  justo encima. El encargo lo dice con esas palabras y es editable como todos
+  (`comentarioDeBunga`, `api/src/bunga.js`).
+- **No se manda: rellena la casilla.** La figura de «Mejorarla» de una idea
+  (§14.19-ter) y de «Más gracioso» del estado (§14.36) — se corrige, se borra o
+  se envía, y **lo firma quien pulsa**. Un hilo donde escribe la app deja de ser
+  una conversación; uno donde a alguien le cuesta menos arrancar, no.
+- **✅ Y se puede volver a pulsar.** «Otro distinto» le manda **los que ya ha
+  traído** (`yaPropuestas`, en memoria y sin guardarse en ningún sitio): sin eso,
+  el segundo toque devuelve el primero con otras palabras y el botón parece
+  roto. Se vacía al mandar el comentario, que es cuando la tanda deja de valer.
+- **`sugerir` es una prop opcional de `Comentarios`**, y por eso el componente no
+  ha tenido que aprender qué es un bunga: recibe una función y le pasa lo único
+  que él sabe y quien enchufa no —el hilo y lo ya propuesto—. **Hoy la pasa solo
+  el bunga**: el plan, el gasto y el día no tienen ninguna evaluación detrás de
+  la que hablar, y un botón de IA en los cuatro sitios sería IA por tenerla.
+- **Sonnet fijado**, como «Mejorar la redacción de una idea»: esto lo va a mandar
+  una persona con su nombre debajo, y un comentario que no aterriza es peor que
+  ninguno. Se pulsa poco y solo cuando alguien quiere, al revés que la
+  evaluación, que sale sola y va con haiku.
+- **Del hilo viaja lo que se dijo, nunca quién lo dijo** — la regla de §14.19-bis,
+  y aquí además el autor no aporta nada.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

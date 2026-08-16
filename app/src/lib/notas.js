@@ -16,6 +16,17 @@
  */
 export const NOTAS = [
   {
+    version: '0.58.0',
+    fecha: '2026-08-16',
+    titulo: 'La ballena te escribe el comentario del bunga',
+    lineas: [
+      'En el hilo de un bunga hay un botón nuevo, «Que lo escriba la ballena»: trae un comentario hecho a partir de cómo es el sitio —su evaluación, sus pegatinas y sus notas—, así que habla de la nevera o de los bichos y no de las ganas que hay de llegar.',
+      'Se pone en la casilla de escribir, no se manda: lo corriges, lo borras o lo envías tú, y va firmado con tu nombre como cualquier otro.',
+      'Si no te convence, vuelve a pulsarlo y trae otro distinto — sabe cuáles ya te ha propuesto y también lo que ya se ha dicho en el hilo, así que no se repite.',
+      'Solo está en los bungas: un plan o un gasto no tienen evaluación detrás de la que hablar.',
+    ],
+  },
+  {
     version: '0.57.0',
     fecha: '2026-08-16',
     titulo: 'Tocar la pestaña donde ya estás te devuelve al principio',

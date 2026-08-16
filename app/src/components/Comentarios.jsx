@@ -10,6 +10,12 @@
 // que rodar dentro de un modal para llegar a escribir. Con dos crece 130 pt y se
 // para ahí, con ocho comentarios o con ochenta. Es la figura del recap (§14.50),
 // donde el diario vive detrás de «ver todo».
+//
+// **`sugerir` es opcional y lo pone quien enchufa el hilo** (§14.66-quater). El
+// componente no sabe de bungas ni de evaluaciones: recibe una función, y si la
+// recibe pinta el botón de la ballena y le pasa lo único que él tiene y quien
+// enchufa no —lo que ya se ha dicho en el hilo y lo que ya ha propuesto—. Hoy lo
+// pasa el bunga; el plan y el gasto no, porque no tienen de qué hablar.
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
@@ -23,13 +29,19 @@ import Alias from './Alias.jsx'
 import Icono from './Icono.jsx'
 import Hoja from './Hoja.jsx'
 
-export default function Comentarios({ eventId, ancla, titulo = 'Comentarios' }) {
+export default function Comentarios({ eventId, ancla, titulo = 'Comentarios', sugerir = null }) {
   const hilo = useLiveQuery(() => comentariosDe(eventId, ancla), [eventId, ancla], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const { meId } = useIdentidad(eventId, persons)
   const [texto, setTexto] = useState('')
   const [todos, setTodos] = useState(false)
+  // Lo que ha traído el botón de la ballena en esta sesión. No se guarda en
+  // ningún sitio: es lo que se le manda al modelo para que el segundo toque
+  // traiga otro y no el mismo, y lo que decide si el botón dice «Otro».
+  const [propuestas, setPropuestas] = useState([])
+  const [pensando, setPensando] = useState(false)
+  const [falloIA, setFalloIA] = useState(null)
 
   // Abrir el hilo lo marca visto **hasta el último que hay**, no hasta «ahora»:
   // uno escrito mientras lo tienes abierto quedaría marcado sin haberlo visto.
@@ -44,6 +56,33 @@ export default function Comentarios({ eventId, ancla, titulo = 'Comentarios' }) 
     tap()
     await addComentario(eventId, { ancla, texto: t, autorId: meId ?? null })
     setTexto('')
+    setPropuestas([])
+  }
+
+  /**
+   * «Que lo escriba la ballena»: trae un comentario y **lo pone en la casilla**,
+   * sin mandarlo. La figura de «Mejorarla» de una idea y de «Más gracioso» del
+   * estado — lo que vuelve se corrige, se borra o se manda, y quien lo firma es
+   * quien pulsa. Volver a pulsar trae otro distinto, porque se le dicen los que
+   * ya ha traído.
+   */
+  async function proponer() {
+    if (!sugerir || pensando) return
+    tap()
+    setPensando(true)
+    setFalloIA(null)
+    try {
+      const t = await sugerir({ hilo: hilo.map((c) => c.texto), yaPropuestas: propuestas })
+      if (!t) setFalloIA('El modelo no ha traído ningún comentario.')
+      else {
+        setPropuestas((p) => [...p, t])
+        setTexto(t)
+      }
+    } catch (e) {
+      setFalloIA(String(e.message ?? e))
+    } finally {
+      setPensando(false)
+    }
   }
 
   const aLaVista = ultimos(hilo)
@@ -80,6 +119,17 @@ export default function Comentarios({ eventId, ancla, titulo = 'Comentarios' }) 
           <Icono nombre="visto" />
         </button>
       </form>
+
+      {/* Solo donde se enchufa: el hilo de un bunga es el único que sabe de qué
+          hablar, porque tiene la evaluación del sitio detrás (§14.66-quater). */}
+      {sugerir && (
+        <button type="button" className="coment-ia" disabled={pensando} onClick={proponer}>
+          {pensando
+            ? 'Pensando…'
+            : (propuestas.length ? '🐳 Que escriba otro distinto' : '🐳 Que lo escriba la ballena')}
+        </button>
+      )}
+      {falloIA && <pre className="traza mal" role="status">{falloIA}</pre>}
 
       {todos && (
         <Hoja titulo={titulo} onCerrar={() => setTodos(false)}>

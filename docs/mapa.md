@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.57.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1078 pruebas en 116 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.58.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1082 pruebas en 116 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  253 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  261 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -45,7 +45,8 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
 | `POST` | `/api/idea/mejorar` | sesión | la misma idea, mejor contada por el modelo (IA) |
 | `POST` | `/api/estados/sugerir` | sesión | cinco estados para ponerse, del día que va el viaje (IA) |
 | `POST` | `/api/estados/gracia` | sesión | el estado que has escrito, con más gracia (IA) |
-| `POST` | `/api/bunga/resumen` | sesión | el bunga resumido en una frase, con guasa (IA) |
+| `POST` | `/api/bunga/resumen` | sesión | cómo es el bunga, en una o dos frases (IA) |
+| `POST` | `/api/bunga/comentario` | sesión | un comentario para su hilo, a partir de cómo es (IA) |
 | `POST` | `/api/recados` | sesión | una tanda de frases para el final de la lista (IA) |
 | `POST` | `/api/importar` | servicio | siembra la base desde un volcado de JSONBin (servicio) |
 | `GET` | `/api/mejoras` | servicio | las mejoras pendientes, para quien hace el trabajo (servicio) |
@@ -350,4 +351,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.63** El grupo, en tres áreas y con tres niveles de permiso → `Acordeon.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `permisos.js`
 - **§14.64** Un plato dice qué lleva y ahora también cómo se hace → `PlatosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.65** Los avisos se recuerdan cada semana, y el bunga vuelve a su familia → `AvisoDeAvisos.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `HoyScreen.jsx`, `recordatorioDeAvisos.js`
-- **§14.66** El bunga se resume en una frase, se comenta, y la familia va en pastilla → `GrupoSection.jsx`, `alojamientos.js`, `api.js`, `avisos.js`, `bunga.js`, `db.js` · +2 más
+- **§14.66** El bunga se resume en una frase, se comenta, y la familia va en pastilla → `Comentarios.jsx`, `GrupoSection.jsx`, `alojamientos.js`, `api.js`, `avisos.js`, `bunga.js` · +3 más
