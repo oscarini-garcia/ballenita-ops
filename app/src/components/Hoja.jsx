@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import Icono from './Icono.jsx'
@@ -22,10 +23,26 @@ import Icono from './Icono.jsx'
  * las demás pantallas confirman **abajo y en azul**, los 61,9 pt que ahorraba
  * costaban más de lo que valían. Quien necesite confirmar pone sus dos botones
  * al final, con `.salida`.
+ *
+ * **Sale por un portal al `body`, y eso no es un detalle** (SPECS §14.55-ter).
+ * Una hoja se abre a menudo desde **dentro** de otra capa —«ver todos los
+ * comentarios» dentro del modal de un plan, de un gasto o de un día—, y ahí el
+ * `.modal-bg` quedaba de hijo del modal de fuera, que es un **scroller**
+ * (`overflow-y: auto` con `-webkit-overflow-scrolling: touch`). En Chromium eso
+ * se dibuja bien porque `position: fixed` va contra la ventana; **en el WebKit
+ * del iPhone, un `fixed` dentro de un scroller así se coloca y se recorta contra
+ * el scroller**: la hoja salía metida en la caja del modal de fuera, con el
+ * título cortado por la izquierda y el último comentario partido por abajo. Se
+ * vio en el móvil y no aquí, como las otras tres veces.
+ *
+ * Con el portal, la hoja es hermana del modal de fuera y no su hija. Los eventos
+ * de React siguen burbujeando por el árbol de componentes —no por el del DOM—,
+ * así que el `stopPropagation` del modal de fuera sigue evitando que tocar
+ * dentro de la hoja lo cierre.
  */
 export default function Hoja({ titulo, onCerrar, children }) {
   useBloqueoDeScroll()
-  return (
+  return createPortal(
     <div className="modal-bg" onClick={onCerrar}>
       <div
         className="modal hoja"
@@ -38,7 +55,8 @@ export default function Hoja({ titulo, onCerrar, children }) {
         <h2>{titulo}</h2>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
