@@ -374,6 +374,63 @@ button, input, select, textarea { font: inherit; color: inherit; }
   color: var(--spout-deep); }
 .globo.nuevo { box-shadow: 0 0 0 2px var(--spout); }
 
+/* ── El hilo de comentarios (docs/diseño/comentarios.html · A2·B1·C3·D2) ─────
+   Eran **cuatro cantos apilados** —la tarjeta del hilo, «Ver los N» en otro
+   rectángulo idéntico pegado debajo, la casilla de escribir y el botón lleno de
+   44— y 430,2 pt de una capa de 658,3. Ahora son dos fondos sin borde y un
+   enlace: A2 el hilo, C3 el renglón, D2 los que no caben.
+
+   Y los comentarios dejan de tomar prestada `.row`, que es la clase de una fila
+   de lista —«nombre a la izquierda, importe a la derecha», centrada—: un
+   comentario envuelve, no tiene columna derecha y lo que pesa es quién lo dijo.
+   El `.n.envuelve` de §14.55 era un parche sobre esa clase. */
+.hilo { background: var(--foam); border-radius: var(--r); padding: 10px 12px; }
+.hilo .coment + .coment { margin-top: 12px; }
+/* Prosa, no titular: heredando `.row .main .n` esto se pintaba a peso 550 —el
+   del nombre de una fila— y en la capa de un plan el comentario acababa siendo
+   lo más negro de la pantalla. */
+.coment-txt { margin: 0; font-size: var(--t-body); font-weight: 400; line-height: 1.4;
+  white-space: pre-wrap; overflow-wrap: anywhere; }
+.coment-pie { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.coment-quien { flex: 1; min-width: 0; font-size: var(--t-micro); font-weight: 600;
+  color: var(--ink-soft); }
+.coment-quien .hace { font-weight: 400; color: var(--ink-faint); }
+/* El aspa vuelve al pie, al lado de la firma: sin `.row` ya no hay columna
+   derecha donde ponerla, y es donde queda sitio sin robárselo al texto. */
+.coment-x { flex: none; background: none; border: none; padding: 4px 2px; cursor: pointer;
+  font-family: inherit; font-size: var(--t-micro); font-weight: 650; color: var(--ink-faint); }
+.coment-x.seguro { color: var(--owe); }
+.coment-x svg { width: 17px; height: 17px; display: block; }
+
+/* C3 · la pastilla de escribir: redonda, sin canto y con el botón dentro. */
+.coment-escribir { display: flex; gap: 8px; align-items: center; margin-top: 10px;
+  background: var(--foam); border-radius: 999px; padding: 6px 6px 6px 16px; }
+/* `input[type=text]` y no `input` a secas: la regla general de los campos
+   (`input[type=text], …`) tiene la **misma** especificidad que `.clase input` y
+   va más abajo en el fichero, así que ganaba y la pastilla salía con una casilla
+   con canto dentro. Es la tercera vez que muerde lo mismo — se vio en el
+   navegador, no en las pruebas. */
+.coment-escribir input[type=text] { flex: 1; min-width: 0; margin: 0; height: 34px;
+  padding: 0; background: none; border: none; border-radius: 0; font-size: var(--t-body); }
+/* El foco se dibuja alrededor de la pastilla, que es el control que se ve; el
+   de dentro se apaga para no pintar dos aros concéntricos. */
+.coment-escribir:focus-within { outline: 2px solid var(--spout); outline-offset: 1px; }
+.coment-escribir input[type=text]:focus { outline: none; }
+.coment-enviar { width: 34px; height: 34px; flex: none; padding: 0; border: none;
+  border-radius: 50%; background: var(--spout); color: #fff; position: relative;
+  display: grid; place-items: center; cursor: pointer; }
+.coment-enviar:disabled { opacity: .38; }
+.coment-enviar svg { width: 18px; height: 18px; display: block; }
+/* El botón mide 34 y el suelo de iOS son 44: la diferencia se le da **por
+   fuera**, sin crecer el dibujo. Es el coste que la hoja marcó en C3. */
+.coment-enviar::after { content: ''; position: absolute; inset: -5px; }
+
+/* D2 · los que no caben, en enlace y no en caja. El relleno sube el renglón a
+   45 pt para no bajar del suelo de iOS: era el otro coste que marcó la hoja. */
+.ver-todos { display: block; width: 100%; background: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: var(--t-label); font-weight: 650; color: var(--spout-deep);
+  text-align: center; padding: 12px 0; }
+
 /* Pastilla de demostración. Escrita y permanente, no un icono: durante una
    demostración todo lo que se ve es inventado, y esa es la única señal de que
    no se está mirando el evento de verdad del grupo. Es además la salida, y

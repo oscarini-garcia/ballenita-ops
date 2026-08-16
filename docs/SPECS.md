@@ -4474,6 +4474,52 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
 - El aspa solo está en **los tuyos**: borrar lo que escribió otro no es moderar,
   es reescribir la conversación.
 
+### 14.55-bis El hilo, sin cantos
+
+Decidido en [`docs/diseño/comentarios.html`](diseño/comentarios.html) ·
+**A2 · B1 · C3 · D2**, más los dos arreglos que no se votaron.
+
+- **El defecto, medido** en Chromium sobre el Demo, dentro de la capa de un plan:
+  el bloque ocupaba **430,2 pt de una capa de 658,3** —el **65 %**— con **cuatro
+  cantos apilados**: la tarjeta del hilo, «Ver los N» en **otro rectángulo
+  idéntico pegado debajo** —dos iguales que se tocan se leen como uno partido—,
+  la casilla de escribir y el botón lleno de 44. Más una línea por comentario.
+- **Arreglo, no votación · un comentario es prosa, no un titular.** Se pintaba a
+  **peso 550** porque heredaba `.row .main .n`, que existe para el *nombre* de
+  una fila: en la capa de un plan, el texto de un comentario acababa siendo lo
+  más negro de la pantalla, más que «Quién ha votado». Ahora es `--t-body` a
+  **400**.
+- **Arreglo, no votación · los comentarios dejan de tomar prestada `.row`.** Esa
+  clase es «nombre a la izquierda, importe a la derecha», centrada
+  verticalmente; un comentario envuelve, no tiene columna derecha y lo que pesa
+  es quién lo dijo. El `.n.envuelve` de §14.55 era un parche sobre ella, y
+  mientras la compartieran, cualquier cosa que se decidiera aquí habría que
+  escribirla como excepción a una fila de lista.
+- **✅ A2 · el hilo es un fondo, no una tarjeta**: `--foam` sin borde. Sigue
+  siendo un bloque sin dibujar cuatro esquinas. Su coste era la cara oscura —un
+  solo escalón de fondo se distingue peor— y se comprobó: se lee.
+- **✅ B1 · quién habla sigue debajo.** Se dibujó encima (B2), en línea (B3) y
+  con avatar (B4); gana quedarse. Lo que cambia es la firma, que baja a
+  `--t-micro`: la línea de servicio no compite con lo que se dijo.
+- **✅ C3 · la pastilla de escribir**: redonda, sin canto, con el botón dentro.
+  Su coste era que el botón baja de 44 a 34 pt —el suelo de iOS—, y se paga
+  **por fuera**: `.coment-enviar::after` con `inset: -5px` le da los 44 sin
+  crecer el dibujo.
+- **✅ D2 · «Ver los N» es un enlace centrado**, no una caja. Su coste era el
+  mismo suelo, y se paga con relleno: 45,1 pt de renglón.
+- **El aspa vuelve al pie**, al lado de la firma: sin `.row` no hay columna
+  derecha donde ponerla. Sigue siendo segunda pulsación y sigue estando solo en
+  los tuyos.
+- **Lo que se ve en el navegador y no en las pruebas:** la pastilla salía con una
+  casilla con canto dentro. `.coment-escribir input` tiene la **misma**
+  especificidad que la regla general `input[type=text], …` y va más arriba en el
+  fichero, así que perdía. Tercera vez que muerde lo mismo: la regla lleva
+  `input[type=text]`. Y el foco pasa a dibujarse alrededor de la pastilla
+  (`:focus-within`), que es el control que se ve.
+- **Resultado medido:** **430,2 → 387,1 pt** (−43,1) y **cuatro cantos → cero**.
+  Vale para los tres sitios enchufados —plan, gasto y día— y para la hoja de
+  «ver todos», que reusa el mismo dibujo.
+
 ### 14.56 El bunga es un sitio, y por eso puede tener historia
 
 - **El defecto:** `bungas` lleva `eventId`, así que el «Bunga 12» de 2025 y el de

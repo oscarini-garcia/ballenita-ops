@@ -158,8 +158,12 @@ describe('una capa se ve como capa', () => {
  */
 describe('los campos de formulario', () => {
   const CSS = readFileSync(join(RAIZ, 'theme.css'), 'utf8')
-  // La regla que da fondo, borde y ancho a todos los campos.
-  const LISTA = CSS.slice(0, CSS.indexOf('{', CSS.indexOf('input[type=text]')))
+  // La regla que da fondo, borde y ancho a todos los campos. Se busca al
+  // **principio de línea**: `input[type=text]` aparece también dentro de reglas
+  // más específicas —`.coment-escribir input[type=text]`, que desviste el campo
+  // de una pastilla de chat—, y con un `indexOf` a secas la lista que se lee
+  // aquí pasaba a ser la de la primera de ellas.
+  const LISTA = CSS.slice(0, CSS.indexOf('{', CSS.indexOf('\ninput[type=text]')))
 
   it('están todos vestidos, ninguno con el aspecto de fábrica', () => {
     const usados = new Set()
