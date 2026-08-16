@@ -32,7 +32,7 @@ const AREAS = [
 ]
 
 export default function PlanesConAreasScreen({ eventId, event, abrir, onAbierta }) {
-  const [area, setArea] = useArea('planes', 'planes')
+  const [area, setArea] = useArea('planes')
   return (
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />

@@ -77,13 +77,17 @@ describe('App — navegación', () => {
     expect(await screen.findByPlaceholderText(/Apunta algo/)).toBeInTheDocument()
   })
 
-  // Al **abrir** la app manda el titular del día (no hay pulsación); **pulsar**
-  // Agenda lleva al calendario (§14.47).
-  it('la app abre en Hoy, y pulsar Agenda lleva a Días', async () => {
+  // Al **abrir** la app manda el titular del día (no hay pulsación); **entrar**
+  // en Agenda desde otra sección lleva al calendario (§14.47). Estando ya en
+  // Agenda manda la otra regla, la de abajo.
+  it('la app abre en Hoy, y entrar en Agenda desde fuera lleva a Días', async () => {
     await abrirEjemplo()
     expect(await screen.findByRole('tab', { name: 'Hoy' })).toHaveAttribute('aria-selected', 'true')
 
-    await userEvent.click(document.querySelectorAll('.tabbar .tab')[0])
+    const barra = document.querySelectorAll('.tabbar .tab')
+    await userEvent.click(barra[1])            // a Dinero, para entrar desde fuera
+    await screen.findByText('Gasto total del evento')
+    await userEvent.click(barra[0])
 
     expect(await screen.findByRole('tab', { name: 'Días' })).toHaveAttribute('aria-selected', 'true')
     // Los ocho días del ejemplo, vacíos incluidos. Ya no llevan lápiz: la fila
@@ -92,16 +96,49 @@ describe('App — navegación', () => {
     expect(dias).toHaveLength(8)
   })
 
-  it('y desde Hoy, volver a pulsar Agenda también lleva a Días', async () => {
+  // **Volver a pulsar la pestaña donde ya estás vuelve a su primera área**
+  // (§14.47-bis), que es el gesto de toda la vida en iOS: tocar la pestaña
+  // activa devuelve a la raíz. En Agenda la raíz es «Hoy», así que dos toques
+  // seguidos son «llévame al día de hoy» — la primera abre el calendario
+  // (§14.47) y la segunda vuelve.
+  it('pulsar Agenda estando en Agenda vuelve a Hoy, venga del área que venga', async () => {
     await abrirEjemplo()
     const barra = document.querySelectorAll('.tabbar .tab')
 
-    await userEvent.click(barra[0])                                   // → Días
-    await userEvent.click(await screen.findByRole('tab', { name: 'Hoy' }))
-    expect(screen.getByRole('tab', { name: 'Hoy' })).toHaveAttribute('aria-selected', 'true')
-
-    await userEvent.click(barra[0])                                   // → Días otra vez
+    await userEvent.click(barra[1])                                   // a Dinero…
+    await screen.findByText('Gasto total del evento')
+    await userEvent.click(barra[0])                                   // …y entrar: → Días
     expect(await screen.findByRole('tab', { name: 'Días' })).toHaveAttribute('aria-selected', 'true')
+
+    await userEvent.click(barra[0])                                   // → Hoy
+    expect(await screen.findByRole('tab', { name: 'Hoy' })).toHaveAttribute('aria-selected', 'true')
+
+    // Y desde Números, igual: la segunda pulsación no depende de dónde estés.
+    await userEvent.click(screen.getByRole('tab', { name: 'Números' }))
+    expect(screen.getByRole('tab', { name: 'Números' })).toHaveAttribute('aria-selected', 'true')
+    await userEvent.click(barra[0])
+    expect(await screen.findByRole('tab', { name: 'Hoy' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('y lo mismo en las otras cuatro secciones', async () => {
+    await abrirEjemplo()
+    const barra = document.querySelectorAll('.tabbar .tab')
+    // La primera casilla de cada mando, que es a donde vuelve la pestaña.
+    const secciones = [
+      { i: 1, dentro: 'Saldos', origen: 'Gastos' },
+      { i: 2, dentro: 'Compra', origen: 'Cenas' },
+      { i: 3, dentro: 'Ideas', origen: 'Planes' },
+      { i: 4, dentro: 'Bungas', origen: 'Familias' },
+    ]
+
+    for (const { i, dentro, origen } of secciones) {
+      await userEvent.click(barra[i])
+      await userEvent.click(await screen.findByRole('tab', { name: dentro }))
+      expect(screen.getByRole('tab', { name: dentro })).toHaveAttribute('aria-selected', 'true')
+
+      await userEvent.click(barra[i])
+      expect(await screen.findByRole('tab', { name: origen })).toHaveAttribute('aria-selected', 'true')
+    }
   })
 
   // La memoria de área sigue valiendo para las demás secciones: solo Agenda

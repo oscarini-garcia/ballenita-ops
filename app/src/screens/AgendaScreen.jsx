@@ -29,7 +29,7 @@ const AREAS = [
 ]
 
 export default function AgendaScreen({ eventId, event, onGoTab, abrir, onAbierta }) {
-  const [area, setArea] = useArea('agenda', 'hoy')
+  const [area, setArea] = useArea('agenda')
   return (
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />

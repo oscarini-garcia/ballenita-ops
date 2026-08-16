@@ -14,12 +14,29 @@ import { useEffect, useState } from 'react'
  */
 const elegidas = new Map()
 
+/**
+ * Con qué área empieza cada sección, y a cuál se vuelve al pulsar su pestaña
+ * estando ya dentro (SPECS §14.47-bis).
+ *
+ * Vive aquí y no repetida en cada pantalla porque ahora la leen **dos** sitios
+ * —el mando de la sección y la barra de abajo—, y un mismo hecho escrito en dos
+ * ficheros es un desfase esperando a pasar.
+ */
+export const AREA_DE_ORIGEN = {
+  agenda: 'hoy',
+  dinero: 'gastos',
+  comidas: 'cenas',
+  planes: 'planes',
+  grupo: 'familias',
+}
+
 // Quien cambia el área desde fuera de su pantalla —la barra de abajo, al pulsar
-// Agenda (§14.47)— tiene que despertar al mando que ya está montado: el mapa es
-// memoria muda y `useState` no se entera solo.
+// Agenda (§14.47) o al volver a pulsar donde ya estás (§14.47-bis)— tiene que
+// despertar al mando que ya está montado: el mapa es memoria muda y `useState`
+// no se entera solo.
 const AVISO = 'ballena:area'
 
-export function useArea(seccion, defecto) {
+export function useArea(seccion, defecto = AREA_DE_ORIGEN[seccion]) {
   const [area, setArea] = useState(() => elegidas.get(seccion) ?? defecto)
 
   useEffect(() => {

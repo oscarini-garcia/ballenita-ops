@@ -3993,6 +3993,35 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   desbordar ni a lo ancho ni a lo alto**. La casilla **no crece**: es la unidad
   de la fila, y una fila más alta por el emoji de alguien descuadra la lista.
 
+### 14.47-bis Pulsar la pestaña donde ya estás vuelve a su primera casilla
+
+§14.47 hizo que pulsar «Agenda» abriera «Días» **esté donde esté**. Eso dejó a
+la pestaña activa sin gesto y a las cinco secciones sin salida: metido en
+«Números», en «Compra» o en «Gadgets», la única forma de volver al principio era
+volver a buscar la casilla en el mando — y tocar la pestaña que ya está
+encendida no hacía nada.
+
+- **✅ Tocar la pestaña activa devuelve a la primera casilla de su mando**:
+  Agenda → **Hoy**, Dinero → **Gastos**, Comidas → **Cenas**, Planes →
+  **Planes**, Grupo → **Familias**. Es el gesto de toda la vida en iOS —la
+  pestaña encendida devuelve a la raíz—, y aquí la raíz de una sección es su
+  primera casilla.
+- **§14.47 se queda, acotado a entrar desde fuera.** Venir de otra sección a
+  Agenda sigue abriendo el calendario, que es lo que se viene a mirar; la
+  **segunda** pulsación lleva a «Hoy». Así los dos toques seguidos son
+  «llévame al día de hoy» sin haber perdido el atajo al calendario.
+- **La app sigue abriendo en «Hoy»**: ahí no hay pulsación, y el titular del día
+  es con lo que se quiere abrir.
+- **Dónde está escrito con qué empieza cada sección:** en `AREA_DE_ORIGEN`
+  (`lib/areas.js`) y en ningún otro sitio. Antes era el segundo argumento de
+  `useArea` repetido en las cinco pantallas; ahora lo leen **dos** sitios —el
+  mando y la barra de abajo— y un mismo hecho en dos ficheros es un desfase
+  esperando a pasar.
+- **Comprobado en el navegador** sobre el Demo: al abrir, Agenda · Hoy; entrar
+  desde Dinero, Agenda · Días; volver a pulsar, Agenda · Hoy; y otra vez, Hoy
+  —el gesto es idempotente—. En las otras cuatro: Saldos → Gastos, Compra →
+  Cenas, Trucos → Planes, Gadgets → Familias.
+
 ### 14.48 Un bunga con familia también se corrige
 
 - **El defecto:** en cuanto un bunga tenía familia, sus datos quedaban escritos
