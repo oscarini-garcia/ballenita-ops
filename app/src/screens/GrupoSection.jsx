@@ -2,7 +2,7 @@
 //
 // «Sueltos» recoge lo que no está colocado, y se edita de verdad —se toca la
 // fila y sube una hoja desde abajo— (SPECS §14.14).
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, updateFamily, borrarFamilia,
@@ -739,10 +739,12 @@ function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, on
             Esto es del <b>sitio</b>, no de este viaje: sigue aquí el año que viene.
           </div>
 
-          {/* **El resumen con guasa** (§14.66). Detrás de un botón y no al
-              pintar: es una llamada de pago, y la regla de esta casa es que la
-              IA entra cuando se le pide (§14.19-bis). Lo que vuelve **se
-              guarda con el sitio**, así que lo pide uno y lo leen los nueve. */}
+          {/* **El resumen con guasa** (§14.66, §14.66-bis). Se rehace solo en
+              cuanto cambia una nota o una pegatina —a petición expresa—, y lo
+              que evita que eso sean nueve llamadas es que vive **aquí dentro**,
+              en la pantalla que abre quien lo está tocando: la lista solo
+              enseña lo guardado. Lo que vuelve se guarda con el sitio, así que
+              lo escribe quien lo cambió y lo leen los nueve. */}
           <ResumenDelBunga bunga={bunga} sitio={sitio} onEscribir={enElSitio} />
 
           {/* El hilo, con la misma pieza que en un plan, un gasto y un día
@@ -957,31 +959,51 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
 }
 
 /**
- * El resumen del bunga: un botón, la frase y si se ha quedado vieja (§14.66).
+ * El resumen del bunga: **se rehace solo** en cuanto cambia algo (§14.66-bis).
  *
- * **Detrás de un botón y no al pintar la lista.** Es una llamada de pago, y la
- * regla de esta casa es que la IA entra cuando se le pide (§14.19-bis): con
- * nueve teléfonos abriendo Grupo, pedirlo al pintar serían nueve llamadas para
- * leer nueve bromas distintas sobre la misma nevera.
+ * Nació detrás de un botón, por la regla de que la IA entra cuando se le pide
+ * (§14.19-bis). El botón se retira **a petición expresa**, y lo que hace que eso
+ * no se convierta en nueve llamadas por bunga es dónde vive esto: **dentro de la
+ * pantalla de un bunga**, que es la que abre quien lo está tocando. La lista no
+ * pide nada — se limita a enseñar lo que hay guardado.
+ *
+ * Tres guardas, y las tres son la diferencia entre «se actualiza solo» y «se
+ * llama sin parar»:
+ *
+ *  1. **La huella.** Solo se pide cuando `huellaDelSitio` deja de coincidir con
+ *     `resumenDe`, o sea cuando de verdad ha cambiado una nota o una pegatina.
+ *     Abrir el bunga cuarenta veces no pide nada.
+ *  2. **Un respiro de un segundo y medio.** Marcar tres pegatinas seguidas son
+ *     tres escrituras y **una** llamada: sin esto, cada toque pagaría la suya.
+ *  3. **Una sola vez por huella.** Si el modelo falla —sin clave, sin red— no se
+ *     reintenta en bucle contra la misma versión del texto: se dice lo que pasó
+ *     y se ofrece volver a intentarlo, que es un botón de recuperar un fallo y
+ *     no el de pedir la frase.
  *
  * Lo que vuelve **se guarda en el sitio** —no en este móvil ni en este agosto—,
- * con la huella de las notas y las pegatinas con que se escribió: así la lista
- * puede decir «esto ya no cuenta lo último» en vez de enseñar una frase
- * convincente y falsa.
+ * con la huella de lo que se resumió, así que lo escribe quien lo cambió y lo
+ * leen los nueve.
  *
  * Y **no se pide con el sitio en blanco**: sin pegatinas ni notas, lo único que
  * puede hacer el modelo es inventarse cómo es el bungalow, que es exactamente lo
  * que no queremos leer al repartirlos.
  */
-function ResumenDelBunga({ bunga, sitio, onEscribir }) {
+export const RESPIRO_MS = 1500
+
+function ResumenDelBunga({ bunga, sitio, onEscribir, respiro = RESPIRO_MS }) {
   const [yendo, setYendo] = useState(false)
   const [fallo, setFallo] = useState(null)
   const dice = resumenDelSitio(sitio)
   const hayMaterial = hayQueResumir(sitio)
+  const huella = hayMaterial ? huellaDelSitio(sitio) : null
+  // La última huella que se ha intentado, haya salido bien o mal. Sin esto, un
+  // fallo del modelo deja el efecto pidiéndolo otra vez en cada pintado.
+  const intentada = useRef(null)
+  const vivo = useRef(true)
+  useEffect(() => () => { vivo.current = false }, [])
 
   async function resumir() {
-    if (yendo) return
-    tap()
+    intentada.current = huella
     setYendo(true)
     setFallo(null)
     try {
@@ -991,36 +1013,55 @@ function ResumenDelBunga({ bunga, sitio, onEscribir }) {
         notas: sitio?.notas ?? '',
         pegatinas: pegatinasPuestas(sitio?.pegatinas),
       })
-      if (frase) await onEscribir({ resumen: frase, resumenDe: huellaDelSitio(sitio) })
-      else setFallo('El modelo no ha traído ninguna frase. Vuelve a intentarlo.')
+      if (!vivo.current) return
+      if (frase) await onEscribir({ resumen: frase, resumenDe: huella })
+      else setFallo('El modelo no ha traído ninguna frase.')
     } catch (e) {
-      setFallo(String(e.message ?? e))
+      if (vivo.current) setFallo(String(e.message ?? e))
     } finally {
-      setYendo(false)
+      if (vivo.current) setYendo(false)
     }
   }
+
+  // Cambió algo del bunga → se rehace la frase, tras el respiro. El reloj se
+  // cancela al volver a cambiar, que es lo que junta tres pegatinas seguidas en
+  // una sola llamada.
+  useEffect(() => {
+    if (!huella || yendo) return undefined
+    if (sitio?.resumenDe === huella || intentada.current === huella) return undefined
+    const reloj = setTimeout(resumir, respiro)
+    return () => clearTimeout(reloj)
+  }, [huella, yendo, sitio?.resumenDe])
 
   return (
     <>
       <label>En una frase</label>
       {dice ? (
-        <div className={`resumen-bunga${dice.vigente ? '' : ' viejo'}`}>
+        <div className={`resumen-bunga${dice.vigente || yendo ? '' : ' viejo'}`}>
           <span className="rb-frase">🐳 {dice.frase}</span>
           {!dice.vigente && (
-            <span className="rb-viejo">Escrita antes de lo último que se apuntó.</span>
+            <span className="rb-viejo">
+              {yendo ? 'Rehaciéndola con lo último…' : 'Escrita antes de lo último que se apuntó.'}
+            </span>
           )}
         </div>
       ) : (
         <div className="pista">
-          {hayMaterial
-            ? 'Todavía no tiene. Sale en la lista de bungas, para no tener que abrirlos uno a uno.'
-            : 'Pon alguna pegatina o apunta una nota, y entonces se puede resumir.'}
+          {!hayMaterial
+            ? 'Pon alguna pegatina o apunta una nota, y se resume sola.'
+            : (yendo ? 'Escribiéndola…' : 'Sale en la lista de bungas, para no tener que abrirlos uno a uno.')}
         </div>
       )}
-      <button className="btn sm ghost" disabled={yendo || !hayMaterial} onClick={resumir}>
-        {yendo ? 'Pensándolo…' : (dice ? 'Rehacerlo' : 'Resumirlo con guasa')}
-      </button>
-      {fallo && <pre className="traza mal" role="status">{fallo}</pre>}
+      {/* El único botón que queda es el de **recuperarse de un fallo**, y solo
+          aparece cuando lo ha habido: pedir la frase ya no se pide. */}
+      {fallo && (
+        <>
+          <pre className="traza mal" role="status">{fallo}</pre>
+          <button className="btn sm ghost" disabled={yendo} onClick={() => { tap(); resumir() }}>
+            Volver a intentarlo
+          </button>
+        </>
+      )}
     </>
   )
 }

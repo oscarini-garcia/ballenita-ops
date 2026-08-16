@@ -213,7 +213,10 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   así que la pide uno y la leen los nueve. `resumenDe` es la huella de las notas con que se
   escribió: una frase anterior a «se ha roto el aire» **se enseña marcada**, no se esconde.
   Comentarios como en un plan (§14.55), avisando **a la familia que duerme ahí**; y la
-  pastilla dice de quién es con **emoji + alias** (`Alias.jsx`). El **estado de la familia se
+  pastilla dice de quién es con **emoji + alias** (`Alias.jsx`). **El botón se retiró a
+  petición** (§14.66-bis): la frase se rehace sola al cambiar una nota o una pegatina, y lo
+  que impide que sean nueve llamadas es que eso vive **dentro de la pantalla del bunga** —la
+  que abre quien lo toca—, con huella, respiro de 1,5 s y un solo intento por huella. El **estado de la familia se
   retira**: quien dice en qué anda es cada persona.
 - **Los avisos se recuerdan, no se vuelven a pedir** (SPECS §14.65,
   `lib/recordatorioDeAvisos.js`): el permiso se pide en Ajustes y no al arrancar, y quien no

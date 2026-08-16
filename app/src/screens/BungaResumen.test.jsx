@@ -95,7 +95,7 @@ describe('la lista de bungas', () => {
   })
 })
 
-describe('resumirlo con guasa', () => {
+describe('se rehace solo', () => {
   const abrirElBunga = async () => {
     await waitFor(async () => {
       await userEvent.click(screen.getByRole('button', { name: /Bunga 12/ }))
@@ -103,20 +103,24 @@ describe('resumirlo con guasa', () => {
     })
   }
 
-  it('lo pide al pulsar, y lo guarda en el sitio para que lo lean todos', async () => {
+  // El botón se retiró (§14.66-bis): en cuanto cambia una nota o una pegatina,
+  // la frase se rehace sola.
+  it('al cambiar una nota se pide y se guarda en el sitio, sin tocar nada', async () => {
     resumenDeBunga.mockResolvedValue('nevera de sobra, bichos de propina')
     pintarBungas()
     await abrirElBunga()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Resumirlo con guasa' }))
+    // Se abre con una frase ya escrita, así que nada que rehacer todavía…
+    expect(screen.queryByRole('button', { name: /Resumirlo/ })).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: /bichos/ }))
 
     await waitFor(async () => {
       const sitio = (await listAlojamientos()).find((a) => a.id === ctx.aloj)
       expect(sitio.resumen).toBe('nevera de sobra, bichos de propina')
-      // Con la huella de lo que se resumió, que es lo que deja decir «esto ya
-      // no cuenta lo último».
       expect(sitio.resumenDe).toBe(huellaDelSitio(sitio))
-    })
+    }, { timeout: 4000 })
+
     // Y lo que se le manda al modelo es lo que hay escrito, sin nombres.
     expect(resumenDeBunga).toHaveBeenCalledWith(expect.objectContaining({
       nombre: 'Bunga 12', notas: 'la nevera congela mucho',
@@ -124,25 +128,43 @@ describe('resumirlo con guasa', () => {
     expect(resumenDeBunga.mock.calls[0][0]).not.toHaveProperty('familia')
   })
 
-  // Con el sitio en blanco lo único que puede hacer el modelo es inventarse cómo
-  // es el bungalow, que es justo lo que no se quiere leer al repartirlos.
-  it('con el sitio en blanco el botón no se puede pulsar', async () => {
-    await updateAlojamiento(ctx.aloj, { notas: '', pegatinas: [] })
+  // Abrir el bunga cuarenta veces no puede costar cuarenta llamadas: la huella
+  // dice si de verdad ha cambiado algo.
+  it('si la frase corresponde a lo que hay, no se pide nada', async () => {
+    const sitio = (await listAlojamientos()).find((a) => a.id === ctx.aloj)
+    await updateAlojamiento(ctx.aloj, { resumen: 'lo de siempre', resumenDe: huellaDelSitio(sitio) })
     pintarBungas()
     await abrirElBunga()
 
-    expect(screen.getByRole('button', { name: 'Resumirlo con guasa' })).toBeDisabled()
-    expect(screen.getByText(/Pon alguna pegatina/)).toBeInTheDocument()
+    await new Promise((r) => setTimeout(r, 2200))
+    expect(resumenDeBunga).not.toHaveBeenCalled()
   })
 
-  it('si el modelo falla, se dice con sus palabras', async () => {
+  // Con el sitio en blanco lo único que puede hacer el modelo es inventarse cómo
+  // es el bungalow, que es justo lo que no se quiere leer al repartirlos.
+  it('con el sitio en blanco no se pide, y se dice qué falta', async () => {
+    await updateAlojamiento(ctx.aloj, { notas: '', pegatinas: [], resumen: '', resumenDe: '' })
+    pintarBungas()
+    await abrirElBunga()
+
+    expect(screen.getByText(/Pon alguna pegatina/)).toBeInTheDocument()
+    await new Promise((r) => setTimeout(r, 2200))
+    expect(resumenDeBunga).not.toHaveBeenCalled()
+  })
+
+  it('si el modelo falla, se dice con sus palabras y no se reintenta en bucle', async () => {
     resumenDeBunga.mockRejectedValue(new Error('la API respondió 409: no hay clave de IA configurada'))
     pintarBungas()
     await abrirElBunga()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Resumirlo con guasa' }))
+    await userEvent.click(screen.getByRole('button', { name: /bichos/ }))
 
-    expect(await screen.findByText(/no hay clave de IA/)).toBeInTheDocument()
+    expect(await screen.findByText(/no hay clave de IA/, {}, { timeout: 4000 })).toBeInTheDocument()
+    // Una sola vez por versión del texto: lo que queda es el botón de recuperar
+    // el fallo, que no es el de pedir la frase.
+    await new Promise((r) => setTimeout(r, 2200))
+    expect(resumenDeBunga).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Volver a intentarlo' })).toBeInTheDocument()
   })
 
   it('el hilo del bunga está dentro de su pantalla', async () => {

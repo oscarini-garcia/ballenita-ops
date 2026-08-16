@@ -4294,6 +4294,36 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   columna sigue en la base —no se tira una columna para dejar de escribirla— y
   deja de viajar (`api/src/tablas.js`), que es lo que importa.
 
+### 14.66-bis El resumen se rehace solo, y el botón se retira
+
+- **Pedido expreso**, y va contra lo que decidió §14.66 media hora antes: allí la
+  frase se pedía con un botón, por la regla de §14.19-bis —la IA entra cuando se
+  le pide—. Queda escrito por si dentro de seis meses alguien lee las dos cosas
+  seguidas y no entiende cuál manda: **manda esta**.
+- **✅ En cuanto cambia una nota o una pegatina, la frase se rehace.** No hay que
+  acordarse de pulsar nada, que era el defecto real del botón: quien apunta «se
+  ha roto el aire» está apuntando eso, no pensando en el resumen — y la frase se
+  quedaba vieja con el aviso puesto.
+- **Lo que impide que esto sean nueve llamadas es dónde vive**: dentro de la
+  **pantalla de un bunga**, que es la que abre quien lo está tocando. La lista no
+  pide nada, solo enseña lo guardado. Esa era la mitad importante del argumento
+  de §14.19-bis, y se conserva entera.
+- **Tres guardas**, y las tres son la diferencia entre «se actualiza solo» y «se
+  llama sin parar»:
+  1. **La huella** (`huellaDelSitio` ≠ `resumenDe`): abrir el bunga cuarenta
+     veces no pide nada, porque no ha cambiado nada.
+  2. **Un respiro de 1,5 s**: marcar tres pegatinas seguidas son tres escrituras
+     y **una** llamada. Sin él, cada toque paga la suya.
+  3. **Una sola vez por huella**: si el modelo falla —sin clave, sin red— no se
+     reintenta en bucle contra la misma versión del texto.
+- **El único botón que queda es el de recuperarse de un fallo**, y solo aparece
+  cuando lo ha habido. Pedir la frase ya no se pide; volver a intentarlo cuando
+  no había clave de IA, sí — si no, el único camino sería tocar una pegatina y
+  destocarla.
+- Mientras se rehace, la frase vieja **se sigue leyendo** y el renglón dice
+  «Rehaciéndola con lo último…» en vez de marcarla como desfasada: es verdad
+  durante dos segundos y ya se está arreglando.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas
