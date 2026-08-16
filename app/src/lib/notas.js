@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.56.0',
+    fecha: '2026-08-16',
+    titulo: '«Ver todos los comentarios» ya se ve entero',
+    lineas: [
+      'La hoja con el hilo completo salía metida dentro de la ventana del plan, con el título cortado por la izquierda y el último comentario partido por abajo. Ahora sube desde el borde de la pantalla, como todas las demás.',
+      'Pasaba solo en el iPhone: el navegador del ordenador la dibujaba bien, y por eso no se había visto. Queda arreglado para todas las hojas de la app, no solo la de comentarios.',
+    ],
+  },
+  {
     version: '0.55.0',
     fecha: '2026-08-16',
     titulo: 'Los comentarios dejan de gritar',

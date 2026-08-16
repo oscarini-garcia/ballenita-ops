@@ -4619,6 +4619,37 @@ Decidido en [`docs/diseño/comentarios.html`](diseño/comentarios.html) ·
   Vale para los cuatro sitios enchufados —plan, gasto, día y bunga (§14.66)— y
   para la hoja de «ver todos», que reusa el mismo dibujo.
 
+### 14.55-ter La hoja sale por un portal, y en el iPhone eso era el fallo
+
+**Lo que se veía:** «Ver los 4 comentarios» abría la hoja **metida en la caja del
+modal del plan** —el título salía como «omentarios», los comentarios cortados por
+la izquierda y el último partido por abajo—. En el navegador de desarrollo se
+dibujaba perfecta.
+
+- **La causa:** `Comentarios` pinta su `<Hoja>` donde está, y donde está es
+  **dentro** de la capa del plan (o del gasto, o del día). Así el `.modal-bg` de
+  la hoja quedaba de **hijo de un `.modal`**, que es un scroller —`overflow-y:
+  auto` con `-webkit-overflow-scrolling: touch`—. Chromium coloca un
+  `position: fixed` contra la ventana pase lo que pase; **el WebKit del iPhone lo
+  coloca y lo recorta contra ese scroller**. De ahí la hoja dentro del modal.
+- **✅ El arreglo:** `Hoja` sale por `createPortal(…, document.body)`. Deja de ser
+  hija de la capa de fuera y pasa a ser su hermana, sin ningún ancestro con
+  scroll — comprobado en el navegador: 0 ancestros con `overflow: auto`, la hoja
+  a 390 pt de ancho pegada abajo. Vale para **todas** las hojas de la app de una
+  vez, no solo para la de comentarios.
+- **Los eventos no se mueven de sitio.** Un portal cambia el árbol del DOM, no el
+  de React: un toque dentro de la hoja sigue subiendo hasta el `stopPropagation`
+  de la capa de fuera, así que cerrar la hoja **no** cierra además el plan. Está
+  atado en `Hoja.test.jsx`, que es lo único de esto que se puede romper sin que
+  se note en el navegador.
+- **Es la cuarta vez que un fallo solo se ve en el móvil** —`password`, `url`,
+  `datetime-local` y ahora esto—, y las cuatro por la misma razón: lo que se
+  comprueba aquí es Chromium. Las tres primeras dejaron una guardia (`estilos
+  .test.js`); ésta deja la suya sobre de quién cuelga una capa.
+- **Ninguna otra capa estaba anidada**: se comprobaron «Entre» y «Detalles» de un
+  gasto y «Parecidos» de un plato, y las tres se pintan como hermanas en el
+  `body`. Por eso el arreglo va en `Hoja` y no en un refactor de las dieciséis.
+
 ### 14.56 El bunga es un sitio, y por eso puede tener historia
 
 - **El defecto:** `bungas` lleva `eventId`, así que el «Bunga 12» de 2025 y el de
