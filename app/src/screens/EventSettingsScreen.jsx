@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
-  familiesOf, bungasOf, personsOf, olvidarTodo, listEvents,
+  familiesOf, personsOf, olvidarTodo, listEvents,
   updateEvent, dinnersOf, plansOf, expensesOf, removeDinner, removePlan,
   listMejoras,
 } from '../db.js'
@@ -790,9 +790,8 @@ function NovedadesSection() {
  * barra inferior para algo que se mira al volver del viaje, y ahora son un
  * apartado como los demás.
  */
-export default function EventSettingsScreen({ eventId, event, onPickEvent, onGoTab, sync, onSincronizarTodo }) {
+export default function EventSettingsScreen({ eventId, event, onPickEvent, sync, onSincronizarTodo }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
-  const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const { me } = useIdentidad(eventId, persons)
   // Las mejoras se leen aquí y no dentro del apartado: el rótulo lleva las que
@@ -819,19 +818,11 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, onGoT
         <EventoSection event={event} onPickEvent={onPickEvent} />
       </Acordeon>
 
-      {/* «El grupo» se fue a su pestaña (§14.52). Aquí queda el rastro, porque
-          nueve acordeones memorizados no se reordenan solos en la cabeza de
-          nadie: un renglón que dice a dónde ha ido, y que lleva. */}
-      <button type="button" className="acor-ido" onClick={() => onGoTab?.('grupo')}>
-        <span className="ico"><Icono nombre="familia" /></span>
-        <span className="main">
-          <span className="n">El grupo</span>
-          <span className="sub">
-            {families.length} · {bungas.length} · {persons.length} — ahora está en su pestaña, abajo
-          </span>
-        </span>
-        <span className="v" aria-hidden>›</span>
-      </button>
+      {/* Aquí estuvo el rastro de «El grupo», que se mudó a su pestaña en
+          §14.52: un renglón que decía a dónde había ido. Se retira (§14.65).
+          Un cartel de mudanza sirve las primeras veces y estorba el resto: el
+          grupo lleva su pestaña en la barra, que es donde se busca, y quien
+          abre Ajustes ya no viene a por él. */}
 
       <Acordeon titulo="Notificaciones" icono="aviso" nota={pendientes || null}>
         <NotificacionesSection />

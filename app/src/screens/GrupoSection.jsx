@@ -132,6 +132,36 @@ export default function GrupoSection({ eventId, area = 'familias' }) {
                   </>
                 )}
               >
+                {/* **Su bunga, dicho por su nombre y a un toque** (SPECS §14.65).
+                    La ficha de una familia se quedó sin él al partir Grupo en
+                    áreas (§14.63): dónde duerme cada casa es media pregunta de
+                    esta pantalla, y contestarla obligaba a cambiar de área y
+                    buscar la fila del bunga cuya familia se acababa de mirar.
+                    Va **el nombre** y no el mote —en un camping un bungalow se
+                    busca por su número, que es lo que lleva el nombre; el mote
+                    es cómo se le llama entre nosotros y va debajo— y **lleva a
+                    su pantalla**, que es donde están sus notas, sus pegatinas y
+                    quién estuvo otros años (§14.56). Sin bunga, el renglón lo
+                    dice y abre la hoja de elegir: no hay pantalla de un bunga
+                    que todavía no existe. */}
+                {(() => {
+                  const suBunga = bungaDeFamilia(bungas, f.id)
+                  return (
+                    <button
+                      type="button"
+                      className="mini bunga-de-la-casa"
+                      disabled={!conBungas}
+                      onClick={() => (suBunga
+                        ? abrir({ tipo: 'bunga', id: suBunga.id })
+                        : emparejar({ que: 'bunga', id: f.id }))}
+                    >
+                      <span className="ico"><Icono nombre="casa" /></span>
+                      <span className="quien">{suBunga ? suBunga.name : 'Sin bunga'}</span>
+                      <span className="dato">{suBunga ? (suBunga.alias || 'ver el bunga') : 'elegir'}</span>
+                    </button>
+                  )
+                })()}
+
                 {gente.map((p) => (
                   <button
                     type="button"

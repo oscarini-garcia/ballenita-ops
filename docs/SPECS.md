@@ -4208,6 +4208,46 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
 - «Para votar hace falta saber quién eres» ya no manda a un apartado que no
   existe: manda **al emoji de arriba**.
 
+### 14.65 Los avisos se recuerdan cada semana, y el bunga vuelve a su familia
+
+- **El defecto de los avisos:** el permiso se pide en Ajustes → Notificaciones y
+  no al arrancar (§14.17), que es lo correcto —un permiso que se pide en el
+  primer segundo se contesta que no—. El precio es que **quien no pasa por ahí no
+  lo enciende nunca**, y entonces no se entera de un gasto, de la cena de esta
+  noche ni de que alguien quiere entrar. Y no lo echa de menos, porque nunca lo
+  tuvo.
+- **✅ Un recordatorio en «Hoy», cada siete días** (`components/AvisoDeAvisos.jsx`,
+  `lib/recordatorioDeAvisos.js`). En «Hoy» porque es la pantalla que se abre
+  sola: aparece **donde ya estabas** en vez de ponerse delante de lo que ibas a
+  hacer. **No es un modal al arrancar** — se cierra sin leerlo, y encima gasta la
+  única hoja de permiso que iOS enseña en la vida de la instalación.
+- **Y no es «volver a preguntar», porque no se puede.** Está escrito en
+  `lib/native.js` desde §14.17-ter: **iOS enseña su hoja una sola vez**, y
+  `requestPermissions()` con el permiso ya denegado devuelve «denied» sin abrir
+  nada.
+  - `prompt` — nadie ha contestado: lleva **el botón** que abre la hoja, y
+    encender hace el camino entero (permiso, identificador de Apple y apuntarlo
+    en el servidor), porque los tres hacen falta para que llegue algo.
+  - `denied` — ya se dijo que no: **no hay botón**. Lo único cierto es dónde se
+    enciende, que es en los Ajustes del iPhone.
+- **Dos estados no se recuerdan**: `granted`, que no hay nada que pedir, y
+  `sin-plugin`, que **no se arregla desde el teléfono**. Tampoco **en el primer
+  arranque**. **«Ahora no»** pone el reloj a cero, y **lo que falla se queda a la
+  vista**: encender apunta el recordatorio pase lo que pase, y eso retiraba el
+  bloque justo después de escribir el motivo del fallo.
+- **✅ El bunga vuelve a la ficha de su familia.** Al partir Grupo en áreas
+  (§14.63) la ficha se quedó **sin él**: dónde duerme cada casa es media
+  pregunta de esta pantalla, y contestarla obligaba a cambiar de área y buscar la
+  fila del bunga cuya familia se acababa de mirar. Vuelve como una fila más de
+  las de dentro, con **el nombre** —en un camping un bungalow se busca por su
+  número, que es lo que lleva el nombre; el mote va debajo— y **lleva a su
+  pantalla**, que es donde están sus notas, sus pegatinas y quién estuvo otros
+  años (§14.56). Sin bunga, el renglón lo dice y abre la hoja de elegir: no hay
+  pantalla de un bunga que todavía no existe.
+- **✅ Y el rastro de «El grupo» en Ajustes se retira.** §14.52 lo mudó a su
+  pestaña y dejó un renglón diciendo a dónde había ido. Un cartel de mudanza
+  sirve las primeras veces y estorba el resto.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas

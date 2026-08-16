@@ -157,12 +157,15 @@ describe('App — navegación', () => {
     expect(await screen.findByRole('tab', { name: 'Gastos' })).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('«El grupo» deja en Ajustes un renglón que lleva a su pestaña', async () => {
+  // El renglón que decía a dónde se había mudado «El grupo» se retira (§14.65):
+  // un cartel de mudanza sirve las primeras veces y estorba el resto, y el
+  // grupo lleva su pestaña en la barra, que es donde se busca.
+  it('en Ajustes ya no queda rastro de «El grupo»', async () => {
     await abrirEjemplo()
     await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
-    // Nueve solapas memorizadas no se reordenan solas en la cabeza de nadie.
-    await userEvent.click(await screen.findByText('El grupo'))
-    expect((await screen.findAllByText('García')).length).toBeGreaterThan(0)
+
+    await screen.findByText('Aspecto')
+    expect(screen.queryByText('El grupo')).toBeNull()
   })
 
   it('la cabecera son tres cosas: ballena, dónde estás y el punto', async () => {

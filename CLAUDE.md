@@ -205,6 +205,14 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   cinco desenlaces del OTA **no son un fallo** (`otaFueBien`) y salían en rojo por llamarse
   `fallo` la variable; y el bloque de migraciones **se callaba** al no poder preguntar, que
   desde el móvil se lee igual que «está al día».
+- **Los avisos se recuerdan, no se vuelven a pedir** (SPECS §14.65,
+  `lib/recordatorioDeAvisos.js`): el permiso se pide en Ajustes y no al arrancar, y quien no
+  pasa por ahí no lo enciende nunca. «Hoy» lo recuerda **cada siete días** —donde ya estabas,
+  no en un modal que se cierra sin leer—. Y no es «volver a preguntar»: **iOS enseña su hoja
+  una sola vez**, así que con `prompt` va el botón que la abre y con `denied` **no hay botón**,
+  solo dónde se enciende. Ni con `granted` ni con `sin-plugin` se recuerda nada. En la misma
+  vuelta, el **bunga vuelve a la ficha de su familia** —por su nombre, y lleva a su pantalla—,
+  que se había quedado fuera al partir Grupo en áreas.
 - **Cada versión se describe a sí misma** (SPECS §14.34, figura de `meeting-ops-air`):
   `lib/notas.js` lleva unas líneas **a mano** por versión —lo que se nota en pantalla, no qué
   módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de

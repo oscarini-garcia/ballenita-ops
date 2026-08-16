@@ -339,4 +339,26 @@ describe('quién lleva las cuentas (§14.58)', () => {
       expect(gente.find((p) => p.name === 'Curro').llevaLasCuentas).toBe(false)
     })
   })
+  // §14.65: la ficha de una familia se quedó sin su bunga al partir Grupo en
+  // áreas, y dónde duerme cada casa es media pregunta de esta pantalla.
+  it('la ficha de la familia dice su bunga por su nombre, y lleva a su pantalla', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} area="familias" />)
+
+    const suyo = await screen.findByRole('button', { name: /Bunga 1/ })
+    // El nombre manda; el mote va debajo, que es donde no compite con el número.
+    expect(suyo).toHaveTextContent('Bunga 1')
+    expect(suyo).toHaveTextContent('el de la piscina')
+
+    await userEvent.click(suyo)
+    expect(await screen.findByText('Editar bunga')).toBeTruthy()
+  })
+
+  it('una familia sin bunga lo dice, y el renglón abre la hoja de elegir', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} area="familias" />)
+
+    await userEvent.click(await screen.findByRole('button', { name: /Sin bunga/ }))
+    expect(await screen.findByText('¿Qué bunga?')).toBeTruthy()
+  })
 })
