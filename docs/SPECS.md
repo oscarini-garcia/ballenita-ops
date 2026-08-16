@@ -3342,6 +3342,32 @@ la memoria de nadie.
   bump se niega desde el otro lado (`tools/bump.py`); aquí la versión se sube
   a mano y la guardia es la que avisa, en `npm test` y en CI.
 
+### 14.34-bis Las novedades, al final; y los dos «al día», iguales
+
+- **El defecto:** las tarjetas de novedades (§14.34) se pintaban **entre** el
+  estado de la versión y el botón que la actualiza, así que el bloque de
+  actualizar la app salía **partido en dos** por 244 pt de tarjetas. Y el otro
+  bloque que hace exactamente lo mismo sobre otra cosa —«Poner la base al día»
+  (§14.23)— salía entero y sin rótulo, pegado detrás, como si fuera una
+  coletilla del primero. Dos cosas gemelas escritas de dos maneras.
+- **✅ Los tres bloques de «La app» llevan rótulo** (`sec-h`): **Los datos del
+  grupo** · **La versión** · **La base de datos**, y las novedades al final bajo
+  **Qué ha cambiado**. Sin ellos, el apartado era una cinta de tres estados,
+  tres botones y tres listas de pasos seguidas, y no había forma de saber a cuál
+  de las tres cosas pertenecía lo que se estaba leyendo.
+- **✅ El mismo esqueleto en los dos:** rótulo → en qué estado está → el botón →
+  el progreso debajo. Y **el mismo verbo**: «Poner la app al día» y «Poner la
+  base al día». Antes el primero se llamaba «Comprobar ahora», que dice otra
+  cosa —comprobar es mirar, y este botón descarga y aplica—.
+- **Las novedades se leen después, no antes.** Contestan «¿qué me ha traído la
+  actualización?», que es una pregunta de cuando ya ha pasado; delante del botón
+  ocupaban el sitio de la que sí se hace antes, que es «¿tengo la última?».
+- **El rótulo de la base va dentro de su bloque** y no fuera, para no romper
+  §14.37-bis: un «La base de datos» solo, con el hueco debajo mientras contesta
+  la API, sería una quinta forma de no decir nada.
+- **«La versión» y no «La app»**, que es como se llama el acordeón que lo
+  contiene: un rótulo que repite el de su apartado no dice dónde estás.
+
 ### 14.35 Saldos: la familia con su pastilla, y quién paga a quién
 
 Decidido en `docs/diseño/saldos.html` · **F3 · R2 · E1**, más los tres arreglos

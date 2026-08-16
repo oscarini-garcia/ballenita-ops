@@ -210,7 +210,11 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   módulo se tocó—, Ajustes → 🐳 La app enseña la puesta y las tres de antes como tarjetas de
   lado, y `lib/notas.test.js` ata la entrada de arriba a `package.json`: **subir versión sin
   describirla pone las pruebas en rojo**. Al cerrar una vuelta que sube versión, añade su
-  nota arriba del todo.
+  nota arriba del todo. **Y van al final, con rótulo** (§14.34-bis): estaban entre el estado
+  de la versión y su botón, partiendo en dos el bloque de actualizar, mientras el gemelo
+  —«Poner la base al día»— salía entero y sin rótulo. Ahora «La app» son tres bloques
+  rotulados con el mismo esqueleto —estado, botón, progreso— y el mismo verbo: **poner al
+  día** la app y la base.
 - **Las mejoras son el roadmap de la app, apuntado desde el móvil** (SPECS §14.22,
   `docs/diseño/mejoras.html` · A1·B1·C2·D2·E1·F2, figura del bloque «Mejoras» de
   `garciadoral-ops`): acordeón **Ajustes → Mejoras**, penúltimo y pegado a «Actualizar»,

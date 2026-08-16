@@ -193,6 +193,11 @@ function SyncSection({ sync, onSincronizarTodo }) {
 
   return (
     <>
+      {/* Los tres bloques de este apartado llevan rótulo (§14.34-bis). Sin
+          ellos, «La app» era una cinta de tres estados, tres botones y tres
+          listas de pasos seguidas, y el de la base de datos —que aparece solo a
+          veces— salía como una coletilla del de la versión. */}
+      <div className="sec-h">Los datos del grupo</div>
       <div className="card tight">
         <div className="row">
           <SyncDot sync={estado} onClick={onSincronizarTodo} />
@@ -721,20 +726,36 @@ function MigracionesBloque({ esAdmin = false }) {
   // Quien no administra no ve un botón que le iba a devolver un 403 al pulsarlo,
   // pero sí ve **por qué** no lo ve: si no, buscar el botón que le han dicho que
   // está aquí es una búsqueda sin final.
+  // El silencio del primer instante es el único que se queda, y por eso el
+  // rótulo va **dentro** y no fuera: un «La base de datos» solo, con el hueco
+  // debajo mientras contesta la API, es la quinta forma de no decir nada
+  // (§14.37-bis).
+  if (esAdmin && pendientes === null && !error) return null
+
+  const titulo = <div className="sec-h">La base de datos</div>
+
   if (!esAdmin) {
-    return <div className="pista">La base de datos la pone al día quien administra el grupo.</div>
+    return (
+      <>
+        {titulo}
+        <div className="pista">La base de datos la pone al día quien administra el grupo.</div>
+      </>
+    )
   }
   if (error) {
     return (
-      <pre className="traza mal" role="status">
-        {`No se ha podido preguntar por las migraciones: ${error}`}
-      </pre>
+      <>
+        {titulo}
+        <pre className="traza mal" role="status">
+          {`No se ha podido preguntar por las migraciones: ${error}`}
+        </pre>
+      </>
     )
   }
-  if (pendientes === null) return null
 
   return (
     <>
+      {titulo}
       <div className="pista">
         {pendientes.length
           ? `La base de datos va ${pendientes.length === 1 ? '1 migración' : `${pendientes.length} migraciones`} por detrás del código (${pendientes.join(', ')}).`
@@ -832,7 +853,16 @@ function AppSection({ esAdmin = false }) {
           rótulo, la versión en grande y **un modal encima de la pantalla**: el
           modal tapaba justo lo que se venía a mirar, obligaba a un «Ok» para
           seguir y se llevaba por delante lo que había contado en cuanto se
-          cerraba. Contado en su sitio se queda ahí y se puede releer. */}
+          cerraba. Contado en su sitio se queda ahí y se puede releer.
+
+          **Y los dos «al día» se escriben igual** (SPECS §14.34-bis): rótulo,
+          en qué estado está, el botón, y el progreso debajo. Este bloque tenía
+          las novedades metidas entre el estado y su propio botón, así que de
+          los dos que hacen lo mismo —poner la app al día y poner la base al
+          día— uno salía partido en dos y el otro entero. */}
+      {/* «La versión» y no «La app»: el acordeón que lo contiene ya se llama
+          así, y un rótulo que repite el de su apartado no dice dónde estás. */}
+      <div className="sec-h">La versión</div>
       <div className="pista">
         Versión en curso: <b className="tnum">v{APP_VERSION}</b>.
         {/* Dentro de la app hay dos números y no siempre coinciden: el que se
@@ -848,23 +878,8 @@ function AppSection({ esAdmin = false }) {
           : 'Estás en la versión web, que se actualiza sola al recargar.'}
       </div>
 
-      {/* Qué cambió, una tarjeta por versión y de lado (SPECS §14.34, la
-          figura de `meeting-ops-air`): la que llevas puesta y las tres de
-          antes. La prosa vive en `lib/notas.js`, escrita a mano en cada vuelta
-          y atada a la versión por su test — así esta pantalla contesta «¿qué
-          me trajo la actualización?» y no solo «¿cuál tengo puesta?». */}
-      <div className="relnotas" aria-label="Qué cambió, por versión">
-        {NOTAS.slice(0, 4).map((n) => (
-          <div className="relnota" key={n.version}>
-            <div className="rn-meta tnum">v{n.version} · {n.fecha}</div>
-            <div className="rn-titulo">{n.titulo}</div>
-            {n.lineas.map((l, i) => <p className="rn-linea" key={i}>{l}</p>)}
-          </div>
-        ))}
-      </div>
-
       <button className="btn ghost block" disabled={busy} onClick={actualizar}>
-        {busy ? 'Comprobando…' : 'Comprobar ahora'}
+        {busy ? 'Comprobando…' : 'Poner la app al día'}
       </button>
 
       {busy && (
@@ -897,6 +912,27 @@ function AppSection({ esAdmin = false }) {
       {paquetes && <ListaDePaquetes paquetes={paquetes} />}
 
       <MigracionesBloque esAdmin={esAdmin} />
+
+      {/* Qué cambió, una tarjeta por versión y de lado (SPECS §14.34, la figura
+          de `meeting-ops-air`): la que llevas puesta y las tres de antes. La
+          prosa vive en `lib/notas.js`, escrita a mano en cada vuelta y atada a
+          la versión por su test — así esta pantalla contesta «¿qué me trajo la
+          actualización?» y no solo «¿cuál tengo puesta?».
+
+          **Va al final y con su rótulo** (§14.34-bis). Estaba entre el estado
+          de la versión y el botón de actualizar, que es el peor sitio de los
+          tres: se lee cuando la actualización ya ha pasado —«¿qué me ha
+          traído?»—, no mientras se decide si pulsar. */}
+      <div className="sec-h">Qué ha cambiado</div>
+      <div className="relnotas" aria-label="Qué cambió, por versión">
+        {NOTAS.slice(0, 4).map((n) => (
+          <div className="relnota" key={n.version}>
+            <div className="rn-meta tnum">v{n.version} · {n.fecha}</div>
+            <div className="rn-titulo">{n.titulo}</div>
+            {n.lineas.map((l, i) => <p className="rn-linea" key={i}>{l}</p>)}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

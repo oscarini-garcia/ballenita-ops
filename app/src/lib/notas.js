@@ -24,6 +24,7 @@ export const NOTAS = [
       'El enlace vale una sola vez y caduca a los tres días. Si se pierde o acaba donde no debía, genera otro: el anterior deja de valer en el acto.',
       'En el navegador no hay avisos, y la app se ve como un móvil grande en un portátil. Sin enlace, la web sigue siendo la libreta local de siempre.',
       'Y en Planes, «Devolver a ideas» lo puede hacer cualquier adulto, no solo quien lleva el grupo: si tú puedes proponer un plan, puedes retirarlo.',
+      'Ajustes → 🐳 La app queda ordenada en tres bloques con su rótulo —los datos, la versión y la base de datos—, con «Qué ha cambiado» al final en vez de en medio del botón de actualizar.',
     ],
   },
   {
