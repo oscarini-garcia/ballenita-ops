@@ -408,7 +408,7 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   **traza** (`<pre class="traza">`, `bien`/`mal`) y no en prosa. En **Actualizar** el progreso
   se pinta en su sitio, como en Sincronización: el modal tapaba lo que se venía a mirar y
   borraba lo que había contado al cerrarse.
-- **La web sincroniza solo con sesión, y a la web se entra por enlace** (SPECS §14.52,
+- **La web sincroniza solo con sesión, y a la web se entra por enlace** (SPECS §14.61,
   `auth/enlace.js`): la puerta la firma Apple y esa hoja vive en la cáscara nativa, así que
   quien no tiene iPhone no tenía por dónde entrar. `hayApi()` decía la regla por donde
   estaba mal dicha —«solo si es nativa», cuando lo que decide es **si hay con qué

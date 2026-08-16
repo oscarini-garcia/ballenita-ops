@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { leerSesion } from './auth/sesion.js'
 
 /**
- * Entrar por el enlace de acceso, desde el navegador (SPECS §14.52).
+ * Entrar por el enlace de acceso, desde el navegador (SPECS §14.61).
  *
  * `isNative()` **no** se finge aquí, y es a propósito: lo que se prueba es
  * justo el caso de la web, donde la puerta de Apple no existe y hasta ahora la

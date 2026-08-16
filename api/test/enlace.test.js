@@ -1,5 +1,5 @@
 /**
- * El enlace de acceso: entrar sin iPhone (SPECS §14.52).
+ * El enlace de acceso: entrar sin iPhone (SPECS §14.61).
  *
  * Lo que se prueba aquí no es que el pase funcione —eso es la firma de siempre,
  * ya probada en `sesion.test.js`— sino las tres cosas que lo hacen distinto de

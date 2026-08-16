@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { guardarSesion } from '../auth/sesion.js'
 
 /**
- * Quién habla con la API, que es la guarda que abre el acceso web (SPECS §14.52).
+ * Quién habla con la API, que es la guarda que abre el acceso web (SPECS §14.61).
  *
  * Aquí ponía «solo la app de iOS», y con la única puerta siendo Apple eso era
  * verdad por accidente: en el navegador no podía haber sesión. Lo que decide de

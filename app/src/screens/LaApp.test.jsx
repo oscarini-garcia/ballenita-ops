@@ -31,7 +31,7 @@ const rotulos = () => [...document.querySelectorAll('.sec-h')].map((e) => e.text
 
 beforeEach(() => {
   leerMigraciones.mockReset()
-  leerMigraciones.mockResolvedValue({ migraciones: [{ id: '0016_enlace_de_acceso', pendiente: false }] })
+  leerMigraciones.mockResolvedValue({ migraciones: [{ id: '0017_enlace_de_acceso', pendiente: false }] })
   localStorage.setItem('ballena.sesion', JSON.stringify({ token: 't', cuenta: { nombre: 'Óscar', rol: 'administrador' } }))
 })
 afterEach(() => localStorage.clear())
@@ -58,7 +58,7 @@ describe('el apartado «La app»', () => {
   // Los dos verbos son el mismo verbo, que es lo que dice que hacen lo mismo
   // sobre dos cosas distintas.
   it('los dos botones se llaman igual: poner al día', async () => {
-    leerMigraciones.mockResolvedValue({ migraciones: [{ id: '0016_enlace_de_acceso', pendiente: true }] })
+    leerMigraciones.mockResolvedValue({ migraciones: [{ id: '0017_enlace_de_acceso', pendiente: true }] })
     pintar()
 
     expect(await screen.findByRole('button', { name: 'Poner la base al día' })).toBeInTheDocument()

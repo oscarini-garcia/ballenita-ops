@@ -14,7 +14,6 @@ import { formatearHace } from '../lib/hace.js'
 import { NOTAS } from '../lib/notas.js'
 import { COCINA_DE_ORIGEN } from '../lib/cocina.js'
 import { comprobarAntesDeSalir, avisoDeSalida } from '../lib/salida.js'
-import GrupoSection from './GrupoSection.jsx'
 import CuentasSection, { IASection, NotificacionesSection, useCuentas } from './CuentasSection.jsx'
 import Hoja from '../components/Hoja.jsx'
 import { loQueSeCaeFuera, enPalabras } from '../lib/evento.js'
@@ -951,7 +950,7 @@ function AppSection({ esAdmin = false }) {
  * barra inferior para algo que se mira al volver del viaje, y ahora son un
  * apartado como los demás.
  */
-export default function EventSettingsScreen({ eventId, event, onPickEvent, sync, onSincronizarTodo }) {
+export default function EventSettingsScreen({ eventId, event, onPickEvent, onGoTab, sync, onSincronizarTodo }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
@@ -980,9 +979,19 @@ export default function EventSettingsScreen({ eventId, event, onPickEvent, sync,
         <EventoSection event={event} onPickEvent={onPickEvent} />
       </Acordeon>
 
-      <Acordeon titulo="El grupo" icono="familia" nota={`${families.length} · ${bungas.length} · ${persons.length}`}>
-        <GrupoSection eventId={eventId} />
-      </Acordeon>
+      {/* «El grupo» se fue a su pestaña (§14.52). Aquí queda el rastro, porque
+          nueve acordeones memorizados no se reordenan solos en la cabeza de
+          nadie: un renglón que dice a dónde ha ido, y que lleva. */}
+      <button type="button" className="acor-ido" onClick={() => onGoTab?.('grupo')}>
+        <span className="ico"><Icono nombre="familia" /></span>
+        <span className="main">
+          <span className="n">El grupo</span>
+          <span className="sub">
+            {families.length} · {bungas.length} · {persons.length} — ahora está en su pestaña, abajo
+          </span>
+        </span>
+        <span className="v" aria-hidden>›</span>
+      </button>
 
       <Acordeon titulo="Quién eres" icono="persona" nota={me ? (me.apodo || me.name) : 'sin elegir'}>
         <QuienEresSection eventId={eventId} persons={persons} />

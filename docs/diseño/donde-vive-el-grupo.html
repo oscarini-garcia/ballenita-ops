@@ -1,0 +1,828 @@
+<title>Ballena Ops — Dónde vive el grupo</title>
+
+<style>
+  :root {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff;
+    --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8;
+    --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --verde: #1f6b4d; --verde-fondo: #dff0e7;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Abisal Sobrio, valores reales de theme.css. */
+    --ab-fondo: #0b1f2c; --ab-tarjeta: #14303f; --ab-linea: #2c5468; --ab-linea-suave: #1e4256;
+    --ab-ink: #e6eef3; --ab-soft: #a4bcc9; --ab-faint: #78929f;
+    --ab-acento: #3f8fae; --ab-acento-txt: #6fb6d1; --ab-cromo: #081821;
+    --ab-owe: #d97b6c; --ab-owed: #6fce9f; --ab-gold: #c9a768;
+    --ab-papel-capa: #1a3d4f; --ab-linea-capa: #3a6a82;
+    --abc-fondo: #f1f5f7; --abc-tarjeta: #ffffff; --abc-linea: #c3d2da; --abc-linea-suave: #dde6ea;
+    --abc-ink: #12262f; --abc-soft: #4d6674; --abc-faint: #7c919d;
+    --abc-acento: #22708f; --abc-acento-txt: #1a6280;
+    --abc-owe: #a8443a; --abc-gold: #8a6c2c; --abc-papel-capa: #ffffff; --abc-linea-capa: #a9bfc9;
+
+    /* La escala real: 17 px × 1,12 (Grande, que es lo de fábrica). */
+    --t-title: 23.5px; --t-body: 19px; --t-row: 17.9px; --t-sub: 15.7px;
+    --t-label: 14.6px; --t-micro: 12.9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+      --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+      --acento: #57cdec; --acento-suave: #10394c;
+      --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+      --verde: #74d6a8; --verde-fondo: #10321f;
+    }
+  }
+  :root[data-theme="light"] {
+    --tinta: #0e2231; --tinta-suave: #3d5a6b; --tinta-tenue: #6b8598;
+    --papel: #eef4f6; --papel-2: #ffffff; --linea: #cfdde3; --linea-fuerte: #a9bfc9;
+    --acento: #0d6f96; --acento-suave: #d9edf4;
+    --oro: #8a5d00; --oro-fondo: #fbf0d8; --coral: #a8322a; --coral-fondo: #fbe6e3;
+    --verde: #1f6b4d; --verde-fondo: #dff0e7;
+  }
+  :root[data-theme="dark"] {
+    --tinta: #e6f0f4; --tinta-suave: #a7c0cd; --tinta-tenue: #7d97a5;
+    --papel: #0d1f2a; --papel-2: #142c39; --linea: #24404f; --linea-fuerte: #3a5a6d;
+    --acento: #57cdec; --acento-suave: #10394c;
+    --oro: #ffc24b; --oro-fondo: #3a2f14; --coral: #ff8f7d; --coral-fondo: #3a201c;
+    --verde: #74d6a8; --verde-fondo: #10321f;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); }
+
+  .hoja { background: var(--papel); color: var(--tinta); font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; padding: 40px 20px 72px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .col { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 34px; }
+
+  .masthead { display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue); }
+  .masthead h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(28px, 5.4vw, 40px);
+    line-height: 1.12; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+  .entradilla { max-width: 66ch; color: var(--tinta-suave); margin: 0; }
+  .entradilla b { color: var(--tinta); font-weight: 650; }
+  .entradilla code, .op-idea code, .coste code, .defectos code, .cierre code,
+  .parte-intro code, table.comp code { font-family: var(--mono); font-size: 12.5px; }
+
+  .ficha { display: flex; flex-wrap: wrap; gap: 6px 20px; font-family: var(--mono);
+    font-size: 11.5px; color: var(--tinta-tenue); border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea); padding: 9px 0; margin-top: 4px; }
+  .ficha b { color: var(--tinta-suave); font-weight: 600; }
+
+  .defectos { background: var(--oro-fondo); border-radius: 12px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 13px; }
+  .defectos h2 { font-family: var(--serif); font-weight: 600; font-size: 20px; margin: 0; color: var(--tinta); }
+  .defectos p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 72ch; }
+  .defectos b { color: var(--tinta); }
+  .defectos code { background: color-mix(in srgb, var(--oro) 14%, transparent);
+    border-radius: 4px; padding: 1px 5px; }
+  .defectos ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 11px; }
+  .defectos li { font-size: 15px; color: var(--tinta-suave); max-width: 72ch; }
+
+  .parte { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tinta-tenue);
+    border-bottom: 2px solid var(--linea-fuerte); padding-bottom: 8px; }
+  .parte-tit { font-family: var(--serif); font-weight: 600; font-size: 25px; margin: -22px 0 0;
+    line-height: 1.2; text-wrap: balance; }
+  .parte-intro { margin: 0; color: var(--tinta-suave); max-width: 68ch; font-size: 15.5px; }
+  .parte-intro b { color: var(--tinta); }
+
+  .coste { font-size: 14.5px; color: var(--tinta-suave); margin: 0;
+    border-left: 2px solid var(--linea-fuerte); padding-left: 11px; }
+  .coste b { color: var(--tinta); }
+
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 14px; }
+
+  .opcion { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 16px 17px; display: flex; flex-direction: column; gap: 11px; }
+  .opcion[data-marca="recomendada"] { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+  .opcion[data-marca="descartada"] { opacity: .72; }
+  .op-cab { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+  .op-letra { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--acento);
+    background: var(--acento-suave); border-radius: 5px; padding: 2px 7px; letter-spacing: .04em; }
+  .op-nombre { font-weight: 700; font-size: 16.5px; }
+  .etq { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 999px; padding: 3px 9px; font-weight: 700; }
+  .etq.rec { background: var(--acento-suave); color: var(--acento); }
+  .etq.base { background: var(--oro-fondo); color: var(--oro); }
+  .etq.no { background: var(--coral-fondo); color: var(--coral); }
+  .etq.ya { background: var(--verde-fondo); color: var(--verde); }
+  .op-idea { margin: 0; color: var(--tinta-suave); font-size: 14.8px; }
+  .op-idea b { color: var(--tinta); }
+  .op-cuesta { margin: 0; font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    border-top: 1px dashed var(--linea); padding-top: 9px; }
+  .op-cuesta b { color: var(--tinta-suave); font-weight: 600; }
+
+  .grupo { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── El teléfono, a 390 pt. line-height 1.45 = el de body en theme.css. ── */
+  .tira-tel { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 6px; align-items: flex-start; }
+  .tel-caja { flex: none; display: flex; flex-direction: column; gap: 6px; width: 390px; }
+  .tel { width: 390px; border-radius: 14px; overflow: hidden; font-family: var(--sans);
+    line-height: 1.45; outline: 1px solid var(--ab-linea); outline-offset: -1px;
+    display: flex; flex-direction: column; }
+  .tel.oscuro { background: var(--ab-fondo); color: var(--ab-ink); }
+  .tel.claro { background: var(--abc-fondo); color: var(--abc-ink); outline-color: var(--abc-linea); }
+  .cuerpo { display: flex; flex-direction: column; gap: 12px; padding: 14px 14px 18px; }
+
+  .barra { display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: #123a4d; color: #eaf6fb; }
+  .barra .ti { font-weight: 650; font-size: var(--t-title); letter-spacing: -.01em; }
+  .barra .su { font-size: var(--t-micro); opacity: .78; }
+
+  .subnav-wrap { padding: 12px 14px 0; }
+  .subnav { display: flex; gap: 4px; border-radius: 10px; padding: 4px; background: var(--ab-linea-suave); }
+  .claro .subnav { background: var(--abc-linea-suave); }
+  .subnav b { flex: 1; padding: 10px 6px; border-radius: 7px; font-weight: 600;
+    font-size: var(--t-row); color: var(--ab-soft); text-align: center; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .claro .subnav b { color: var(--abc-soft); }
+  .subnav b.on { background: var(--ab-tarjeta); color: var(--ab-acento-txt); }
+  .claro .subnav b.on { background: var(--abc-tarjeta); color: var(--abc-acento-txt); }
+
+  .sec-h { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; margin: 4px 2px 0; display: flex; justify-content: space-between; gap: 8px; }
+  .oscuro .sec-h { color: var(--ab-faint); } .claro .sec-h { color: var(--abc-faint); }
+
+  .tarj { border-radius: 9px; padding: 0 12px; }
+  .oscuro .tarj { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .tarj { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+  .tarj.pad { padding: 12px; }
+
+  .fila { display: flex; align-items: center; gap: 11px; padding: 11px 0; }
+  .fila + .fila { border-top: 1px solid var(--ab-linea-suave); }
+  .claro .fila + .fila { border-top-color: var(--abc-linea-suave); }
+  .fila .txt { flex: 1; min-width: 0; }
+  /* Como en theme.css: el nombre de una fila **se recorta**, no envuelve. Y
+     `.envuelve` es la variante que hay que pedir a mano, como `.row.recap-linea`. */
+  .fila .n { font-size: var(--t-row); font-weight: 550;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .n.envuelve { font-weight: 500; white-space: normal; overflow: visible; }
+  .fila .s { font-size: var(--t-sub); }
+  .oscuro .fila .s { color: var(--ab-soft); } .claro .fila .s { color: var(--abc-soft); }
+  .fila .amt { font-weight: 620; font-size: var(--t-row); white-space: nowrap;
+    font-variant-numeric: tabular-nums; }
+
+  .ico { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 20px; height: 20px; display: block; }
+  .oscuro .ico { background: color-mix(in srgb, var(--ab-acento) 20%, transparent); color: var(--ab-acento-txt); }
+  .claro .ico { background: color-mix(in srgb, var(--abc-acento) 12%, transparent); color: var(--abc-acento-txt); }
+  .ico.verde { background: rgba(53,179,126,.18); color: #4fd39b; }
+  .claro .ico.verde { background: rgba(31,124,88,.12); color: #1f7c58; }
+  .ico.ambar { background: color-mix(in srgb, var(--ab-gold) 22%, transparent); color: var(--ab-gold); }
+  .claro .ico.ambar { background: color-mix(in srgb, var(--abc-gold) 20%, transparent); color: var(--abc-gold); }
+
+  .casilla { width: 24px; height: 24px; border-radius: 6px; flex: none;
+    border: 2px solid var(--ab-linea); display: grid; place-items: center; font-size: 15px; }
+  .claro .casilla { border-color: var(--abc-linea); }
+  .casilla.on { background: rgba(53,179,126,.2); border-color: transparent; color: #4fd39b; }
+  .claro .casilla.on { background: rgba(31,124,88,.14); color: #1f7c58; }
+
+  .aspa { font-size: 21px; line-height: 1; flex: none; width: 26px; text-align: center; }
+  .oscuro .aspa { color: var(--ab-faint); } .claro .aspa { color: var(--abc-faint); }
+
+  .pil { font-size: var(--t-micro); font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; display: inline-block; }
+  .pil.neutro { background: color-mix(in srgb, var(--ab-acento) 18%, transparent); color: var(--ab-acento-txt); }
+  .claro .pil.neutro { background: color-mix(in srgb, var(--abc-acento) 14%, transparent); color: var(--abc-acento-txt); }
+  .pil.verde { background: rgba(53,179,126,.2); color: #4fd39b; }
+  .claro .pil.verde { background: rgba(31,124,88,.14); color: #1f7c58; }
+  .pil.oro { background: color-mix(in srgb, var(--ab-gold) 22%, transparent); color: var(--ab-gold); }
+  .claro .pil.oro { background: color-mix(in srgb, var(--abc-gold) 22%, transparent); color: var(--abc-gold); }
+  .alias { font-size: var(--t-micro); font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    margin-left: 6px; letter-spacing: .02em; }
+  .alias.ga { background: rgba(229,84,75,.2); color: #f0a49c; }
+  .claro .alias.ga { background: rgba(229,84,75,.14); color: #9c3a32; }
+  .alias.pe { background: rgba(46,158,107,.2); color: #7fd6ac; }
+  .claro .alias.pe { background: rgba(46,158,107,.16); color: #1d6a47; }
+  .alias.so { background: rgba(31,166,214,.2); color: #7cd0ee; }
+  .claro .alias.so { background: rgba(31,166,214,.16); color: #14708f; }
+
+  .nota { font-size: var(--t-sub); line-height: 1.45; border: 1px dashed var(--ab-linea);
+    border-radius: 9px; padding: 11px 13px; color: var(--ab-soft);
+    background: color-mix(in srgb, var(--ab-acento) 7%, var(--ab-tarjeta)); }
+  .nota b { color: var(--ab-ink); }
+  .claro .nota { border-color: var(--abc-linea); color: var(--abc-soft);
+    background: color-mix(in srgb, var(--abc-acento) 7%, var(--abc-tarjeta)); }
+  .claro .nota b { color: var(--abc-ink); }
+
+  .campo { display: flex; gap: 8px; }
+  .campo .caja { flex: 1; border-radius: 8px; padding: 11px 12px; font-size: var(--t-row);
+    border: 1px solid var(--ab-linea); color: var(--ab-faint); background: var(--ab-fondo); }
+  .claro .campo .caja { border-color: var(--abc-linea); color: var(--abc-faint); background: var(--abc-fondo); }
+  .boton { border-radius: 8px; padding: 11px 15px; font-weight: 600; font-size: var(--t-row);
+    background: var(--ab-acento); color: #04121a; white-space: nowrap; }
+  .claro .boton { background: var(--abc-acento); color: #fff; }
+  .boton.fantasma { background: none; border: 1px solid var(--ab-linea); color: var(--ab-acento-txt); }
+  .claro .boton.fantasma { border-color: var(--abc-linea); color: var(--abc-acento-txt); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--ab-linea); border-radius: 999px; padding: 8px 13px;
+    font-size: var(--t-sub); font-weight: 550; color: var(--ab-soft); }
+  .claro .chip { border-color: var(--abc-linea); color: var(--abc-soft); }
+  .chip.on { background: var(--ab-acento); border-color: var(--ab-acento); color: #04121a; }
+  .claro .chip.on { background: var(--abc-acento); border-color: var(--abc-acento); color: #fff; }
+
+  .rotulo { font-size: var(--t-label); font-weight: 650; letter-spacing: .01em; }
+  .oscuro .rotulo { color: var(--ab-soft); } .claro .rotulo { color: var(--abc-soft); }
+
+  .velo-centro { flex: 1; background: rgba(4,18,26,.68); display: flex; align-items: center;
+    justify-content: center; padding: 12px 14px; min-height: 120px; }
+  .capa { width: 100%; background: var(--ab-papel-capa); border: 1.5px solid var(--ab-linea-capa);
+    border-radius: 12px; padding: 16px 15px 20px; box-shadow: 0 18px 44px rgba(4,18,26,.34);
+    display: flex; flex-direction: column; gap: 11px; }
+  .claro .capa { background: var(--abc-papel-capa); border-color: var(--abc-linea-capa); }
+  .claro .velo-centro { background: rgba(20,50,66,.5); }
+  .capa .tarj { background: color-mix(in srgb, var(--ab-fondo) 45%, transparent);
+    border-color: var(--ab-linea-capa); }
+  .claro .capa .tarj { background: var(--abc-fondo); border-color: var(--abc-linea-suave); }
+  .m-t { margin: 0; font-size: var(--t-title); font-weight: 650; letter-spacing: -.01em; }
+
+  .hoja-abajo { margin-top: auto; background: var(--ab-papel-capa); border-top: 1.5px solid var(--ab-linea-capa);
+    border-radius: 14px 14px 0 0; padding: 16px 15px 20px; display: flex; flex-direction: column; gap: 11px; }
+  .claro .hoja-abajo { background: var(--abc-papel-capa); border-top-color: var(--abc-linea-capa); }
+
+  .pie-tel { font-family: var(--mono); font-size: 11px; color: var(--tinta-tenue); margin: 0; }
+  .pie-tel b { color: var(--tinta-suave); font-weight: 600; }
+
+  .medida { font-family: var(--mono); font-size: 11.5px; color: var(--tinta-tenue);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .medida b { color: var(--tinta-suave); font-weight: 600; }
+
+  .tabla-scroll { overflow-x: auto; }
+  table.comp { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 520px; }
+  table.comp th, table.comp td { text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.comp th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--tinta-tenue); font-weight: 600; }
+  table.comp td { color: var(--tinta-suave); }
+  table.comp td b { color: var(--tinta); }
+  table.comp td.num, table.comp td.cod { font-family: var(--mono);
+    font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.comp td.cod { color: var(--acento); font-weight: 700; }
+  table.comp tr[data-mal] td { color: var(--coral); }
+  table.comp tr[data-mal] td b { color: var(--coral); }
+
+  .cierre { background: var(--acento-suave); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 14px; }
+  .cierre h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0; }
+  .cierre p { margin: 0; font-size: 15px; color: var(--tinta-suave); max-width: 70ch; }
+  .cierre b { color: var(--tinta); }
+  .receta { font-family: var(--mono); font-size: 13.5px; color: var(--tinta); line-height: 2; }
+  .receta span { background: var(--papel-2); border: 1px solid var(--linea); border-radius: 5px;
+    padding: 2px 7px; margin-right: 4px; display: inline-block; }
+  .receta i { font-style: normal; color: var(--tinta-tenue); margin-right: 6px; }
+</style>
+<style>
+  /* Añadidos de esta hoja sobre la base de `siete-encargos.html`. */
+  .estado { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  .cerrada { border-radius: 11px; padding: 14px 15px; display: flex; flex-direction: column; gap: 7px;
+    background: var(--verde-fondo); border: 1px solid color-mix(in srgb, var(--verde) 32%, transparent); }
+  .cerrada.abierta { background: var(--oro-fondo); border-color: color-mix(in srgb, var(--oro) 34%, transparent); }
+  .cerrada.muda { background: var(--papel-2); border-color: var(--linea); }
+  .cerrada .cab { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .cerrada .num { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--tinta-tenue); }
+  .cerrada .tit { font-weight: 700; font-size: 16px; }
+  .cerrada p { margin: 0; font-size: 14.4px; color: var(--tinta-suave); }
+  .cerrada p b { color: var(--tinta); }
+  .cerrada .sello { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; font-weight: 700; }
+  .cerrada .sello.si { color: var(--verde); }
+  .cerrada.abierta .sello { color: var(--oro); }
+  .cerrada.muda .sello { color: var(--tinta-tenue); }
+  .cerrada code { font-family: var(--mono); font-size: 12px; }
+
+  .tabbar { display: flex; justify-content: space-around; padding: 6px 4px;
+    border-top: 1px solid var(--ab-linea-suave); background: var(--ab-tarjeta); }
+  .claro .tabbar { border-top-color: var(--abc-linea-suave); background: var(--abc-tarjeta); }
+  .tabbar .tb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 4px 2px; color: var(--ab-faint); }
+  .claro .tabbar .tb { color: var(--abc-faint); }
+  .tabbar .tb.on { color: var(--ab-acento-txt); }
+  .claro .tabbar .tb.on { color: var(--abc-acento-txt); }
+  .tabbar .tb svg { width: 23px; height: 23px; }
+  .tabbar .tb span { font-size: var(--t-micro); font-weight: 550; }
+
+  .acor { border-radius: 9px; padding: 12px; display: flex; align-items: center; gap: 11px; }
+  .oscuro .acor { background: var(--ab-tarjeta); border: 1px solid var(--ab-linea-suave); }
+  .claro .acor { background: var(--abc-tarjeta); border: 1px solid var(--abc-linea-suave); }
+  .acor .n { flex: 1; font-size: var(--t-row); font-weight: 600; }
+  .acor .q { font-size: var(--t-sub); }
+  .oscuro .acor .q { color: var(--ab-faint); } .claro .acor .q { color: var(--abc-faint); }
+  .acor .v { font-size: 15px; opacity: .6; }
+
+  .globo { font-size: var(--t-micro); font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: color-mix(in srgb, var(--ab-acento) 26%, transparent); color: var(--ab-acento-txt); }
+  .claro .globo { background: color-mix(in srgb, var(--abc-acento) 18%, transparent); color: var(--abc-acento-txt); }
+  .punto { width: 9px; height: 9px; border-radius: 50%; background: var(--ab-acento-txt); flex: none; }
+  .claro .punto { background: var(--abc-acento); }
+
+  .aviso-ios { width: 360px; border-radius: 17px; padding: 12px 14px; background: rgba(240,246,249,.92);
+    color: #10222c; box-shadow: 0 10px 30px rgba(4,18,26,.28); display: flex; gap: 10px;
+    font-family: var(--sans); line-height: 1.35; }
+  .aviso-ios .ap { width: 34px; height: 34px; border-radius: 8px; flex: none; background: #123a4d;
+    display: grid; place-items: center; font-size: 19px; }
+  .aviso-ios .t { font-weight: 650; font-size: 14.5px; }
+  .aviso-ios .c { font-size: 14.5px; }
+  .aviso-ios .h { font-size: 11.5px; color: #5b7480; margin-left: auto; flex: none; }
+  .fondo-ios { background: linear-gradient(160deg, #0f3346, #071822); border-radius: 14px;
+    padding: 22px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .flechita { font-family: var(--mono); font-size: 22px; color: var(--tinta-tenue); text-align: center; }
+</style>
+
+<div class="hoja">
+<div class="col">
+
+  <div class="masthead">
+    <div class="eyebrow">Ballena Ops · hoja de opciones · segunda vuelta</div>
+    <h1>Lo del grupo dejó de ser un ajuste el día que tuvo notas, historia y un ranking</h1>
+    <p class="entradilla">
+      De la hoja anterior salieron tres cosas cerradas y tres preguntas nuevas, y las tres preguntas
+      son la misma: <b>«El grupo» es hoy un acordeón dentro de Ajustes</b>, y le acabamos de meter
+      un bunga con notas y con histórico, un ranking de cacharros y una casilla de quién lleva las
+      cuentas. Eso ya no se ajusta: <b>se mira</b>. Es exactamente lo que le pasó a Estadísticas, que
+      por eso dejó Ajustes y se convirtió en Agenda&nbsp;→&nbsp;Números (§14.10-ter). Esta hoja decide
+      dónde vive el grupo, cómo se dibuja un comentario y qué hace la app cuando tocas un aviso.
+    </p>
+    <div class="ficha">
+      <span><b>Dibujado como «ahora»:</b> v0.47.0 (<code>main</code>, 88fd7cb)</span>
+      <span><b>Medida:</b> 390 pt</span>
+      <span><b>Paleta:</b> Abisal Sobrio, las dos caras</span>
+      <span><b>Viene de:</b> <code>docs/diseño/siete-encargos.html</code></span>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE CERO · LO DECIDIDO ══════════════ -->
+  <div class="parte">Parte cero · dónde estamos</div>
+  <p class="parte-tit">Lo que ya está decidido, lo que sigue abierto y lo que todavía no has contestado</p>
+  <p class="parte-intro">
+    Sin adornos: <b>tres cerradas del todo</b>, <b>dos cerradas en el fondo y abiertas en la forma</b>
+    —son las que trae esta hoja— y <b>dos que no has llegado a contestar</b>. Las últimas no las doy
+    por buenas: siguen esperando.
+  </p>
+
+  <div class="estado">
+    <div class="cerrada">
+      <div class="cab"><span class="num">Encargo 1</span><span class="sello si">Cerrado</span></div>
+      <div class="tit">Trucos</div>
+      <p><b>Una lista compartida entre todos los eventos</b>, y nada más. Se cae el «Para llevar» que
+        se tildaba cada viaje y se cae lo de «cosas que comprar». Sin estado por evento: una tabla,
+        una lista, <code>eventId</code> nulo.</p>
+      <p><b>Queda por decidir:</b> si lleva categorías (<code>T3</code>) y dónde se pone
+        (<code>D1</code>, la casilla de Planes, o <code>D2</code>, un acordeón).</p>
+    </div>
+    <div class="cerrada">
+      <div class="cab"><span class="num">Encargo 3</span><span class="sello si">Cerrado</span></div>
+      <div class="tit">La compra por familia</div>
+      <p><code>C1</code> + <code>C2</code>: una columna <code>familyId</code> en <code>shop</code>,
+        nula = común, y la misma pantalla con encabezados —«De las cenas», «Común», «Los García»—.
+        Cero controles nuevos y cero casillas.</p>
+    </div>
+    <div class="cerrada">
+      <div class="cab"><span class="num">Encargo 2</span><span class="sello si">Cerrado el qué</span></div>
+      <div class="tit">Bungas</div>
+      <p><code>B2</code> + <code>B4</code> + <code>B5</code>: catálogo de alojamientos fuera del
+        evento, pegatinas de un toque y la ficha por años calculada.</p>
+      <p><b>Abierto:</b> dónde vive → <b>parte uno</b>.</p>
+    </div>
+    <div class="cerrada abierta">
+      <div class="cab"><span class="num">Encargo 5</span><span class="sello">Cerrado el fondo</span></div>
+      <div class="tit">Comentarios</div>
+      <p><code>M1</code>: una tabla con ancla y un componente que se enchufa donde sea.</p>
+      <p><b>Abierto:</b> cómo se dibuja → <b>parte dos</b>. Y qué hace el aviso al tocarlo →
+        <b>parte tres</b>.</p>
+    </div>
+    <div class="cerrada abierta">
+      <div class="cab"><span class="num">Encargo 4</span><span class="sello">Cerrado el fondo</span></div>
+      <div class="tit">Ranking de cacharros</div>
+      <p><code>G1</code>–<code>G4</code>: uno por familia, un voto por cabeza, no se vota el propio,
+        y palmarés entre años.</p>
+      <p><b>Abierto:</b> dónde vive → <b>parte uno</b>, con los bungas.</p>
+    </div>
+    <div class="cerrada muda">
+      <div class="cab"><span class="num">Encargo 7</span><span class="sello">Sin contestar</span></div>
+      <div class="tit">«Se hace y punto»</div>
+      <p>Propuse <code>P1</code> + <code>P3</code> + <code>P4</code>: darle sentido a la columna
+        muerta <code>plans.estado</code>, un interruptor en el plan abierto para quien organiza, y
+        preguntarlo al proponer la idea. <b>Es la más barata de las siete</b> —cero migraciones— y
+        sigue esperando un sí.</p>
+    </div>
+    <div class="cerrada muda">
+      <div class="cab"><span class="num">Encargo 6</span><span class="sello">Sin contestar</span></div>
+      <div class="tit">Quién lleva las cuentas</div>
+      <p>Propuse <code>L1</code>–<code>L6</code>. Preguntaste si «lo del gasto podría estar en
+        grupo»: sí, y en la parte uno se ve dónde cae exactamente con cada opción. Lo que no has
+        dicho es si la clase de aviso va aparte (<code>L2</code>) y si también avisa de los gastos
+        <b>borrados</b> (<code>L6</code>), que es la única parte que toca la maquinaria.</p>
+    </div>
+  </div>
+
+  <p class="coste">
+    <b>Y una corrección de la hoja anterior:</b> el dibujo de Trucos enseñaba dos grupos —«Para
+    llevar», que se tildaba, y «Para saber»—. Con tu respuesta se queda <b>solo el segundo</b>, y con
+    él se va la segunda tabla: el catálogo compartido es todo lo que hay. La hoja vieja queda
+    desfasada en ese dibujo y así está dicho aquí.
+  </p>
+
+  <!-- ══════════════ PARTE UNO ══════════════ -->
+  <div class="parte">Parte uno · dónde vive lo del grupo</div>
+  <p class="parte-tit">Preguntas si cambiamos el nombre de Planes; la respuesta es que el que sobra es Ajustes</p>
+  <p class="parte-intro">
+    Hoy la quinta pestaña se llama <b>Ajustes</b> y dentro tiene nueve acordeones, de los cuales
+    <b>tres no son ajustes</b>: «El grupo» (familias, bungas, personas), «Quién eres» y «Mejoras».
+    Los otros seis sí lo son —Aspecto, Evento, Notificaciones, Cuentas, IA, La app—. Meter ahí los
+    bungas con historia y el ranking de cacharros empeora una mezcla que ya existía.
+  </p>
+  <p class="parte-intro">
+    <b>Planes no es candidato</b>, y no por el nombre: Planes es <b>lo que se hace</b> y el grupo es
+    <b>quién lo hace</b>. Renombrarlo obligaría a que los planes fueran un área de «Grupo», y
+    entonces la pestaña más usada del viaje estaría escondida detrás de una casilla. La medida lo
+    confirma: «Grupo» mide <b>44,2 pt</b> en la barra y la casilla da 76,4, así que cabe de sobra
+    donde haga falta — el problema nunca fue el ancho.
+  </p>
+
+  <div class="rejilla">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">Q1</span><span class="op-nombre">Todo se queda en Ajustes</span>
+        <span class="etq base">la de cero coste</span></div>
+      <p class="op-idea">El bunga con sus pegatinas y su histórico dentro del acordeón «El grupo»; el
+        ranking, otro acordeón. Cero cromo, cero casillas, cero riesgo. <b>El precio es que nadie
+        entra en Ajustes durante el viaje</b> — es la pestaña de la rueda dentada, y el histórico de
+        un bunga y un ranking de cacharros son justo lo que se enseña a alguien en la piscina.</p>
+      <p class="op-cuesta"><b>Cuesta</b> 0<br><b>Paga</b> que no se vea</p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">Q2</span><span class="op-nombre">La quinta pestaña pasa a ser «Grupo»</span>
+        <span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Mismo sitio en la barra, otro nombre y otro icono —la familia en vez de la
+        rueda—, y dentro <b>dos áreas</b>: <b>Gente</b> (familias con su bunga, sus pegatinas, su
+        histórico, su cacharro y quién lleva las cuentas) y <b>Ajustes</b> (aspecto, evento, avisos,
+        cuentas, IA, mejoras, la app). Lo que se mira se separa de lo que se toca <b>sin gastar
+        ninguna de las dos casillas del presupuesto</b>, porque Ajustes hoy no tiene mando y estrena
+        el suyo.</p>
+      <p class="op-cuesta"><b>Cuesta</b> 1 renombrado · 1 icono · 1 <code>SubNav</code> nuevo<br>
+        <b>Gana</b> el sitio natural de bungas, cacharros y contable</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">Q3</span><span class="op-nombre">Partido: editar en Ajustes, mirar en Números</span></div>
+      <p class="op-idea">El censo se queda donde está —es administración— y lo que se mira baja a
+        <b>Agenda → Números</b>, que ya es «lo que se cuenta del viaje» y donde ya viven el recap y
+        las fichas. El histórico del bunga y el palmarés de cacharros encajan ahí sin discusión.
+        <b>Lo malo:</b> la ficha de un bunga queda partida en dos pantallas, y para ver sus notas hay
+        que saber en cuál de las dos está.</p>
+      <p class="op-cuesta"><b>Cuesta</b> 0 casillas<br><b>Paga</b> una cosa contada en dos sitios</p>
+    </div>
+    <div class="opcion" data-marca="descartada">
+      <div class="op-cab"><span class="op-letra">Q4</span><span class="op-nombre">Planes pasa a llamarse «Grupo»</span>
+        <span class="etq no">descartada</span></div>
+      <p class="op-idea">Los planes tendrían que ser un área dentro de «Grupo», y son lo que más se
+        abre del viaje. Además deja el problema donde estaba: Ajustes seguiría teniendo «El grupo»
+        dentro, o habría que mover el censo también, y entonces es Q2 con el nombre en la pestaña
+        equivocada.</p>
+      <p class="op-cuesta"><b>Cuesta</b> esconder Planes detrás de una casilla</p>
+    </div>
+    <div class="opcion" data-marca="descartada">
+      <div class="op-cab"><span class="op-letra">Q5</span><span class="op-nombre">Sexta pestaña «Grupo»</span>
+        <span class="etq no">descartada</span></div>
+      <p class="op-idea">Es lo que uno pide primero y es lo que no se puede. La barra de cinco es una
+        decisión tomada en §14.10; con seis cada casilla del mando de dentro bajaría a
+        <b>67,6 pt</b> y dejarían de caber «Compra» (77,8) y «Números» (90,3), que ya están puestas.</p>
+      <p class="op-cuesta"><b>Cuesta</b> rehacer la barra y renombrar dos áreas que funcionan</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">Q6</span><span class="op-nombre">Tres áreas: Gente · Cacharros · Ajustes</span>
+        <span class="etq rec">variante de Q2</span></div>
+      <p class="op-idea">Igual que Q2 pero el ranking sale de dentro de la gente y tiene su casilla.
+        Las tres palabras caben —«Cacharros» mide 101,3 y la casilla de tres da 103,3, con 2,3 pt de
+        margen—. <b>Ese margen es el problema</b>: en la talla Enorme se pasa. «Ranking» cabría
+        holgado, pero no dice de qué.</p>
+      <p class="op-cuesta"><b>Cuesta</b> 2,3 pt de margen en Grande y ninguno en Enorme</p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel-caja">
+      <div class="tel oscuro">
+        <div class="barra"><div><div class="ti">Ajustes</div><div class="su">Playa 2026</div></div></div>
+        <div class="cuerpo">
+          <div class="acor"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M21 12h-3M6 12H3M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6"/></svg></div><div class="n">Aspecto</div><div class="q">Grande</div><div class="v">›</div></div>
+          <div class="acor"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg></div><div class="n">Evento</div><div class="q">Playa 2026</div><div class="v">›</div></div>
+          <div class="acor"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3.2"/><path d="M3 20a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.2a3.2 3.2 0 0 1 0 5.6"/><path d="M16 14.8A5.5 5.5 0 0 1 21 20"/></svg></div><div class="n">El grupo</div><div class="q">3 · 3 · 9</div><div class="v">›</div></div>
+          <div class="acor"><div class="ico">🙂</div><div class="n">Quién eres</div><div class="q">Curro</div><div class="v">›</div></div>
+          <div class="acor"><div class="ico">🔔</div><div class="n">Notificaciones</div><div class="q"></div><div class="v">›</div></div>
+          <div class="acor"><div class="ico">🔑</div><div class="n">Cuentas</div><div class="q">4</div><div class="v">›</div></div>
+          <div class="acor"><div class="ico">🐳</div><div class="n">IA</div><div class="q"></div><div class="v">›</div></div>
+          <div class="acor"><div class="ico">💡</div><div class="n">Mejoras</div><div class="q">2 sin hacer</div><div class="v">›</div></div>
+          <div class="acor"><div class="ico">🔄</div><div class="n">La app</div><div class="q">v0.47.0</div><div class="v">›</div></div>
+        </div>
+        <div class="tabbar">
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></div>
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></div>
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></div>
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></div>
+          <div class="tb on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M21 12h-3M6 12H3M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6"/></svg><span>Ajustes</span></div>
+        </div>
+      </div>
+      <p class="pie-tel"><b>Q1 · como está hoy</b> · nueve acordeones, y «El grupo» es el tercero</p>
+    </div>
+
+    <div class="tel-caja">
+      <div class="tel oscuro">
+        <div class="barra"><div><div class="ti">Grupo</div><div class="su">Playa 2026</div></div></div>
+        <div class="subnav-wrap"><div class="subnav"><b class="on">Gente</b><b>Ajustes</b></div></div>
+        <div class="cuerpo">
+          <div class="sec-h"><span>García <span class="alias ga">GA</span></span><span>4</span></div>
+          <div class="tarj">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6"/><path d="M10 20.4v-5.2h4v5.2"/></svg></div>
+              <div class="txt"><div class="n">Bunga 3 · el del fondo</div>
+                <div class="s">🧊 🌳 🔇 · aquí desde 2024</div></div><div class="v">›</div></div>
+            <div class="fila"><div class="ico ambar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M4 11.6h16M12 7v13"/></svg></div>
+              <div class="txt"><div class="n envuelve">La plancha de gas portátil</div>
+                <div class="s">su cacharro de este año · 1 voto</div></div><div class="v">›</div></div>
+            <div class="fila"><div class="ico">🙂</div><div class="txt"><div class="n">Curro</div>
+              <div class="s">Adulto · lleva las cuentas</div></div></div>
+            <div class="fila"><div class="ico">😎</div><div class="txt"><div class="n">Marta</div>
+              <div class="s">Adulto</div></div></div>
+            <div class="fila"><div class="ico">🥸</div><div class="txt"><div class="n">Fran</div>
+              <div class="s">Adolescente · el adolescente</div></div></div>
+          </div>
+          <div class="sec-h"><span>Pérez <span class="alias pe">PE</span></span><span>3</span></div>
+          <div class="tarj">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 9.6V19a1.4 1.4 0 0 0 1.4 1.4h9.2A1.4 1.4 0 0 0 18 19V9.6"/><path d="M10 20.4v-5.2h4v5.2"/></svg></div>
+              <div class="txt"><div class="n">Bunga 2 · el del ruido</div>
+                <div class="s">🚿 🔌 · estrenan</div></div><div class="v">›</div></div>
+            <div class="fila"><div class="ico verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 9.6 17.4 19.2 6.6"/></svg></div>
+              <div class="txt"><div class="n envuelve">La nevera de 12 V del coche</div>
+                <div class="s">su cacharro de este año · <b>3 votos</b></div></div><div class="v">›</div></div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><span>Agenda</span></div>
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6M21.5 20h-19"/></svg><span>Dinero</span></div>
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5v6a2.5 2.5 0 0 0 2.5 2.5v8"/><path d="M7 3.5v5.5M11 3.5v5.5"/><path d="M16.8 3.5c-1.4 2.2-1.4 6 0 8.2v8.3"/></svg><span>Comidas</span></div>
+          <div class="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Planes</span></div>
+          <div class="tb on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8" r="3.2"/><path d="M3 20a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.2a3.2 3.2 0 0 1 0 5.6"/><path d="M16 14.8A5.5 5.5 0 0 1 21 20"/></svg><span>Grupo</span></div>
+        </div>
+      </div>
+      <p class="pie-tel"><b>Q2 · recomendada</b> · la familia lo lleva todo: bunga, cacharro y gente</p>
+    </div>
+  </div>
+
+  <p class="coste">
+    <b>Lo que Q2 arregla de paso:</b> los tres acordeones que no eran ajustes se van con la gente
+    —«Quién eres» pasa a ser tocar tu propia fila, que es donde se busca— y Ajustes se queda con seis
+    cosas que sí lo son. Y responde a tus dos preguntas con un solo movimiento: el bunga con historia
+    y el ranking de cacharros viven en <b>Grupo → Gente</b>, cada uno dentro de la familia a la que
+    pertenece, y la casilla de quién lleva las cuentas también.
+  </p>
+
+  <!-- ══════════════ PARTE DOS ══════════════ -->
+  <div class="parte">Parte dos · el diseño de los comentarios</div>
+  <p class="parte-tit">Un hilo cabe en cuatro sitios, y cada uno cuesta algo distinto</p>
+  <p class="parte-intro">
+    Lo que se guarda ya está decidido (<code>M1</code>). Lo que falta es dónde se lee, cómo se sabe
+    que hay algo nuevo sin abrir nada, y dónde se escribe. Las medidas mandan: <b>la capa del plan
+    mide hoy 470 pt</b> de una ventana de 844, y con el teclado abierto quedan <b>508 pt</b> de
+    pantalla para todo.
+  </p>
+
+  <div class="rejilla">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K1</span><span class="op-nombre">Todo dentro de la capa</span>
+        <span class="etq base">lo dibujado antes</span></div>
+      <p class="op-idea">El hilo entero bajo los votos, con el campo al final. Se ve todo de una vez y
+        no hay una capa más. <b>Con ocho comentarios la capa pasa de 470 a ~900 pt</b> y hay que
+        rodar dentro de un modal para llegar a escribir — que es el defecto que §14.26 le quitó a la
+        ficha de un gasto.</p>
+      <p class="op-cuesta"><b>Cuesta</b> ~65 pt por comentario, sin techo</p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">K2</span><span class="op-nombre">Los dos últimos y «ver todos»</span>
+        <span class="etq rec">recomendada</span></div>
+      <p class="op-idea">Dentro de la capa, <b>los dos últimos</b> y un renglón que abre el hilo
+        entero en su hoja. La capa crece 130 pt y se para ahí. Es la figura del recap (§14.50), donde
+        el diario vive detrás de «ver todo», y la de la compra, donde el reparto se abre al tocar.</p>
+      <p class="op-cuesta"><b>Cuesta</b> +130 pt fijos · 1 hoja más<br>
+        <b>Gana</b> que la capa no crezca con el uso</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K3</span><span class="op-nombre">Solo un renglón que abre</span></div>
+      <p class="op-idea">«Comentarios · 3 ›» y nada más; el hilo vive entero en su hoja, con todo el
+        alto y el campo pegado abajo. La capa crece <b>44 pt</b> y punto. Lo que se pierde: hay que
+        tocar para saber si lo último es «a las 10» o «ya no voy».</p>
+      <p class="op-cuesta"><b>Cuesta</b> +44 pt · 1 toque más siempre</p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">K4</span><span class="op-nombre">La fila lo dice sin abrir nada</span>
+        <span class="etq rec">con K2</span></div>
+      <p class="op-idea">En la lista, el plan lleva un globo con el número y <b>un punto cuando hay
+        algo que no has visto</b>. Cero puntos de alto: el globo va donde ya va el recuento de votos.
+        Es lo que hace que el hilo se lea, igual que «faltan Ana y Luis» hace que se vote.</p>
+      <p class="op-cuesta"><b>Cuesta</b> 0 pt de alto<br>
+        <b>Pide</b> marca de leído por persona (ver <code>K6</code>)</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K5</span><span class="op-nombre">Hoja de chat, con el campo abajo</span></div>
+      <p class="op-idea">La figura de WhatsApp: orden cronológico y el campo pegado al teclado.
+        Familiar y cómoda para escribir seguido. Es la <b>hoja</b> de <code>K2</code>/<code>K3</code>
+        llevada al extremo, y solo tiene sentido si los hilos son largos — con tres mensajes por plan,
+        una hoja de pantalla completa para tres líneas es mucho envase.</p>
+      <p class="op-cuesta"><b>Cuesta</b> una pantalla entera por hilo</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">K6</span><span class="op-nombre">Qué se ha leído y qué no</span>
+        <span class="etq base">la decisión escondida</span></div>
+      <p class="op-idea">El punto de <code>K4</code> necesita saber qué has visto tú, y eso es un
+        dato nuevo por persona y por hilo. Dos salidas: <b>una marca por persona</b> (exacto, una
+        tabla más y escribe cada vez que abres algo) o <b>una sola fecha por persona</b> —«lo visto
+        hasta aquí»— que se guarda <b>en el móvil y no se sincroniza</b>: se equivoca al cambiar de
+        teléfono y no cuesta nada.</p>
+      <p class="op-cuesta"><b>Exacto</b> 1 tabla y escrituras constantes<br>
+        <b>Barato</b> 1 fecha local, se pierde al cambiar de móvil</p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel-caja">
+      <div class="tel oscuro">
+        <div class="barra"><div><div class="ti">Planes</div><div class="su">Playa 2026</div></div></div>
+        <div class="subnav-wrap"><div class="subnav"><b class="on">Planes</b><b>Ideas</b><b>Trucos</b></div></div>
+        <div class="cuerpo">
+          <div class="sec-h"><span>A votación · 3</span><span>por votos</span></div>
+          <div class="tarj">
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+              <div class="txt"><div class="n">Kayaks en la cala</div><div class="s">faltan Ana y Luis por votar</div></div>
+              <span class="punto"></span><span class="globo">💬 3</span><span class="pil neutro">6</span></div>
+            <div class="fila"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+              <div class="txt"><div class="n">Mercadillo de Torre</div><div class="s">falta Pablo por votar</div></div>
+              <span class="pil neutro">4</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel"><b>K4</b> · el globo y el punto de no leído, 0 pt de alto</p>
+    </div>
+
+    <div class="tel-caja">
+      <div class="tel oscuro">
+        <div class="barra"><div><div class="ti">Planes</div><div class="su">Playa 2026</div></div></div>
+        <div class="velo-centro">
+          <div class="capa">
+            <div class="m-t">Kayaks en la cala</div>
+            <div class="rotulo">Tu voto</div>
+            <div class="chips"><span class="chip on">👍</span><span class="chip">🤷</span><span class="chip">👎</span></div>
+            <div class="rotulo">Lo último</div>
+            <div class="tarj">
+              <div class="fila"><div class="txt">
+                <div class="n envuelve">A las 10 en el aparcamiento. Llevo yo el remolque.</div>
+                <div class="s">Curro <span class="alias ga">GA</span> · hoy 9:02</div></div></div>
+              <div class="fila"><div class="txt">
+                <div class="n envuelve">Fran y yo vamos andando, que son 15 min.</div>
+                <div class="s">Pablo <span class="alias so">SO</span> · hoy 9:31</div></div></div>
+            </div>
+            <div class="acor" style="padding:11px 12px"><div class="n">Ver los 3 comentarios</div><div class="v">›</div></div>
+            <div class="campo"><div class="caja">Escribe algo…</div><div class="boton">Enviar</div></div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel"><b>K2</b> · la capa crece 130 pt y se para ahí, con ocho o con ochenta</p>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE TRES ══════════════ -->
+  <div class="parte">Parte tres · el aviso que abre donde toca</div>
+  <p class="parte-tit">Sí se puede, y media pieza lleva escrita desde que existen los avisos</p>
+  <p class="parte-intro">
+    Preguntas si al pulsar la notificación se puede abrir la app <b>en lo que la ha generado</b>. Se
+    puede, y esto es lo que hay hoy en el código: el sobre de APNs mete <b>fuera de <code>aps</code></b>
+    lo que llegue en <code>aviso.datos</code>, y el comentario de <code>apns.js</code> dice literalmente
+    que «es lo que le dice a qué pantalla ir». El Worker <b>ya lo manda</b> — <code>ir: 'dinero'</code>,
+    <code>'hoy'</code>, <code>'ajustes/cuentas'</code>, <code>'ajustes/notificaciones'</code>—.
+  </p>
+  <div class="defectos">
+    <h2>Y nadie lo lee</h2>
+    <p>
+      La app escucha <code>pushNotificationReceived</code> —el aviso que <b>llega</b>, y solo para la
+      prueba de Ajustes— y <b>no escucha <code>pushNotificationActionPerformed</code></b>, que es el
+      que se dispara cuando alguien <b>toca</b> el aviso. Así que el destino viaja en cada aviso desde
+      el primer día y se tira a la basura al llegar: pulsar abre la app <b>donde la dejaste</b>.
+      Es la tercera pieza de esta tanda que está medio escrita y sin enchufar, junto a
+      <code>plans.estado</code> y al bunga sin catálogo.
+    </p>
+  </div>
+
+  <div class="rejilla">
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R1</span><span class="op-nombre">Solo la pestaña</span>
+        <span class="etq base">el mínimo</span></div>
+      <p class="op-idea">Escuchar el toque y hacer caso a lo que ya se manda: un gasto abre
+        <b>Dinero</b>, un estado abre <b>Hoy</b>, una solicitud abre <b>Ajustes → Cuentas</b>. Es un
+        escucha y un <code>setTab</code>, y es la mitad del valor por el 10 % del trabajo.</p>
+      <p class="op-cuesta"><b>Cuesta</b> ~20 líneas · 0 columnas · 0 binario nuevo</p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">R2</span><span class="op-nombre">La pestaña, el área y la fila</span>
+        <span class="etq rec">recomendada</span></div>
+      <p class="op-idea"><code>ir: 'dinero/gastos/exp_9f2'</code> abre ese gasto;
+        <code>'planes/planes/plan_a1#comentarios'</code> abre ese plan con el hilo desplegado. Pide
+        que cada pantalla acepte «abre esto», que hoy es estado privado suyo
+        (<code>const [abierto, setAbierto]</code>). Es el trabajo de verdad y es lo que hace que un
+        aviso de comentario sirva de algo.</p>
+      <p class="op-cuesta"><b>Cuesta</b> 1 «a dónde ir» global · 1 parámetro por pantalla</p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">R3</span><span class="op-nombre">Y el evento</span>
+        <span class="etq rec">imprescindible</span></div>
+      <p class="op-idea">Un aviso de un viaje que no es el que tienes abierto <b>tiene que cambiar
+        el evento antes de navegar</b>. Sin esto, R2 lleva a una pantalla donde esa fila no existe,
+        que se lee como que la app se ha perdido. El evento activo ya vive en una llave
+        (<code>ballena.activeEventId</code>), así que es ponerla antes de saltar.</p>
+      <p class="op-cuesta"><b>Cuesta</b> una línea, y sin ella R2 miente</p>
+    </div>
+    <div class="opcion" data-marca="recomendada">
+      <div class="op-cab"><span class="op-letra">R4</span><span class="op-nombre">Con la app cerrada</span>
+        <span class="etq rec">imprescindible</span></div>
+      <p class="op-idea">Si la app estaba cerrada, el toque llega <b>antes</b> de que haya nada
+        montado y <b>antes</b> de que la sincronización traiga la fila. El destino se guarda y se
+        consume cuando la app ya tiene datos — es la misma figura que la primera bajada
+        (<code>lib/primeraBajada.js</code>). Sin esto funciona con la app abierta y falla justo
+        cuando más se usa, que es a las 8 de la mañana.</p>
+      <p class="op-cuesta"><b>Cuesta</b> un destino en espera · su prueba</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R5</span><span class="op-nombre">Botones en el propio aviso</span></div>
+      <p class="op-idea">Contestar un comentario <b>desde la pantalla de bloqueo</b>, sin abrir la
+        app. El sobre ya manda <code>category</code>, que es exactamente lo que enciende los botones;
+        lo que falta es declararlos en nativo. <b>Eso no viaja por OTA</b>: exige binario nuevo y
+        pasar por Apple, así que va en otra vuelta.</p>
+      <p class="op-cuesta"><b>Cuesta</b> 1 binario · 1 envío a la tienda</p>
+    </div>
+    <div class="opcion">
+      <div class="op-cab"><span class="op-letra">R6</span><span class="op-nombre">Y que el globo del icono cuadre</span></div>
+      <p class="op-idea">El sobre ya manda <code>badge</code> como número absoluto. Con hilos de
+        comentarios, ese número debería ser <b>lo que tienes sin leer</b>, y eso lo sabe la marca de
+        leído de <code>K6</code>. Van juntas: sin ella, el globo se queda pegado en un número que no
+        baja, que es peor que no tener globo.</p>
+      <p class="op-cuesta"><b>Depende de</b> <code>K6</code></p>
+    </div>
+  </div>
+
+  <div class="tira-tel">
+    <div class="tel-caja">
+      <div class="fondo-ios">
+        <div class="aviso-ios">
+          <div class="ap">🐳</div>
+          <div><div class="t">Ana ha comentado en «Kayaks en la cala»</div>
+            <div class="c">¿A qué hora salimos? El alquiler cierra a las 19:00.</div></div>
+          <div class="h">ahora</div>
+        </div>
+        <div class="flechita">↓ se toca</div>
+        <div class="tel oscuro" style="width:340px">
+          <div class="barra"><div><div class="ti">Planes</div><div class="su">Playa 2026</div></div></div>
+          <div class="velo-centro" style="min-height:200px">
+            <div class="capa">
+              <div class="m-t">Kayaks en la cala</div>
+              <div class="rotulo">Comentarios · 3</div>
+              <div class="tarj">
+                <div class="fila"><div class="txt">
+                  <div class="n envuelve">¿A qué hora salimos? El alquiler cierra a las 19:00.</div>
+                  <div class="s">Ana <span class="alias pe">PE</span> · ahora</div></div></div>
+              </div>
+              <div class="campo"><div class="caja">Escribe algo…</div><div class="boton">Enviar</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="pie-tel"><b>R2 + R3 + R4</b> · <code>ir: 'planes/planes/plan_a1#comentarios'</code></p>
+    </div>
+  </div>
+
+  <!-- ══════════════ CIERRE ══════════════ -->
+  <div class="cierre">
+    <h2>Lo que te pido que elijas</h2>
+    <p>
+      Tres decisiones y dos síes pendientes. Con eso arranco por la primera cosa y las demás van
+      cayendo en el orden de la hoja anterior.
+    </p>
+    <div class="receta">
+      <i>Parte 1</i><span>Q2</span> la quinta pestaña pasa a ser «Grupo», con Gente y Ajustes<br>
+      <i>Parte 2</i><span>K2</span><span>K4</span><span>K6 barato</span> dos últimos + hoja, globo en la fila, leído local<br>
+      <i>Parte 3</i><span>R2</span><span>R3</span><span>R4</span> el aviso abre la fila, en su evento, también en frío<br>
+      <i>Pendiente</i><span>P1</span><span>P3</span><span>P4</span> «se hace y punto» — sigue sin tu sí<br>
+      <i>Pendiente</i><span>L2</span><span>L6</span> clase de aviso aparte, y avisar de los gastos borrados
+    </div>
+    <p>
+      <b>Y una cosa que decidir aunque no la hayas preguntado:</b> si vamos a <code>Q2</code>, conviene
+      hacerlo <b>antes</b> que los bungas y los cacharros, no después. Mover una pantalla que ya tiene
+      tres cosas nuevas dentro cuesta el triple que mover la que hay hoy, y el sitio donde nace algo
+      es el que la gente aprende.
+    </p>
+  </div>
+
+</div>
+</div>

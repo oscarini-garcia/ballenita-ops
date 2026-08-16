@@ -1,5 +1,5 @@
 /**
- * El enlace de acceso, del lado del navegador (SPECS §14.52).
+ * El enlace de acceso, del lado del navegador (SPECS §14.61).
  *
  * Quien no tiene iPhone no puede entrar: la hoja de Apple vive en la cáscara
  * nativa, y sin ella no hay sesión. La salida es un enlace que genera quien

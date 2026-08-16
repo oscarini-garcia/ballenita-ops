@@ -438,6 +438,44 @@ export async function registerPush({ alPaso } = {}) {
 }
 
 /**
+ * El oído del **toque**, que es el que no existía (SPECS §14.60).
+ *
+ * `pushNotificationReceived` es el aviso que **llega** y solo se usa para la
+ * prueba de Ajustes; `pushNotificationActionPerformed` es el que alguien
+ * **toca**, y es el que trae `notification.data` — donde el Worker lleva desde
+ * el primer día metiendo a dónde ir. Sin este escucha el destino viajaba en
+ * cada aviso y se tiraba a la basura: pulsar abría la app por donde se hubiera
+ * dejado.
+ *
+ * **Sin plazo, y a propósito.** Los demás cruces del puente lo llevan porque hay
+ * alguien esperando delante de una pantalla; éste se pone al arrancar y vive lo
+ * que viva la app. Un plazo aquí significaría dejar de escuchar los toques a los
+ * veinte segundos de abrirla.
+ *
+ * Devuelve una función para soltarlo, o una que no hace nada donde no hay
+ * plugin: en el navegador esto no existe y no puede romper el arranque.
+ */
+export function escucharToquesDeAviso(alTocar) {
+  if (!isNative()) return () => {}
+  let PushNotifications
+  try {
+    PushNotifications = plugin()
+  } catch {
+    return () => {}
+  }
+  let asa = null
+  let soltado = false
+  Promise.resolve(PushNotifications.addListener('pushNotificationActionPerformed', (accion) => {
+    // `data` es lo que va **fuera de `aps`** en el sobre; el resto del evento es
+    // de iOS y aquí no interesa.
+    try { alTocar?.(accion?.notification?.data ?? null) } catch { /* navegar no puede romper el puente */ }
+  }))
+    .then((a) => { asa = a; if (soltado) a?.remove?.() })
+    .catch(() => {})
+  return () => { soltado = true; asa?.remove?.() }
+}
+
+/**
  * Un oído puesto a que llegue un aviso, que es el eslabón que faltaba por mirar.
  *
  * «Mandado» era todo lo que sabía decir la prueba, y eso es solo que **Apple lo

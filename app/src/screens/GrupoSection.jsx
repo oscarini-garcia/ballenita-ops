@@ -9,15 +9,18 @@ import {
   bungasOf, addBunga, updateBunga, removeBunga, asignarBungaAFamilia,
   personsOf, addPerson, updatePerson, removePerson,
   expensesOf, dinnersOf,
+  PEGATINAS, addAlojamiento, listAlojamientos, updateAlojamiento, todosLosBungas, listEvents,
 } from '../db.js'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import Icono from '../components/Icono.jsx'
+import Alias from '../components/Alias.jsx'
 import Confirmar from '../components/Confirmar.jsx'
 import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre } from '../lib/asignacion.js'
 import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
-import { EDADES, EMOJIS_PERSONA, pesoDe } from '../lib/personas.js'
+import { EDADES, EMOJIS_PERSONA, pesoDe, puedeOrganizar } from '../lib/personas.js'
 import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
+import { conPegatina, historicoDe, pegatinasPuestas, resumenDelHistorico } from '../lib/alojamientos.js'
 import { esAdministrador } from '../lib/admin.js'
 import { leerSesion } from '../auth/sesion.js'
 
@@ -476,10 +479,30 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
   )
 }
 
+/**
+ * El editor de un bunga, y desde §14.56 también **el sitio**.
+ *
+ * Dos cosas en la misma hoja porque desde el móvil son una: se abre «Bunga 3» y
+ * se quiere corregir su alias, apuntar que la nevera congela y ver quién estuvo
+ * antes. Lo que las separa es dónde viven —el alias y la familia son de este
+ * agosto, las notas y las pegatinas del sitio— y eso es fontanería, no una
+ * pregunta que haya que hacerle a nadie.
+ *
+ * **El alojamiento se crea solo**, con el nombre del bunga, la primera vez que
+ * se escribe algo que es del sitio. Preguntarlo antes sería pedir que se
+ * entienda la partición para poder apuntar una nota.
+ */
 function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, onCerrar }) {
   const nuevo = !bunga
   const [name, setName] = useState(bunga?.name ?? '')
   const [alias, setAlias] = useState(bunga?.alias ?? '')
+  const alojamientos = useLiveQuery(() => listAlojamientos(), [], [])
+  const todosBungas = useLiveQuery(() => todosLosBungas(), [], [])
+  const eventos = useLiveQuery(() => listEvents(), [], [])
+  const sitio = alojamientos.find((a) => a.id === bunga?.alojamientoId) ?? null
+  const historico = historicoDe(bunga?.alojamientoId, {
+    eventos, bungas: todosBungas, familias: families,
+  })
   // Viene relleno cuando se ha llegado por «+ Bunga nuevo…» desde la hoja de una
   // familia (N4): el bunga nace ya con dueño, que es para lo que se ha creado.
   const [familyId, setFamilyId] = useState(bunga?.familyId ?? familyIdFijo ?? '')
@@ -493,6 +516,18 @@ function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, on
     if (nuevo) await addBunga(eventId, datos)
     else await updateBunga(bunga.id, datos)
     onCerrar()
+  }
+
+  /**
+   * Escribe algo que es **del sitio** y no de este agosto, creando el
+   * alojamiento si aún no lo tenía. Devuelve el id, para encadenar.
+   */
+  async function enElSitio(campos) {
+    if (!bunga) return null
+    if (sitio) { await updateAlojamiento(sitio.id, campos); return sitio.id }
+    const id = await addAlojamiento({ name: bunga.name, ...campos })
+    await updateBunga(bunga.id, { alojamientoId: id })
+    return id
   }
 
   const sede = nuevo ? 0 : cenas.filter((c) => c.bungaMayoresId === bunga.id || c.bungaNinosId === bunga.id).length
@@ -510,6 +545,70 @@ function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, on
       </button>
       {families.length > 0 && libres.length === 0 && !familia && (
         <div className="note">🐳 Todas las familias tienen ya bunga.</div>
+      )}
+
+      {/* **Cómo es el sitio** (§14.56 · B4). Pegatinas de un toque y no cinco
+          estrellas: se dibujó la versión con puntuaciones y son cinco preguntas
+          que en agosto no contesta nadie. Un toque sí se paga. Y esto **no se
+          va con el evento**: vive en el catálogo, así que sigue puesto el año
+          que viene. */}
+      {!nuevo && (
+        <>
+          <label>Cómo es</label>
+          <div className="chips">
+            {PEGATINAS.map((p) => {
+              const puesta = (sitio?.pegatinas ?? []).includes(p.id)
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`chip${puesta ? ' on' : ''}`}
+                  aria-pressed={puesta}
+                  onClick={() => { tap(); enElSitio({ pegatinas: conPegatina(sitio?.pegatinas, p.id) }) }}
+                >
+                  {p.icon} {p.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <label htmlFor="bunga-notas">Notas del sitio</label>
+          <textarea
+            id="bunga-notas"
+            rows={3}
+            placeholder="La nevera congela mucho, el sofá cama chirría…"
+            defaultValue={sitio?.notas ?? ''}
+            onBlur={(e) => {
+              const texto = e.target.value
+              if (texto !== (sitio?.notas ?? '')) enElSitio({ notas: texto })
+            }}
+          />
+          <div className="pista">
+            Esto es del <b>sitio</b>, no de este viaje: sigue aquí el año que viene.
+          </div>
+
+          {/* El histórico (B5). No se guarda: se recorre `events` y `bungas` y
+              se cuenta. */}
+          {historico.length > 1 && (
+            <>
+              <label>Quién ha estado</label>
+              <div className="card tight">
+                {historico.map((h) => (
+                  <div className="row" key={h.bungaId}>
+                    <div className="main">
+                      <div className="n">
+                        {h.anio ?? '—'}{' '}
+                        {h.familia ? `los ${h.familia.name}` : 'sin familia'}
+                        {h.familia && <Alias familia={h.familia} />}
+                      </div>
+                      <div className="sub">{h.evento?.name ?? 'otro viaje'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
       )}
 
       <PieDeEditor
@@ -552,6 +651,9 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
   const [edad, setEdad] = useState(persona?.edad ?? 'adulto')
   const [familyId, setFamilyId] = useState(persona?.familyId ?? familyIdFijo ?? '')
   const [eligiendo, setEligiendo] = useState(false)
+  // Quién se entera de **todos** los gastos (§14.58 · L1). Es un encargo, no un
+  // rasgo: lo pone quien administra y no se deduce de la edad.
+  const [lleva, setLleva] = useState(Boolean(persona?.llevaLasCuentas))
   const familia = families.find((f) => f.id === familyId)
   // Creada desde su ficha (N2): la familia la dice el sitio donde se ha pulsado,
   // así que preguntarla otra vez es preguntar algo ya contestado.
@@ -562,6 +664,10 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
     const datos = {
       name: name.trim(), apodo: apodo.trim(), avatar: avatar || '🧑',
       familyId: familyId || null, edad, pesoReparto: pesoDe(edad),
+      // Solo se guarda encendido si además puede: cambiar a niño a alguien que
+      // llevaba las cuentas lo apaga en el mismo gesto, y así no queda una fila
+      // marcada que la pantalla ya no enseña.
+      llevaLasCuentas: lleva && puedeOrganizar({ edad }),
     }
     if (nueva) await addPerson(eventId, datos)
     else await updatePerson(persona.id, datos)
@@ -632,6 +738,31 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
           </button>
         ))}
       </div>
+
+      {/* **Quién lleva las cuentas** (§14.58 · L1·L5). Solo para quien
+          administra —es lo mismo que decide el resto de esta pantalla— y solo
+          para quien puede escribir en Gastos: marcar de contable a un niño sería
+          una casilla que no puede hacer nada, así que no sale. */}
+      {esAdministrador(leerSesion()) && puedeOrganizar({ edad }) && (
+        <>
+          <label>Avisos</label>
+          <button
+            type="button"
+            className={`casilla-larga${lleva ? ' on' : ''}`}
+            role="switch"
+            aria-checked={lleva}
+            onClick={() => { tap(); setLleva(!lleva) }}
+          >
+            <span className="tic" aria-hidden>{lleva ? '✓' : ''}</span>
+            <span className="main">
+              <span className="n">Lleva las cuentas</span>
+              <span className="sub">
+                Le llegan <b>todos</b> los gastos, le toquen o no — y también los que se borren.
+              </span>
+            </span>
+          </button>
+        </>
+      )}
 
       <PieDeEditor
         onGuardar={guardar}

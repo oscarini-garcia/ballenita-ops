@@ -1,4 +1,4 @@
--- Entrar sin iPhone: el papelito de un solo uso de cada cuenta (SPECS §14.52).
+-- Entrar sin iPhone: el papelito de un solo uso de cada cuenta (SPECS §14.61).
 --
 -- **`cuenta.enlaceJti`** — el identificador del último pase de enlace que se
 -- generó para esta cuenta, o NULL si no hay ninguno vivo.
@@ -20,6 +20,6 @@
 -- Como las demás, no se toca `0001_esquema.sql`: aplicar todas las migraciones
 -- en orden tiene que reproducir producción (`test/d1.js`).
 --
---   npm run migrar:remoto16
+--   npm run migrar:remoto17
 
 ALTER TABLE cuenta ADD COLUMN enlaceJti TEXT;

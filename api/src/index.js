@@ -47,7 +47,8 @@
 import { verificarTokenDeApple } from './apple.js';
 import { enviarAviso, hayApnsConfigurado } from './apns.js';
 import {
-  CLASES_DE_AVISO, ES_CLASE, avisoDeEstado, avisoDeGasto, avisoDeLiquidacion, elGastoMueveElSaldo,
+  CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGastoBorrado,
+  avisoDeLiquidacion, avisosDeGasto, elGastoMueveElSaldo,
 } from './avisos.js';
 import {
   coincideEnTiempoConstante, emitirPaseDeEnlace, emitirPaseDeEspera, emitirSesion,
@@ -300,7 +301,7 @@ async function mirarLaEspera(peticion, env) {
 }
 
 /**
- * Entrar con el pase de un enlace, sin Apple y sin iPhone (SPECS §14.52).
+ * Entrar con el pase de un enlace, sin Apple y sin iPhone (SPECS §14.61).
  *
  * Quien administra genera el enlace desde Ajustes → Cuentas y se lo manda a
  * quien no tiene iPhone; abrirlo en cualquier navegador acaba aquí. Lo que
@@ -431,7 +432,7 @@ async function cuentas(peticion, env) {
   const { accion, identificador, nombre = '', id, rol, personId } = await peticion.json();
 
   if (accion === 'enlace') {
-    // Un enlace de acceso para quien no tiene iPhone (SPECS §14.52). Se pide
+    // Un enlace de acceso para quien no tiene iPhone (SPECS §14.61). Se pide
     // **por persona** y no por cuenta, porque el caso normal es que esa cuenta
     // todavía no exista: quien no tiene iPhone no ha podido entrar nunca, así
     // que no aparece en la lista de «quién ha pedido entrar». Si ya la tiene
@@ -633,21 +634,53 @@ async function avisosQueQuiero(peticion, env) {
  * termine de mandar: un aviso que no sale no puede tumbar el cambio que lo
  * provocó, que es lo mismo que ya hacía `avisarDeSolicitud`.
  */
-async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuenta }) {
-  if (!hayApnsConfigurado(env)) return;
-  const personas = instantanea?.persons ?? [];
-  const familias = instantanea?.families ?? [];
-  const moneda = instantanea?.events?.[0]?.currency || 'EUR';
-  const autor = cuenta.personId || null;
+/**
+ * De un lote de cambios y la instantánea, **qué sobres hay que mandar**.
+ *
+ * Separado de `avisarDeLosCambios` y exportado por un motivo concreto: aquí es
+ * donde estuvo escondido nueve versiones el fallo que dejaba los avisos mudos.
+ * `leerInstantanea` devuelve `{ v: 1, tables: { persons, families, … } }` y esto
+ * leía `instantanea.persons` — **siempre `undefined`**. Con la lista de personas
+ * vacía, `familiasDeUnGasto` no encuentra a nadie, `personIds` sale vacío y
+ * todos los avisos de `avisoDeGasto`, `avisoDeLiquidacion` y `avisoDeComentario`
+ * devuelven `null`: no se manda nada y **no falla nada**, que es la clase de
+ * error que no se nota hasta que alguien pregunta por qué no le llegó.
+ *
+ * Solo sobrevivía «En qué anda la gente», porque `avisoDeEstado` no mira las
+ * personas y su `personIds` es `null` —el grupo entero—. Los tests pasaban
+ * porque probaban las funciones puras con las listas puestas a mano; ninguno
+ * miraba **la forma de lo que les llega de verdad**. Por eso esto se exporta:
+ * para que haya un test que le pase una instantánea con la forma real.
+ */
+export function sobresDeLosCambios({ cambios, resultados, instantanea, autor = null }) {
+  const t = instantanea?.tables ?? {};
+  const personas = t.persons ?? [];
+  const familias = t.families ?? [];
+  const moneda = t.events?.[0]?.currency || 'EUR';
 
   const sobres = [];
   for (const [i, cambio] of cambios.entries()) {
     const resultado = resultados[i];
-    if (!resultado?.aplicado || cambio?.op === 'borrar') continue;
+    if (!resultado?.aplicado) continue;
     const campos = cambio.campos || {};
 
+    // **Un borrado también avisa, y solo a quien lleva las cuentas** (§14.58 ·
+    // L6). Hasta hoy este bucle se saltaba los borrados enteros: la regla era
+    // «se avisa de lo que mueve el saldo» y nadie se paró a ver que un gasto
+    // borrado lo mueve hacia atrás. Se usa `resultado.anterior`, que es la fila
+    // tal como estaba: después de aplicarlo ya no hay de dónde sacar ni el
+    // nombre ni el importe.
+    if (cambio?.op === 'borrar') {
+      if (cambio.tabla === 'expenses' && resultado.anterior) {
+        sobres.push(avisoDeGastoBorrado(resultado.anterior, { personas, moneda, autor }));
+      }
+      continue;
+    }
+
     if (cambio.tabla === 'expenses' && elGastoMueveElSaldo(resultado.anterior, campos)) {
-      sobres.push(avisoDeGasto({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
+      // Dos sobres como mucho, y nunca dos avisos a la misma persona: quien
+      // lleva las cuentas y además le toca el gasto recibe uno solo.
+      sobres.push(...avisosDeGasto({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
     }
     if (cambio.tabla === 'settlements' && resultado.nuevo) {
       sobres.push(avisoDeLiquidacion({ id: cambio.id, ...campos }, { personas, familias, moneda, autor }));
@@ -655,9 +688,35 @@ async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuent
     if (cambio.tabla === 'persons') {
       sobres.push(avisoDeEstado({ id: cambio.id, ...campos }, resultado.anterior, { autor }));
     }
+    // Un comentario **nuevo**, no uno corregido: arreglar una falta de ortografía
+    // no es algo de lo que enterar a nadie, y es la misma regla que ya separa un
+    // gasto que mueve el saldo de uno al que se le toca la descripción.
+    if (cambio.tabla === 'comentarios' && !resultado.anterior) {
+      sobres.push(avisoDeComentario({ id: cambio.id, ...campos }, {
+        personas,
+        planes: t.plans ?? [],
+        gastos: t.expenses ?? [],
+        hilo: t.comentarios ?? [],
+        autor,
+      }));
+    }
   }
 
-  for (const sobre of sobres.filter(Boolean)) {
+  return sobres.filter(Boolean);
+}
+
+/**
+ * Los avisos que nacen de un cambio, ya mandados.
+ *
+ * No lanza y no se espera: un aviso que no sale no puede tumbar el cambio que lo
+ * provocó, que es lo mismo que ya hacía `avisarDeSolicitud`.
+ */
+async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuenta }) {
+  if (!hayApnsConfigurado(env)) return;
+  const autor = cuenta.personId || null;
+  const sobres = sobresDeLosCambios({ cambios, resultados, instantanea, autor });
+
+  for (const sobre of sobres) {
     const tokens = await tokensParaAviso(env.DB, {
       clase: sobre.clase,
       personIds: sobre.personIds,
@@ -670,7 +729,14 @@ async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuent
         categoria: sobre.clase,
         agrupa: sobre.agrupa,
         urgente: false,
-        datos: { ir: sobre.clase === 'dinero' ? 'dinero' : 'hoy' },
+        // **El destino y el evento** (§14.60 · R2·R3). El sobre ya llevaba `ir`
+        // desde el primer día y nadie lo leía en el móvil; ahora además va el
+        // evento, porque un aviso de un viaje que no es el abierto llevaría a
+        // una pantalla donde esa fila no existe.
+        datos: {
+          ir: sobre.ir || (sobre.clase === 'estado' ? 'hoy' : 'dinero'),
+          evento: instantanea?.tables?.events?.[0]?.id ?? undefined,
+        },
       });
       if (r.caducado) await olvidarTokenPush(env.DB, token);
     }

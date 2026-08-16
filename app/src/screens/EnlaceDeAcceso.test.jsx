@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import 'fake-indexeddb/auto'
 
 /**
- * Crear un enlace de acceso desde Ajustes → Cuentas (SPECS §14.52).
+ * Crear un enlace de acceso desde Ajustes → Cuentas (SPECS §14.61).
  *
  * Lo que importa aquí es que se pide **por persona y no por cuenta**: quien no
  * tiene iPhone nunca ha podido entrar, así que no está en la lista de «quién ha

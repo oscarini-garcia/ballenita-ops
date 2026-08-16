@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { addExpense, updateExpense } from '../db.js'
+import { addExpense, updateExpense, anclaDe } from '../db.js'
 import { centsToEuros, formatCents } from '../lib/money.js'
 import { now } from '../lib/ids.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
@@ -8,6 +8,7 @@ import { CATEGORIES, catOf } from '../lib/categorias.js'
 import { IMPORTE_VACIO, desdeCents, totalCents, guardable, enPalabras } from '../lib/importe.js'
 import { splitCents } from '../lib/reparto.js'
 import { comoSeReparte } from '../lib/reparto-gente.js'
+import Comentarios from '../components/Comentarios.jsx'
 import PadDeImporte from '../components/PadDeImporte.jsx'
 import { HojaDeEleccion } from '../components/Hoja.jsx'
 import HojaDeEntre from './HojaDeEntre.jsx'
@@ -204,6 +205,14 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
           <button type="button" className="btn block guardar-gasto" disabled={!sePuede} onClick={guardar}>
             {editando ? 'Guardar los cambios' : 'Guardar gasto'}
           </button>
+
+          {/* **El hilo, solo en un gasto que ya existe** (§14.55). Es el segundo
+              sitio donde un comentario pide salir y probablemente el más útil:
+              «¿esto qué era?» es la pregunta que más se hace al repasar cuentas,
+              y hasta hoy la única respuesta posible era la descripción, que la
+              escribió quien lo apuntó y no quien pregunta. En uno que aún no se
+              ha guardado no sale: no tiene id al que anclar el hilo. */}
+          {editando && <Comentarios eventId={eventId} ancla={anclaDe('gasto', gasto.id)} titulo="Comentarios del gasto" />}
           {!guardable(importe) && (
             <div className="pista pista-gasto">Teclea el importe y se enciende.</div>
           )}

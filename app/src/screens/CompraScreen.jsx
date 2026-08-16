@@ -7,7 +7,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   shopItemsOf, addShopItem, removeShopItem, markBought, unmarkBought,
   clearBoughtShopItems, SHOP_CATEGORIES, personsOf, dinnersOf, bungasOf, listDishes,
-  sincronizarCompraDesdeCenas,
+  sincronizarCompraDesdeCenas, familiesOf,
 } from '../db.js'
 import { tap } from '../lib/native.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -15,6 +15,8 @@ import { comoSeReparte } from '../lib/compra.js'
 import { cifra } from '../lib/receta.js'
 import Recado from '../components/Recado.jsx'
 import Icono from '../components/Icono.jsx'
+import Alias from '../components/Alias.jsx'
+import { dondeSeApunta, gruposDeCompra } from '../lib/compra-familias.js'
 
 const catOf = (id) => SHOP_CATEGORIES.find((c) => c.id === id) ?? SHOP_CATEGORIES.at(-1)
 
@@ -48,6 +50,7 @@ export default function CompraScreen({ eventId, event }) {
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const cenas = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
+  const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const platos = useLiveQuery(() => listDishes(event), [event?.id, event?.esDemo], [])
   // Qué línea está abierta: el desglose entre las dos mesas se mira al tocarla
   // (C1). La lista es lo que hay que meter en el carro y nada más; el reparto
@@ -70,12 +73,23 @@ export default function CompraScreen({ eventId, event }) {
   }, [eventId, firma(cenas), firma(platos), firma(persons)])
   const [texto, setTexto] = useState('')
   const [categoria, setCategoria] = useState('otros')
+  // **De quién es lo que se apunta** (§14.54): nulo = de todos. Arranca en la
+  // tuya si la app sabe quién eres, porque la mitad de lo que se apunta a mano
+  // —la leche sin lactosa, el pan sin gluten— es de una casa y no del grupo. Lo
+  // común sigue a un toque, y el renglón dice siempre en cuál de las dos estás.
+  const [destino, setDestino] = useState(undefined)
 
   // Quién eres, para firmar quién marcó la compra. Sale de `lib/identidad.js`,
   // igual que en la cabecera y en Ajustes: esta pantalla leía la llave vieja
   // (`ballena.person.<evento>`), que ya no escribe nadie, así que firmaba en
   // blanco todas las compras.
   const { meId: me } = useIdentidad(eventId, persons)
+  // La familia de quien tiene el móvil, para arrancar el destino en la suya.
+  const miFamilia = persons.find((p) => p.id === me)?.familyId ?? null
+  useEffect(() => {
+    if (destino === undefined && persons.length) setDestino(miFamilia)
+  }, [destino, miFamilia, persons.length])
+  const famDestino = families.find((f) => f.id === destino) ?? null
   const nameOf = (id) => persons.find((p) => p.id === id)?.name ?? 'alguien'
   const bungaDe = (id) => bungas.find((b) => b.id === id)
   // Los nombres de las dos mesas, para que el reparto diga **dónde llevarlo** y
@@ -90,7 +104,7 @@ export default function CompraScreen({ eventId, event }) {
     const t = texto.trim()
     if (!t) return
     tap()
-    await addShopItem(eventId, { texto: t, categoria })
+    await addShopItem(eventId, { texto: t, categoria, familyId: destino ?? null })
     setTexto('')
   }
   function toggle(it) {
@@ -104,10 +118,12 @@ export default function CompraScreen({ eventId, event }) {
     .filter((x) => x.comprado)
     .sort((a, b) => (b.compradoEn || '').localeCompare(a.compradoEn || ''))
 
-  // Pendientes agrupados por categoría (en el orden de SHOP_CATEGORIES).
-  const grupos = SHOP_CATEGORIES
-    .map((c) => ({ cat: c, list: pendientes.filter((x) => x.categoria === c.id) }))
-    .filter((g) => g.list.length > 0)
+  // **Pendientes agrupados por de quién son, y dentro por categoría** (§14.54 ·
+  // C1+C2). Antes eran solo categorías; ahora el primer corte es el dueño,
+  // porque en el súper lo que se pregunta es «¿qué me llevo yo?» y no «¿qué hay
+  // de bebida?». Todo se ve —en esta app no hay nada privado— y eso es lo que
+  // hace que quien sale hacia el súper pregunte una vez en vez de nueve.
+  const grupos = gruposDeCompra(pendientes, families, SHOP_CATEGORIES)
 
   return (
     <div className="body">
@@ -139,6 +155,39 @@ export default function CompraScreen({ eventId, event }) {
             </button>
           ))}
         </div>
+        {/* **Para quién** (§14.54 · C1). Se dice siempre, también cuando es
+            «todos»: un renglón que solo habla cuando has elegido familia deja el
+            caso normal sin decir dónde va lo que escribes, y esa es justo la vez
+            que hay que acertar. Solo sale con familias en el evento. */}
+        {families.length > 0 && (
+          /* Segmentado pequeño y no otra tira de chips: con cinco categorías
+             arriba, cuatro chips más envolvían en dos líneas y la tarjeta de
+             apuntar pasaba de 200 a 350 pt — la mitad de la pantalla para
+             escribir «hielo». `.seg.mini` cabe en un renglón y rueda de lado
+             cuando hay más familias de las que caben. */
+          <div className="seg mini destino-compra" role="group" aria-label="Para quién se apunta">
+            <button
+              type="button"
+              aria-pressed={!destino}
+              onClick={() => { tap(); setDestino(null) }}
+            >
+              Todos
+            </button>
+            {[...families]
+              .sort((a, b) => String(a.name).localeCompare(String(b.name), 'es'))
+              .map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  aria-pressed={destino === f.id}
+                  onClick={() => { tap(); setDestino(f.id) }}
+                >
+                  {f.name}
+                </button>
+              ))}
+          </div>
+        )}
+        <div className="pista" style={{ marginTop: 6 }}>{dondeSeApunta(famDestino)}</div>
       </div>
 
       {items.length === 0 && (
@@ -149,9 +198,16 @@ export default function CompraScreen({ eventId, event }) {
         </div>
       )}
 
-      {grupos.map(({ cat, list }) => (
-        <div key={cat.id}>
-          <div className="sec-h">{cat.icon} {cat.label}</div>
+      {grupos.map(({ clave, titulo, familia, cat, list }) => (
+        <div key={clave}>
+          <div className="sec-h">
+            <span>
+              {familia
+                ? <>{titulo}<Alias familia={familia} /></>
+                : <>{cat ? `${cat.icon} ` : ''}{titulo}</>}
+            </span>
+            {familia && <span>{list.length}</span>}
+          </div>
           <div className="card tight">
             {list.map((it, i) => (
               <button

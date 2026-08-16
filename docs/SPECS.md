@@ -4085,7 +4085,7 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   que sugiere la app, y un Bizum de 20 sobre una deuda de 34,67 no se puede
   decir. Es el hueco grande que queda frente a Splitwise, y es otra vuelta.
 
-### 14.52 Entrar sin iPhone: un enlace que abre la puerta una vez
+### 14.61 Entrar sin iPhone: un enlace que abre la puerta una vez
 
 - **El defecto:** el acceso lo firma Apple, y esa hoja vive **en la cáscara
   nativa**. Quien no tiene iPhone no es que tenga la app capada: no tiene por
@@ -4204,6 +4204,254 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
 | — | Platos por cena | **Varios por tipo** (p. ej. 2-3 guarniciones); `platos[]` sin límite por categoría |
 | — | Día de un plan | **Poner / cambiar / quitar** el día; y **borrar** el plan (queda en historial) |
 | — | Campos extra por objeto | Evento **+lugar** · Persona **+apodo** · Plan **+enlace** · Bunga **+parcela/alias** · Plato **+ingredientes** (gasto/cena/familia: sin cambios) |
+
+### 14.52 El grupo dejó de ser un ajuste, y Ajustes sube a un botón
+
+- **El defecto:** la quinta pestaña era **Ajustes** y dentro tenía nueve
+  acordeones, de los cuales **tres no lo son**: «El grupo», «Quién eres» y
+  «Mejoras». Mientras «El grupo» era un censo —quién es de qué familia— se
+  aguantaba. Al darle al bunga notas e histórico (§14.56), a cada familia su
+  cacharro (§14.57) y a las personas la casilla de quién lleva las cuentas
+  (§14.58), eso dejó de ajustarse y pasó a **mirarse** — exactamente lo que sacó
+  a las estadísticas de Ajustes en §14.10-ter.
+- **✅ Q2** (`docs/diseño/donde-vive-el-grupo.html`): la quinta pestaña pasa a
+  ser **«Grupo»** —con la gente, sus bungas y sus cacharros— y **Ajustes se va
+  arriba a la derecha en pequeño**. No cuesta ninguna de las dos casillas de
+  `SubNav` que quedaban libres (§14.53 se lleva la de Planes): Ajustes no tenía
+  mando de áreas, así que el cambio es un renombrado.
+- **Por qué arriba a la derecha, si §14.10 lo bajó.** El argumento de entonces
+  sigue siendo cierto —es lo que peor alcanza el pulgar de una mano sola— y por
+  eso lo que se queda arriba es **lo que menos se pulsa**: aspecto, evento,
+  avisos, cuentas, IA y la app. Lo que se pulsa a diario baja.
+- **El mismo botón entra y sale.** La rueda se convierte en aspa y devuelve a
+  **donde estabas** (`volverA`), no a un sitio por defecto. Sin eso la única
+  salida sería tocar otra pestaña, y volver exigiría acordarse de dónde estabas.
+- **Se descartó renombrar Planes** (Q4): Planes es *lo que se hace* y el grupo es
+  *quién lo hace*; además obligaría a que los planes fueran un área dentro de
+  «Grupo», escondiendo detrás de una casilla lo que más se abre del viaje. Y una
+  sexta pestaña (Q5) baja cada casilla del mando de dentro a **67,6 pt**, con lo
+  que dejan de caber «Compra» (77,8) y «Números» (90,3), que ya están puestas.
+- **En Ajustes queda el rastro** (`.acor-ido`): un renglón que dice a dónde ha
+  ido «El grupo» y que lleva. Nueve solapas memorizadas no se reordenan solas en
+  la cabeza de nadie.
+- Medido a 390 pt: «Grupo» son **44,2 pt** en una casilla de barra de 76,4 — el
+  ancho nunca fue el problema.
+- **Lo que no se movió:** «Quién eres» y «Mejoras» siguen en Ajustes. La hoja
+  proponía llevárselas también; se dejaron donde estaban para no rehacer dos
+  flujos en la misma vuelta, y es lo primero que hay que revisar si Ajustes
+  vuelve a parecer un cajón.
+
+### 14.53 Los trucos: lo que hay que acordarse de un viaje a otro
+
+- Lista **compartida entre todos los eventos**, como `dishes` y `planIdeas`:
+  «el súper del pueblo cierra a las 14:00» sigue siendo verdad el agosto que
+  viene, y ésa es toda la razón de ser de la lista. Tabla `trucos`, `eventId`
+  nulo = de todos, con valor = solo del Demo (§14.9-quater).
+- **No se tacha, y no es un descuido.** La primera hoja dibujó dos grupos —«Para
+  llevar», que se tildaba cada viaje, y «Para saber»— y se descartó: un truco no
+  es una tarea, y tildarlo obligaba a una segunda tabla de estado por evento
+  para nada. Para lo otro ya está la lista de la compra.
+- **Vive en Planes → Trucos** (D1), tercera área. Cabe: la palabra mide **65,4
+  pt** y con tres casillas cada una da 103,3. Y encaja de significado — Planes ya
+  es el sitio de lo que se repite de un viaje a otro. Se descartó el acordeón de
+  Ajustes (D2) porque durante el viaje ahí no entra nadie, que es justo cuando un
+  truco sirve.
+- Con **categorías** (T3), la figura de `SHOP_CATEGORIES`: antes de salir, el
+  coche, el camping, la cocina, la playa. Con quince trucos sobran y con sesenta
+  son lo que hace que se encuentren.
+- Renglón fijo para apuntar que **no se cierra al guardar**, deslizar para editar
+  y borrar, y la firma de Ideas: nombre + alias de su familia + cuándo. Es la
+  misma figura que «Mejoras» (§14.22), y por eso se lee igual.
+
+### 14.54 La compra, por familia
+
+- **Lo que ya estaba:** marcar sin borrar y el aspa a la derecha existen desde
+  §14.38. El encargo describía la pantalla que había; lo único nuevo es el
+  **ámbito**.
+- **✅ C1 + C2**: una columna `shop.familyId` —**nula = común**, que es como
+  nacen todas las de siempre y todas las que calculan las cenas— y la misma
+  pantalla partida en **secciones**: «De las cenas», «Común» y una por familia.
+- **Secciones y no un filtro** (se descartó C3): un segmentado «Todas · La mía»
+  cuesta ~57 pt permanentes y obliga a un toque para ver lo que ya cabía. En el
+  súper hace falta la lista entera de un vistazo, porque quien va compra para
+  todos.
+- **Nada se oculta.** En esta app no hay nada privado —todo se sincroniza y todo
+  se ve—, así que la lista de una familia la leen las demás. Es lo que hace que
+  quien sale hacia el súper pregunte una vez en vez de nueve, y evita decidir qué
+  ve quien administra. Hacerla privada de verdad pediría cifrarla o filtrarla en
+  el Worker: es una obra, no un campo.
+- El renglón de apuntar **arranca en tu familia** si la app sabe quién eres —la
+  mitad de lo que se apunta a mano es de una casa— y **dice siempre para quién**,
+  también cuando es para todos: un renglón que solo habla al elegir familia deja
+  el caso normal sin decir dónde va lo que escribes.
+- Dentro de una familia **no** se parte por categoría: son tres o cuatro cosas, y
+  cinco encabezados de una línea gastan más alto que la lista.
+- Una línea de una familia borrada cae en «Común» y no desaparece; una categoría
+  retirada tampoco pierde su línea. Todo en `lib/compra-familias.js`, puro.
+
+### 14.55 Los comentarios: una tabla con ancla, y un componente
+
+- **✅ M1**: tabla `comentarios` con **ancla** —`'<tipo>:<id>'`: `plan:abc`,
+  `gasto:def`, `dia:2026-08-15`— y un `<Comentarios eventId ancla />` que se
+  enchufa donde sea. Una tabla, un componente, una clase de aviso, N sitios: el
+  octavo cuesta tres líneas de JSX.
+- **Se descartó una columna JSON por tabla** (M2) por dos defectos que no se
+  arreglan después: una migración por sitio, y **dos personas comentando a la vez
+  se pisan**, porque cada una sube la fila entera del plan. Y se descartó reusar
+  `registro` (M4): esa se compone sola y no se corrige ni se borra.
+- **✅ K2 · los dos últimos y el resto detrás de un renglón.** La capa de un plan
+  mide **470 pt** y con el hilo entero dentro pasa de **900**, así que habría que
+  rodar dentro de un modal para llegar a escribir — el defecto que §14.26 le
+  quitó a la ficha de un gasto. Con dos crece 130 pt y **se para ahí**, con ocho
+  comentarios o con ochenta. Es la figura del recap (§14.50).
+- **✅ K4 · la fila lo dice sin abrir nada**: un globo con cuántos hay y un aro
+  cuando alguno no lo has visto. Cuesta **0 pt de alto** —va donde ya va el
+  recuento de votos— y es lo que hace que un hilo se lea.
+- **✅ K6 · lo leído es del móvil y no se sincroniza** (la variante barata). La
+  exacta es una tabla más y una escritura cada vez que abres algo; ésta se
+  equivoca solo al cambiar de teléfono, y lo que se pierde es un punto. Se marca
+  **hasta el último que había**, no hasta «ahora»: uno escrito mientras tienes el
+  hilo abierto quedaría marcado sin haberlo visto. Y **lo tuyo nunca cuenta como
+  sin leer**.
+- **Dónde está enchufado:** el plan, el gasto y el día. El gasto es probablemente
+  el más útil —«¿esto qué era?» es la pregunta que más se hace al repasar
+  cuentas, y hasta hoy la única respuesta era la descripción—. Quedan fuera de
+  esta vuelta la cena, el bunga, la línea de la compra, la idea y la mejora: el
+  componente ya vale, es enchufarlo.
+- **A quién avisa: N1 ∪ N2.** Los **involucrados** —quien votó el plan, a quien le
+  mueve el saldo el gasto, todos en un día— **y los del hilo**, que son los que ya
+  escribieron ahí. Sin los segundos, contestarle a alguien que no votó el plan no
+  le llega, que es lo primero que rompe una conversación. Nunca a quien escribe.
+- **Clase propia** (`comentario`, N4) con su interruptor, y **agrupado por hilo**:
+  un ida y vuelta de seis mensajes deja **un** aviso, no seis.
+- El aspa solo está en **los tuyos**: borrar lo que escribió otro no es moderar,
+  es reescribir la conversación.
+
+### 14.56 El bunga es un sitio, y por eso puede tener historia
+
+- **El defecto:** `bungas` lleva `eventId`, así que el «Bunga 12» de 2025 y el de
+  2026 eran **dos filas sin nada que las una**. Una nota escrita este agosto se
+  iba con el evento, y el histórico de qué familia durmió dónde **no existía**:
+  no estaba esperando a que lo pintáramos, había que crearlo.
+- **✅ B2**: catálogo `alojamientos`, la figura de la casa por cuarta vez
+  (`dishes` ↔ `dinners`, `planIdeas` ↔ `plans`). En el catálogo vive lo que **no
+  cambia de un año a otro** —cómo es el sitio, sus notas, sus pegatinas— y en el
+  bunga del evento lo que es de este agosto: qué familia lo tiene
+  (`bungas.alojamientoId`).
+- **✅ B4 · pegatinas de un toque** —🧊 buena nevera, 🚿 baño bien, 🔇 tranquilo,
+  🌳 sombra, 🔌 enchufes, 🐜 bichos, 📶 sin cobertura— y no cinco estrellas (B3):
+  son cinco preguntas que en agosto no contesta nadie, y un toque sí se paga.
+- **✅ B5 · el histórico se calcula, no se guarda.** Es la regla de oro: se
+  sincronizan los hechos y lo demás sale de ellos. El año lo da `startDate` y no
+  `creadoEn` —un evento se crea en junio y es de agosto—, y un viaje sin fechas
+  entra igual y va al final, que es lo que §14.10-quater decidió con las cenas.
+- **El alojamiento se crea solo**, con el nombre del bunga, la primera vez que se
+  escribe algo que es del sitio. Preguntarlo antes sería pedir que se entienda la
+  partición para poder apuntar una nota.
+
+### 14.57 El cacharro del año
+
+- Uno **por familia** (G1) y un voto **por cabeza** (G2): es lo que lo convierte
+  en un ranking. Con 👍 múltiple los tres empatan a nueve y no hay ganador —
+  distinto de un plan a propósito, donde se decide si algo se hace y a eso puede
+  decir que sí todo el mundo.
+- **Nadie vota el suyo** (G3): quita la trampa evidente, y con tres familias el
+  ganador sale siempre de fuera. El precio se dice y no se esconde: una familia
+  grande arrastra más votos, así que esto es un juego y no unas elecciones.
+- Es un plan con otro nombre —`votos` es el mismo mapa persona → valor— así que
+  no hay maquinaria nueva. Todo lo que decide está en `lib/cacharros.js`, puro.
+- **Vive en Grupo** y no en una pestaña propia: lo que se pregunta es qué ha
+  traído cada familia, y eso se lee al lado de quién duerme dónde. Además no
+  quedaba casilla — «Gadgets» mide **83,8 pt** y la cuarta casilla de un mando da
+  **73,5** (GD2).
+- **Lo que falta:** el palmarés entre años (G4) no está. La tabla ya cuelga de su
+  evento, así que es una ficha en Números que recorra los eventos y saque el
+  ganador de cada uno; no se hizo en esta vuelta.
+
+### 14.58 Quién lleva las cuentas
+
+- Columna `persons.llevaLasCuentas` (L1). Es un **encargo, no un rasgo**: lo pone
+  quien administra, en la ficha que ya edita nombre, apodo, edad y familia, y no
+  se deduce de la edad. Solo se ofrece a quien puede escribir en Gastos
+  (`puedeOrganizar`, L5): marcar de contable a un niño sería una casilla que no
+  puede hacer nada. Pasar a niño a quien la llevaba **la apaga en el mismo
+  gesto**, para no dejar una fila marcada que la pantalla ya no enseña.
+- **Clase de aviso propia** (`gastoTodos`, L2) y **no** dentro de «dinero»: si
+  fuera dentro, quien se harta de los gastos ajenos perdería al apagarla también
+  los suyos, y entonces no se enteraría de nada.
+- **Un solo aviso** (L4): quien lleva las cuentas **y** además le toca el gasto
+  recibe uno. El descarte se hace en `avisosDeGasto` y no en APNs —
+  `apns-collapse-id` sustituye una notificación por otra en la pantalla de
+  bloqueo, pero **las dos suenan**.
+- **El aviso dice por qué llega** (L3): «Te llega porque llevas las cuentas». Sin
+  esa coletilla, ver un gasto de una familia con la que no compartes nada se lee
+  como un fallo de la app y no como el encargo que uno aceptó.
+- **✅ L6 · y los gastos borrados avisan.** Es la única parte que toca la
+  maquinaria: hasta hoy el bucle de avisos se saltaba los borrados enteros,
+  porque la regla era «se avisa de lo que mueve el saldo» y nadie se paró a ver
+  que un gasto borrado lo mueve **hacia atrás** — desde la pantalla, un número
+  que baja solo. A los demás se les sigue sin avisar: enterarse de que ya no
+  debes algo no es urgente. A quien lleva las cuentas sí, porque es justo lo que
+  le impide cuadrarlas.
+
+### 14.59 Hay cosas que no se someten a votación
+
+- **La columna llevaba un año escrita y no la leía nadie.** `addPlan` escribía
+  `estado: 'votando'`, la columna viajaba a D1 y a la instantánea, y lo que
+  separaba «Elegidos» de «Disponibles» era tener día. El encargo no pedía una
+  columna nueva, pedía usar la que estaba: **cero migraciones**.
+- **✅ P1**: `'votando'` | `'sehace'`. Tres grupos en la lista —**Se hacen**,
+  Elegidos, A votación— y el primero manda sobre el día, porque «esto se hace» y
+  «esto tiene día» son cosas distintas y muchas veces se decide la primera antes:
+  «a los kayaks vamos fijo, ya veremos cuándo». Un plan que se hace y no tiene día
+  sale arriba con el icono en **ámbar** (pendiente, §14.32) diciendo que le falta.
+- **Lo decidido no enseña votos ni cuenta quién falta.** Enseñarlos era la queja:
+  un plan ya decidido con «faltan Ana y Luis» debajo dice que aún se está
+  decidiendo.
+- **✅ P3 · el interruptor va dentro del plan**, para quien organiza —la misma
+  guarda que ya tiene «Proponer» (§14.43)— y **los votos no se borran**: se
+  guardan por si vuelve a votación. Es lo que permite tocarlo sin miedo; un
+  cambio de opinión no puede costar los votos de nueve personas.
+- **✅ P4 · se pregunta al proponer una idea**, que es donde uno tiene la decisión
+  en la cabeza: proponer «la paella del sábado» ya es haberlo decidido.
+- Un plan sin `estado`, o con el `'confirmado'` de los viejos, **se vota**: la
+  comprobación es por el valor afirmativo y nunca por la ausencia del otro, así
+  que nada de antes cambia de comportamiento.
+- **Se descartó P5** (que valga también para las cenas): allí «se hace y punto»
+  es el estado de siempre y lo que faltaría es lo contrario. Otra vuelta.
+
+### 14.60 El aviso abre lo que lo generó
+
+- **Media pieza llevaba escrita desde el principio.** El sobre de APNs mete fuera
+  de `aps` lo que llegue en `aviso.datos`, el comentario de `api/src/apns.js`
+  dice literalmente que «es lo que le dice a qué pantalla ir», y el Worker
+  llevaba mandando `ir: 'dinero' | 'hoy' | 'ajustes/cuentas'` desde que existen
+  los avisos. **Nadie lo leía**: la app escuchaba `pushNotificationReceived` —el
+  que llega, y solo para la prueba de Ajustes— y no
+  `pushNotificationActionPerformed` —el que se **toca**—. El destino viajaba en
+  cada aviso y se tiraba a la basura; pulsar abría la app donde la dejaste. Es la
+  tercera pieza medio escrita de esta tanda, con `plans.estado` y el bunga sin
+  catálogo.
+- **✅ R2 · pestaña, área y fila**: `ir: 'planes/planes/plan_a1'` abre ese plan;
+  `'dinero/gastos/exp_9f2'` ese gasto; `'agenda/dias/2026-08-15'` ese día. Los
+  tres niveles son opcionales de derecha a izquierda, así que los avisos viejos
+  —que mandan solo la pestaña— siguen valiendo. Lo que no se reconoce lleva a
+  «Hoy»: mejor la portada que una pantalla vacía.
+- **✅ R3 · y el evento.** El sobre lleva ahora `datos.evento`. Sin él, un aviso
+  de un viaje que no es el abierto lleva a una pantalla donde esa fila no existe,
+  y eso se lee como que la app se ha perdido. Se cambia **antes** de navegar.
+- **✅ R4 · con la app cerrada.** El toque llega antes de que haya nada montado y
+  antes de que la sincronización traiga la fila, así que el destino **se guarda y
+  se consume** cuando el evento ya está resuelto. Sin esto funcionaría con la app
+  abierta y fallaría justo cuando más se usa, que es a las ocho de la mañana con
+  el teléfono en la mesilla. Es la figura de `lib/primeraBajada.js`.
+- Las pantallas de llegada **esperan a tener datos**: abrir un plan que aún no ha
+  bajado sería no abrir nada.
+- **Lo que no está: R5**, los botones dentro del aviso para contestar desde la
+  pantalla de bloqueo. El sobre ya manda `category`, que es lo que los enciende,
+  pero declararlos es nativo y **no viaja por OTA**: exige binario nuevo y pasar
+  por Apple.
+
 
 ### 🟡 Aún abiertas (nivel implementación, no bloquean producto)
 | # | Decisión | Recomendación |

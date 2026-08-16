@@ -33,7 +33,7 @@ function idDeDispositivo() {
 /**
  * ¿Este dispositivo sincroniza con el grupo?
  *
- * La app de iOS, siempre; y el navegador **cuando hay sesión** (SPECS §14.52).
+ * La app de iOS, siempre; y el navegador **cuando hay sesión** (SPECS §14.61).
  *
  * Aquí ponía «solo la app de iOS», y el motivo era bueno: la única puerta era
  * Apple, que vive en la cáscara nativa, así que en el navegador no había forma

@@ -298,6 +298,55 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .appbar .iconbtn { flex: none; background: rgba(255,255,255,.12); border: none; color: var(--appbar-ink);
   border-radius: 8px; padding: 7px 9px; font-size: var(--t-body); line-height: 1; cursor: pointer; }
 .appbar .iconbtn:active { transform: translateY(1px); }
+/* El aspa que cierra Ajustes (§14.52). Mismo botón que la rueda, mismo sitio y
+   misma diana: entrar y salir de lo mismo es el mismo gesto. */
+.appbar .iconbtn .x-chico { font-size: 23px; line-height: 1; display: block; }
+/* El dibujo necesita medida: `Icono` sirve un `<svg>` sin `width` ni `height`
+   —hereda del sitio donde se pone, como `.tab svg` o `.ico svg`— y aquí no
+   había regla ninguna, así que la rueda se pintaba en un botón vacío. El
+   botón de antes llevaba un emoji, y por eso esto no se notó hasta ponerlo. */
+.appbar .iconbtn svg { width: 22px; height: 22px; display: block; }
+
+/* El renglón que dice a dónde se ha ido «El grupo» (§14.52). No es un acordeón
+   —no despliega nada— pero se lee en la misma columna que los nueve que había,
+   porque nueve solapas memorizadas no se reordenan solas en la cabeza de nadie. */
+.acor-ido { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  background: var(--foam-2); border: 1px solid var(--line-soft); border-radius: var(--r);
+  padding: 12px; color: inherit; font: inherit; cursor: pointer; }
+.acor-ido:active { transform: translateY(1px); }
+.acor-ido .ico { width: 34px; height: 34px; border-radius: 9px; flex: none; display: grid;
+  place-items: center; background: color-mix(in srgb, var(--spout) 14%, transparent);
+  color: var(--spout-deep); }
+.acor-ido .ico svg { width: 20px; height: 20px; display: block; }
+.acor-ido .main { flex: 1; min-width: 0; }
+.acor-ido .main .n { display: block; font-size: var(--t-row); font-weight: 600; }
+.acor-ido .main .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
+.acor-ido .v { color: var(--ink-faint); font-size: 18px; flex: none; }
+
+/* Una casilla con su explicación debajo (§14.58). No es un `checkbox` desnudo
+   porque lo que hay que leer no es la etiqueta sino la consecuencia —«le llegan
+   todos los gastos»—, y eso no cabe al lado de una casilla de 24 pt. La diana es
+   el renglón entero. */
+.casilla-larga { display: flex; align-items: flex-start; gap: 11px; width: 100%; text-align: left;
+  background: var(--foam-2); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 12px; color: inherit; font: inherit; cursor: pointer; }
+.casilla-larga:active { transform: translateY(1px); }
+.casilla-larga .tic { width: 24px; height: 24px; border-radius: 6px; flex: none; margin-top: 1px;
+  border: 2px solid var(--line); display: grid; place-items: center; font-size: 15px; line-height: 1; }
+.casilla-larga.on { border-color: var(--spout); }
+.casilla-larga.on .tic { background: var(--spout); border-color: var(--spout); color: #fff; }
+.casilla-larga .main { flex: 1; min-width: 0; }
+.casilla-larga .main .n { display: block; font-size: var(--t-row); font-weight: 600; }
+.casilla-larga .main .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
+
+/* El globo de comentarios de una fila (§14.55 · K4). Cuesta 0 pt de alto: va en
+   la misma columna que el recuento de votos. El punto de no leído es un aro y no
+   un segundo elemento, para no gastar ancho en una lista que ya lleva tres
+   cosas a la derecha. */
+.globo { font-size: var(--t-micro); font-weight: 650; padding: 4px 9px; border-radius: 999px;
+  white-space: nowrap; flex: none; background: color-mix(in srgb, var(--spout) 14%, transparent);
+  color: var(--spout-deep); }
+.globo.nuevo { box-shadow: 0 0 0 2px var(--spout); }
 
 /* Pastilla de demostración. Escrita y permanente, no un icono: durante una
    demostración todo lo que se ve es inventado, y esa es la única señal de que
@@ -421,6 +470,12 @@ body.modal-abierto .body { overflow: hidden; }
    apuntó “Tomate de un…» y el recap deja de contar nada. Medido en navegador:
    ocho de los cuarenta y cinco renglones del Demo se recortaban. */
 .row.recap-linea .main .n { white-space: normal; overflow: visible; font-weight: 500; }
+/* El nombre de una fila **se recorta** por defecto, porque las filas de esta app
+   son nombres cortos —«Bunga 3», «Kayaks en la cala»—. Lo que es una frase entera
+   —un truco, un comentario, el nombre de un cacharro— pide esto a mano, y por eso
+   es una clase y no un cambio del defecto: recortar sigue siendo lo correcto en
+   las quince listas que ya existen. */
+.row .main .n.envuelve { white-space: normal; overflow: visible; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
 .av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
@@ -1407,6 +1462,10 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    `flex: 1` y lo estiraba de lado a lado. */
 .seg.mini { display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; }
 .seg.mini button { flex: 0 0 auto; min-height: 0; padding: 5px 11px; font-size: var(--t-label); }
+/* Para quién se apunta en la compra (§14.54). Rueda de lado en vez de envolver:
+   con seis familias, envolver devolvería la tarjeta a los 350 pt que este
+   control vino a evitar. */
+.destino-compra { margin-top: 8px; max-width: 100%; overflow-x: auto; }
 .seg.mini button:disabled { opacity: .45; }
 
 /* **El detalle, en un solo renglón al pie** (F4). Antes cada línea llevaba el
@@ -1488,6 +1547,11 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    dé un salto al cambiar la papelera por «¿Seguro?». */
 .quitar { color: var(--owe); border-color: color-mix(in srgb, var(--owe) 40%, transparent);
   min-width: 78px; text-align: center; }
+/* El dibujo dentro de un botón necesita medida, como en `.verbo` y en `.tab`:
+   `Icono` sirve un `<svg>` sin `width` ni `height` a propósito —hereda del
+   sitio— y en un botón sin regla se estira a lo que le dé el tamaño de la fila.
+   Se vio en el navegador con la papelera de un cacharro, que llenaba 90 pt. */
+.btn svg { width: 19px; height: 19px; display: block; margin: 0 auto; }
 .quitar.seguro { background: var(--owe); border-color: var(--owe); color: var(--foam-2);
   font-weight: 650; }
 

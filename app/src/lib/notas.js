@@ -16,7 +16,7 @@
  */
 export const NOTAS = [
   {
-    version: '0.48.0',
+    version: '0.49.0',
     fecha: '2026-08-16',
     titulo: 'Quien no tiene iPhone ya puede entrar',
     lineas: [
@@ -25,6 +25,19 @@ export const NOTAS = [
       'En el navegador no hay avisos, y la app se ve como un móvil grande en un portátil. Sin enlace, la web sigue siendo la libreta local de siempre.',
       'Y en Planes, «Devolver a ideas» lo puede hacer cualquier adulto, no solo quien lleva el grupo: si tú puedes proponer un plan, puedes retirarlo.',
       'Ajustes → 🐳 La app queda ordenada en tres bloques con su rótulo —los datos, la versión y la base de datos—, con «Qué ha cambiado» al final en vez de en medio del botón de actualizar.',
+    ],
+  },
+  {
+    version: '0.48.0',
+    fecha: '2026-08-16',
+    titulo: 'La pestaña «Grupo», y seis cosas nuevas',
+    lineas: [
+      'La quinta pestaña ya no es Ajustes: es «Grupo», con las familias, su bunga, su gente y el cacharro que trae cada una, que se vota. Ajustes se ha ido a la rueda pequeña de arriba a la derecha, y el mismo botón lo cierra.',
+      'Hay planes que no se votan: dentro de un plan hay «Se vota / Se hace y punto», y lo decidido sale en su grupo sin votos ni «faltan N por votar». Al proponer una idea se pregunta cuál de las dos.',
+      'Comentarios en los planes, en los gastos y en cada día. La fila dice cuántos hay y enciende un punto si alguno no lo has visto, y avisa a quien votó, a quien le toca el gasto y a quien ya escribió en el hilo.',
+      'La compra se apunta «para todos» o para una familia, y la lista sale en secciones. Se sigue viendo entera: quien va al súper se la lleva de un vistazo.',
+      'Trucos (Planes → Trucos): lo que hay que acordarse de un viaje a otro, y que no cuelga de este viaje. Y el bunga guarda notas y pegatinas que tampoco se van con el evento, más quién ha estado en él cada año.',
+      'Quien administra puede marcar a alguien como que «lleva las cuentas»: le llegan todos los gastos, le toquen o no, y los que se borren. Y tocar una notificación abre lo que la ha generado, cambiando de viaje si hace falta.',
     ],
   },
   {

@@ -20,12 +20,14 @@ describe('App — smoke test', () => {
   it('cargar el ejemplo abre el evento y muestra las 5 pestañas', async () => {
     render(<App />)
     await userEvent.click(await screen.findByText(/Cargar el evento/))
-    // La barra son 5 destinos: Agenda · Dinero · Comidas · Planes · Ajustes.
+    // La barra son 5 destinos: Agenda · Dinero · Comidas · Planes · Grupo.
     // El rótulo nombra la sección, no su primera área: «Hoy» es un área dentro
-    // de Agenda, y «Cenas» un área dentro de Comidas.
-    for (const label of ['Agenda', 'Dinero', 'Comidas', 'Planes', 'Ajustes']) {
+    // de Agenda, y «Cenas» un área dentro de Comidas. Ajustes dejó la barra en
+    // la v0.48.0 y es el botón de la cabecera (§14.52).
+    for (const label of ['Agenda', 'Dinero', 'Comidas', 'Planes', 'Grupo']) {
       expect(await screen.findByText(label)).toBeInTheDocument()
     }
+    expect(screen.getByRole('button', { name: 'Ajustes' })).toBeInTheDocument()
     // «Saldos», «Stats» y «Más» ya no son pestañas de primer nivel.
     expect(screen.queryByRole('button', { name: /^Saldos$/ })).not.toBeInTheDocument()
     expect(screen.queryByText('Más')).not.toBeInTheDocument()
@@ -119,17 +121,48 @@ describe('App — navegación', () => {
     expect(await screen.findByRole('tab', { name: 'Compra' })).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('Ajustes es la quinta pestaña de la barra, y ya no un ⚙️ en la cabecera', async () => {
+  /**
+   * **La quinta pestaña es «Grupo» y Ajustes ha vuelto a la cabecera** (§14.52).
+   *
+   * Este test decía justo lo contrario hasta la v0.48.0, y el motivo de darle la
+   * vuelta está en `docs/diseño/donde-vive-el-grupo.html` · Q2: Ajustes tenía
+   * dentro tres cosas que no son ajustes, y una de ellas —el grupo— acababa de
+   * llenarse de cosas que se miran. El argumento de §14.10 sigue en pie: arriba
+   * a la derecha es lo que peor alcanza el pulgar, y por eso lo que se queda
+   * arriba es lo que menos se pulsa.
+   */
+  it('la quinta pestaña es «Grupo», y Ajustes es el botón de la cabecera', async () => {
     await abrirEjemplo()
-    // La cabecera no tiene botón de ajustes: se ha ido abajo a la derecha.
-    expect(document.querySelector('.appbar .iconbtn')).toBeNull()
 
-    const barra = document.querySelector('.tabbar')
-    const ultima = barra.querySelectorAll('.tab')[4]
-    expect(ultima).toHaveTextContent('Ajustes')
-
+    const ultima = document.querySelectorAll('.tabbar .tab')[4]
+    expect(ultima).toHaveTextContent('Grupo')
     await userEvent.click(ultima)
+    // La gente del ejemplo, que antes vivía dentro de un acordeón de Ajustes.
+    expect((await screen.findAllByText('García')).length).toBeGreaterThan(0)
+
+    const rueda = screen.getByRole('button', { name: 'Ajustes' })
+    await userEvent.click(rueda)
     expect(await screen.findByText('La app')).toBeInTheDocument()
+  })
+
+  it('el mismo botón cierra Ajustes y devuelve a donde estabas', async () => {
+    await abrirEjemplo()
+    await userEvent.click(document.querySelectorAll('.tabbar .tab')[1])   // Dinero
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
+    expect(await screen.findByText('La app')).toBeInTheDocument()
+
+    // Sin esto, la única salida sería pulsar otra pestaña, y volver a donde
+    // estabas exigiría acordarse de dónde estabas.
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar los ajustes' }))
+    expect(await screen.findByRole('tab', { name: 'Gastos' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('«El grupo» deja en Ajustes un renglón que lleva a su pestaña', async () => {
+    await abrirEjemplo()
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
+    // Nueve solapas memorizadas no se reordenan solas en la cabeza de nadie.
+    await userEvent.click(await screen.findByText('El grupo'))
+    expect((await screen.findAllByText('García')).length).toBeGreaterThan(0)
   })
 
   it('la cabecera son tres cosas: ballena, dónde estás y el punto', async () => {
@@ -146,7 +179,7 @@ describe('App — navegación', () => {
 
   it('Ajustes recoge en apartados el aspecto, quién eres y el evento', async () => {
     await abrirEjemplo()
-    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
 
     for (const titulo of ['Aspecto', 'Quién eres', 'Evento', 'La app']) {
       expect(await screen.findByText(titulo)).toBeInTheDocument()
@@ -174,7 +207,7 @@ describe('App — navegación', () => {
 
   it('«Quién eres» se ha comido el perfil que estaba en la cabecera', async () => {
     await abrirEjemplo()
-    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
     await userEvent.click(await screen.findByText('Quién eres'))
 
     // Sin identidad todavía no hay perfil que editar: primero se elige persona.
@@ -193,7 +226,7 @@ describe('App — navegación', () => {
 
   it('el apartado «Aspecto» deja cambiar el tamaño del texto', async () => {
     await abrirEjemplo()
-    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
     await userEvent.click(await screen.findByText('Aspecto'))
 
     await userEvent.click(await screen.findByRole('button', { name: 'Normal' }))
@@ -206,7 +239,7 @@ describe('App — navegación', () => {
 
   it('«Aspecto» ya solo elige la cara del tema: los nueve skins se han ido', async () => {
     await abrirEjemplo()
-    await userEvent.click(document.querySelectorAll('.tabbar .tab')[4])
+    await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }))
     await userEvent.click(await screen.findByText('Aspecto'))
 
     // Ni Abisal, ni Verbena, ni el dado.

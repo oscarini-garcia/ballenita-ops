@@ -13,13 +13,13 @@ const AREAS = [
   { id: 'saldos', label: 'Saldos' },
 ]
 
-export default function DineroScreen({ eventId, event }) {
+export default function DineroScreen({ eventId, event, abrir, onAbierta }) {
   const [area, setArea] = useArea('dinero', 'gastos')
   return (
     <>
       <SubNav value={area} onChange={setArea} options={AREAS} />
       {area === 'gastos'
-        ? <ExpensesScreen eventId={eventId} event={event} />
+        ? <ExpensesScreen eventId={eventId} event={event} abrir={abrir} onAbierta={onAbierta} />
         : <BalancesScreen eventId={eventId} event={event} />}
     </>
   )

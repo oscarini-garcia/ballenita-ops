@@ -8,4 +8,8 @@ export const SYNC_TABLES = [
   'events', 'families', 'bungas', 'persons',
   'expenses', 'settlements', 'dishes', 'dinners', 'planIdeas', 'plans', 'shop',
   'mejoras', 'registro',
+  // La tanda de §14.52–§14.58. `trucos` y `alojamientos` son catálogos, como
+  // `dishes` y `planIdeas`: valen para todos los viajes. `comentarios` y
+  // `cacharros` cuelgan de su evento.
+  'trucos', 'comentarios', 'alojamientos', 'cacharros',
 ]

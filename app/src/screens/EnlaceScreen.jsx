@@ -2,7 +2,7 @@ import WhaleLogo from '../components/WhaleLogo.jsx'
 
 /**
  * Lo que se ve mientras un enlace de acceso se canjea, y cuando no puede
- * (SPECS §14.52).
+ * (SPECS §14.61).
  *
  * Es la pantalla entera y no un aviso encima de la app, por lo mismo que la sala
  * de espera **es** la pantalla (§14.29 · B2): quien abre este enlace no viene a

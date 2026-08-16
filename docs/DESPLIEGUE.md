@@ -400,7 +400,7 @@ Pages esté publicando ([`APPSTORE.md`](APPSTORE.md), fase 4).
 Se lee **en caliente** al arrancar, así que cambiarlo no obliga a reconstruir
 nada ni a publicar un OTA. No hay secretos: las tres direcciones son públicas.
 
-`web` es la base de los **enlaces de acceso** (SPECS §14.52). La compone el
+`web` es la base de los **enlaces de acceso** (SPECS §14.61). La compone el
 móvil de quien administra, donde `location.origin` es `capacitor://localhost` y
 no le sirve a nadie: si esta clave falta o apunta a otro sitio, los enlaces
 salen rotos. Tiene que ser el mismo dominio que se declara en
@@ -412,7 +412,7 @@ El workflow de OTA se niega a publicar si aparece el marcador `EJEMPLO`.
 
 La app de iOS **no pasa por el navegador**: con `CapacitorHttp` activado la
 petición la hace el sistema, así que no hay CORS de por medio. Pero desde los
-enlaces de acceso (SPECS §14.52) la web sí habla con la API, y esa parte pasa
+enlaces de acceso (SPECS §14.61) la web sí habla con la API, y esa parte pasa
 por CORS de verdad:
 
 ```toml

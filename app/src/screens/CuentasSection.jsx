@@ -58,7 +58,7 @@ export default function CuentasSection({ eventId, sincronizar }) {
   const [enlazando, setEnlazando] = useState(null)
   const [borrando, setBorrando] = useState(null)
   const [baja, setBaja] = useState(null)
-  // El enlace de acceso (SPECS §14.52): a quién se le hace, y el que ha salido.
+  // El enlace de acceso (SPECS §14.61): a quién se le hace, y el que ha salido.
   const [eligiendoParaEnlace, setEligiendoParaEnlace] = useState(false)
   const [enlaceWeb, setEnlaceWeb] = useState(null)
   // Salir: null en reposo · 'yendo' mientras intenta subir la cola · el
@@ -80,7 +80,7 @@ export default function CuentasSection({ eventId, sincronizar }) {
   }
 
   /**
-   * Un enlace de acceso para quien no tiene iPhone (SPECS §14.52).
+   * Un enlace de acceso para quien no tiene iPhone (SPECS §14.61).
    *
    * Se pide **por persona** y no por cuenta porque el caso normal es que esa
    * cuenta no exista todavía: quien no tiene iPhone no ha podido entrar nunca,
@@ -222,7 +222,7 @@ export default function CuentasSection({ eventId, sincronizar }) {
             le digas <b>quién es</b>, no entra: enlazarlo con una persona es lo que le abre la puerta.
           </div>
 
-          {/* Entrar sin iPhone (SPECS §14.52). Va debajo de la lista y no dentro
+          {/* Entrar sin iPhone (SPECS §14.61). Va debajo de la lista y no dentro
               de ella porque quien lo necesita **no está en la lista**: no ha
               podido entrar nunca, así que no ha pedido nada. Se elige a la
               persona, no a la cuenta. */}

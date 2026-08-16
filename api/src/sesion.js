@@ -108,7 +108,7 @@ export async function verificarPaseDeEspera(secreto, pase) {
 }
 
 /**
- * El pase de enlace: con qué entra quien no tiene iPhone (SPECS §14.52).
+ * El pase de enlace: con qué entra quien no tiene iPhone (SPECS §14.61).
  *
  * El acceso de esta app lo firma Apple, y eso deja fuera a quien no tiene un
  * iPhone donde sacar esa hoja — no por una decisión sobre quién entra, sino por
