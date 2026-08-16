@@ -531,12 +531,29 @@ async function avisosQueQuiero(peticion, env) {
  * termine de mandar: un aviso que no sale no puede tumbar el cambio que lo
  * provocó, que es lo mismo que ya hacía `avisarDeSolicitud`.
  */
-async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuenta }) {
-  if (!hayApnsConfigurado(env)) return;
-  const personas = instantanea?.persons ?? [];
-  const familias = instantanea?.families ?? [];
-  const moneda = instantanea?.events?.[0]?.currency || 'EUR';
-  const autor = cuenta.personId || null;
+/**
+ * De un lote de cambios y la instantánea, **qué sobres hay que mandar**.
+ *
+ * Separado de `avisarDeLosCambios` y exportado por un motivo concreto: aquí es
+ * donde estuvo escondido nueve versiones el fallo que dejaba los avisos mudos.
+ * `leerInstantanea` devuelve `{ v: 1, tables: { persons, families, … } }` y esto
+ * leía `instantanea.persons` — **siempre `undefined`**. Con la lista de personas
+ * vacía, `familiasDeUnGasto` no encuentra a nadie, `personIds` sale vacío y
+ * todos los avisos de `avisoDeGasto`, `avisoDeLiquidacion` y `avisoDeComentario`
+ * devuelven `null`: no se manda nada y **no falla nada**, que es la clase de
+ * error que no se nota hasta que alguien pregunta por qué no le llegó.
+ *
+ * Solo sobrevivía «En qué anda la gente», porque `avisoDeEstado` no mira las
+ * personas y su `personIds` es `null` —el grupo entero—. Los tests pasaban
+ * porque probaban las funciones puras con las listas puestas a mano; ninguno
+ * miraba **la forma de lo que les llega de verdad**. Por eso esto se exporta:
+ * para que haya un test que le pase una instantánea con la forma real.
+ */
+export function sobresDeLosCambios({ cambios, resultados, instantanea, autor = null }) {
+  const t = instantanea?.tables ?? {};
+  const personas = t.persons ?? [];
+  const familias = t.families ?? [];
+  const moneda = t.events?.[0]?.currency || 'EUR';
 
   const sobres = [];
   for (const [i, cambio] of cambios.entries()) {
@@ -574,15 +591,29 @@ async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuent
     if (cambio.tabla === 'comentarios' && !resultado.anterior) {
       sobres.push(avisoDeComentario({ id: cambio.id, ...campos }, {
         personas,
-        planes: instantanea?.plans ?? [],
-        gastos: instantanea?.expenses ?? [],
-        hilo: instantanea?.comentarios ?? [],
+        planes: t.plans ?? [],
+        gastos: t.expenses ?? [],
+        hilo: t.comentarios ?? [],
         autor,
       }));
     }
   }
 
-  for (const sobre of sobres.filter(Boolean)) {
+  return sobres.filter(Boolean);
+}
+
+/**
+ * Los avisos que nacen de un cambio, ya mandados.
+ *
+ * No lanza y no se espera: un aviso que no sale no puede tumbar el cambio que lo
+ * provocó, que es lo mismo que ya hacía `avisarDeSolicitud`.
+ */
+async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuenta }) {
+  if (!hayApnsConfigurado(env)) return;
+  const autor = cuenta.personId || null;
+  const sobres = sobresDeLosCambios({ cambios, resultados, instantanea, autor });
+
+  for (const sobre of sobres) {
     const tokens = await tokensParaAviso(env.DB, {
       clase: sobre.clase,
       personIds: sobre.personIds,
@@ -601,7 +632,7 @@ async function avisarDeLosCambios(env, { cambios, resultados, instantanea, cuent
         // una pantalla donde esa fila no existe.
         datos: {
           ir: sobre.ir || (sobre.clase === 'estado' ? 'hoy' : 'dinero'),
-          evento: instantanea?.events?.[0]?.id ?? undefined,
+          evento: instantanea?.tables?.events?.[0]?.id ?? undefined,
         },
       });
       if (r.caducado) await olvidarTokenPush(env.DB, token);

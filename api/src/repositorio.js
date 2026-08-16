@@ -254,18 +254,51 @@ export async function leerMejorasPendientes(db) {
  * todo el grupo ve lo mismo, que es justo lo contrario del caso de una agenda
  * con regalos sorpresa.
  */
+/**
+ * ¿Es «esa tabla no existe todavía»? D1 no da código de error, solo el texto.
+ *
+ * Se distingue a propósito de cualquier otro fallo de la base: una tabla que
+ * falta es **la ventana entre desplegar y migrar** y se sabe cómo tratarla; un
+ * error de verdad tiene que seguir reventando, porque devolver una lista vacía
+ * en su lugar sería decirle al móvil que el grupo no tiene gastos.
+ */
+const esTablaQueFalta = (error) => /no such table/i.test(String(error?.message ?? error));
+
+/**
+ * La instantánea entera del grupo.
+ *
+ * **Una tabla que aún no existe no puede tumbar la sincronización de todos.**
+ * El Worker se publica solo en cada entrada a `main` y las migraciones se
+ * aplican **a mano** (§14.23), así que entre las dos cosas hay una ventana —
+ * minutos si alguien está mirando, días si no— en la que este `SELECT` nombra
+ * tablas que todavía no están. Antes eso lanzaba, `Promise.all` lo propagaba y
+ * `/api/sync` y `/api/cambios` contestaban 500: la app entera dejaba de
+ * sincronizar para el grupo entero, y desde el móvil eso se lee como que se ha
+ * roto todo. Pasó con la tanda de §14.52–§14.60, que trajo cuatro tablas.
+ *
+ * Ahora la tabla que falta llega vacía —que es exactamente lo que hay en ella—
+ * y sale en `faltan`, para que quien administra vea en Ajustes → Actualizar que
+ * la base va por detrás en vez de tener que deducirlo de un 500.
+ */
 export async function leerInstantanea(db) {
   const tables = {};
+  const faltan = [];
 
-  const lecturas = await Promise.all(
-    NOMBRES.map(async (tabla) => [tabla, await filas(db, `SELECT * FROM ${tabla} WHERE borrado = 0`)]),
-  );
+  const lecturas = await Promise.all(NOMBRES.map(async (tabla) => {
+    try {
+      return [tabla, await filas(db, `SELECT * FROM ${tabla} WHERE borrado = 0`)];
+    } catch (error) {
+      if (!esTablaQueFalta(error)) throw error;
+      faltan.push(tabla);
+      return [tabla, []];
+    }
+  }));
 
   for (const [tabla, resultado] of lecturas) {
     tables[tabla] = resultado.map((fila) => filaAObjeto(tabla, fila));
   }
 
-  return { v: 1, tables };
+  return faltan.length ? { v: 1, tables, faltan } : { v: 1, tables };
 }
 
 /**

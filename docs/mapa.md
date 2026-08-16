@@ -12,7 +12,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 - **`app/`** v0.48.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
   985 pruebas en 106 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  221 pruebas en 22 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  225 pruebas en 23 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -314,7 +314,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `idea.js` — El encargo del botón «Mejorarla» del editor de una idea (SPECS §14.24).
   ↳ materialDeLaIdea, leerMejora, pedirMejora, INSTRUCCION_MEJORAR
 - `index.js` — API de Ballena Ops sobre Cloudflare Workers y D1. 🐳
-  ↳ default
+  ↳ sobresDeLosCambios, default
 - `migraciones.js` — Generado por `herramientas/generar-migraciones.mjs` — no editar a mano.
   ↳ MIGRACIONES
 - `migrador.js` — Poner la base al día desde el propio Worker (SPECS §14.23).
@@ -395,7 +395,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js` · +7 más
 - **§14.21** El día del viaje: qué bungas, qué se cena y qué plan → `db.js`
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
-- **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`
+- **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`, `repositorio.js`
 - **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
 - **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `api.js`, `index.js`, `repositorio.js`
 - **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `comentarios.js` · +4 más
@@ -420,7 +420,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.49** «Mayores» son los mayores, y «Peques» se retira → `db.js`, `personas.js`, `reparto-gente.js`
 - **§14.50** Lo que hace el grupo se apunta, y al final se cuenta → `CacharrosSection.jsx`, `Comentarios.jsx`, `StatsScreen.jsx`, `db.js`, `recap.js`, `registro.js` · +1 más
 - **§14.51** Un pago apuntado se puede deshacer → `borrados.js`
-- **§14.52** El grupo dejó de ser un ajuste, y Ajustes sube a un botón → `App.jsx`, `EventSettingsScreen.jsx`, `GrupoScreen.jsx`, `db.js`, `tables.js`
+- **§14.52** El grupo dejó de ser un ajuste, y Ajustes sube a un botón → `App.jsx`, `EventSettingsScreen.jsx`, `GrupoScreen.jsx`, `db.js`, `repositorio.js`, `tables.js`
 - **§14.53** Los trucos: lo que hay que acordarse de un viaje a otro → `PlanesConAreasScreen.jsx`, `TrucosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.54** La compra, por familia → `CompraScreen.jsx`, `compra-familias.js`, `db.js`, `tablas.js`
 - **§14.55** Los comentarios: una tabla con ancla, y un componente → `Comentarios.jsx`, `DiasScreen.jsx`, `FichaDeGasto.jsx`, `PlanesScreen.jsx`, `avisos.js`, `comentarios.js` · +2 más
@@ -428,4 +428,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.57** El cacharro del año → `CacharrosSection.jsx`, `cacharros.js`, `db.js`, `tablas.js`
 - **§14.58** Quién lleva las cuentas → `GrupoSection.jsx`, `avisos.js`, `db.js`, `index.js`, `tablas.js`, `tables.js`
 - **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `planes.js`
-- **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `PlanesScreen.jsx`, `avisos.js`, `destino.js` · +2 más
+- **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `PlanesScreen.jsx`, `avisos.js`, `destino.js` · +3 más
