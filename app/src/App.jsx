@@ -461,7 +461,9 @@ export default function App() {
       {tab === 'planes' && (
         <PlanesScreen eventId={activeId} event={event} abrir={abrirFila} onAbierta={() => setAbrirFila(null)} />
       )}
-      {tab === 'grupo' && <GrupoScreen eventId={activeId} event={event} />}
+      {tab === 'grupo' && (
+        <GrupoScreen eventId={activeId} event={event} abrir={abrirFila} onAbierta={() => setAbrirFila(null)} />
+      )}
       {tab === AJUSTES && (
         <EventSettingsScreen
           eventId={activeId}

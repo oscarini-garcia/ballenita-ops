@@ -42,6 +42,7 @@
  *   POST /api/recados      · una tanda de frases para el final de la lista (IA)
  *   POST /api/estados/sugerir · cinco estados para ponerse, del día que va el viaje (IA)
  *   POST /api/estados/gracia  · el estado que has escrito, con más gracia (IA)
+ *   POST /api/bunga/resumen   · el bunga resumido en una frase, con guasa (IA)
  */
 
 import { verificarTokenDeApple } from './apple.js';
@@ -76,6 +77,7 @@ import { materialDelPlato, pedirCantidades } from './cantidades.js';
 import { materialDeLaLista, materialDelPlatoParecido, pedirArreglo, pedirParecidos } from './receta.js';
 import { materialDeLaIdea, pedirMejora } from './idea.js';
 import { materialDeEstados, materialDeUnEstado, pedirEstados, pedirGracia } from './estados.js';
+import { materialDelBunga, pedirResumen } from './bunga.js';
 import { conModeloVigente, listarModelos, masCercano, probar } from './ia.js';
 import { aplicarMigracion, estadoDeMigraciones } from './migrador.js';
 
@@ -696,6 +698,7 @@ export function sobresDeLosCambios({ cambios, resultados, instantanea, autor = n
         personas,
         planes: t.plans ?? [],
         gastos: t.expenses ?? [],
+        bungas: t.bungas ?? [],
         hilo: t.comentarios ?? [],
         autor,
       }));
@@ -1080,6 +1083,43 @@ async function estadosSugeridos(peticion, env) {
  * La figura de «Mejorarla» de una idea: lo que vuelve **no se guarda**, rellena
  * el campo y Guardar sigue siendo el botón de siempre.
  */
+/**
+ * El bunga, resumido en una frase (SPECS §14.66).
+ *
+ * El material lo manda el móvil y no se compone aquí, al revés que los
+ * recadillos: lo que se resume es exactamente lo que hay escrito en ese bunga
+ * —sus pegatinas y sus notas—, que es la misma figura que «Mejorar la redacción
+ * de una idea». Lo que no viaja, como en todos los demás, son los nombres: se
+ * resume cómo es el sitio, no de quién es este agosto.
+ *
+ * Lo que vuelve **no se guarda aquí**: sube por la cola de cambios como
+ * cualquier otra escritura del grupo, para que el resumen sea del sitio y no de
+ * un teléfono.
+ */
+async function resumenDeBunga(peticion, env) {
+  await cuentaAutenticada(peticion, env);
+
+  const { nombre = '', alias = '', notas = '', pegatinas = [] } = await peticion.json();
+
+  const { clave, modelos, encargos } = await leerConfiguracionIA(env.DB);
+  if (!clave) return json({ error: 'no hay clave de IA configurada' }, 409);
+
+  const material = materialDelBunga({
+    nombre, alias, notas, pegatinas: Array.isArray(pegatinas) ? pegatinas : [],
+  });
+  try {
+    const { resultado, cambiado } = await conModeloVigente({
+      clave,
+      modelo: modelos.resumenDeBunga,
+      hacer: (m) => pedirResumen({ clave, modelo: m, material, instruccion: encargos.resumenDeBunga }),
+      guardar: (m) => guardarConfiguracionIA(env.DB, { [claveDeModelo('resumenDeBunga')]: m }),
+    });
+    return json({ resumen: resultado, cambiado: cambiado || null });
+  } catch (e) {
+    return json({ error: String(e.message ?? e) }, 502);
+  }
+}
+
 async function estadoConGracia(peticion, env) {
   await cuentaAutenticada(peticion, env);
 
@@ -1331,6 +1371,7 @@ const RUTAS = [
   ['POST', '/api/idea/mejorar', mejorarLaIdea],
   ['POST', '/api/estados/sugerir', estadosSugeridos],
   ['POST', '/api/estados/gracia', estadoConGracia],
+  ['POST', '/api/bunga/resumen', resumenDeBunga],
   ['POST', '/api/recados', recadosDelViaje],
   ['POST', '/api/importar', importar],
   ['GET', '/api/mejoras', mejorasPendientes],

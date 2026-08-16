@@ -478,8 +478,6 @@ function correspondenciaConElSpec() {
 // Composición
 // ───────────────────────────────────────────────────────────────────────────────
 
-const TOPE_SIMBOLOS = 6;
-
 /**
  * Los módulos agrupados por carpeta, en el orden en que conviene leerlos.
  *
@@ -497,15 +495,6 @@ function enOrdenDeLectura(lista) {
     if (dirA !== dirB) return dirA < dirB ? -1 : 1;
     return a.ruta < b.ruta ? -1 : 1;
   });
-}
-
-/** Los símbolos que aportan algo: no el que solo repite el nombre del fichero. */
-function simbolosUtiles(modulo) {
-  const nombreDelFichero = basename(modulo.ruta).replace(/\.[a-z]+$/, '');
-  const utiles = modulo.simbolos.filter((s) => s !== `${nombreDelFichero} (default)`);
-  if (utiles.length === 0) return '';
-  const visibles = utiles.slice(0, TOPE_SIMBOLOS).join(', ');
-  return utiles.length > TOPE_SIMBOLOS ? `${visibles} · +${utiles.length - TOPE_SIMBOLOS} más` : visibles;
 }
 
 function componer() {
@@ -582,7 +571,16 @@ function componer() {
       + `${prog.enElWorker ? ', pero el Worker sí tiene un handler `scheduled`' : ' ni handler `scheduled` en el Worker'}.`);
   cuerpo.push('');
 
-  cuerpo.push('## Módulos', '', 'Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.');
+  // **Sin la lista de símbolos de cada módulo**, que era el renglón `↳` debajo
+  // de cada uno: 94 líneas, el 21 % del mapa. Lo decidió por adelantado el test
+  // del presupuesto de contexto la última vez que saltó, y esta es esa vez.
+  //
+  // El motivo de que sea esto lo que se corta y no otra cosa: lo que hace útil
+  // al mapa es **la frase** —para qué existe cada módulo—, que no está escrita
+  // en ningún otro sitio y no se deduce leyendo por encima. Los nombres de lo
+  // que exporta sí: los tiene delante quien abre el fichero, y aquí llegaban
+  // cortados a seis con un «+92 más» que no dice nada.
+  cuerpo.push('## Módulos', '', 'Primera frase de la cabecera de cada módulo.');
   let carpetaActual = null;
   const sinCabecera = [];
   for (const modulo of enOrdenDeLectura(codigo)) {
@@ -591,8 +589,6 @@ function componer() {
     const nombre = basename(modulo.ruta);
     if (!modulo.frase) sinCabecera.push(modulo.ruta);
     cuerpo.push(`- \`${nombre}\` — ${modulo.frase || '**sin cabecera** ← escríbele una'}`);
-    const simbolos = simbolosUtiles(modulo);
-    if (simbolos) cuerpo.push(`  ↳ ${simbolos}`);
   }
   cuerpo.push('');
   if (sinCabecera.length) {

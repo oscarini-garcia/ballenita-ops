@@ -16,14 +16,26 @@
  */
 export const NOTAS = [
   {
-    version: '0.53.0',
+    version: '0.54.0',
     fecha: '2026-08-16',
     titulo: 'Los comentarios dejan de gritar',
     lineas: [
       'El hilo de comentarios era cuatro cajas apiladas —la del hilo, la de «ver los que faltan», la de escribir y el botón— y ocupaba dos tercios de la ventana de un plan. Ahora son dos fondos sin borde y un enlace.',
       'Y un comentario se lee como lo que es: texto normal. Estaba pintado con la negrita del nombre de una fila, así que era lo más oscuro de la pantalla.',
       'Para escribir hay una pastilla redonda con su botón dentro, y «Ver los N comentarios» es un enlace en vez de otro recuadro pegado al hilo.',
-      'Vale en los tres sitios donde hay comentarios: el plan, el gasto y el día.',
+      'Vale en los cuatro sitios donde hay comentarios: el plan, el gasto, el día y el bunga.',
+    ],
+  },
+  {
+    version: '0.53.0',
+    fecha: '2026-08-16',
+    titulo: 'Los bungas se cuentan solos',
+    lineas: [
+      'En Grupo → Bungas, cada uno lleva debajo una frase con guasa que resume sus pegatinas y sus notas: cuál es el bueno se ve sin abrir los seis.',
+      'La escribe la IA sola, en cuanto cambias una nota o una pegatina dentro del bunga, y se guarda con el sitio: la rehace quien lo toca y la leemos todos. No hay que acordarse de pulsar nada.',
+      'Los bungas admiten comentarios, como los planes y los gastos. Avisan a la familia que duerme ahí y a quien ya escribió en el hilo, y tocar el aviso abre ese bunga.',
+      'Y en la lista, de quién es cada uno se ve por el emoji y las dos letras de su familia, que es como se firman las ideas y los votos.',
+      'El estado de la familia se retira: quien dice en qué anda es cada persona, y el de la casa lo ponía uno en junio y ahí se quedaba.',
     ],
   },
   {

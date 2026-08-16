@@ -28,9 +28,11 @@ describe('El grupo — la ficha por familia (G2)', () => {
   it('cada familia es un desplegable que dice quién es y cuántos son', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
-    // La solapa cerrada tiene que decir lo justo para no abrirla (§14.63).
+    // La solapa cerrada tiene que decir lo justo para no abrirla (§14.63). El
+    // estado de la familia se retiró en §14.66: lo dice cada persona.
     expect(await screen.findByText('García')).toBeTruthy()
-    expect(await screen.findByText(/modo playa · 1 persona/)).toBeTruthy()
+    expect(await screen.findByText('1 persona')).toBeTruthy()
+    expect(screen.queryByText(/modo playa/)).toBeNull()
     // Y su gente está dentro, que con `<details>` sigue estando en el documento.
     expect((await enFamilia('García')).getByText('Curro')).toBeTruthy()
   })

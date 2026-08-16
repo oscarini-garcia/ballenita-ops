@@ -346,8 +346,9 @@ export const getEvent = (id) => db.events.get(id)
 export const updateEvent = (id, patch) => escribir('events', id, patch)
 
 // ── Familias ──
-export async function addFamily(eventId, { name, alias = '', color = '#1FA6D6', avatar = '👨‍👩‍👧', estado = '' }) {
-  return escribir('families', uid('fam'), { eventId, name, alias, color, avatar, estado })
+export async function addFamily(eventId, { name, alias = '', color = '#1FA6D6', avatar = '👨‍👩‍👧' }) {
+  // Sin `estado`: se retiró en §14.66 — quien dice en qué anda es cada persona.
+  return escribir('families', uid('fam'), { eventId, name, alias, color, avatar })
 }
 export const familiesOf = (eventId) => db.families.where({ eventId }).toArray()
 export const updateFamily = (id, patch) => escribir('families', id, patch)
@@ -1011,9 +1012,9 @@ async function sembrarElEjemplo() {
     startDate: '2026-08-08',
     endDate: '2026-08-15',
   })
-  const garcia = await addFamily(eventId, { name: 'García', color: '#E5544B', avatar: '🏖️', estado: 'modo playa' })
-  const perez = await addFamily(eventId, { name: 'Pérez', color: '#2E9E6B', avatar: '🍷', estado: 'a por el vino' })
-  const solteros = await addFamily(eventId, { name: 'Solteros', color: '#1FA6D6', avatar: '🎉', estado: 'sin dormir' })
+  const garcia = await addFamily(eventId, { name: 'García', color: '#E5544B', avatar: '🏖️' })
+  const perez = await addFamily(eventId, { name: 'Pérez', color: '#2E9E6B', avatar: '🍷' })
+  const solteros = await addFamily(eventId, { name: 'Solteros', color: '#1FA6D6', avatar: '🎉' })
   await addBunga(eventId, { name: 'Bunga 1', alias: 'El de la piscina', familyId: garcia })
   const bPerez = await addBunga(eventId, { name: 'Bunga 2', alias: 'El del ruido', familyId: perez })
   const bSolteros = await addBunga(eventId, { name: 'Bunga 3', alias: 'El del fondo', familyId: solteros })

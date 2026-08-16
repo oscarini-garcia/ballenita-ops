@@ -28,6 +28,7 @@ import { INSTRUCCION_ARREGLAR, INSTRUCCION_PARECIDOS } from './receta.js';
 import { INSTRUCCION_MEJORAR } from './idea.js';
 import { INSTRUCCION as RECADOS, POR_TANDA } from './recados.js';
 import { INSTRUCCION_TANDA, INSTRUCCION_GRACIA, POR_TANDA as ESTADOS_POR_TANDA } from './estados.js';
+import { INSTRUCCION as RESUMEN_DE_BUNGA, TOPE_DEL_RESUMEN } from './bunga.js';
 
 export const ENCARGOS = [
   {
@@ -82,6 +83,14 @@ export const ENCARGOS = [
     pista: `Los que salen al pulsar «Otras ${ESTADOS_POR_TANDA}» en el modal de tu estado: un emoji y una frase muy corta —«de resaca», «poniéndome crema»—. Se le da dónde estáis, qué día del viaje va y qué se lleva apuntado; los nombres no viajan, y el encargo dice expresamente que una frase no nombre a nadie. Espera un JSON con «estados», y dentro «emoji» y «texto»: si reescribes esto, conserva esa parte o el botón dejará de traer nada. La tanda **no se guarda ni se comparte** —un estado es tuyo—. Vacío, vuelve el encargo de origen.`,
     origen: INSTRUCCION_TANDA,
     // Cinco frases de camping no piden el modelo grande, como los recadillos.
+    modelo: 'claude-haiku-4-5',
+  },
+  {
+    id: 'resumenDeBunga',
+    titulo: 'Resumir un bunga en una frase',
+    pista: `La línea que sale bajo el nombre de cada bunga en Grupo → Bungas. Se le dan sus pegatinas y las notas del sitio —lo que ha ido escribiendo quien ha dormido ahí— y devuelve UNA frase de menos de ${TOPE_DEL_RESUMEN} caracteres. Tiene que **decir cómo es el sitio** además de tener gracia: quien la lee está decidiendo si se queda con ese o con el de al lado, y una coña que no dice nada deja la lista igual que estaba. Espera un JSON con «resumen». El resumen se guarda con el sitio, así que lo pide uno y lo leen todos. Vacío, vuelve el encargo de origen.`,
+    origen: RESUMEN_DE_BUNGA,
+    // Una frase de camping no pide el modelo grande, como los recadillos.
     modelo: 'claude-haiku-4-5',
   },
   {

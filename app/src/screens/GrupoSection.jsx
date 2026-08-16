@@ -2,7 +2,7 @@
 //
 // «Sueltos» recoge lo que no está colocado, y se edita de verdad —se toca la
 // fila y sube una hoja desde abajo— (SPECS §14.14).
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, updateFamily, borrarFamilia,
@@ -10,8 +10,10 @@ import {
   personsOf, addPerson, updatePerson, removePerson,
   expensesOf, dinnersOf,
   PEGATINAS, addAlojamiento, listAlojamientos, updateAlojamiento, todosLosBungas, listEvents,
+  anclaDe, comentariosDelEvento,
 } from '../db.js'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
+import Comentarios from '../components/Comentarios.jsx'
 import Acordeon from '../components/Acordeon.jsx'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
@@ -22,9 +24,14 @@ import { tap } from '../lib/native.js'
 import { EDADES, EMOJIS_PERSONA, pesoDe, puedeOrganizar } from '../lib/personas.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
-import { conPegatina, historicoDe, pegatinasPuestas, resumenDelHistorico } from '../lib/alojamientos.js'
+import {
+  conPegatina, hayQueResumir, historicoDe, huellaDelSitio, pegatinasPuestas,
+  resumenDelHistorico, resumenDelSitio,
+} from '../lib/alojamientos.js'
 import { mandaEnTodo, porQueNoPuedes, puedeEditarBungas, puedeEditarFamilia } from '../lib/permisos.js'
 import { leerSesion } from '../auth/sesion.js'
+import { resumenDeBunga } from '../sync/api.js'
+import { sinLeer } from '../lib/comentarios.js'
 
 const COLORES = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
 
@@ -58,7 +65,7 @@ const COLORES = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B
  * familia, alguien sin familia que por tanto no entra en ningún reparto— deja de
  * ser un dato que no está en ninguna parte y pasa a ser una fila que se ve.
  */
-export default function GrupoSection({ eventId, area = 'familias' }) {
+export default function GrupoSection({ eventId, area = 'familias', abrir: abrirEsto = null, onAbierta }) {
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
@@ -82,12 +89,25 @@ export default function GrupoSection({ eventId, area = 'familias' }) {
    */
   const sesion = leerSesion()
   const { me } = useIdentidad(eventId, persons)
+  // El catálogo de sitios y los comentarios del evento, para la lista de bungas:
+  // el resumen con guasa vive en el sitio (§14.66) y el globo se cuenta en
+  // memoria, que es más barato que una consulta por bunga y no parpadea.
+  const alojamientos = useLiveQuery(() => listAlojamientos(), [], [])
+  const comentarios = useLiveQuery(() => comentariosDelEvento(eventId), [eventId], [])
   const puedoTodo = mandaEnTodo(sesion)
   const miFamilia = (familyId) => puedeEditarFamilia(sesion, me, familyId)
   const conBungas = puedeEditarBungas(sesion, me)
   const razon = porQueNoPuedes(sesion, me)
 
   const abrir = (e) => { tap(); setEditor(e) }
+
+  // Llegar desde el aviso de un comentario abre **ese** bunga (§14.60 · R2). Se
+  // espera a que los bungas estén: con la app recién arrancada el toque llega
+  // antes que la instantánea, y abrir uno que aún no está sería no abrir nada.
+  useEffect(() => {
+    if (!abrirEsto || !bungas.length) return
+    if (bungas.some((b) => b.id === abrirEsto)) { setEditor({ tipo: 'bunga', id: abrirEsto }); onAbierta?.() }
+  }, [abrirEsto, bungas.length])
   const emparejar = (e) => { if (!conBungas) return; tap(); setEligiendo(e) }
   // Todo va ordenado por nombre: una lista de nueve nombres sin orden se recorre
   // entera cada vez, y el de la base es el de los ids, que son aleatorios.
@@ -125,8 +145,10 @@ export default function GrupoSection({ eventId, area = 'familias' }) {
                       {f.avatar}
                     </span>
                     <span className="acordeon-titulo">{f.name}</span>
+                    {/* El estado de la familia se retira (§14.66): quien dice
+                        en qué anda es cada persona, y dos estados encima del
+                        mismo grupo se contradicen sin que nadie los actualice. */}
                     <span className="acordeon-nota">
-                      {f.estado ? `${f.estado} · ` : ''}
                       {gente.length} {gente.length === 1 ? 'persona' : 'personas'}
                     </span>
                   </>
@@ -242,22 +264,47 @@ export default function GrupoSection({ eventId, area = 'familias' }) {
 
           {[...bungas].sort(porNombre).map((b) => {
             const suya = families.find((f) => f.id === b.familyId) ?? null
+            const suSitio = alojamientos.find((a) => a.id === b.alojamientoId) ?? null
+            const dice = resumenDelSitio(suSitio)
+            const suyos = comentarios.filter((c) => c.ancla === anclaDe('bunga', b.id))
+            const nuevos = sinLeer(suyos, { eventId, ancla: anclaDe('bunga', b.id), meId: me?.id })
             return (
               <div className="row" key={b.id}>
                 <button type="button" className="row-quien" disabled={!conBungas} onClick={() => abrir({ tipo: 'bunga', id: b.id })}>
                   <span className="ico"><Icono nombre="casa" /></span>
                   <span className="main">
                     <span className="n">{b.name}</span>
-                    <span className="sub">{b.alias || 'sin alias'}</span>
+                    {/* **El renglón lo dice todo del sitio** (§14.66): la frase
+                        con guasa que resume sus pegatinas y sus notas, y si no
+                        la hay, el mote de siempre. Marcada cuando se escribió
+                        antes de lo último que se apuntó: una frase convincente
+                        y desfasada es peor que ninguna en una lista que se mira
+                        para decidir con cuál te quedas. */}
+                    <span className={`sub${dice && !dice.vigente ? ' viejo' : ''}`}>
+                      {dice ? dice.frase : (b.alias || 'sin alias')}
+                    </span>
                   </span>
                 </button>
+                {suyos.length > 0 && (
+                  <span className={`globo${nuevos > 0 ? ' nuevo' : ''}`} aria-label={`${suyos.length} comentarios${nuevos ? `, ${nuevos} sin leer` : ''}`}>
+                    💬 {suyos.length}
+                  </span>
+                )}
+                {/* **La familia, con su emoji y su alias** y no con su nombre
+                    entero: es la pastilla de `Alias.jsx`, la misma que firma una
+                    idea y un voto, así que las tres cosas de una familia se
+                    reconocen sin leer ningún nombre — y aquí además cabe al lado
+                    de una frase larga, que «— de nadie —» y «Solteros» no. */}
                 <button
                   type="button"
-                  className={`pastilla${suya ? '' : ' vacia'}`}
+                  className={`pastilla de-quien${suya ? '' : ' vacia'}`}
                   disabled={!conBungas}
+                  aria-label={suya ? `Es de los ${suya.name}` : 'No es de nadie'}
                   onClick={() => emparejar({ que: 'familia', id: b.id })}
                 >
-                  {suya ? suya.name : '— de nadie —'}
+                  {suya
+                    ? <><span className="cara" aria-hidden>{suya.avatar}</span><Alias familia={suya} /></>
+                    : '— de nadie —'}
                 </button>
               </div>
             )
@@ -463,7 +510,6 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
     setName(valor)
   }
   const [avatar, setAvatar] = useState(familia?.avatar ?? '👨‍👩‍👧')
-  const [estado, setEstado] = useState(familia?.estado ?? '')
   const [color, setColor] = useState(familia?.color ?? COLORES[0])
   // Al crear no hay a quién asignárselo todavía, así que el bunga se elige aquí;
   // al editar se cambia desde la pastilla de la ficha, que está a un toque.
@@ -478,7 +524,6 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
       name: name.trim(),
       alias: (alias.trim() || aliasSugerido(name)).toUpperCase(),
       avatar: avatar || '👨‍👩‍👧',
-      estado: estado.trim(),
       color,
     }
     if (nueva) {
@@ -517,10 +562,6 @@ function EditorFamilia({ eventId, familia, families, bungas, personas, onCerrar 
         </div>
       </div>
       <div className="pista">Dos letras. Firman las ideas. Se propone del nombre; cámbialo si quieres.</div>
-
-      {/* El estado va solo y a lo ancho: es lo que va a crecer. */}
-      <label htmlFor="fam-estado">Estado</label>
-      <input id="fam-estado" type="text" value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="modo playa" />
 
       <label>Bunga</label>
       {nueva ? (
@@ -697,6 +738,20 @@ function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, on
           <div className="pista">
             Esto es del <b>sitio</b>, no de este viaje: sigue aquí el año que viene.
           </div>
+
+          {/* **El resumen con guasa** (§14.66, §14.66-bis). Se rehace solo en
+              cuanto cambia una nota o una pegatina —a petición expresa—, y lo
+              que evita que eso sean nueve llamadas es que vive **aquí dentro**,
+              en la pantalla que abre quien lo está tocando: la lista solo
+              enseña lo guardado. Lo que vuelve se guarda con el sitio, así que
+              lo escribe quien lo cambió y lo leen los nueve. */}
+          <ResumenDelBunga bunga={bunga} sitio={sitio} onEscribir={enElSitio} />
+
+          {/* El hilo, con la misma pieza que en un plan, un gasto y un día
+              (§14.55). Un bunga es de las cosas que más se comentan —«¿os
+              importa cambiarlo?», «se ha vuelto a ir la luz»— y era de las
+              pocas que no tenía dónde. */}
+          <Comentarios eventId={bunga.eventId} ancla={anclaDe('bunga', bunga.id)} />
 
           {/* El histórico (B5). No se guarda: se recorre `events` y `bungas` y
               se cuenta. */}
@@ -900,5 +955,113 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
         />
       )}
     </Hoja>
+  )
+}
+
+/**
+ * El resumen del bunga: **se rehace solo** en cuanto cambia algo (§14.66-bis).
+ *
+ * Nació detrás de un botón, por la regla de que la IA entra cuando se le pide
+ * (§14.19-bis). El botón se retira **a petición expresa**, y lo que hace que eso
+ * no se convierta en nueve llamadas por bunga es dónde vive esto: **dentro de la
+ * pantalla de un bunga**, que es la que abre quien lo está tocando. La lista no
+ * pide nada — se limita a enseñar lo que hay guardado.
+ *
+ * Tres guardas, y las tres son la diferencia entre «se actualiza solo» y «se
+ * llama sin parar»:
+ *
+ *  1. **La huella.** Solo se pide cuando `huellaDelSitio` deja de coincidir con
+ *     `resumenDe`, o sea cuando de verdad ha cambiado una nota o una pegatina.
+ *     Abrir el bunga cuarenta veces no pide nada.
+ *  2. **Un respiro de un segundo y medio.** Marcar tres pegatinas seguidas son
+ *     tres escrituras y **una** llamada: sin esto, cada toque pagaría la suya.
+ *  3. **Una sola vez por huella.** Si el modelo falla —sin clave, sin red— no se
+ *     reintenta en bucle contra la misma versión del texto: se dice lo que pasó
+ *     y se ofrece volver a intentarlo, que es un botón de recuperar un fallo y
+ *     no el de pedir la frase.
+ *
+ * Lo que vuelve **se guarda en el sitio** —no en este móvil ni en este agosto—,
+ * con la huella de lo que se resumió, así que lo escribe quien lo cambió y lo
+ * leen los nueve.
+ *
+ * Y **no se pide con el sitio en blanco**: sin pegatinas ni notas, lo único que
+ * puede hacer el modelo es inventarse cómo es el bungalow, que es exactamente lo
+ * que no queremos leer al repartirlos.
+ */
+export const RESPIRO_MS = 1500
+
+function ResumenDelBunga({ bunga, sitio, onEscribir, respiro = RESPIRO_MS }) {
+  const [yendo, setYendo] = useState(false)
+  const [fallo, setFallo] = useState(null)
+  const dice = resumenDelSitio(sitio)
+  const hayMaterial = hayQueResumir(sitio)
+  const huella = hayMaterial ? huellaDelSitio(sitio) : null
+  // La última huella que se ha intentado, haya salido bien o mal. Sin esto, un
+  // fallo del modelo deja el efecto pidiéndolo otra vez en cada pintado.
+  const intentada = useRef(null)
+  const vivo = useRef(true)
+  useEffect(() => () => { vivo.current = false }, [])
+
+  async function resumir() {
+    intentada.current = huella
+    setYendo(true)
+    setFallo(null)
+    try {
+      const frase = await resumenDeBunga({
+        nombre: bunga.name,
+        alias: bunga.alias ?? '',
+        notas: sitio?.notas ?? '',
+        pegatinas: pegatinasPuestas(sitio?.pegatinas),
+      })
+      if (!vivo.current) return
+      if (frase) await onEscribir({ resumen: frase, resumenDe: huella })
+      else setFallo('El modelo no ha traído ninguna frase.')
+    } catch (e) {
+      if (vivo.current) setFallo(String(e.message ?? e))
+    } finally {
+      if (vivo.current) setYendo(false)
+    }
+  }
+
+  // Cambió algo del bunga → se rehace la frase, tras el respiro. El reloj se
+  // cancela al volver a cambiar, que es lo que junta tres pegatinas seguidas en
+  // una sola llamada.
+  useEffect(() => {
+    if (!huella || yendo) return undefined
+    if (sitio?.resumenDe === huella || intentada.current === huella) return undefined
+    const reloj = setTimeout(resumir, respiro)
+    return () => clearTimeout(reloj)
+  }, [huella, yendo, sitio?.resumenDe])
+
+  return (
+    <>
+      <label>En una frase</label>
+      {dice ? (
+        <div className={`resumen-bunga${dice.vigente || yendo ? '' : ' viejo'}`}>
+          <span className="rb-frase">🐳 {dice.frase}</span>
+          {!dice.vigente && (
+            <span className="rb-viejo">
+              {yendo ? 'Rehaciéndola con lo último…' : 'Escrita antes de lo último que se apuntó.'}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="pista">
+          {!hayMaterial
+            ? 'Pon alguna pegatina o apunta una nota, y se resume sola.'
+            : (yendo ? 'Escribiéndola…' : 'Sale en la lista de bungas, para no tener que abrirlos uno a uno.')}
+        </div>
+      )}
+      {/* El único botón que queda es el de **recuperarse de un fallo**, y solo
+          aparece cuando lo ha habido: pedir la frase ya no se pide. */}
+      {fallo && (
+        <>
+          <pre className="traza mal" role="status">{fallo}</pre>
+          <button className="btn sm ghost" disabled={yendo} onClick={() => { tap(); resumir() }}>
+            Volver a intentarlo
+          </button>
+        </>
+      )}
+    </>
   )
 }
