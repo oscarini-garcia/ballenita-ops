@@ -112,23 +112,20 @@ describe('colocar el día', () => {
  * llevan la misma regla.
  */
 describe('devolver un plan al catálogo', () => {
-  // La pantalla tiene dos consultas vivas —planes y personas— y el subtítulo de
-  // la fila depende de las dos: pulsar entre una y otra le da al nodo que React
-  // acaba de sustituir. Se espera al subtítulo y se vuelve a buscar la fila.
   /**
-   * Abrir el plan, **reintentando el toque**.
+   * Abrir el plan, **insistiendo hasta que abra**.
    *
-   * Planes tiene tres consultas vivas desde §14.55 —planes, personas y
-   * comentarios— y la fila se repinta cuando llega la última: entre buscar el
-   * botón y pulsarlo, React puede haber sustituido el nodo, y entonces el clic
-   * va a un elemento que ya no está en la página y la capa no se abre. Pasaba
-   * una de cada tantas y **solo con la suite entera corriendo**, que es el peor
-   * fallo que puede tener una prueba porque parece de la vuelta que lo destapa.
-   * Volver a buscar y volver a pulsar es idempotente: abrir un plan ya abierto
-   * es el mismo `setAbierto`.
+   * La pantalla tiene **tres** consultas vivas —planes, personas y los
+   * comentarios del evento (§14.55)— y la fila depende de las tres: entre que
+   * se la encuentra y se la pulsa, React puede haberla sustituido, y el clic se
+   * lo lleva un nodo que ya no está en la página. Esperar a que el subtítulo
+   * esté puesto reduce la ventana pero no la cierra: falló en CI justo después
+   * de pasar dos veces en local, que es la peor forma de tener razón.
+   *
+   * Volver a pulsar no tiene efecto secundario —abrir el que ya está abierto es
+   * el mismo `setAbierto`—, así que se pulsa hasta que aparezca la capa.
    */
   const abrirElPlan = async () => {
-    await waitFor(() => expect(document.querySelectorAll('.fila-plan .sub').length).toBeGreaterThan(0))
     await waitFor(async () => {
       await userEvent.click(screen.getByRole('button', { name: /Cuevas del Drach/ }))
       expect(screen.getByText('Quién ha votado')).toBeInTheDocument()

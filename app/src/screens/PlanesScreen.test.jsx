@@ -52,8 +52,17 @@ const seVe = (texto) => waitFor(() => { expect(screen.getByText(texto)).toBeInTh
 async function abrir(titulo) {
   await screen.findByRole('button', { name: /1|0|falta|votado|ago/ })
   await waitFor(() => expect(document.querySelectorAll('.fila-plan .sub').length).toBeGreaterThan(0))
-  await userEvent.click(screen.getByRole('button', { name: new RegExp(titulo) }))
-  await screen.findByText('Quién ha votado')
+  // **Se insiste hasta que abra.** Esperar al subtítulo estrecha la ventana
+  // pero no la cierra: con tres consultas vivas —planes, personas y los
+  // comentarios del evento (§14.55)— la fila puede sustituirse entre que se la
+  // encuentra y se la pulsa, y entonces el clic va a un nodo que ya no está.
+  // Le pasó al gemelo de esta función en `SoloAdultosOrganizan.test.jsx`: pasó
+  // dos veces en local y tumbó el CI de `main`. Volver a pulsar no hace nada
+  // nuevo —abrir el que ya está abierto es el mismo `setAbierto`—.
+  await waitFor(async () => {
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(titulo) }))
+    expect(screen.getByText('Quién ha votado')).toBeInTheDocument()
+  })
 }
 
 let userEvent
