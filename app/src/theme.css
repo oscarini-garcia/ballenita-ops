@@ -1009,6 +1009,25 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 
 .version-grande { font-size: var(--t-title); font-weight: 700; letter-spacing: -.02em; color: var(--spout-deep); }
 
+/* ── Cómo está la app: cuatro hechos y nada más (SPECS §14.34-quater) ───────
+   Rótulo a la izquierda, dato a la derecha, un renglón por hecho. Sustituye a
+   seis párrafos de prosa —«Versión en curso: v0.50.0. Paquete puesto: v0.49.0»,
+   «Un toque sube lo pendiente, trae la última copia…»— que decían lo mismo
+   ocupando cuatro veces más y obligando a leerlos para sacar el número.
+   La segunda línea del dato solo sale cuando hace falta (qué migraciones
+   faltan, que la sincronización no va bien): «Al día» no necesita explicarse. */
+.hechos { margin: 0; background: var(--foam-2); border: 1px solid var(--line-soft);
+  border-radius: var(--r); overflow: hidden; }
+.hecho { display: flex; align-items: baseline; gap: 12px; padding: 9px 13px; }
+.hecho + .hecho { border-top: 1px solid var(--line-soft); }
+.hecho > dt { flex: none; font-size: var(--t-label); color: var(--ink-soft); }
+/* `min-width: 0` y a la derecha: los ids de migración son largos y tienen que
+   poder envolver sin empujar el rótulo fuera de los 390 pt. */
+.hecho > dd { margin: 0 0 0 auto; min-width: 0; text-align: right;
+  font-size: var(--t-label); font-weight: 650; }
+.hecho > dd .sub { display: block; font-size: var(--t-sub); font-weight: 400;
+  color: var(--ink-soft); line-height: 1.35; margin-top: 1px; }
+
 /* ── Qué cambió, por versión (SPECS §14.34, figura de meeting-ops-air) ──────
    Una tarjeta por versión, de lado: la puesta y las tres de antes. De lado y
    no en pila porque esto vive dentro de un acordeón de Ajustes que ya es
