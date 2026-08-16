@@ -42,6 +42,20 @@ export const CLASES_DE_AVISO = [
     titulo: 'En qué anda la gente',
     pista: 'Cuando alguien cambia su estado en la cabecera.',
   },
+  {
+    // **Clase propia y no dentro de «dinero»** (§14.58 · L2). Si fuera dentro,
+    // quien lleva las cuentas y se harta de los gastos ajenos perdería al
+    // apagarla **también los suyos**, y entonces no se enteraría de nada. Como
+    // solo la reciben los marcados, para los demás es como si no existiera.
+    id: 'gastoTodos',
+    titulo: 'Todos los gastos',
+    pista: 'Si llevas las cuentas: todos los gastos del viaje, te toquen o no, y los que se borren.',
+  },
+  {
+    id: 'comentario',
+    titulo: 'Comentarios',
+    pista: 'Cuando alguien comenta en algo que te toca, o en un hilo donde ya has escrito.',
+  },
 ]
 
 export const ES_CLASE = (id) => CLASES_DE_AVISO.some((c) => c.id === id)
@@ -102,28 +116,103 @@ export function elGastoMueveElSaldo(anterior, campos = {}) {
   return ['amountCents', 'payers', 'participantIds', 'reparto'].some(cambia)
 }
 
-/** El aviso de un gasto, o `null` si a nadie le toca. */
-export function avisoDeGasto(gasto, { personas = [], familias = [], moneda = 'EUR', autor = null } = {}) {
-  const suyas = familiasDeUnGasto(gasto, personas)
-  const personIds = personasDeLasFamilias(suyas, personas).filter((id) => id !== autor)
-  if (!personIds.length) return null
+/** Quién lleva las cuentas: se entera de todos los gastos (§14.58 · L1). */
+export const contables = (personas = []) => personas.filter((p) => p.llevaLasCuentas)
 
+/** Cómo se nombra un gasto en un aviso: su descripción, o su importe. */
+function comoSeLlama(gasto, moneda) {
+  const puesto = String(gasto?.description || '').trim()
+  return puesto
+    ? `${puesto} de ${importe(gasto?.amountCents, moneda)}`
+    : `Un gasto de ${importe(gasto?.amountCents, moneda)}`
+}
+
+/** Quién lo puso, dicho por familias: «, lo pusieron García, Pérez». */
+function quienLoPuso(gasto, familias) {
   const quien = listaDe(gasto?.payers)
     .map((p) => familias.find((f) => f.id === p.familyId)?.name)
     .filter(Boolean)
-  const nombre = String(gasto?.description || '').trim()
+  if (!quien.length) return ''
+  return `, ${quien.length === 1 ? 'lo puso' : 'lo pusieron'} ${quien.join(', ')}`
+}
+
+/**
+ * Los avisos de un gasto: **hasta dos sobres, y nunca dos avisos a la misma
+ * persona** (§14.58 · L4).
+ *
+ * Uno va a quien le mueve el saldo, que es lo de siempre. El otro va a quien
+ * lleva las cuentas **y no estaba ya en el primero**, porque a esos el gasto ya
+ * les llega — y dos notificaciones del mismo hecho en el mismo teléfono es de
+ * las cosas que hacen que se apaguen los avisos enteros. El descarte se hace
+ * aquí y no en APNs: `apns-collapse-id` sustituye una por la otra en la pantalla
+ * de bloqueo, pero **las dos suenan**.
+ *
+ * El segundo lleva la coletilla de **por qué le llega** (L3). Sin ella, ver un
+ * gasto de una familia con la que no compartes nada se lee como un fallo de la
+ * app y no como el encargo que uno aceptó.
+ */
+export function avisosDeGasto(gasto, { personas = [], familias = [], moneda = 'EUR', autor = null } = {}) {
+  const cola = `${comoSeLlama(gasto, moneda)}${quienLoPuso(gasto, familias)}`
+  const suyas = familiasDeUnGasto(gasto, personas)
+  const tocados = personasDeLasFamilias(suyas, personas).filter((id) => id !== autor)
+  const sobres = []
+
+  if (tocados.length) {
+    sobres.push({
+      clase: 'dinero',
+      personIds: tocados,
+      titulo: 'Gasto nuevo 💸',
+      cuerpo: `${cola}. Te mueve el saldo.`,
+      agrupa: `gasto:${gasto?.id}`,
+    })
+  }
+
+  const yaAvisados = new Set(tocados)
+  const alTanto = contables(personas)
+    .map((p) => p.id)
+    .filter((id) => id !== autor && !yaAvisados.has(id))
+  if (alTanto.length) {
+    sobres.push({
+      clase: 'gastoTodos',
+      personIds: alTanto,
+      titulo: 'Gasto nuevo 💸',
+      cuerpo: `${cola}. Te llega porque llevas las cuentas.`,
+      agrupa: `gasto:${gasto?.id}`,
+    })
+  }
+
+  return sobres
+}
+
+/**
+ * Un gasto **borrado** (§14.58 · L6), solo para quien lleva las cuentas.
+ *
+ * Es la única parte del encargo que toca la maquinaria y no la periferia: hasta
+ * hoy un borrado no avisaba a nadie, porque la regla era «se avisa de lo que
+ * mueve el saldo» y un gasto borrado lo mueve **hacia atrás** — visto desde la
+ * pantalla, un número que baja solo. A los demás se les sigue sin avisar a
+ * propósito: enterarse de que ya no debes algo no es urgente. A quien lleva las
+ * cuentas sí, porque es justo lo que le impide cuadrarlas.
+ */
+export function avisoDeGastoBorrado(gasto, { personas = [], moneda = 'EUR', autor = null } = {}) {
+  const personIds = contables(personas).map((p) => p.id).filter((id) => id !== autor)
+  if (!personIds.length) return null
   return {
-    clase: 'dinero',
+    clase: 'gastoTodos',
     personIds,
-    titulo: 'Gasto nuevo 💸',
-    cuerpo: [
-      nombre || 'Un gasto',
-      ` de ${importe(gasto?.amountCents, moneda)}`,
-      quien.length ? `, ${quien.length === 1 ? 'lo puso' : 'lo pusieron'} ${quien.join(', ')}` : '',
-      '. Te mueve el saldo.',
-    ].join(''),
+    titulo: 'Gasto borrado 🗑️',
+    cuerpo: `${comoSeLlama(gasto, moneda)} ya no está. Te llega porque llevas las cuentas.`,
     agrupa: `gasto:${gasto?.id}`,
   }
+}
+
+/**
+ * El sobre de siempre: el de quien le mueve el saldo. Se conserva con su nombre
+ * porque es lo que prueban los tests de §14.39 y lo que espera quien no necesita
+ * los dos; el Worker llama a `avisosDeGasto`.
+ */
+export function avisoDeGasto(gasto, opciones = {}) {
+  return avisosDeGasto(gasto, opciones).find((s) => s.clase === 'dinero') ?? null
 }
 
 /** El aviso de una liquidación: se acaba de pagar lo que se debía. */
@@ -168,3 +257,95 @@ export function avisoDeEstado(persona, anterior, { autor = null } = {}) {
     agrupa: `estado:${persona?.id}`,
   }
 }
+
+// ── Comentarios (§14.55) ──
+
+/** De qué es un hilo: `'plan:abc'` → `{ tipo: 'plan', id: 'abc' }`. */
+export function deQueEs(ancla) {
+  const crudo = String(ancla ?? '')
+  const corte = crudo.indexOf(':')
+  if (corte < 1) return { tipo: '', id: '' }
+  return { tipo: crudo.slice(0, corte), id: crudo.slice(corte + 1) }
+}
+
+/**
+ * A quién le importa un comentario: **los involucrados y los del hilo**
+ * (§14.55 · N1 ∪ N2).
+ *
+ * Los involucrados los define cada cosa, y no son los mismos:
+ *
+ *  · **un plan** — quien lo ha votado. Quien no votó no ha dicho que le
+ *    interese, y despertarlo por un chiste es lo que apaga los avisos.
+ *  · **un gasto** — a quien le mueve el saldo, que ya lo calcula
+ *    `familiasDeUnGasto` y es el mismo criterio que el aviso del gasto.
+ *  · **un día** — todos: un día del viaje es de todos por definición.
+ *
+ * Y **los del hilo** son los que ya escribieron ahí. Sin ellos, contestarle a
+ * alguien que no votó el plan no le llega — que es lo primero que rompe una
+ * conversación. Nunca a quien escribe, como en todos los avisos de la casa.
+ */
+export function avisoDeComentario(comentario, {
+  personas = [], planes = [], gastos = [], hilo = [], autor = null,
+} = {}) {
+  const { tipo, id } = deQueEs(comentario?.ancla)
+
+  let involucrados = []
+  if (tipo === 'plan') {
+    const plan = planes.find((p) => p.id === id)
+    let votos = plan?.votos ?? {}
+    if (typeof votos === 'string') {
+      try { votos = JSON.parse(votos) || {} } catch { votos = {} }
+    }
+    involucrados = Object.keys(votos)
+  } else if (tipo === 'gasto') {
+    const gasto = gastos.find((g) => g.id === id)
+    involucrados = gasto ? personasDeLasFamilias(familiasDeUnGasto(gasto, personas), personas) : []
+  } else if (tipo === 'dia') {
+    involucrados = personas.map((p) => p.id)
+  }
+
+  const enElHilo = hilo
+    .filter((c) => c.ancla === comentario?.ancla && c.id !== comentario?.id)
+    .map((c) => c.autorId)
+    .filter(Boolean)
+
+  const personIds = [...new Set([...involucrados, ...enElHilo])].filter((x) => x && x !== autor)
+  if (!personIds.length) return null
+
+  const quien = personas.find((p) => p.id === comentario?.autorId)
+  const nombre = quien?.apodo || quien?.name || 'Alguien'
+  const sobreQue = {
+    plan: planes.find((p) => p.id === id)?.titulo,
+    gasto: gastos.find((g) => g.id === id)?.description,
+    dia: id,
+  }[tipo];
+
+  return {
+    clase: 'comentario',
+    personIds,
+    titulo: sobreQue ? `${nombre} ha comentado en «${sobreQue}»` : `${nombre} ha comentado`,
+    cuerpo: String(comentario?.texto ?? '').slice(0, 180),
+    // Por hilo y no por comentario: un ida y vuelta de seis mensajes deja **un**
+    // aviso en la pantalla de bloqueo, con el último. Sin esto son seis.
+    agrupa: `comentario:${comentario?.ancla}`,
+    // Y el destino, que es lo que hace que tocarlo abra el sitio y no la app
+    // por donde se dejó (§14.60).
+    ir: destinoDeAncla(comentario?.ancla),
+  }
+}
+
+/**
+ * A dónde lleva tocar el aviso de un hilo (§14.60 · R2).
+ *
+ * `pestaña/área/fila`, que es el formato que entiende `lib/destino.js` en la
+ * app. Un ancla que no se reconozca lleva a «Hoy», que es donde no se miente:
+ * mejor la portada que una pantalla vacía.
+ */
+export function destinoDeAncla(ancla) {
+  const { tipo, id } = deQueEs(ancla)
+  if (tipo === 'plan') return `planes/planes/${id}`
+  if (tipo === 'gasto') return `dinero/gastos/${id}`
+  if (tipo === 'dia') return `agenda/dias/${id}`
+  return 'hoy'
+}
+

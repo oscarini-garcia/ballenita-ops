@@ -14,6 +14,7 @@ import AgendaScreen from './screens/AgendaScreen.jsx'
 import DineroScreen from './screens/DineroScreen.jsx'
 import ComidasScreen from './screens/ComidasScreen.jsx'
 import PlanesScreen from './screens/PlanesConAreasScreen.jsx'
+import GrupoScreen from './screens/GrupoScreen.jsx'
 import EventSettingsScreen from './screens/EventSettingsScreen.jsx'
 import Icono from './components/Icono.jsx'
 import SyncDot from './components/SyncDot.jsx'
@@ -23,7 +24,7 @@ import ProgresoModal from './components/ProgresoModal.jsx'
 import { sincronizarTodo } from './lib/sincronizarTodo.js'
 import { primeraBajada } from './lib/primeraBajada.js'
 import { LATIDO_DATOS_MS, useSyncEngine, ultimaSincronizacion } from './sync/engine.js'
-import { checkForOtaUpdate, hayOtaNueva, isNative, tap } from './lib/native.js'
+import { checkForOtaUpdate, escucharToquesDeAviso, hayOtaNueva, isNative, tap } from './lib/native.js'
 import { creaVigilante } from './lib/vigilante.js'
 import { veniaDeActualizar } from './lib/pwa.js'
 import { cargarConfiguracion, estaConfigurada } from './lib/config.js'
@@ -31,6 +32,7 @@ import { enDemo, salirDemo } from './lib/demo.js'
 import { asegurarPush } from './lib/push.js'
 import { LATIDO_MS, asegurarTanda } from './lib/tanda.js'
 import { ponerArea } from './lib/areas.js'
+import { destinoDeAviso, guardarDestino, tomarDestino } from './lib/destino.js'
 import { haySesion, leerSesion, modoLocal } from './auth/sesion.js'
 
 const ACTIVE_KEY = 'ballena.activeEventId'
@@ -49,27 +51,45 @@ const ACTIVE_KEY = 'ballena.activeEventId'
 // a tocar la navegación. Es el rótulo más largo de la barra (61,7 pt de 76,4) y
 // aguanta incluso en tamaño Enorme.
 //
-// Ajustes es el quinto y va **aquí abajo a la derecha**, no en la esquina de la
-// cabecera, donde estuvo. Arriba a la derecha es lo que peor alcanza el pulgar de
-// una mano sola, y es justo el sitio al que hay que estirarse cuando algo no va.
-// Abajo cuesta un toque cómodo — y de paso deja la cabecera para el punto de
-// sincronización y tu nombre. Es la misma resolución que en `garciadoral-ops`.
+// **El quinto destino es «Grupo», y Ajustes sube a un botón** (SPECS §14.52,
+// `docs/diseño/donde-vive-el-grupo.html` · Q2). Durante años el quinto fue
+// Ajustes, y dentro tenía nueve acordeones de los que **tres no eran ajustes**:
+// «El grupo», «Quién eres» y «Mejoras». Mientras el grupo era un censo se
+// aguantaba; al darle al bunga notas e histórico, a cada familia su cacharro y a
+// las personas la casilla de quién lleva las cuentas, eso dejó de ajustarse y
+// pasó a **mirarse** — que es exactamente lo que sacó a las estadísticas de
+// Ajustes en §14.10-ter.
 //
-// Se ha comido lo que era «Más»: las estadísticas eran media pestaña para algo
-// que se mira al volver del viaje, y ahora son un apartado de Ajustes.
+// El sitio no se paga con una casilla: Ajustes no tiene mando de áreas, así que
+// el cambio es un renombrado. Y Ajustes no desaparece, se va **arriba a la
+// derecha en pequeño**, que es donde estuvo antes de §14.10 y donde vuelve a
+// tener sentido ahora que lo que queda dentro son seis cosas que casi nunca se
+// tocan: aspecto, evento, avisos, cuentas, IA y la app. El argumento de entonces
+// —arriba a la derecha es lo que peor alcanza el pulgar— sigue siendo cierto, y
+// por eso lo que se queda arriba es lo que menos se pulsa.
 const TABS = [
   { id: 'agenda', label: 'Agenda', icono: 'evento' },
   { id: 'dinero', label: 'Dinero', icono: 'grafico' },
   { id: 'comidas', label: 'Comidas', icono: 'restaurante' },
   { id: 'planes', label: 'Planes', icono: 'plan' },
-  { id: 'ajustes', label: 'Ajustes', icono: 'ajustes' },
+  { id: 'grupo', label: 'Grupo', icono: 'familia' },
 ]
+
+// Ajustes es un destino más para `tab`, pero **no sale en la barra**: se llega
+// por el botón de la cabecera y se sale por él o por cualquier pestaña.
+const AJUSTES = 'ajustes'
 
 export default function App() {
   const [activeId, setActiveId] = useState(() => localStorage.getItem(ACTIVE_KEY) || null)
   // Tras recargar por una actualización volvemos a Ajustes en vez de a «Hoy»,
   // para no perder el sitio desde el que se pulsó el botón.
-  const [tab, setTab] = useState(() => (veniaDeActualizar() ? 'ajustes' : 'agenda'))
+  const [tab, setTab] = useState(() => (veniaDeActualizar() ? AJUSTES : 'agenda'))
+  // A dónde vuelve el aspa de la cabecera. Ajustes ya no es una pestaña, así que
+  // salir tiene que devolverte a donde estabas y no a un sitio por defecto.
+  const [volverA, setVolverA] = useState('agenda')
+  // La fila que hay que abrir al llegar desde un aviso, o null. Se pasa a la
+  // pantalla de destino y ella la consume (§14.60 · R2).
+  const [abrirFila, setAbrirFila] = useState(null)
 
   // `undefined` mientras se lee config.json; después, el objeto (vacío si no
   // hay API configurada, que es el modo solo-local de siempre).
@@ -110,6 +130,26 @@ export default function App() {
     })
     setSyncEnCurso(false)
   }
+
+  /**
+   * **Tocar un aviso abre lo que lo generó** (SPECS §14.60).
+   *
+   * Tres cosas, y las tres hacen falta:
+   *
+   *  · **la fila y no solo la pestaña** (R2) — el destino viene como
+   *    `pestaña/área/fila` y la pantalla de llegada lo abre.
+   *  · **el evento** (R3) — un aviso de un viaje que no es el que tienes
+   *    abierto llevaría a una pantalla donde esa fila no existe, y eso se lee
+   *    como que la app se ha perdido. Se cambia **antes** de navegar.
+   *  · **con la app cerrada** (R4) — el toque llega antes de que haya nada
+   *    montado, así que el destino se guarda y se consume cuando ya se puede.
+   *    Sin esto funcionaría con la app abierta y fallaría justo cuando más se
+   *    usa, que es a las ocho de la mañana con el teléfono en la mesilla.
+   */
+  useEffect(() => escucharToquesDeAviso((datos) => {
+    const destino = destinoDeAviso(datos)
+    if (destino) guardarDestino(destino)
+  }), [])
 
   // El identificador de APNs se vuelve a apuntar en cada arranque, con sesión y
   // con el permiso ya concedido. Es lo que Apple espera —el token cambia al
@@ -197,6 +237,24 @@ export default function App() {
   useEffect(() => {
     if (activeId && resolvedForActive && event === null) pick(null)
   }, [activeId, resolvedForActive, event])
+
+  // Y se consume aquí, ya con el evento resuelto: es el momento en que la
+  // pantalla de llegada puede encontrar su fila.
+  useEffect(() => {
+    if (!event) return
+    const destino = tomarDestino()
+    if (!destino) return
+    if (destino.eventId && destino.eventId !== activeId) {
+      // Volverá a entrar cuando el evento nuevo esté resuelto.
+      guardarDestino(destino)
+      pick(destino.eventId)
+      return
+    }
+    if (destino.area) ponerArea(destino.tab, destino.area)
+    setVolverA(destino.tab)
+    setTab(destino.tab)
+    setAbrirFila(destino.fila ?? null)
+  }, [event, activeId])
 
   // Hasta saber si esta instalación tiene API no se puede decidir si hace falta
   // entrar; pintar la app y quitarla un instante después sería peor.
@@ -292,25 +350,57 @@ export default function App() {
             demostración · salir
           </button>
         ) : (
-          /* El punto vuelve a la cabecera, y ahora es el botón de sincronizarlo
-             todo: los datos del grupo y, detrás, la versión de la app. Los
-             ajustes se han ido abajo a la derecha, que es donde llega el pulgar. */
+          /* El punto es el botón de sincronizarlo todo: los datos del grupo y,
+             detrás, la versión de la app. */
           <SyncDot sync={sync} onClick={sincronizarTodoAhora} />
         )}
+        {/* Y Ajustes, en pequeño (§14.52). El aspa y la rueda son el mismo
+            botón porque son el mismo gesto: entrar y salir de lo mismo. Sin
+            esto, la única salida de Ajustes sería tocar otra pestaña, y volver
+            a donde estabas exigiría acordarse de dónde estabas. */}
+        <button
+          className="iconbtn"
+          aria-label={tab === AJUSTES ? 'Cerrar los ajustes' : 'Ajustes'}
+          aria-pressed={tab === AJUSTES}
+          onClick={() => {
+            tap()
+            if (tab === AJUSTES) { setTab(volverA); return }
+            setVolverA(tab)
+            setTab(AJUSTES)
+          }}
+        >
+          {tab === AJUSTES ? <span className="x-chico" aria-hidden>×</span> : <Icono nombre="ajustes" />}
+        </button>
       </header>
 
       {/* El día, dibujado en tres puntos bajo la cabecera. Ver SPECS §14.25. */}
       <LineaDelHorizonte />
 
-      {tab === 'agenda' && <AgendaScreen eventId={activeId} event={event} onGoTab={setTab} />}
-      {tab === 'dinero' && <DineroScreen eventId={activeId} event={event} />}
+      {/* `abrir` es la fila que trae un aviso tocado, y `onAbierta` la apaga:
+          se navega una vez, no en cada pintado. */}
+      {tab === 'agenda' && (
+        <AgendaScreen
+          eventId={activeId}
+          event={event}
+          onGoTab={setTab}
+          abrir={abrirFila}
+          onAbierta={() => setAbrirFila(null)}
+        />
+      )}
+      {tab === 'dinero' && (
+        <DineroScreen eventId={activeId} event={event} abrir={abrirFila} onAbierta={() => setAbrirFila(null)} />
+      )}
       {tab === 'comidas' && <ComidasScreen eventId={activeId} event={event} />}
-      {tab === 'planes' && <PlanesScreen eventId={activeId} event={event} />}
-      {tab === 'ajustes' && (
+      {tab === 'planes' && (
+        <PlanesScreen eventId={activeId} event={event} abrir={abrirFila} onAbierta={() => setAbrirFila(null)} />
+      )}
+      {tab === 'grupo' && <GrupoScreen eventId={activeId} event={event} />}
+      {tab === AJUSTES && (
         <EventSettingsScreen
           eventId={activeId}
           event={event}
           onPickEvent={pick}
+          onGoTab={(id) => { setVolverA(id); setTab(id) }}
           sync={sync}
           onSincronizarTodo={sincronizarTodoAhora}
         />
@@ -326,7 +416,12 @@ export default function App() {
           <button
             key={t.id}
             className={`tab${tab === t.id ? ' on' : ''}`}
-            onClick={() => { tap(); if (t.id === 'agenda') ponerArea('agenda', 'dias'); setTab(t.id) }}
+            onClick={() => {
+              tap()
+              if (t.id === 'agenda') ponerArea('agenda', 'dias')
+              setVolverA(t.id)
+              setTab(t.id)
+            }}
           >
             <Icono nombre={t.icono} />
             <span>{t.label}</span>

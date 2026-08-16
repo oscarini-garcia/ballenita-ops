@@ -37,7 +37,11 @@ export const TABLAS = {
     columnas: ['eventId', 'name', 'alias', 'color', 'avatar', 'estado'],
   },
   bungas: {
-    columnas: ['eventId', 'name', 'alias', 'familyId'],
+    // `alojamientoId` apunta al catálogo (§14.56): es lo que hace que el
+    // «Bunga 12» de 2025 y el de 2026 sean el mismo sitio y puedan tener notas
+    // e histórico. Nulo = un bunga suelto de este viaje, que es lo que eran
+    // todos hasta ahora.
+    columnas: ['eventId', 'name', 'alias', 'familyId', 'alojamientoId'],
   },
   persons: {
     columnas: [
@@ -47,8 +51,12 @@ export const TABLAS = {
       // cualquier cambio de la persona, y la tira de «Hoy» se ordena por lo
       // nuevo de **el estado**, no por lo último que alguien tocó de su ficha.
       'estadoEl',
+      // Quién se entera de **todos** los gastos, le toquen o no (§14.58). No es
+      // un rasgo de la persona sino un encargo, y por eso lo pone quien
+      // administra y no se hereda de la edad.
+      'llevaLasCuentas',
     ],
-    booleanos: ['comeConMayores', 'cuentaComoAdultoReparto'],
+    booleanos: ['comeConMayores', 'cuentaComoAdultoReparto', 'llevaLasCuentas'],
   },
   expenses: {
     // `reparto` es cómo se divide el gasto cuando no basta con «quién entra»
@@ -98,8 +106,10 @@ export const TABLAS = {
     json: ['votos'],
   },
   shop: {
+    // `familyId` nulo = línea común, que es como nacen todas las de siempre y
+    // todas las que calculan las cenas (§14.54).
     columnas: ['eventId', 'texto', 'categoria', 'comprado', 'compradoPor', 'compradoEn',
-      'origen', 'clave', 'cantidad', 'unidad', 'desglose', 'cambio'],
+      'origen', 'clave', 'cantidad', 'unidad', 'desglose', 'cambio', 'familyId'],
     json: ['desglose', 'cambio'],
     booleanos: ['comprado'],
   },
@@ -119,6 +129,34 @@ export const TABLAS = {
     // cena borrada en octubre no puede volver a decir de qué día era.
     // `tabla` + `filaId` son solo para juntar lo repetido; el recap no los mira.
     columnas: ['eventId', 'personId', 'tabla', 'filaId', 'accion', 'clase', 'texto', 'cuando'],
+  },
+  trucos: {
+    // Lo que hay que acordarse de un viaje a otro (§14.53). Catálogo compartido
+    // como `dishes` y `planIdeas`: `eventId` nulo = de todos, con valor = solo
+    // del Demo. **No lleva `hecho`**: un truco no es una tarea que se tacha,
+    // es algo que sigue siendo verdad el año que viene.
+    columnas: ['texto', 'categoria', 'autorId', 'apuntadoEl', 'eventId'],
+  },
+  comentarios: {
+    // El hilo de cualquier cosa (§14.55). `ancla` es `'<tipo>:<id>'` —`plan:abc`,
+    // `gasto:def`, `dia:2026-08-15`— y es lo que permite que la misma tabla
+    // sirva en las ocho pantallas donde un comentario pide salir, en vez de una
+    // columna JSON por tabla que además haría que dos personas comentando a la
+    // vez se pisaran la fila entera.
+    columnas: ['eventId', 'ancla', 'texto', 'autorId', 'escritoEl'],
+  },
+  alojamientos: {
+    // El catálogo que hace que un bunga tenga historia (§14.56). Aquí vive lo
+    // que **no cambia de un año a otro** —cómo es el sitio—; qué familia lo
+    // tiene es del bunga del evento.
+    columnas: ['name', 'notas', 'pegatinas', 'eventId'],
+    json: ['pegatinas'],
+  },
+  cacharros: {
+    // El que trae cada familia, y quién vota cuál (§14.57). `votos` es el mismo
+    // mapa persona → valor que en `plans`, y por eso no hay maquinaria nueva.
+    columnas: ['eventId', 'familyId', 'texto', 'votos', 'apuntadoEl'],
+    json: ['votos'],
   },
 };
 

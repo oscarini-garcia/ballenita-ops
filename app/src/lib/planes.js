@@ -14,6 +14,35 @@
 export const votosDe = (plan) => Object.values(plan?.votos ?? {}).filter((v) => v === '👍').length
 
 /**
+ * **Hay cosas que no se someten a votación: se hacen y punto** (SPECS §14.59,
+ * `docs/diseño/siete-encargos.html` · P1·P3·P4).
+ *
+ * La columna `plans.estado` existe desde §14.18 y llevaba desde entonces
+ * escribiéndose (`'votando'`), viajando a D1 y a la instantánea, y **sin que la
+ * leyera nadie**: lo que separaba «Elegidos» de «Disponibles» era tener día. El
+ * encargo no pedía una columna nueva, pedía usar la que estaba.
+ *
+ * Lo que cambia en pantalla es lo que se quería: un plan que se hace **no
+ * enseña sus 👍 ni cuenta quién falta por votar**. Enseñarlo era la queja —un
+ * plan ya decidido con «faltan Ana y Luis» debajo dice que aún se está
+ * decidiendo—, y lo único que le queda pendiente es el día.
+ *
+ * Los votos **no se borran** al marcarlo, y por eso el interruptor se puede
+ * tocar sin miedo: si vuelve a votación, vuelve con lo que había. Un cambio de
+ * opinión no puede costar los votos de nueve personas.
+ */
+export const ESTADO_VOTANDO = 'votando'
+export const ESTADO_SE_HACE = 'sehace'
+
+/**
+ * Un plan viejo no tiene estado, o lo tiene en `'votando'`: los dos se votan.
+ * Solo `'sehace'` es lo contrario, así que la comprobación es por el valor
+ * afirmativo y no por su ausencia — así los planes de antes de esta versión
+ * siguen leyéndose exactamente igual.
+ */
+export const seHace = (plan) => plan?.estado === ESTADO_SE_HACE
+
+/**
  * «falta por votar Luis», «faltan 3 por votar», «han votado todos».
  *
  * Los nombres solo cuando son uno o dos: ahí un nombre es accionable —«dale un

@@ -208,10 +208,18 @@ test('las claves de config.json se ven leídas de las dos formas', () => {
  * media aplicación escrita en una línea. Cortados a seis, con lo que se ahorra
  * el tope sube a 420: el sitio para unos cuantos módulos más antes de que toque
  * volver a mirar.
+ *
+ * **Volvió a saltar con §14.52–§14.60** (407 → 431), y esta vez se miró y **no
+ * había grasa**: los 24 renglones son siete módulos nuevos, cuatro tablas y las
+ * nueve secciones de spec que las describen. Sube a 450 por eso y no por
+ * costumbre — pero la próxima vez que salte, lo que hay que cortar ya tiene
+ * nombre y no es otro número: el renglón `↳ símbolos` de cada módulo son **94
+ * líneas**, el único bloque estructural del mapa que se puede quitar entero.
+ * Antes de eso está mirar si de verdad hacen falta siete módulos nuevos.
  */
 test('el mapa cabe en el presupuesto de contexto', () => {
   const lineas = execFileSync('node', [MAPA, '--contexto'], { encoding: 'utf8' }).split('\n').length;
-  assert.ok(lineas < 420, `el mapa se ha ido a ${lineas} líneas; el presupuesto son ~400`);
+  assert.ok(lineas < 450, `el mapa se ha ido a ${lineas} líneas; el presupuesto son ~430`);
 });
 
 test('ningún renglón del spec se lleva media aplicación por delante', () => {

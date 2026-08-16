@@ -1,13 +1,15 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   dinnersOf, addDinner, updateDinner, removeDinner,
   plansOf, updatePlan, bungasOf, familiesOf, personsOf, listDishes, DISH_CATEGORIES,
+  anclaDe,
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
+import Comentarios from '../components/Comentarios.jsx'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -34,7 +36,7 @@ import {
  * 237 a 289 y deja de recortar «Cine de verano en la plaza». En Planes las filas
  * también son botones enteros sin galón y nadie se pierde.
  */
-export default function DiasScreen({ eventId, event }) {
+export default function DiasScreen({ eventId, event, abrir, onAbierta }) {
   const cenas = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
   const planes = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const bungas = useLiveQuery(() => bungasOf(eventId), [eventId], [])
@@ -48,7 +50,15 @@ export default function DiasScreen({ eventId, event }) {
   const { me } = useIdentidad(eventId, personas)
   const organiza = puedeOrganizar(me)
 
+
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
+  // Llegar desde un aviso abre ese día (§14.60 · R2). El «id» de un día es su
+  // fecha, así que no hace falta esperar a ninguna consulta: o está entre los
+  // días del viaje o no está.
+  useEffect(() => {
+    if (!abrir) return
+    if (dias.includes(abrir)) { setAbierto(abrir); onAbierta?.() }
+  }, [abrir, dias.join('|')])
   const porId = Object.fromEntries(platos.map((p) => [p.id, p]))
   const nombreBunga = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : null }
   const hoy = hoyISO()
@@ -296,6 +306,12 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
                 apagado: sinNadaQueTraer,
               })}
             </div>
+
+            {/* **El tercer sitio del hilo** (§14.55): el día es donde se
+                coordina —«¿a qué hora salimos?», «yo llego tarde»— y la capa ya
+                existía. Se ancla a la fecha y no a la cena ni al plan: lo que se
+                habla de un día sigue valiendo aunque se cambie la cena. */}
+            <Comentarios eventId={eventId} ancla={anclaDe('dia', dia)} titulo="Comentarios del día" />
 
             <div className="note" style={{ marginTop: 12 }}>
               {organiza ? (

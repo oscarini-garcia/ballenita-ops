@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import GrupoSection from './GrupoSection.jsx'
 import {
-  createEvent, addFamily, addBunga, addPerson,
+  createEvent, addFamily, addBunga, addPerson, updatePerson,
   familiesOf, bungasOf, personsOf,
 } from '../db.js'
 
@@ -269,5 +269,55 @@ describe('El grupo — la ficha por familia (G2)', () => {
     await screen.findByText('García')
     // El verbo solo existe dentro del editor, nunca en el renglón.
     expect(screen.queryByRole('button', { name: 'Borrar' })).toBe(null)
+  })
+})
+
+describe('quién lleva las cuentas (§14.58)', () => {
+  it('quien administra la marca en la ficha, y se guarda', async () => {
+    const { eventId } = await sembrar()
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
+    render(<GrupoSection eventId={eventId} />)
+
+    await userEvent.click(await screen.findByText('Curro'))
+    await userEvent.click(await screen.findByRole('switch', { name: /Lleva las cuentas/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(async () => {
+      const gente = await personsOf(eventId)
+      expect(gente.find((p) => p.name === 'Curro').llevaLasCuentas).toBe(true)
+    })
+  })
+
+  it('a un niño no se le ofrece: sería una casilla que no puede hacer nada', async () => {
+    const { eventId } = await sembrar()
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
+    await addPerson(eventId, { name: 'Fran', edad: 'niño' })
+    render(<GrupoSection eventId={eventId} />)
+
+    await userEvent.click(await screen.findByText('Fran'))
+    expect(screen.queryByRole('switch', { name: /Lleva las cuentas/ })).not.toBeInTheDocument()
+    // Y al adulto sí.
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    await userEvent.click(await screen.findByText('Curro'))
+    expect(await screen.findByRole('switch', { name: /Lleva las cuentas/ })).toBeInTheDocument()
+  })
+
+  it('pasar a niño a quien la llevaba la apaga en el mismo gesto', async () => {
+    const { eventId } = await sembrar()
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
+    const gente0 = await personsOf(eventId)
+    await updatePerson(gente0.find((p) => p.name === 'Curro').id, { llevaLasCuentas: true })
+    render(<GrupoSection eventId={eventId} />)
+
+    await userEvent.click(await screen.findByText('Curro'))
+    await userEvent.click(await screen.findByRole('button', { name: 'Niño' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(async () => {
+      const gente = await personsOf(eventId)
+      // Sin esto quedaría una fila marcada que la pantalla ya no enseña, y
+      // seguiría recibiendo avisos que nadie sabría de dónde salen.
+      expect(gente.find((p) => p.name === 'Curro').llevaLasCuentas).toBe(false)
+    })
   })
 })
