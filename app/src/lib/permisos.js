@@ -1,5 +1,5 @@
 /**
- * Quién puede tocar qué del grupo (SPECS §14.61).
+ * Quién puede tocar qué del grupo (SPECS §14.63).
  *
  * Hasta ahora eran dos estados: **quien administra escribe y los demás miran**
  * (§14.41). Con el censo eso bastaba —cambiar a alguien de familia es de una

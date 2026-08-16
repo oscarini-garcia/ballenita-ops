@@ -1,7 +1,7 @@
 // Grupo: quién viene, dónde duerme cada familia y qué gadget ha traído.
 //
 // Es la quinta pestaña desde §14.52 (`docs/diseño/donde-vive-el-grupo.html` · Q2)
-// y desde §14.61 va **partida en tres áreas**. Cabía todo en una lista mientras
+// y desde §14.63 va **partida en tres áreas**. Cabía todo en una lista mientras
 // era el censo; con las notas del bunga, su histórico y el gadget de cada casa,
 // una sola columna obligaba a rodar media pantalla para llegar a lo que se
 // venía a mirar.

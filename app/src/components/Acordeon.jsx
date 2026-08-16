@@ -35,7 +35,7 @@ const guardar = (titulo, abierto) => {
 /**
  * `cabecera` sustituye al contenido de la solapa cuando lo que hay que enseñar
  * no es un rótulo: una familia lleva su emoji sobre su color, su nombre y su
- * estado, y eso no cabe en una cadena (§14.61). Cuando se usa, `clave` es lo que
+ * estado, y eso no cabe en una cadena (§14.63). Cuando se usa, `clave` es lo que
  * recuerda si estaba abierta — el rótulo ya no sirve de llave.
  */
 export default function Acordeon({ titulo, icono, nota, abierta = false, cabecera, clave, children }) {

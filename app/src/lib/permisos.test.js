@@ -11,7 +11,7 @@ const ana = { id: 'ana', familyId: 'perez', edad: 'adulto' }
 const fran = { id: 'fran', familyId: 'garcia', edad: 'adolescente' }
 const nino = { id: 'nino', familyId: 'garcia', edad: 'niño' }
 
-describe('quién toca qué del grupo (§14.61)', () => {
+describe('quién toca qué del grupo (§14.63)', () => {
   it('sin sesión no se capa nada: la libreta local y la demostración son de quien tiene el móvil', () => {
     expect(mandaEnTodo(null)).toBe(true)
     expect(puedeEditarFamilia(null, null, 'garcia')).toBe(true)

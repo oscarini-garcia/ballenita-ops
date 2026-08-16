@@ -12,6 +12,18 @@ import { olvidarLeidos } from '../lib/comentarios.js'
  * eligió: **los dos últimos y el resto detrás de un renglón**, porque el hilo
  * entero dentro de una capa la lleva de 470 a más de 900 pt.
  */
+/**
+ * Un milisegundo de verdad entre dos comentarios.
+ *
+ * `escritoEl` tiene resolución de milisegundo y con la base en memoria dos
+ * escrituras seguidas caen dentro del mismo, así que `comentariosDe` los ordena
+ * empatados —y ante un empate el orden lo pone el índice de IndexedDB, no quien
+ * escribió antes—. Sin esto, estas dos pruebas fallaban una de cada tantas, y
+ * solo con la suite entera corriendo: exactamente el peor fallo que puede tener
+ * una prueba, porque parece de la vuelta que la ha destapado.
+ */
+const unTic = () => new Promise((r) => setTimeout(r, 2))
+
 async function viaje() {
   const eventId = await createEvent({ name: 'Playa 2026' })
   const garcia = await addFamily(eventId, { name: 'García', color: '#E5544B' })
@@ -43,6 +55,7 @@ describe('Comentarios', () => {
     const { eventId, ancla } = await viaje()
     for (const t of ['uno', 'dos', 'tres', 'cuatro']) {
       await addComentario(eventId, { ancla, texto: t })
+      await unTic()
     }
     render(<Comentarios eventId={eventId} ancla={ancla} />)
 
@@ -66,6 +79,7 @@ describe('Comentarios', () => {
   it('van del más viejo al más nuevo: se lee como una conversación', async () => {
     const { eventId, ancla } = await viaje()
     await addComentario(eventId, { ancla, texto: 'primero' })
+    await unTic()
     await addComentario(eventId, { ancla, texto: 'segundo' })
     render(<Comentarios eventId={eventId} ancla={ancla} />)
 

@@ -79,7 +79,7 @@ describe('dinero solo adultos, grupo solo lectura', () => {
   })
 
   /**
-   * **Ya no son dos estados sino tres** (§14.61). Un miembro sin identidad
+   * **Ya no son dos estados sino tres** (§14.63). Un miembro sin identidad
    * puesta sigue siendo el caso de antes: mira. Lo que cambia es que un adulto
    * **con** identidad edita lo de su familia y los bungas, y eso se prueba en
    * `lib/permisos.test.js` y en el propio Grupo.

@@ -18,7 +18,7 @@ async function sembrar() {
 }
 
 /**
- * Dentro de la solapa de una familia. Hace falta desde §14.61 porque «Quién
+ * Dentro de la solapa de una familia. Hace falta desde §14.63 porque «Quién
  * eres» vive ahora en esta misma pantalla y su lista de «Cambiar de persona»
  * nombra a todo el mundo: buscar «Curro» suelto encuentra dos.
  */
@@ -28,7 +28,7 @@ describe('El grupo — la ficha por familia (G2)', () => {
   it('cada familia es un desplegable que dice quién es y cuántos son', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
-    // La solapa cerrada tiene que decir lo justo para no abrirla (§14.61).
+    // La solapa cerrada tiene que decir lo justo para no abrirla (§14.63).
     expect(await screen.findByText('García')).toBeTruthy()
     expect(await screen.findByText(/modo playa · 1 persona/)).toBeTruthy()
     // Y su gente está dentro, que con `<details>` sigue estando en el documento.
@@ -143,7 +143,7 @@ describe('El grupo — la ficha por familia (G2)', () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} area="bungas" />)
 
-    // Bunga 1 es de los García; desde §14.61 su fila vive en el área de bungas y
+    // Bunga 1 es de los García; desde §14.63 su fila vive en el área de bungas y
     // **abre su editor directamente**: ya no hace falta pasar por la hoja de
     // elección, que era el único camino cuando el bunga con familia desaparecía
     // de «Sueltos» (§14.48).

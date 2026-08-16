@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event'
 import CenasScreen from './CenasScreen.jsx'
 import DiasScreen from './DiasScreen.jsx'
 import IdeasScreen from './IdeasScreen.jsx'
+import PlanesScreen from './PlanesScreen.jsx'
 import {
-  db, createEvent, getEvent, addFamily, addBunga, addPerson, addDish, addDinner, addPlanIdea,
+  db, createEvent, getEvent, addFamily, addBunga, addPerson, addDish, addDinner, addPlan, addPlanIdea,
 } from '../db.js'
 
 /**
@@ -25,6 +26,7 @@ async function sembrar() {
   const paella = await addDish({ name: 'Paella mixta', categorias: ['principal'] })
   await addDinner(eventId, { dia: '2026-08-09', platoIds: [paella], bungaMayoresId: bunga })
   await addPlanIdea({ titulo: 'Kayak por la cala' })
+  await addPlan(eventId, { titulo: 'Cuevas del Drach' })
   return { eventId, event: await getEvent(eventId), adulto, nino, teo }
 }
 
@@ -98,5 +100,56 @@ describe('colocar el día', () => {
 
     await waitFor(() => expect(document.querySelectorAll('.modal .fila-boton').length).toBeGreaterThan(0))
     expect(screen.queryByText(/lo colocan los adultos/)).toBeNull()
+  })
+})
+
+/**
+ * Devolver una propuesta al catálogo (§14.43-bis).
+ *
+ * Iba por `esAdministrador`, que es el cerrojo del **grupo** y no el del viaje:
+ * cualquier adulto podía traer una idea al viaje y nadie más que quien
+ * administra podía deshacerlo. Es un movimiento con dos sentidos y ahora los dos
+ * llevan la misma regla.
+ */
+describe('devolver un plan al catálogo', () => {
+  // La pantalla tiene dos consultas vivas —planes y personas— y el subtítulo de
+  // la fila depende de las dos: pulsar entre una y otra le da al nodo que React
+  // acaba de sustituir. Se espera al subtítulo y se vuelve a buscar la fila.
+  /**
+   * Abrir el plan, **reintentando el toque**.
+   *
+   * Planes tiene tres consultas vivas desde §14.55 —planes, personas y
+   * comentarios— y la fila se repinta cuando llega la última: entre buscar el
+   * botón y pulsarlo, React puede haber sustituido el nodo, y entonces el clic
+   * va a un elemento que ya no está en la página y la capa no se abre. Pasaba
+   * una de cada tantas y **solo con la suite entera corriendo**, que es el peor
+   * fallo que puede tener una prueba porque parece de la vuelta que lo destapa.
+   * Volver a buscar y volver a pulsar es idempotente: abrir un plan ya abierto
+   * es el mismo `setAbierto`.
+   */
+  const abrirElPlan = async () => {
+    await waitFor(() => expect(document.querySelectorAll('.fila-plan .sub').length).toBeGreaterThan(0))
+    await waitFor(async () => {
+      await userEvent.click(screen.getByRole('button', { name: /Cuevas del Drach/ }))
+      expect(screen.getByText('Quién ha votado')).toBeInTheDocument()
+    })
+  }
+
+  it('el niño lo abre y vota, pero no lo devuelve', async () => {
+    soy(ctx.nino)
+    render(<PlanesScreen eventId={ctx.eventId} event={ctx.event} />)
+    await abrirElPlan()
+
+    expect(screen.getByLabelText('Votar 👍')).toBeEnabled()
+    expect(screen.queryByRole('button', { name: 'Devolver a ideas' })).toBeNull()
+  })
+
+  it('el adulto sí, sin ser administrador', async () => {
+    soy(ctx.adulto)
+    localStorage.setItem('ballena.sesion', JSON.stringify({ token: 't', cuenta: { rol: 'miembro' } }))
+    render(<PlanesScreen eventId={ctx.eventId} event={ctx.event} />)
+    await abrirElPlan()
+
+    expect(screen.getByRole('button', { name: 'Devolver a ideas' })).toBeInTheDocument()
   })
 })

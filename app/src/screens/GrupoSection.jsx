@@ -13,7 +13,6 @@ import {
 } from '../db.js'
 import Hoja, { HojaDeEleccion } from '../components/Hoja.jsx'
 import Acordeon from '../components/Acordeon.jsx'
-import QuienEresSection from './QuienEresSection.jsx'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
 import Confirmar from '../components/Confirmar.jsx'
@@ -100,19 +99,6 @@ export default function GrupoSection({ eventId, area = 'familias' }) {
     <>
       {area === 'familias' && (
         <>
-          {/* **Tu ficha abre la lista** (§14.61). Vivía en un acordeón de
-              Ajustes, y ahí dejó de tener sentido el día que el grupo salió a su
-              propia pestaña: eres la primera de las nueve del censo, no un
-              ajuste de la aplicación. */}
-          <Acordeon
-            titulo="Quién eres"
-            icono="persona"
-            nota={me ? (me.apodo || me.name) : 'sin elegir'}
-            abierta={!me}
-          >
-            <QuienEresSection eventId={eventId} persons={persons} />
-          </Acordeon>
-
           {families.length === 0 && persons.length === 0 && (
             <div className="empty">Aún no hay nadie. Empieza por una familia.</div>
           )}
@@ -213,7 +199,7 @@ export default function GrupoSection({ eventId, area = 'familias' }) {
 
       {area === 'bungas' && (
         <>
-          {/* **Los bungas, en su área y de todos** (§14.61). Colocar a las
+          {/* **Los bungas, en su área y de todos** (§14.63). Colocar a las
               familias lo hace quien llega primero al camping, y las notas del
               sitio —«la nevera congela», «hay bichos»— las escribe quien ha
               dormido ahí, no quien administra. */}

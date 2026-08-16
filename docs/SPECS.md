@@ -2035,10 +2035,10 @@ contando el verde de la pastilla, el rojo de «borrar», el azul del enlace y lo
 tres emoji de voto.
 
 **El reparto.** Aquí solo se vota. **El día se pone en Agenda**, tocando el día
-del viaje, que es donde está el calendario y donde ya se podía. Lo de administrar
-—devolver un plan al catálogo— vive dentro del plan abierto y solo lo ve quien
-administra. Cada plan queda en una fila de **70,7 pt**: caben ocho, y los colores
-bajan a tres.
+del viaje, que es donde está el calendario y donde ya se podía. Lo de organizar
+—devolver un plan al catálogo— vive dentro del plan abierto y lo ven **los
+adultos** (§14.43-bis; hasta entonces, solo quien administra). Cada plan queda en
+una fila de **70,7 pt**: caben ocho, y los colores bajan a tres.
 
 **Y un plan no se crea en esta pantalla: sale de proponer una idea.** Había un
 «+ Plan» con su propio formulario, así que un plan podía nacer por dos caminos —
@@ -3342,6 +3342,32 @@ la memoria de nadie.
   bump se niega desde el otro lado (`tools/bump.py`); aquí la versión se sube
   a mano y la guardia es la que avisa, en `npm test` y en CI.
 
+### 14.34-bis Las novedades, al final; y los dos «al día», iguales
+
+- **El defecto:** las tarjetas de novedades (§14.34) se pintaban **entre** el
+  estado de la versión y el botón que la actualiza, así que el bloque de
+  actualizar la app salía **partido en dos** por 244 pt de tarjetas. Y el otro
+  bloque que hace exactamente lo mismo sobre otra cosa —«Poner la base al día»
+  (§14.23)— salía entero y sin rótulo, pegado detrás, como si fuera una
+  coletilla del primero. Dos cosas gemelas escritas de dos maneras.
+- **✅ Los tres bloques de «La app» llevan rótulo** (`sec-h`): **Los datos del
+  grupo** · **La versión** · **La base de datos**, y las novedades al final bajo
+  **Qué ha cambiado**. Sin ellos, el apartado era una cinta de tres estados,
+  tres botones y tres listas de pasos seguidas, y no había forma de saber a cuál
+  de las tres cosas pertenecía lo que se estaba leyendo.
+- **✅ El mismo esqueleto en los dos:** rótulo → en qué estado está → el botón →
+  el progreso debajo. Y **el mismo verbo**: «Poner la app al día» y «Poner la
+  base al día». Antes el primero se llamaba «Comprobar ahora», que dice otra
+  cosa —comprobar es mirar, y este botón descarga y aplica—.
+- **Las novedades se leen después, no antes.** Contestan «¿qué me ha traído la
+  actualización?», que es una pregunta de cuando ya ha pasado; delante del botón
+  ocupaban el sitio de la que sí se hace antes, que es «¿tengo la última?».
+- **El rótulo de la base va dentro de su bloque** y no fuera, para no romper
+  §14.37-bis: un «La base de datos» solo, con el hueco debajo mientras contesta
+  la API, sería una quinta forma de no decir nada.
+- **«La versión» y no «La app»**, que es como se llama el acordeón que lo
+  contiene: un rótulo que repite el de su apartado no dice dónde estás.
+
 ### 14.35 Saldos: la familia con su pastilla, y quién paga a quién
 
 Decidido en `docs/diseño/saldos.html` · **F3 · R2 · E1**, más los tres arreglos
@@ -3762,6 +3788,30 @@ apartan cenas y planes de todo el grupo (§14.10-quater), las cambiaba cualquier
 - **Sin sesión no se capa nada** —libreta local y demostración—, como en todo lo
   demás: ahí el viaje es de quien tiene el móvil en la mano.
 
+### 14.43-bis Devolver un plan al catálogo también es organizar
+
+- **El defecto:** «Devolver a ideas» —dentro del plan abierto— iba por
+  `esAdministrador`, y proponer una idea iba por `puedeOrganizar` desde §14.43.
+  Son **los dos sentidos del mismo movimiento**, y con dos reglas distintas
+  cualquier adulto podía traer una idea al viaje y **nadie más que quien
+  administra** podía deshacerlo. Quien lo trajo por error no podía retirarlo:
+  tenía que pedírselo a otro.
+- **✅ Pasa a `puedeOrganizar`** (`screens/PlanesScreen.jsx`). Los dos cerrojos
+  de la app resuelven cosas distintas y aquí se habían cruzado:
+  `esAdministrador` es el del **grupo** —quién entra, quién es quién, las fechas
+  del evento, la clave de la IA—, y `puedeOrganizar` es el del **viaje** —el
+  dinero, las cenas, los planes y el día—. Un plan del viaje es de los segundos.
+- **La identidad se saca de la persona, no de la sesión.** La pantalla ya tenía
+  `useIdentidad` para votar, pero solo le pedía el `meId`; el predicado necesita
+  la fila entera, porque lo que decide es la **edad** (`EDADES.organiza`).
+- **Y de paso se destapa donde no había que capar nada**: con `esAdministrador`,
+  la libreta local y la demostración —que no tienen sesión— no enseñaban el
+  botón a nadie. `puedeOrganizar` no capa sin identidad, que es la regla de
+  §14.43 y la de toda la app.
+- **Votar sigue siendo de todos**, incluido el niño que no puede devolverlo: es
+  el mismo reparto de §14.43 —opinar es de todos, escribir lo que organiza el
+  viaje es de los adultos—.
+
 ### 14.44 Los estados, uno debajo de otro; el recado, bajo el selector
 
 Dos sitios donde el ahorro de alto salía caro, y los dos se ven en el mismo
@@ -4034,6 +4084,101 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
 - **Sigue faltando el pago parcial**: «pagado» apunta la transferencia **entera**
   que sugiere la app, y un Bizum de 20 sobre una deuda de 34,67 no se puede
   decir. Es el hueco grande que queda frente a Splitwise, y es otra vuelta.
+
+### 14.61 Entrar sin iPhone: un enlace que abre la puerta una vez
+
+- **El defecto:** el acceso lo firma Apple, y esa hoja vive **en la cáscara
+  nativa**. Quien no tiene iPhone no es que tenga la app capada: no tiene por
+  dónde entrar. Y la guarda que lo escribía —`hayApi()` devolviendo `false` si
+  no es nativo (`sync/api.js`)— decía la regla por donde estaba mal dicha: lo
+  que decide no es **dónde corre la app** sino **si tiene con qué
+  autenticarse**. Mientras la única puerta fue Apple, las dos frases se
+  distinguían solo en teoría.
+- **✅ El enlace de acceso.** Quien administra lo genera en **Ajustes →
+  Cuentas → Entrar sin iPhone**, elige **a la persona** y le manda la dirección.
+  Abrirla en cualquier navegador canjea el pase por **la sesión de siempre** —el
+  mismo JWT de noventa días que sale de la puerta de Apple—, y a partir de ahí
+  no hay nada distinto: la app sincroniza igual y el Worker no se acuerda de por
+  dónde entró nadie.
+- **Se pide por persona y no por cuenta**, que es lo único que hacía falta
+  pensar: quien no tiene iPhone **no está en la lista** de «quién ha pedido
+  entrar», porque no ha podido pedir nada. El Worker crea la cuenta si no la hay
+  —con `appleSub` prefijado `enlace:`, como `invitacion:`— y le renueva el pase a
+  la que ya tuviera, así que generar dos veces no deja dos cuentas.
+- **Un enlace es una credencial al portador**, y de ahí salen las tres reglas
+  (`api/src/sesion.js`, migración `0016`):
+  - **Un solo uso.** El pase lleva un `jti` que se guarda en `cuenta.enlaceJti`
+    y se borra al canjearlo. Un JWT no sabe cuántas veces lo han leído, y el
+    reenvío a un grupo de WhatsApp es el caso normal, no el raro.
+  - **Generar es revocar.** El `jti` nuevo pisa al anterior, así que el botón
+    que sirve para «se me ha perdido» sirve también para «ha acabado donde no
+    debía». No hace falta un segundo verbo.
+  - **Tres días.** Los treinta del pase de espera valen para un papel que solo
+    sirve para preguntar; este abre la puerta.
+- **El pase viaja en el fragmento** (`#pase=…`), no en la consulta. El fragmento
+  no se manda al servidor: no acaba en los registros de Cloudflare, ni en el
+  `Referer` de la primera página que se visite después. Y la URL **se limpia al
+  recibir respuesta**, no antes: si lo que falla es la red, recargar tiene que
+  poder reintentar con el mismo pase, que el servidor todavía no ha quemado.
+- **Los cuatro finales se dicen por separado** (`auth/enlace.js`,
+  `screens/EnlaceScreen.jsx`): «ya se ha usado» se arregla pidiendo otro, «está
+  desactivada» hablando con quien te la cerró, «no vale» copiándolo entero, y
+  «sin respuesta» esperando —y es el único que se reintenta—. Con un solo «no se
+  pudo entrar», quien lo abre no sabe ni a quién escribirle. La pantalla es la
+  pantalla entera, como la sala de espera (§14.29 · B2): quien abre el enlace no
+  viene a usar la libreta local.
+- **Salir de la demostración antes de entrar** (`App.jsx`). Lo sembrado por el
+  Demo lleva su cola de cambios detrás; sin esto, abrir el enlace desde una
+  demostración le subiría al grupo un camping inventado.
+- **CORS deja de ser decorativo.** La app de iOS no pasa por el navegador, así
+  que `ORIGENES_PERMITIDOS` era una lista sin uso; ahora el dominio de Pages
+  tiene que estar en ella o el navegador tira todas las peticiones y lo que se
+  ve es un enlace que no entra **sin decir por qué**.
+- **Lo que sigue igual:** sin sesión, el navegador es exactamente la libreta
+  local de siempre —ni el modo local ni el Demo guardan sesión—, y la puerta de
+  Apple no aparece en la web, donde no puede funcionar.
+- **Lo que queda pendiente:** en el navegador **no hay avisos** —el push va por
+  APNs con un plugin nativo—; la app está dibujada a 390 pt, así que en un
+  portátil se ve como un móvil grande; y cuando la sesión web caduce a los
+  noventa días no hay puerta que enseñar, así que la app vuelve a ser una
+  libreta local y hace falta pedir otro enlace.
+
+### 14.62 Tu perfil vive detrás de tu emoji, y «Quién eres» se retira
+
+- **El defecto:** «Quién eres» era un apartado de Ajustes, y nació para contestar
+  una pregunta que **ya no existe**: «¿quién eres en este móvil?». Desde §14.42
+  lo dice la cuenta —quien administra enlaza cada cuenta con su persona—, así
+  que con sesión ese apartado enseñaba una lista que no salía y un rótulo que
+  prometía una elección que no había. Lo que quedaba dentro no era una identidad
+  sino **tu perfil**: tu emoji, tu foto y tu estado.
+- **✅ Y un perfil no es un ajuste.** Es tuyo, se toca a menudo y se mira desde
+  cualquier pantalla, que es justo lo contrario del sitio donde estaba: **tres
+  toques**, detrás de la rueda que desde §14.52 guarda solo lo que casi nunca se
+  cambia. Pasa a la cabecera, detrás de **tu emoji**
+  (`components/BotonDePerfil.jsx`).
+- **Va antes del punto de sincronizar**, porque el orden de la cabecera es el de
+  lo que se toca: **tú · cómo van los datos · los ajustes**. Cuesta 34 pt de la
+  fila de 390, que salen de donde sobraban desde que el badge con tu nombre se
+  retiró (§14.10) — aquel gastaba 112 y decía menos.
+- **El emoji es el botón**, no un icono de cromo: es de las pocas cosas que el
+  usuario elige (§14.13), y ponerlo ahí hace que la puerta a tu perfil sea **tu
+  cara**. Con foto puesta, la foto; recortada en redondo, que un cuadrado dentro
+  de un botón redondeado se ve como un parche.
+- **La hoja del estado sustituye a la capa del perfil**, no se monta encima
+  (§14.31 · V2). Y es **la misma** `HojaDeEstado` que abre la pastilla de la
+  cabecera: una sola pieza para una sola cosa, con sus cinco de siempre, las
+  otras cinco de la IA y el «más gracioso».
+- **La pastilla de la cabecera se queda** (§14.36) y no es una puerta duplicada:
+  su trabajo es **enseñar** tu estado —y pedirlo cuando no lo has dicho—, y
+  tocar lo que se ve para cambiarlo es el gesto más corto que hay. El emoji es
+  la puerta a **todo** lo tuyo; la pastilla, el atajo a un renglón.
+- **La lista de personas sobrevive donde la cuenta no puede contestar**: libreta
+  local, demostración, y una persona enlazada que no es de este evento — la
+  regla de §14.42, intacta. Con cuenta enlazada no aparece, que es el caso de
+  todo el grupo. Borrarla del todo dejaría la demostración y la libreta local
+  sin manera de decir quién eres, y ahí no hay nadie que lo diga por ti.
+- «Para votar hace falta saber quién eres» ya no manda a un apartado que no
+  existe: manda **al emoji de arriba**.
 
 ## 15. Registro de decisiones
 
@@ -4345,7 +4490,7 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   por Apple.
 
 
-### 14.61 El grupo, en tres áreas y con tres niveles de permiso
+### 14.63 El grupo, en tres áreas y con tres niveles de permiso
 
 - **El defecto:** Grupo salió a su pestaña en §14.52 con el censo dentro, y en la
   misma tanda se le metieron las notas del bunga, su histórico (§14.56) y el
@@ -4361,10 +4506,12 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   abrirla —su emoji sobre su color, su nombre, su estado y cuántos son— y **la
   tuya nace abierta**, que es la que se abre siempre. `Acordeon` gana `cabecera`
   y `clave` para esto: una familia no cabe en una cadena de texto.
-- **✅ «Quién eres» se muda a Grupo → Familias**, arriba del todo. Vivía en un
-  acordeón de Ajustes, y ahí dejó de tener sentido el día que el grupo salió a
-  su pestaña: eres la primera de las nueve fichas del censo, no un ajuste de la
-  aplicación. Sale a su propio fichero, `screens/QuienEresSection.jsx`.
+- **«Quién eres» no acaba aquí, y es una corrección de esta vuelta.** Se pidió
+  moverlo a Grupo y llegó a estarlo, arriba de Familias. Mientras tanto §14.62 lo
+  resolvió mejor por otro camino: **el perfil entero detrás de tu emoji en la
+  cabecera**, alcanzable desde cualquier pantalla en vez de desde una pestaña.
+  Tenerlo en los dos sitios sería peor que en cualquiera de los dos, así que la
+  copia de Grupo se retiró antes de fusionar.
 - **✅ Tres niveles de permiso y no dos** (`lib/permisos.js`):
   1. **Quien administra**, todo.
   2. **Un adulto**, lo de **su** familia —su ficha, su gente, su gadget— y **los
@@ -4383,7 +4530,7 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
 - **Se dice «gadget» y no «cacharro».** El módulo se llama `cacharros.js` porque
   nació así; lo que lee el grupo es la palabra que pidió el grupo.
 
-### 14.61-bis Los avisos no mandaban nada, y una tabla que falta tumbaba la sincronización
+### 14.63-bis Los avisos no mandaban nada, y una tabla que falta tumbaba la sincronización
 
 Dos fallos del servidor que salieron de una pregunta concreta —«he probado con
 un comentario a Dani y no me ha ido»— y que no se parecen en nada al síntoma.

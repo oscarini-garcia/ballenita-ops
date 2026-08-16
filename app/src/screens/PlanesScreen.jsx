@@ -8,8 +8,6 @@ import { plansOf, updatePlan, personsOf, familiesOf, devolverPlanAIdea, anclaDe,
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { puedeOrganizar } from '../lib/personas.js'
-import { esAdministrador } from '../lib/admin.js'
-import { leerSesion } from '../auth/sesion.js'
 import { porDia } from '../lib/evento.js'
 import { ESTADO_SE_HACE, ESTADO_VOTANDO, quienFaltaPorVotar, seHace, votosDe } from '../lib/planes.js'
 import { tap } from '../lib/native.js'
@@ -51,7 +49,7 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
   const plans = useLiveQuery(() => plansOf(eventId), [eventId], [])
   const persons = useLiveQuery(() => personsOf(eventId), [eventId], [])
   const families = useLiveQuery(() => familiesOf(eventId), [eventId], [])
-  const { meId: me } = useIdentidad(eventId, persons)
+  const { meId: me, me: yo } = useIdentidad(eventId, persons)
   const [abierto, setAbierto] = useState(null)
   // Todos los del evento de una vez: el globo de cada fila se cuenta en memoria,
   // que es más barato que una consulta por plan y no parpadea al abrir la lista.
@@ -65,7 +63,14 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
     if (plans.some((p) => p.id === abrir)) { setAbierto(abrir); onAbierta?.() }
   }, [abrir, plans.length])
 
-  const esAdmin = esAdministrador(leerSesion())
+  // **Devolver un plan al catálogo lo hacen los adultos** (SPECS §14.43-bis).
+  // Estaba en `esAdministrador`, que es el cerrojo del **grupo** —quién entra,
+  // quién es quién, las fechas del evento— y aquí no pintaba nada: devolver una
+  // propuesta es organizar el viaje, lo mismo que proponerla, y proponer ya iba
+  // por `puedeOrganizar` desde §14.43. Con dos reglas para los dos sentidos del
+  // mismo movimiento, cualquier adulto podía traer una idea al viaje y **nadie
+  // más que el administrador** podía deshacerlo.
+  const organiza = puedeOrganizar(yo)
 
   // Lo que se cayó fuera de las fechas sigue apartado (§14.10-quater): un plan en
   // un día que el viaje ya no tiene no es un plan elegido.
@@ -135,7 +140,7 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
     <div className="body">
       {!me && persons.length > 0 && (
         <div className="note">
-          Para votar hace falta saber quién eres: dilo en <b>Grupo → Quién eres</b>.
+          Para votar hace falta saber quién eres: tócate el <b>emoji de arriba</b> y dilo.
         </div>
       )}
 
@@ -205,11 +210,11 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
           persons={persons}
           families={families}
           me={me}
-          // Marcar «se hace» es organizar el viaje, así que va con la misma
-          // guarda que «Proponer» (§14.43): un solo predicado sobre la edad.
-          puedeDecidir={puedeOrganizar(persons.find((p) => p.id === me))}
           evento={event}
-          esAdmin={esAdmin}
+          // Marcar «se hace» y devolverlo al catálogo son las dos cosas de esta
+          // capa que organizan el viaje, y llevan la misma guarda (§14.43,
+          // §14.43-bis): un solo predicado sobre la edad, calculado una vez.
+          organiza={organiza}
           onClose={() => setAbierto(null)}
         />
       )}
@@ -218,8 +223,8 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
 }
 
 /**
- * El plan abierto: se vota, se ve quién ha votado qué, y quien administra puede
- * devolverlo al catálogo.
+ * El plan abierto: se vota, se ve quién ha votado qué, y los adultos pueden
+ * devolverlo al catálogo (§14.43-bis).
  *
  * **Se ve como una capa** (`docs/diseño/plan-voto.html` · P1 · F1+F4 · V2):
  * centrado, con el papel de las tarjetas, borde y sombra, y el velo un punto más
@@ -247,7 +252,7 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
  * ahí es donde se decide a quién dar un toque, sin abrir nada. Repetirlo dentro
  * gastaba 34 pt en decir lo mismo dos pantallas seguidas.
  */
-function PlanAbierto({ plan, persons, families, me, puedeDecidir, evento, esAdmin, onClose }) {
+function PlanAbierto({ plan, persons, families, me, evento, organiza, onClose }) {
   useBloqueoDeScroll()
   const [confirmando, setConfirmando] = useState(false)
 
@@ -339,7 +344,7 @@ function PlanAbierto({ plan, persons, families, me, puedeDecidir, evento, esAdmi
 
         {/* El interruptor (P3). Solo para quien organiza, y **sin borrar los
             votos**: es lo que permite tocarlo sin pensárselo. */}
-        {puedeDecidir && (
+        {organiza && (
           <div className="seg" role="group" aria-label="Cómo se decide este plan" style={{ marginTop: 12 }}>
             <button
               type="button"
@@ -368,7 +373,7 @@ function PlanAbierto({ plan, persons, families, me, puedeDecidir, evento, esAdmi
           {decidido ? '' : ' Aquí solo se vota.'}
         </div>
 
-        {esAdmin && (
+        {organiza && (
           <div style={{ marginTop: 10 }}>
             {confirmando ? (
               <>

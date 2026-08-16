@@ -35,6 +35,22 @@ export function cuentaPorId(db, id) {
   return db.prepare('SELECT * FROM cuenta WHERE id = ?').bind(id).first();
 }
 
+/**
+ * La cuenta enlazada con esta persona, si la hay.
+ *
+ * Se consulta al generar un enlace de acceso (SPECS §14.61) y es lo que hace
+ * que generar dos veces para la misma persona no deje dos cuentas: la segunda
+ * vez se le renueva el pase a la que ya tiene. Enlazar es exclusivo de hecho
+ * —la pantalla marca como «tomada» a la persona que ya es de otra cuenta—, así
+ * que si hubiera dos filas, la más antigua es la que lleva el historial.
+ */
+export function cuentaPorPersona(db, personId) {
+  return db
+    .prepare('SELECT * FROM cuenta WHERE personId = ? ORDER BY creadoEn LIMIT 1')
+    .bind(personId)
+    .first();
+}
+
 export async function hayAlgunaCuenta(db) {
   const fila = await db.prepare('SELECT COUNT(*) AS total FROM cuenta').first();
   return (fila?.total ?? 0) > 0;
@@ -45,7 +61,10 @@ export async function hayAlgunaCuenta(db) {
  * excepción no habría manera de entrar en una instalación recién desplegada
  * salvo escribiendo en la base a mano.
  */
-export async function crearCuenta(db, { id, appleSub, nombre = '', email = null, rol = null, activa = 1 }) {
+export async function crearCuenta(
+  db,
+  { id, appleSub, nombre = '', email = null, rol = null, activa = 1, personId = null },
+) {
   const primera = !(await hayAlgunaCuenta(db));
   const cuenta = {
     id,
@@ -54,22 +73,47 @@ export async function crearCuenta(db, { id, appleSub, nombre = '', email = null,
     email,
     rol: rol || (primera ? 'administrador' : 'miembro'),
     activa,
+    personId,
     creadoEn: ahoraISO(),
   };
   await db
     .prepare(
-      `INSERT INTO cuenta (id, appleSub, nombre, email, rol, activa, creadoEn)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cuenta (id, appleSub, nombre, email, rol, activa, personId, creadoEn)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(cuenta.id, cuenta.appleSub, cuenta.nombre, cuenta.email, cuenta.rol, cuenta.activa, cuenta.creadoEn)
+    .bind(
+      cuenta.id, cuenta.appleSub, cuenta.nombre, cuenta.email,
+      cuenta.rol, cuenta.activa, cuenta.personId, cuenta.creadoEn,
+    )
     .run();
   return cuenta;
+}
+
+/**
+ * Guarda cuál es el pase de enlace que vale para esta cuenta, y borra el que
+ * hubiera (SPECS §14.61).
+ *
+ * Es el mismo movimiento en los dos sentidos y por eso es una sola función: con
+ * un `jti` se genera —y el enlace anterior deja de valer en el acto, que es
+ * cómo se revoca uno que acabó donde no debía—, y con `null` se quema al
+ * canjearlo, que es lo que lo hace de un solo uso.
+ */
+export async function ponerJtiDeEnlace(db, cuentaId, jti) {
+  await db.prepare('UPDATE cuenta SET enlaceJti = ? WHERE id = ?').bind(jti, cuentaId).run();
 }
 
 export function listarCuentas(db) {
   return filas(
     db,
-    `SELECT id, nombre, email, rol, activa, personId, creadoEn, ultimoAcceso
+    // `appleSub` no sale de aquí —es el identificador que Apple le da a esta
+    // instalación y no hace falta para nada en la pantalla—, pero sí sale lo
+    // que se deduce de él: una cuenta con prefijo `enlace:` es de alguien que
+    // entra por navegador y nunca ha pasado por Apple, y decirlo evita que se
+    // lea como una cuenta rota. `enlaceVivo` es si le queda un enlace sin
+    // canjear, que es lo que separa «se lo he mandado» de «ya ha entrado».
+    `SELECT id, nombre, email, rol, activa, personId, creadoEn, ultimoAcceso,
+            (appleSub LIKE 'enlace:%') AS porEnlace,
+            (enlaceJti IS NOT NULL) AS enlaceVivo
        FROM cuenta ORDER BY creadoEn`,
   );
 }
