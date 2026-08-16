@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.49.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1017 pruebas en 111 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.50.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1033 pruebas en 112 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   242 pruebas en 24 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -213,6 +213,8 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
   ↳ urlDelManifiestoOta, isNative, tap, share, hayOtaNueva, checkForOtaUpdate · +13 más
 - `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
   ↳ NOTAS
+- `permisos.js` — Quién puede tocar qué del grupo (SPECS §14.63).
+  ↳ puedeEditarFamilia, porQueNoPuedes, hayCerrojos, mandaEnTodo, esAdultoDelGrupo, puedeEditarBungas · +2 más
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
   ↳ EDADES, pesoDe, esMayor, puedeOrganizar, EMOJIS_PERSONA
 - `planes.js` — Lo que se dice de un plan sin abrirlo: cuántos lo quieren y quién falta.
@@ -276,7 +278,7 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `ExpensesScreen.jsx` — «19:40» — desempata dos gastos de la misma categoría el mismo día.
 - `FichaDeGasto.jsx` — La ficha de un gasto (SPECS §14.26 · `docs/diseño/gasto-nuevo.html`, combinación A1 · B3 · C1 · D2 · E2).
   ↳ cuadrar, DetallesDeGasto
-- `GrupoScreen.jsx` — Grupo: quién viene, dónde duerme cada familia y qué cacharro ha traído.
+- `GrupoScreen.jsx` — Grupo: quién viene, dónde duerme cada familia y qué gadget ha traído.
 - `GrupoSection.jsx` — El grupo en una sola sección: una ficha por familia, con su bunga y su gente.
 - `HojaDeEntre.jsx` — Entre quién se divide (SPECS §14.27 · `docs/diseño/gasto-entre.html`, combinación A3 · B2 · C2 con el renglón de C4 · D2 + D4, y E1 en vez de E2).
 - `HoyScreen.jsx` — «Hoy»: qué pasa hoy, contestado sin que haya que leer.
@@ -390,7 +392,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
 - **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `MejorasSection.jsx`, `ProgresoModal.jsx` · +12 más
-- **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `GrupoScreen.jsx`, `PlanesScreen.jsx`, `alojamientos.js` · +2 más
+- **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `alojamientos.js`, `scrollLock.js` · +1 más
 - **§14.11** Tipografía: un número y toda la escala → `BalancesScreen.jsx`
 - **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `Confirmar.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `borrados.js`, `evento.js` · +1 más
@@ -415,7 +417,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `db.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `avisos.js`, `index.js`
-- **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +4 más
+- **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +5 más
 - **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`, `identidad.js`
 - **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `CenasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `personas.js`
 - **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
@@ -430,10 +432,12 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.53** Los trucos: lo que hay que acordarse de un viaje a otro → `PlanesConAreasScreen.jsx`, `TrucosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.54** La compra, por familia → `CompraScreen.jsx`, `compra-familias.js`, `db.js`, `tablas.js`
 - **§14.55** Los comentarios: una tabla con ancla, y un componente → `Comentarios.jsx`, `DiasScreen.jsx`, `FichaDeGasto.jsx`, `PlanesScreen.jsx`, `avisos.js`, `comentarios.js` · +2 más
-- **§14.56** El bunga es un sitio, y por eso puede tener historia → `GrupoSection.jsx`, `alojamientos.js`, `db.js`, `tablas.js`
-- **§14.57** El cacharro del año → `CacharrosSection.jsx`, `cacharros.js`, `db.js`, `tablas.js`
+- **§14.56** El bunga es un sitio, y por eso puede tener historia → `GrupoSection.jsx`, `PlatosScreen.jsx`, `alojamientos.js`, `db.js`, `permisos.js`, `tablas.js`
+- **§14.57** El cacharro del año → `CacharrosSection.jsx`, `cacharros.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.58** Quién lleva las cuentas → `GrupoSection.jsx`, `avisos.js`, `db.js`, `index.js`, `tablas.js`, `tables.js`
 - **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `planes.js`
 - **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `PlanesScreen.jsx`, `avisos.js`, `destino.js` · +3 más
-- **§14.61** Entrar sin iPhone: un enlace que abre la puerta una vez → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `api.js`, `enlace.js`, `index.js` · +2 más
+- **§14.61** Entrar sin iPhone: un enlace que abre la puerta una vez → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `GrupoSection.jsx`, `api.js`, `enlace.js` · +3 más
 - **§14.62** Tu perfil vive detrás de tu emoji, y «Quién eres» se retira → `App.jsx`, `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`
+- **§14.63** El grupo, en tres áreas y con tres niveles de permiso → `Acordeon.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `permisos.js`
+- **§14.64** Un plato dice qué lleva y ahora también cómo se hace → `PlatosScreen.jsx`, `db.js`, `tablas.js`

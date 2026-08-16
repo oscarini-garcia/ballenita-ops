@@ -145,6 +145,11 @@ function FilaPlato({ plato, usos, onEditar }) {
           <span className="sub">
             {plato.categorias?.map(etiqueta).join(' · ') || 'sin tipo'}
             {usos > 0 ? ` · en ${usos} ${usos === 1 ? 'cena' : 'cenas'}` : ''}
+            {/* Que se sepa **sin abrirlo** cuál tiene escrito cómo se hace
+                (§14.64): es lo que se busca cuando hay veinte platos y toca
+                cocinar uno. Cero puntos de alto — va en el subtítulo que ya
+                estaba. */}
+            {plato.receta?.trim() ? ' · 📖 con receta' : ''}
           </span>
         </span>
       </button>
@@ -257,6 +262,10 @@ function ModalPlato({ plato, event, usos, catalogo = [], onClose, onProponer }) 
   const [cats, setCats] = useState(() => new Set(plato?.categorias ?? []))
   const [raciones, setRaciones] = useState(plato?.raciones ? String(plato.raciones) : '')
   const [ingredientes, setIngredientes] = useState(() => normalizarIngredientes(plato?.ingredientes))
+  // Cómo se hace (§14.64). Texto libre y multilínea: una receta de este grupo es
+  // «sofríes la cebolla, echas el arroz y cuando hierva bajas el fuego», no una
+  // lista de pasos numerados que nadie va a rellenar.
+  const [receta, setReceta] = useState(plato?.receta ?? '')
   const [confirmando, setConfirmando] = useState(false)
   // **Quién** está pensando, no «hay algo pensando» (§14.20-ter · P1): con una
   // sola variable el texto colgaba del botón de «Arreglar» y pulsar «Parecidos»
@@ -384,6 +393,7 @@ function ModalPlato({ plato, event, usos, catalogo = [], onClose, onProponer }) 
       categorias: [...cats],
       raciones: Number(raciones) > 0 ? Number(raciones) : null,
       ingredientes: normalizarIngredientes(ingredientes),
+      receta: receta.trim(),
     }
     if (esNuevo) await addDish(campos, event)
     else await updateDish(plato.id, campos)
@@ -467,6 +477,25 @@ function ModalPlato({ plato, event, usos, catalogo = [], onClose, onProponer }) 
           placeholder="12"
         />
         <div className="pista">Es la receta, no el viaje: la app la estira sola para la gente que haya.</div>
+
+        {/* **Cómo se hace** (§14.64). Debajo de los ingredientes y de las
+            raciones porque es el orden en que se rellena: primero qué lleva y
+            para cuántos, luego qué hacer con ello. Texto libre y multilínea, no
+            pasos numerados: una receta de este grupo es «sofríes la cebolla,
+            echas el arroz y cuando hierva bajas el fuego», y pedir estructura
+            es pedir algo que nadie rellena — el mismo descarte que las cinco
+            estrellas del bunga (§14.56 · B3). */}
+        <label htmlFor="plato-receta">Cómo se hace <span className="apunte">(opcional)</span></label>
+        <textarea
+          id="plato-receta"
+          rows={5}
+          value={receta}
+          onChange={(e) => setReceta(e.target.value)}
+          placeholder="Sofríes la cebolla, echas el arroz…"
+        />
+        <div className="pista">
+          Lo que se lee delante del fuego. Los ingredientes de arriba son los que van a la compra.
+        </div>
 
         <label>Tipo <span className="apunte">(puede ser más de uno)</span></label>
         <div className="chips">

@@ -16,6 +16,19 @@
  */
 export const NOTAS = [
   {
+    version: '0.50.0',
+    fecha: '2026-08-16',
+    titulo: 'Grupo en tres áreas, y los avisos que no llegaban',
+    lineas: [
+      'Grupo se parte en tres: Familias, Bungas y Gadgets. Cada familia es un desplegable que dice su estado y cuántos son, así que la lista entera cabe de un vistazo y se abre solo la que buscas.',
+      'Y ya no hace falta esperar a que lo haga uno: cada adulto edita lo de su familia y lo de los bungas —colocarlos, ponerles alias, apuntar sus notas— y el gadget de su casa. Crear o borrar familias y mover gente entre ellas siguen siendo de quien administra, porque cambian el reparto de todos.',
+      'Los avisos de gastos y de comentarios ya llegan de verdad: el servidor los componía sin la lista de personas y no mandaba ninguno, sin fallar ni decirlo. «Gastos que te tocan» no había avisado nunca desde que existe.',
+      'Y una tabla nueva sin migrar ya no deja al grupo entero sin sincronizar: llega vacía en vez de tumbar la instantánea.',
+      'Un plato guarda ahora cómo se hace: un campo de texto libre debajo de los ingredientes, para lo que se lee delante del fuego. En el catálogo, los que tienen receta escrita lo dicen en su fila.',
+      'Y «Qué ha cambiado» —esto que estás leyendo— es su propio apartado de Ajustes, el último, en vez del final de «La app»: se lee después de actualizar, no hay que abrir la solapa de los botones para llegar.',
+    ],
+  },
+  {
     version: '0.49.0',
     fecha: '2026-08-16',
     titulo: 'Quien no tiene iPhone ya puede entrar',

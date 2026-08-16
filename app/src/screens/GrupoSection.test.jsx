@@ -17,28 +17,46 @@ async function sembrar() {
   return { eventId, garcia, solteros }
 }
 
+/**
+ * Dentro de la solapa de una familia. Hace falta desde §14.63 porque «Quién
+ * eres» vive ahora en esta misma pantalla y su lista de «Cambiar de persona»
+ * nombra a todo el mundo: buscar «Curro» suelto encuentra dos.
+ */
+const enFamilia = async (nombre) => within((await screen.findByText(nombre)).closest('details'))
+
 describe('El grupo — la ficha por familia (G2)', () => {
-  it('cada familia enseña su bunga y su gente sin tocar nada', async () => {
+  it('cada familia es un desplegable que dice quién es y cuántos son', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
+    // La solapa cerrada tiene que decir lo justo para no abrirla (§14.63).
     expect(await screen.findByText('García')).toBeTruthy()
-    expect(await screen.findByText('el de la piscina')).toBeTruthy()
-    expect(await screen.findByText('Curro')).toBeTruthy()
-    // La familia sin bunga enseña el hueco, no un guion.
-    expect(await screen.findByText('+ Bunga')).toBeTruthy()
+    expect(await screen.findByText(/modo playa · 1 persona/)).toBeTruthy()
+    // Y su gente está dentro, que con `<details>` sigue estando en el documento.
+    expect((await enFamilia('García')).getByText('Curro')).toBeTruthy()
   })
 
-  it('lo que no está colocado cae en «Sueltos»', async () => {
+  it('quien no tiene familia sale aparte, y los bungas ya no salen aquí', async () => {
     const { eventId } = await sembrar()
+    await addPerson(eventId, { name: 'Suelto', edad: 'adulto' })
     render(<GrupoSection eventId={eventId} />)
-    expect(await screen.findByText('Sueltos')).toBeTruthy()
+    expect(await screen.findByText('Sin familia')).toBeTruthy()
+    // Los bungas se fueron a su área: aquí no estorban.
+    expect(screen.queryByText('Bunga 3')).toBe(null)
+  })
+
+  it('los bungas viven en su área, con de quién es cada uno', async () => {
+    const { eventId } = await sembrar()
+    render(<GrupoSection eventId={eventId} area="bungas" />)
+    expect(await screen.findByText('Bunga 1')).toBeTruthy()
     expect(await screen.findByText('Bunga 3')).toBeTruthy()
+    // El que no tiene dueño lo dice, no se calla.
+    expect(await screen.findByText('— de nadie —')).toBeTruthy()
   })
 
-  it('tocar la fila abre su editor (E1)', async () => {
+  it('tocar «Editar» abre el editor de la familia (E1)', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
-    await userEvent.click(await screen.findByText('García'))
+    await userEvent.click(await screen.findByRole('button', { name: /Editar «García»/ }))
     expect(await screen.findByText('Editar familia')).toBeTruthy()
     expect(screen.getByLabelText('Nombre').value).toBe('García')
   })
@@ -46,7 +64,7 @@ describe('El grupo — la ficha por familia (G2)', () => {
   it('editar guarda el cambio en la base', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
-    await userEvent.click(await screen.findByText('García'))
+    await userEvent.click(await screen.findByRole('button', { name: /Editar «García»/ }))
     const campo = await screen.findByLabelText('Nombre')
     await userEvent.clear(campo)
     await userEvent.type(campo, 'Garcías')
@@ -83,7 +101,7 @@ describe('El grupo — la ficha por familia (G2)', () => {
   it('una familia de antes se guarda con el alias que se le propone', async () => {
     const { eventId, garcia } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
-    await userEvent.click(await screen.findByText('García'))
+    await userEvent.click(await screen.findByRole('button', { name: /Editar «García»/ }))
 
     // No tenía alias —es de antes de que existiera la columna— y la ficha lo
     // enseña ya puesto, no en blanco.
@@ -96,8 +114,8 @@ describe('El grupo — la ficha por familia (G2)', () => {
 
   it('la pastilla abre la hoja de elección con lo libre y lo tomado (A3)', async () => {
     const { eventId } = await sembrar()
-    render(<GrupoSection eventId={eventId} />)
-    await userEvent.click(await screen.findByText('+ Bunga'))
+    render(<GrupoSection eventId={eventId} area="bungas" />)
+    await userEvent.click(await screen.findByText('Darle uno'))
     const hoja = within(await screen.findByRole('dialog'))
     expect(await screen.findByText('¿Qué bunga?')).toBeTruthy()
     // Bunga 1 sale, pero apagado y diciendo de quién es.
@@ -109,8 +127,8 @@ describe('El grupo — la ficha por familia (G2)', () => {
 
   it('elegir un bunga libre lo asigna', async () => {
     const { eventId, solteros } = await sembrar()
-    render(<GrupoSection eventId={eventId} />)
-    await userEvent.click(await screen.findByText('+ Bunga'))
+    render(<GrupoSection eventId={eventId} area="bungas" />)
+    await userEvent.click(await screen.findByText('Darle uno'))
     const hoja = within(await screen.findByRole('dialog'))
     await userEvent.click(hoja.getByRole('button', { name: /Bunga 3/ }))
     await waitFor(async () => {
@@ -123,13 +141,13 @@ describe('El grupo — la ficha por familia (G2)', () => {
   // que abría su editor. Su nombre y su mote quedaban escritos para siempre.
   it('la hoja de la pastilla lleva al editor del bunga que ya tiene', async () => {
     const { eventId } = await sembrar()
-    render(<GrupoSection eventId={eventId} />)
+    render(<GrupoSection eventId={eventId} area="bungas" />)
 
-    // Bunga 1 es de los García, así que no está en «Sueltos»: no hay más
-    // camino que este.
-    await userEvent.click(await screen.findByText('el de la piscina'))
-    const hoja = within(await screen.findByRole('dialog'))
-    await userEvent.click(hoja.getByRole('button', { name: 'Editar «el de la piscina»…' }))
+    // Bunga 1 es de los García; desde §14.63 su fila vive en el área de bungas y
+    // **abre su editor directamente**: ya no hace falta pasar por la hoja de
+    // elección, que era el único camino cuando el bunga con familia desaparecía
+    // de «Sueltos» (§14.48).
+    await userEvent.click(await screen.findByText('Bunga 1'))
 
     expect(await screen.findByText('Editar bunga')).toBeTruthy()
     const nombre = screen.getByLabelText('Nombre')
@@ -151,8 +169,8 @@ describe('El grupo — la ficha por familia (G2)', () => {
 
   it('una familia sin bunga no ofrece editar ninguno, solo crearlo', async () => {
     const { eventId } = await sembrar()
-    render(<GrupoSection eventId={eventId} />)
-    await userEvent.click(await screen.findByText('+ Bunga'))
+    render(<GrupoSection eventId={eventId} area="bungas" />)
+    await userEvent.click(await screen.findByText('Darle uno'))
     const hoja = within(await screen.findByRole('dialog'))
     expect(hoja.getByText('+ Bunga nuevo…')).toBeTruthy()
     expect(hoja.queryByRole('button', { name: /^Editar / })).toBe(null)
@@ -175,7 +193,7 @@ describe('El grupo — la ficha por familia (G2)', () => {
   it('borrar dice qué se lleva y solo entonces borra (D1)', async () => {
     const { eventId } = await sembrar()
     render(<GrupoSection eventId={eventId} />)
-    await userEvent.click(await screen.findByText('García'))
+    await userEvent.click(await screen.findByRole('button', { name: /Editar «García»/ }))
     await userEvent.click(await screen.findByRole('button', { name: 'Borrar' }))
     expect(await screen.findByText(/Su única persona se queda sin familia y Bunga 1 vuelve a quedar libre/)).toBeTruthy()
     await userEvent.click(screen.getByRole('button', { name: 'Sí, borrar' }))
@@ -260,7 +278,8 @@ describe('El grupo — la ficha por familia (G2)', () => {
     const { container } = render(<GrupoSection eventId={eventId} />)
     await screen.findByText('García')
 
-    expect(container.querySelector('.av')?.dataset.emojis).toBe('3')
+    // Acotado a la solapa: el primer `.av` del documento es el de «Quién eres».
+    expect(container.querySelector('.acordeon summary .av')?.dataset.emojis).toBe('3')
   })
 
   it('no hay ningún botón de borrar en las filas', async () => {
@@ -278,7 +297,7 @@ describe('quién lleva las cuentas (§14.58)', () => {
     localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
     render(<GrupoSection eventId={eventId} />)
 
-    await userEvent.click(await screen.findByText('Curro'))
+    await userEvent.click((await enFamilia('García')).getByText('Curro'))
     await userEvent.click(await screen.findByRole('switch', { name: /Lleva las cuentas/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
 
@@ -289,16 +308,16 @@ describe('quién lleva las cuentas (§14.58)', () => {
   })
 
   it('a un niño no se le ofrece: sería una casilla que no puede hacer nada', async () => {
-    const { eventId } = await sembrar()
+    const { eventId, garcia } = await sembrar()
     localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
-    await addPerson(eventId, { name: 'Fran', edad: 'niño' })
+    await addPerson(eventId, { name: 'Fran', edad: 'niño', familyId: garcia })
     render(<GrupoSection eventId={eventId} />)
 
-    await userEvent.click(await screen.findByText('Fran'))
+    await userEvent.click((await enFamilia('García')).getByText('Fran'))
     expect(screen.queryByRole('switch', { name: /Lleva las cuentas/ })).not.toBeInTheDocument()
     // Y al adulto sí.
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
-    await userEvent.click(await screen.findByText('Curro'))
+    await userEvent.click((await enFamilia('García')).getByText('Curro'))
     expect(await screen.findByRole('switch', { name: /Lleva las cuentas/ })).toBeInTheDocument()
   })
 
@@ -309,7 +328,7 @@ describe('quién lleva las cuentas (§14.58)', () => {
     await updatePerson(gente0.find((p) => p.name === 'Curro').id, { llevaLasCuentas: true })
     render(<GrupoSection eventId={eventId} />)
 
-    await userEvent.click(await screen.findByText('Curro'))
+    await userEvent.click((await enFamilia('García')).getByText('Curro'))
     await userEvent.click(await screen.findByRole('button', { name: 'Niño' }))
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
 

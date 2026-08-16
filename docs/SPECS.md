@@ -3368,6 +3368,34 @@ la memoria de nadie.
 - **«La versión» y no «La app»**, que es como se llama el acordeón que lo
   contiene: un rótulo que repite el de su apartado no dice dónde estás.
 
+### 14.34-ter «Qué ha cambiado» es un apartado, no el final de otro
+
+§14.34-bis sacó las novedades de en medio del botón de actualizar y las dejó al
+final del mismo acordeón. Eso era **la mitad del camino**: seguían siendo el
+tercer bloque de un apartado que ya contaba dos operaciones, y para leerlas
+había que desplegar «La app» y pasar por encima de los dos botones que la ponen
+al día y de sus dos listas de progreso.
+
+- **Son dos preguntas distintas y se contestan de distinta manera:** «¿estoy al
+  día?» **se toca** —dos botones y lo que va pasando debajo—; «¿qué me ha
+  traído?» **se lee**. Meterlas en la misma solapa obliga a abrir la de tocar
+  para llegar a la de leer, y son las dos únicas cosas de Ajustes que se hacen
+  el mismo día.
+- **✅ Acordeón propio, `Qué ha cambiado`, el último de Ajustes** y detrás de
+  «La app», no delante: se lee **después** de actualizar. «La app» se queda con
+  sus dos bloques —**Los datos del grupo** y **La versión**, más **La base de
+  datos** para quien administra— y ninguno más.
+- **La solapa va sin nota**, que es lo único de esta vuelta que se probó y se
+  cayó. El titular de la última versión —«Grupo en tres áreas, y los avisos que
+  no llegaban»— pide **370 pt** y en el renglón quedan **174,8**: salía por la
+  mitad y además empujaba el rótulo a dos líneas, de **48 a 73,2 pt** de alto
+  entre nueve solapas de 48. Y el número, que sí cabe, ya lo dice «La app» dos
+  renglones más arriba: repetirlo se lee como un descuido. «Qué ha cambiado» se
+  basta solo.
+- La prosa no se mueve: sigue en `lib/notas.js` con su guardia (§14.34), y las
+  tarjetas siguen siendo cuatro y de lado (`.relnotas`). Lo que cambia es de qué
+  cuelgan.
+
 ### 14.35 Saldos: la familia con su pastilla, y quién paga a quién
 
 Decidido en `docs/diseño/saldos.html` · **F3 · R2 · E1**, más los tres arreglos
@@ -4489,6 +4517,109 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   pero declararlos es nativo y **no viaja por OTA**: exige binario nuevo y pasar
   por Apple.
 
+
+### 14.63 El grupo, en tres áreas y con tres niveles de permiso
+
+- **El defecto:** Grupo salió a su pestaña en §14.52 con el censo dentro, y en la
+  misma tanda se le metieron las notas del bunga, su histórico (§14.56) y el
+  gadget de cada casa (§14.57). Una sola columna con todo eso obliga a rodar
+  media pantalla para llegar a lo que se venía a mirar, y con seis familias la
+  lista de gente no cabe.
+- **✅ Tres áreas: Familias · Bungas · Gadgets.** Las tres palabras caben — la
+  casilla de un mando de tres da **103,3 pt** y la más larga es «Gadgets» con
+  83,8—. Los bungas salen de dentro de la ficha de cada familia y pasan a su
+  propia lista, que es donde se les puede dar alias, dueño y notas sin abrir
+  tres solapas.
+- **✅ Cada familia es un desplegable.** La solapa cerrada dice lo justo para no
+  abrirla —su emoji sobre su color, su nombre, su estado y cuántos son— y **la
+  tuya nace abierta**, que es la que se abre siempre. `Acordeon` gana `cabecera`
+  y `clave` para esto: una familia no cabe en una cadena de texto.
+- **«Quién eres» no acaba aquí, y es una corrección de esta vuelta.** Se pidió
+  moverlo a Grupo y llegó a estarlo, arriba de Familias. Mientras tanto §14.62 lo
+  resolvió mejor por otro camino: **el perfil entero detrás de tu emoji en la
+  cabecera**, alcanzable desde cualquier pantalla en vez de desde una pestaña.
+  Tenerlo en los dos sitios sería peor que en cualquiera de los dos, así que la
+  copia de Grupo se retiró antes de fusionar.
+- **✅ Tres niveles de permiso y no dos** (`lib/permisos.js`):
+  1. **Quien administra**, todo.
+  2. **Un adulto**, lo de **su** familia —su ficha, su gente, su gadget— y **los
+     bungas de cualquiera**. Los bungas se comparten a propósito: colocar a las
+     familias lo hace quien llega primero al camping, y el estado de un bunga
+     —«la nevera congela», «hay bichos»— lo sabe quien ha dormido ahí.
+  3. **El resto** —adolescentes y niños—, mirar.
+- **Lo que no se delega**: crear y borrar familias, y mover gente de una a otra.
+  Son las dos cosas que **redistribuyen el reparto de todos los demás**, y por
+  eso siguen siendo de quien administra.
+- **Sin sesión no se capa nada**, como en toda la casa (§14.41, §14.43): la
+  libreta local y la demostración son de quien tiene el móvil en la mano.
+- **Y a quien no puede se le dice por qué**, con la razón que le toca —«esto lo
+  llevan los adultos» o «puedes cambiar lo de tu familia y lo de los bungas»—:
+  una pantalla que no reacciona y se calla es peor que una que capa y lo explica.
+- **Se dice «gadget» y no «cacharro».** El módulo se llama `cacharros.js` porque
+  nació así; lo que lee el grupo es la palabra que pidió el grupo.
+
+### 14.63-bis Los avisos no mandaban nada, y una tabla que falta tumbaba la sincronización
+
+Dos fallos del servidor que salieron de una pregunta concreta —«he probado con
+un comentario a Dani y no me ha ido»— y que no se parecen en nada al síntoma.
+
+- **La instantánea se leía con la forma equivocada.** `leerInstantanea` devuelve
+  `{ v: 1, tables: { persons, families, … } }` y quien componía los sobres leía
+  `instantanea.persons`: **siempre `undefined`**. Con la lista de personas vacía,
+  `familiasDeUnGasto` no encuentra a nadie, `personIds` sale vacío y
+  `avisoDeGasto`, `avisoDeLiquidacion` y `avisoDeComentario` devuelven `null`.
+  **No se manda nada y no falla nada** — sin error, sin log, sin 500—, que es la
+  clase de fallo que no se nota hasta que alguien pregunta. Sobrevivía solo «En
+  qué anda la gente», porque `avisoDeEstado` no mira las personas y su
+  `personIds` es `null`. Lleva así desde §14.39: **«Gastos que te tocan» no ha
+  avisado nunca.**
+- **Por qué no lo cazó ningún test:** los de `avisos.test.js` prueban las
+  funciones puras pasándoles las listas a mano, así que verifican *a quién le
+  toca* y nunca *qué forma tiene lo que les llega*. El que compone los sobres es
+  ahora `sobresDeLosCambios`, exportado, y `avisos-cableado.test.js` le pasa una
+  instantánea **leída de una base** — más un test que fija la forma vieja y
+  comprueba que con ella no sale ningún sobre.
+- **Una tabla que aún no existe dejaba a todo el grupo sin sincronizar.** El
+  Worker se publica solo en cada entrada a `main` y las migraciones se aplican a
+  mano (§14.23): entre las dos cosas hay una ventana en la que el `SELECT` de la
+  instantánea nombra tablas que no están. Eso lanzaba y `/api/sync` y
+  `/api/cambios` contestaban **500**. Pasó con las cuatro tablas de §14.52–§14.60
+  y habría vuelto a pasar con la siguiente migración. Ahora la tabla que falta
+  llega **vacía** y sale en `faltan`; cualquier **otro** error de la base sigue
+  reventando, porque devolver una lista vacía ahí sería decirle al móvil que el
+  grupo no tiene gastos.
+
+### 14.64 Un plato dice qué lleva y ahora también cómo se hace
+
+Un plato sabía **qué lleva** —`ingredientes` con sus cantidades y `raciones`
+para poder estirarlas (§14.20)— y no sabía **cómo se hace**. Son dos cosas
+distintas y las dos hacen falta: de los ingredientes sale la lista de la compra,
+y de esto sale lo que se lee delante del fuego. Sin el campo, quien cocinaba el
+martes tenía la compra hecha y la receta en la cabeza de otro.
+
+- **✅ `dishes.receta`, texto libre y multilínea** (migración `0018`, columna
+  `TEXT` sin `NOT NULL` ni `DEFAULT`: los platos ya apuntados no se tocan, y
+  `NULL` y cadena vacía significan lo mismo). Viaja en la sincronización como
+  cualquier campo del catálogo, así que la receta que escribe uno la lee todo el
+  grupo.
+- **Texto y no pasos numerados**, a propósito. Una receta de este grupo es
+  «sofríes la cebolla, echas el arroz y cuando empiece a hervir bajas el fuego»:
+  obligar a partirla en pasos es pedir una estructura que nadie rellena, y es el
+  mismo descarte que las cinco estrellas del bunga (§14.56 · B3). Un `textarea`
+  de cinco renglones, opcional, con «Sofríes la cebolla, echas el arroz…» de
+  ejemplo.
+- **Va después de los ingredientes y de las raciones**, que es el orden en que
+  se rellena: primero qué lleva y para cuántos, luego qué hacer con ello. Y con
+  su pista, porque los dos campos se parecen y solo uno va a la compra: «Lo que
+  se lee delante del fuego. Los ingredientes de arriba son los que van a la
+  compra».
+- **Se ve sin abrirlo:** la fila del catálogo dice `· 📖 con receta` en el
+  subtítulo que ya tenía. Cuesta **cero puntos** de alto y es lo que se busca
+  cuando hay veinte platos y toca cocinar uno.
+- **Sin tope de caracteres**, al revés que mejoras, trucos y comentarios
+  (2000). Aquellos son listas a las que se añade; esto es un campo de una fila
+  que ya existe y que se edita encima, así que no hay por dónde crecer — y 2000
+  sí es corto para una receta larga.
 
 ### 🟡 Aún abiertas (nivel implementación, no bloquean producto)
 | # | Decisión | Recomendación |

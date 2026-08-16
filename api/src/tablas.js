@@ -81,7 +81,10 @@ export const TABLAS = {
     // verdad. Sin `eventId` el plato es de todos, que es el caso normal.
     // `raciones` es para cuántos es la receta (§14.20): sin ese denominador una
     // cantidad no se puede estirar ni repartir entre las dos mesas.
-    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes', 'raciones', 'eventId'],
+    // `receta` es **cómo se hace**, en texto libre (§14.64). Es lo otro que hace
+    // falta saber de un plato: de `ingredientes` sale la lista de la compra, y
+    // de esto sale lo que se lee delante del fuego.
+    columnas: ['name', 'categorias', 'esFavorito', 'ingredientes', 'raciones', 'receta', 'eventId'],
     json: ['categorias', 'ingredientes'],
     booleanos: ['esFavorito'],
   },

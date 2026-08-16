@@ -756,4 +756,30 @@ CREATE INDEX IF NOT EXISTS idx_cacharros_evento ON cacharros (eventId);
 ALTER TABLE cuenta ADD COLUMN enlaceJti TEXT;
 `,
   },
+  {
+    id: '0018_receta_del_plato',
+    sql: `-- La receta de un plato: cómo se hace, en texto (SPECS §14.64).
+--
+-- Un plato ya sabía **qué lleva** —\`ingredientes\` con sus cantidades desde
+-- §14.20, y \`raciones\` para poder estirarlas— y no sabía **cómo se hace**. Las
+-- dos cosas hacen falta y son distintas: de los ingredientes sale la lista de la
+-- compra, y de esto sale lo que se lee delante del fuego.
+--
+-- Texto libre y no una lista de pasos numerados, a propósito: una receta de este
+-- grupo es «sofríes la cebolla, echas el arroz, y cuando empiece a hervir bajas
+-- el fuego» — obligar a partirla en pasos numerados es pedir una estructura que
+-- nadie va a rellenar, y es el mismo error que se descartó con las estrellas del
+-- bunga (§14.56 · B3).
+--
+-- NULL y cadena vacía significan lo mismo: no hay receta escrita. Los platos ya
+-- apuntados no se tocan, así que la columna no lleva \`DEFAULT\` ni \`NOT NULL\`.
+--
+-- Como las demás, no se toca \`0001_esquema.sql\`: aplicar todas las migraciones
+-- en orden tiene que reproducir producción (\`test/d1.js\`).
+--
+--   npm run migrar:remoto18
+
+ALTER TABLE dishes ADD COLUMN receta TEXT;
+`,
+  },
 ];
