@@ -1,0 +1,538 @@
+<title>Hoy cuenta el día</title>
+<style>
+:root{
+  --pg:#f4f6f8; --pg-2:#ffffff; --tx:#16242c; --tx-2:#4d6674; --tx-3:#7c919d;
+  --ln:#dde6ea; --ac:#22708f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --pg:#0e1a20; --pg-2:#152730; --tx:#e6eef3; --tx-2:#a9bfc9; --tx-3:#7c919d;
+    --ln:#233c48; --ac:#7fc2dd;
+  }
+}
+:root[data-theme="dark"]{
+  --pg:#0e1a20; --pg-2:#152730; --tx:#e6eef3; --tx-2:#a9bfc9; --tx-3:#7c919d;
+  --ln:#233c48; --ac:#7fc2dd;
+}
+body{margin:0;background:var(--pg);color:var(--tx);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+.wrap{max-width:1180px;margin:0 auto;padding:38px 20px 90px;}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.02em;margin:0 0 14px;max-width:19em;}
+h2{font-size:21px;margin:56px 0 6px;letter-spacing:-.01em;}
+h2 .num{color:var(--tx-3);font-weight:600;}
+h2 .elige{font-weight:400;color:var(--tx-3);font-size:16px;}
+p{margin:0 0 12px;max-width:62em;color:var(--tx-2);}
+p b,li b,td b{color:var(--tx);}
+.ficha{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--pg-2);
+  border:1px solid var(--ln);border-radius:10px;font-size:13.5px;color:var(--tx-2);margin:0 0 10px;}
+.ficha b{color:var(--tx);}
+.aviso{border-left:3px solid var(--ac);padding:2px 0 2px 14px;margin:18px 0;}
+ul{margin:0 0 12px;padding-left:20px;color:var(--tx-2);max-width:62em;}
+li{margin:0 0 7px;}
+.rejilla{display:flex;flex-wrap:wrap;gap:26px;margin:20px 0 0;align-items:flex-start;}
+.op{width:362px;flex:none;}
+@media (max-width:480px){
+  .wrap{padding:24px 12px 70px;}
+  .rejilla{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}
+  .tabla-caja{overflow-x:auto;}
+}
+.op-cab{display:flex;align-items:baseline;gap:9px;margin:0 0 8px;}
+.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);
+  color:#fff;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+:root[data-theme="dark"] .cod, :root:not([data-theme="light"]) .cod{color:#0e1a20;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .cod{color:#fff;}}
+.op-nom{font-weight:650;font-size:15.5px;}
+.op-cost{font-size:13.5px;color:var(--tx-2);margin:9px 2px 0;line-height:1.5;}
+.medida{display:inline-block;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;
+  border:1px solid var(--ln);border-radius:6px;padding:2px 7px;color:var(--tx-2);margin-left:auto;
+  white-space:nowrap;}
+.tabla{border-collapse:collapse;font-size:14px;margin:10px 0 0;}
+.tabla td,.tabla th{border-bottom:1px solid var(--ln);padding:7px 16px 7px 0;text-align:left;color:var(--tx-2);}
+.tabla th{color:var(--tx);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;}
+.tabla td:first-child{color:var(--tx);font-weight:650;}
+
+/* ── La pantalla, con los tokens de verdad (Abisal Sobrio, cara clara) ────── */
+.movil{--foam:#f1f5f7;--foam-2:#ffffff;--ink:#12262f;--ink-soft:#4d6674;--ink-faint:#7c919d;
+  --line:#c3d2da;--line-soft:#dde6ea;--spout:#22708f;--spout-deep:#1a6280;--papel:#ffffff;
+  --owed:#2f7a5c;--gold:#8a6c2c;--r:9px;
+  --t-title:23.52px;--t-body:19.04px;--t-row:17.92px;--t-sub:15.68px;--t-label:14.56px;--t-micro:12.88px;
+  width:362px;box-sizing:border-box;background:var(--foam);color:var(--ink);
+  border:1px solid #a9bfc9;border-radius:14px;padding:12px;
+  font:var(--t-body)/1.45 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+/* La capa del día es más estrecha que la pantalla: 326 de 390. */
+.movil.capa{width:326px;background:var(--papel);}
+
+.titular{background:var(--foam-2);border:1px solid var(--line-soft);border-radius:var(--r);
+  padding:14px;}
+.titular .l{font-size:var(--t-micro);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--spout-deep);}
+.titular .g{font-size:var(--t-body);font-weight:650;margin-top:4px;}
+.titular .p{font-size:var(--t-sub);color:var(--ink-soft);margin-top:3px;}
+.titular .frase{font-size:var(--t-body);font-weight:400;line-height:1.4;margin-top:5px;}
+.titular .frase b{font-weight:650;}
+.titular .platos{font-size:var(--t-sub);color:var(--ink-soft);margin-top:6px;line-height:1.45;}
+.titular .grupo{font-size:var(--t-sub);color:var(--ink-soft);margin-top:5px;}
+.titular .grupo .rot{font-size:var(--t-micro);font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink-faint);display:block;}
+.titular .reng{display:flex;gap:9px;font-size:var(--t-sub);color:var(--ink-soft);margin-top:6px;}
+.titular .reng .ic{flex:none;width:20px;text-align:center;}
+.titular .reng b{color:var(--ink);font-weight:600;}
+.abrir{display:block;width:100%;text-align:center;font-size:var(--t-label);font-weight:650;
+  color:var(--spout-deep);padding:11px 0 2px;}
+
+.sec-h{font-size:var(--t-micro);font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-faint);margin:12px 0 6px;}
+.card{background:var(--foam-2);border:1px solid var(--line-soft);border-radius:var(--r);padding:8px 12px;}
+.fila{display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid var(--line-soft);}
+.fila:first-child{border-top:none;}
+.ico{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--owed) 14%,transparent);font-size:17px;}
+.ico.ambar{background:color-mix(in srgb,var(--gold) 16%,transparent);}
+.fila .main{flex:1;min-width:0;}
+.fila .n{font-size:var(--t-row);font-weight:550;}
+.fila .s{font-size:var(--t-sub);color:var(--ink-soft);}
+.fila .v{color:var(--ink-faint);}
+.h2c{font-size:var(--t-title);font-weight:650;margin:2px 0 0;}
+.lista-p{margin:0;padding:0;list-style:none;}
+.lista-p li{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line-soft);
+  font-size:var(--t-row);}
+.lista-p li:first-child{border-top:none;}
+.lista-p .cat{margin-left:auto;font-size:var(--t-sub);color:var(--ink-faint);white-space:nowrap;}
+.grupo-cat{font-size:var(--t-micro);font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-faint);margin:9px 0 2px;}
+.grupo-cat:first-child{margin-top:0;}
+.eleccion-op{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;
+  background:var(--foam-2);border:1px solid var(--line-soft);padding:11px 12px;
+  font-size:var(--t-row);text-align:left;}
+.eleccion-op:first-child{border-radius:var(--r) var(--r) 0 0;}
+.eleccion-op:last-child{border-radius:0 0 var(--r) var(--r);}
+.eleccion-op + .eleccion-op{border-top:none;}
+.eleccion-op .no{margin-left:auto;font-size:var(--t-sub);color:var(--ink-faint);}
+.eleccion-op .tic{color:var(--spout);font-weight:700;}
+.buscador{background:var(--foam-2);border:1px solid var(--line);border-radius:7px;padding:11px 12px;
+  font-size:var(--t-body);color:var(--ink-faint);margin-bottom:8px;}
+.marcados-h{font-size:var(--t-micro);font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--spout-deep);margin:0 0 4px;}
+</style>
+
+<div class="wrap">
+
+<h1>«Hoy» dice el titular de la cena y nada más: ni qué se come, ni quién cena dónde, ni qué plan hay</h1>
+
+<div class="ficha">
+  <span>Dibujado como está en la <b>v0.57.0</b></span>
+  <span>Pantalla <b>390 pt</b> · la tarjeta ocupa <b>362</b> · la capa del día, <b>326</b></span>
+  <span>Abisal Sobrio, <b>cara clara</b></span>
+  <span>Contenido real: la cena del domingo 16</span>
+</div>
+<p>Las medidas las calcula <b>la propia hoja</b> al abrirse, sobre el dibujo que estás viendo.</p>
+
+<h2><span class="num">Parte uno ·</span> lo que hay</h2>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">AHORA</span><span class="op-nom">El titular de Hoy</span>
+      <span class="medida" data-mide="ahora"></span></div>
+    <div class="movil"><div class="titular" id="ahora">
+      <div class="l">dom, 16 ago · esta noche</div>
+      <div class="g">Noche Ibérica 🐷 y dos cosas más</div>
+      <div class="p">Mayores en LosMejores · niños en Collellmir</div>
+    </div></div>
+    <div class="op-cost">Tres renglones. De la cena sale <b>un plato de tres</b> y los otros dos son
+      «dos cosas más»; los bungas van por su mote, sin decir de qué familia son; y <b>el plan del
+      día no está</b> —vive en una tarjeta aparte, más abajo—. No se toca: no lleva a ningún sitio.</div>
+  </div>
+
+  <div class="op" style="width:auto;flex:1;min-width:320px;max-width:520px">
+    <h3 style="margin-top:0">Lo que sale de medirlo</h3>
+    <div class="tabla-caja"><table class="tabla">
+      <tr><th>qué</th><th>cuánto</th></tr>
+      <tr><td>La tarjeta</td><td><b>156,3 pt</b> con esta cena — 147,4 medidos en el Demo, con
+        otro contenido</td></tr>
+      <tr><td>Platos que nombra</td><td><b>1 de 3</b></td></tr>
+      <tr><td>De quién es cada bunga</td><td><b>no se dice</b> (el mote, no la familia)</td></tr>
+      <tr><td>El plan del día</td><td><b>no está</b> en el titular</td></tr>
+      <tr><td>Al tocarlo</td><td><b>nada</b>: no es un botón</td></tr>
+    </table></div>
+    <p style="margin-top:14px">Todo lo que falta ya está a un toque, pero <b>en otra pantalla</b>:
+    Agenda → Días → el día. Y esa capa es un <b>editor</b> —cada renglón abre su elegidor—, así que
+    para <i>mirar</i> el día hay que entrar en la herramienta de <i>montarlo</i>.</p>
+    <p>Esta hoja decide tres cosas: <b>cuánto cuenta el titular</b>, <b>qué pasa al tocarlo</b> y
+    <b>cómo se listan los platos</b>. Y de propina, cómo se agrupa el elegidor.</p>
+  </div>
+</div>
+
+<h2><span class="num">Antes de las opciones ·</span> dos cosas ya decididas, sin alternativas</h2>
+<div class="aviso">
+  <p><b>Uno · los niños comen lo mismo, y por eso no hace falta anunciarlo.</b> La mesa de niños
+  hereda los platos mientras <code>platoIdsNinos</code> sea <code>null</code> (§14.20 · G2), que es
+  la noche normal; el renglón «Los niños comen otra cosa» está puesto <b>siempre</b>, incluso
+  cuando no la comen. Se retira del caso normal y queda solo cuando de verdad comen otra cosa.</p>
+  <p><b>Dos · en Dinero, el total al final de todo.</b> Se mueve al cierre de la lista, que es
+  donde se busca cuando ya has repasado los gastos.</p>
+  <p style="margin-bottom:0">Las dos son cambios pequeños y sin alternativa que discutir, así que
+  no van como opción: van con la vuelta que implemente lo que elijas.</p>
+</div>
+
+<h2><span class="num">Parte dos ·</span> cuánto cuenta el titular <span class="elige">— elige una</span></h2>
+<p>Mismo día en las cinco: cena de tres platos, dos bungas y un plan sin votos.</p>
+
+<div class="rejilla">
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">T1</span><span class="op-nom">Una frase redactada</span>
+      <span class="medida" data-mide="t1"></span></div>
+    <div class="movil"><div class="titular" id="t1">
+      <div class="l">dom, 16 ago · esta noche</div>
+      <div class="frase">Esta noche <b>Noche Ibérica 🐷</b>, con patatas chafadas y helado con
+        limoncello. Los mayores cenan en <b>LosMejores</b> y los niños en <b>Collellmir</b>.</div>
+    </div></div>
+    <div class="op-cost">Se lee de corrido y lo dice todo sin rótulos. <b>Lo paga</b> el vistazo:
+      hay que <i>leerla</i> para sacar un dato suelto —«¿dónde cenan los niños?»— y crece con cada
+      plato que se añada.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">T2</span><span class="op-nom">Titular y platos debajo</span>
+      <span class="medida" data-mide="t2"></span></div>
+    <div class="movil"><div class="titular" id="t2">
+      <div class="l">dom, 16 ago · esta noche</div>
+      <div class="g">Noche Ibérica 🐷</div>
+      <div class="platos">Con <b>patatas chafadas</b> y <b>helado con limoncello</b>.</div>
+      <div class="p">Mayores en LosMejores · niños en Collellmir</div>
+    </div></div>
+    <div class="op-cost">Lo mínimo que arregla la queja: los tres platos se nombran y el titular
+      sigue siendo el plato que manda. <b>Lo paga</b> lo que sigue sin estar: el plan del día y de
+      quién es cada bunga.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">T3</span><span class="op-nom">Tres renglones con su icono</span>
+      <span class="medida" data-mide="t3"></span></div>
+    <div class="movil"><div class="titular" id="t3">
+      <div class="l">dom, 16 ago · esta noche</div>
+      <div class="g">Noche Ibérica 🐷</div>
+      <div class="reng"><span class="ic">🍽️</span><span>Y <b>patatas chafadas</b> y <b>helado con limoncello</b></span></div>
+      <div class="reng"><span class="ic">🏠</span><span>Mayores en <b>LosMejores</b>, niños en <b>Collellmir</b></span></div>
+      <div class="reng"><span class="ic">📍</span><span><b>Comprar en Arnall</b> · sin votos todavía</span></div>
+    </div></div>
+    <div class="op-cost">Las tres cosas del día, cada una en su renglón y con el mismo icono que
+      usa la capa. <b>Lo paga</b> el alto, y que un día sin plan deja un renglón que decir.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">T4</span><span class="op-nom">Frase + los platos en lista</span>
+      <span class="medida" data-mide="t4"></span></div>
+    <div class="movil"><div class="titular" id="t4">
+      <div class="l">dom, 16 ago · esta noche</div>
+      <div class="frase">Cenamos <b>Noche Ibérica 🐷</b>. Los mayores en <b>LosMejores</b>, los niños
+        en <b>Collellmir</b>.</div>
+      <ul class="lista-p" style="margin-top:9px">
+        <li>Noche Ibérica 🐷<span class="cat">Principal</span></li>
+        <li>Patatas chafadas<span class="cat">Acompañamiento</span></li>
+        <li>Helado con Limoncello<span class="cat">Postre</span></li>
+      </ul>
+    </div></div>
+    <div class="op-cost">La lista se lee como una carta y dice de qué es cada plato. <b>Lo paga</b>
+      el alto —crece un renglón por plato— y que repite el principal, arriba y en la lista.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">T5</span><span class="op-nom">El día entero en Hoy</span>
+      <span class="medida" data-mide="t5"></span></div>
+    <div class="movil" id="t5">
+      <div class="titular">
+        <div class="l">dom, 16 ago · esta noche</div>
+        <div class="g">Noche Ibérica 🐷</div>
+      </div>
+      <div class="sec-h">La cena</div>
+      <div class="card"><ul class="lista-p">
+        <li>Noche Ibérica 🐷<span class="cat">Principal</span></li>
+        <li>Patatas chafadas<span class="cat">Acompañamiento</span></li>
+        <li>Helado con Limoncello<span class="cat">Postre</span></li>
+      </ul></div>
+      <div class="sec-h">Los bungas</div>
+      <div class="card">
+        <div class="fila"><span class="ico">🏠</span><span class="main">
+          <span class="n">Mayores · LosMejores</span><span class="s">el de los García-Doral</span></span></div>
+        <div class="fila"><span class="ico">🏠</span><span class="main">
+          <span class="n">Niños · Collellmir</span><span class="s">el de los Collellmir-Monfort</span></span></div>
+      </div>
+      <div class="sec-h">El plan</div>
+      <div class="card"><div class="fila"><span class="ico ambar">📍</span><span class="main">
+        <span class="n">Comprar en Arnall</span><span class="s">0 👍 · sin votos todavía</span></span></div></div>
+    </div>
+    <div class="op-cost">No hace falta tocar nada: el día está delante. <b>Lo paga</b> la pantalla
+      entera —esto es lo que hay <i>encima</i> de los planes, la tira de estados y el recado— y que
+      «Hoy» deja de tener un titular para ser una lista.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte tres ·</span> qué pasa al tocarlo <span class="elige">— elige una</span></h2>
+<p>Hoy no pasa nada: la tarjeta no es un botón. Lo pedido es que se abra el día <b>en modo lectura</b>.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">P1</span><span class="op-nom">La capa del día, en lectura</span>
+      <span class="medida" data-mide="p1"></span></div>
+    <div class="movil capa" id="p1">
+      <div class="h2c">Domingo, 16 de agosto</div>
+      <div class="sec-h">La cena</div>
+      <div class="card"><ul class="lista-p">
+        <li>Noche Ibérica 🐷<span class="cat">Principal</span></li>
+        <li>Patatas chafadas<span class="cat">Acompañamiento</span></li>
+        <li>Helado con Limoncello<span class="cat">Postre</span></li>
+      </ul></div>
+      <div class="sec-h">Los bungas</div>
+      <div class="card">
+        <div class="fila"><span class="ico">🏠</span><span class="main">
+          <span class="n">Mayores · LosMejores</span><span class="s">el de los García-Doral</span></span></div>
+        <div class="fila"><span class="ico">🏠</span><span class="main">
+          <span class="n">Niños · Collellmir</span><span class="s">el de los Collellmir-Monfort</span></span></div>
+      </div>
+      <div class="sec-h">El plan</div>
+      <div class="card"><div class="fila"><span class="ico ambar">📍</span><span class="main">
+        <span class="n">Comprar en Arnall</span><span class="s">0 👍 · sin votos todavía</span></span></div></div>
+      <div class="abrir">Montar este día</div>
+    </div>
+    <div class="op-cost"><b>Lo pedido.</b> Los mismos tres bloques, sin flechas y sin elegidores;
+      abajo, para quien organiza, la salida al editor de siempre. <b>Lo paga</b> un toque más para
+      quien viene a cambiar algo — y son dos pantallas que hay que mantener parecidas.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">P2</span><span class="op-nom">La capa de siempre, editable</span>
+      <span class="medida" data-mide="p2"></span></div>
+    <div class="movil capa" id="p2">
+      <div class="h2c">Domingo, 16 de agosto</div>
+      <div class="sec-h">La cena</div>
+      <div class="card"><div class="fila"><span class="ico">🍽️</span><span class="main">
+        <span class="n">Noche Ibérica 🐷 y dos cosas más</span><span class="s">tres platos</span></span>
+        <span class="v">›</span></div></div>
+      <div class="sec-h">Los bungas</div>
+      <div class="card">
+        <div class="fila"><span class="ico">🏠</span><span class="main">
+          <span class="n">Mayores · LosMejores</span><span class="s">el de los García-Doral</span></span>
+          <span class="v">›</span></div>
+        <div class="fila"><span class="ico">🏠</span><span class="main">
+          <span class="n">Niños · Collellmir</span><span class="s">el de los Collellmir-Monfort</span></span>
+          <span class="v">›</span></div>
+      </div>
+      <div class="sec-h">El plan</div>
+      <div class="card"><div class="fila"><span class="ico ambar">📍</span><span class="main">
+        <span class="n">Comprar en Arnall</span><span class="s">0 👍 · sin votos todavía</span></span>
+        <span class="v">›</span></div></div>
+    </div>
+    <div class="op-cost">Cero código nuevo: es la capa que ya existe. <b>Lo paga</b> lo que dice la
+      queja — para <i>mirar</i> el día se entra en la herramienta de <i>montarlo</i>, y sigue sin
+      nombrar los platos.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">P3</span><span class="op-nom">Se despliega en su sitio</span>
+      <span class="medida" data-mide="p3"></span></div>
+    <div class="movil" id="p3">
+      <div class="titular">
+        <div class="l">dom, 16 ago · esta noche</div>
+        <div class="g">Noche Ibérica 🐷</div>
+        <ul class="lista-p" style="margin-top:8px">
+          <li>Noche Ibérica 🐷<span class="cat">Principal</span></li>
+          <li>Patatas chafadas<span class="cat">Acompañamiento</span></li>
+          <li>Helado con Limoncello<span class="cat">Postre</span></li>
+        </ul>
+        <div class="reng"><span class="ic">🏠</span><span>Mayores en <b>LosMejores</b>, niños en <b>Collellmir</b></span></div>
+        <div class="reng"><span class="ic">📍</span><span><b>Comprar en Arnall</b> · sin votos todavía</span></div>
+        <div class="abrir">Ver menos</div>
+      </div>
+    </div>
+    <div class="op-cost">Sin capa: la tarjeta crece y se encoge donde está, y el pulgar no cambia de
+      sitio. <b>Lo paga</b> que empuja la pantalla hacia abajo, y que no hay dónde poner el verbo de
+      editar sin volver a llenarla.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">P4</span><span class="op-nom">Lleva a Agenda → Días</span>
+      <span class="medida" data-mide="p4"></span></div>
+    <div class="movil" id="p4">
+      <div class="titular">
+        <div class="l">dom, 16 ago · esta noche</div>
+        <div class="g">Noche Ibérica 🐷 y dos cosas más</div>
+        <div class="p">Mayores en LosMejores · niños en Collellmir</div>
+        <div class="abrir">Ver el día en Agenda ›</div>
+      </div>
+    </div>
+    <div class="op-cost">Una sola pantalla que mantener, y la que ya sabe enseñar un día.
+      <b>Lo paga</b> el viaje: te saca de «Hoy» y volver es otro gesto — y sigues aterrizando en el
+      editor.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cuatro ·</span> cómo se listan los platos <span class="elige">— elige una</span></h2>
+<p>Hoy salen <b>en el orden en que se marcaron</b> y solo se nombra el que manda. El orden de la
+carta es el de <code>DISH_CATEGORIES</code>: aperitivo, entrante, principal, acompañamiento, postre.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">L1</span><span class="op-nom">Seguidos, por orden de carta</span>
+      <span class="medida" data-mide="l1"></span></div>
+    <div class="movil"><div class="titular" id="l1">
+      <div class="l">la cena</div>
+      <div class="platos" style="margin-top:2px">Noche Ibérica 🐷 · Patatas chafadas · Helado con Limoncello</div>
+    </div></div>
+    <div class="op-cost">Lo más corto que los nombra a todos. <b>Lo paga</b> que con cinco platos es
+      un párrafo de puntos medios y no se ve de qué es cada uno.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">L2</span><span class="op-nom">En lista, con su categoría</span>
+      <span class="medida" data-mide="l2"></span></div>
+    <div class="movil"><div class="titular" id="l2">
+      <div class="l">la cena</div>
+      <ul class="lista-p" style="margin-top:5px">
+        <li>Noche Ibérica 🐷<span class="cat">Principal</span></li>
+        <li>Patatas chafadas<span class="cat">Acompañamiento</span></li>
+        <li>Helado con Limoncello<span class="cat">Postre</span></li>
+      </ul>
+    </div></div>
+    <div class="op-cost">Se lee como una carta y cada plato dice de qué va. <b>Lo paga</b> un
+      renglón por plato, y la categoría repetida cuando hay dos del mismo tipo.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">L3</span><span class="op-nom">Agrupados por categoría</span>
+      <span class="medida" data-mide="l3"></span></div>
+    <div class="movil"><div class="titular" id="l3">
+      <div class="l">la cena</div>
+      <div style="margin-top:4px">
+        <div class="grupo-cat">Principal</div>
+        <div style="font-size:var(--t-row)">Noche Ibérica 🐷</div>
+        <div class="grupo-cat">Acompañamiento</div>
+        <div style="font-size:var(--t-row)">Patatas chafadas</div>
+        <div class="grupo-cat">Postre</div>
+        <div style="font-size:var(--t-row)">Helado con Limoncello</div>
+      </div>
+    </div></div>
+    <div class="op-cost">Con muchos platos es lo único que se sigue. <b>Lo paga</b> el alto: con
+      tres platos son tres rótulos para tres líneas — más cabecera que comida.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">L4</span><span class="op-nom">El que manda, y el resto detrás</span>
+      <span class="medida" data-mide="l4"></span></div>
+    <div class="movil"><div class="titular" id="l4">
+      <div class="l">la cena</div>
+      <div class="g" style="margin-top:2px">Noche Ibérica 🐷</div>
+      <div class="platos">con patatas chafadas y helado con limoncello</div>
+    </div></div>
+    <div class="op-cost">Mantiene el titular como titular y nombra el resto en voz baja.
+      <b>Lo paga</b> que no dice de qué es cada plato, y con cinco la coletilla se alarga.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cinco ·</span> el elegidor de platos <span class="elige">— elige una</span></h2>
+<p>Hoy es una lista plana de nueve platos con su categoría a la derecha, en el orden del catálogo.
+Marcar tres de nueve obliga a recorrerla entera.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">E1</span><span class="op-nom">Como ahora, plana</span>
+      <span class="medida" data-mide="e1"></span></div>
+    <div class="movil capa"><div id="e1">
+      <div class="buscador">Buscar…</div>
+      <button class="eleccion-op"><span>Ensalada Feta</span><span class="no">Entrante</span></button>
+      <button class="eleccion-op"><span>Helado con Limoncello</span><span class="no">Postre</span><span class="tic">✓</span></button>
+      <button class="eleccion-op"><span>Noche Ibérica 🐷</span><span class="no">Principal</span><span class="tic">✓</span></button>
+      <button class="eleccion-op"><span>Pinchos Arnall</span><span class="no">Principal</span></button>
+      <button class="eleccion-op"><span>Patatas chafadas</span><span class="no">Acompañamiento</span><span class="tic">✓</span></button>
+    </div></div>
+    <div class="op-cost">Una sola lista, y el buscador la filtra. <b>Lo paga</b> el orden: los tres
+      marcados están repartidos, y montar un menú es elegir un principal y un postre.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">E2</span><span class="op-nom">Agrupado por categoría</span>
+      <span class="medida" data-mide="e2"></span></div>
+    <div class="movil capa"><div id="e2">
+      <div class="buscador">Buscar…</div>
+      <div class="grupo-cat">Entrante</div>
+      <button class="eleccion-op"><span>Ensalada Feta</span></button>
+      <div class="grupo-cat">Principal</div>
+      <button class="eleccion-op"><span>Noche Ibérica 🐷</span><span class="tic">✓</span></button>
+      <button class="eleccion-op"><span>Pinchos Arnall</span></button>
+      <div class="grupo-cat">Acompañamiento</div>
+      <button class="eleccion-op"><span>Patatas chafadas</span><span class="tic">✓</span></button>
+      <div class="grupo-cat">Postre</div>
+      <button class="eleccion-op"><span>Helado con Limoncello</span><span class="tic">✓</span></button>
+    </div></div>
+    <div class="op-cost"><b>Lo pedido.</b> Se monta el menú por partes y la categoría deja de
+      repetirse en cada fila. <b>Lo paga</b> el alto: cinco rótulos con nueve platos.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">E3</span><span class="op-nom">Agrupado, y lo puesto arriba</span>
+      <span class="medida" data-mide="e3"></span></div>
+    <div class="movil capa"><div id="e3">
+      <div class="buscador">Buscar…</div>
+      <div class="marcados-h">Esta cena · 3</div>
+      <button class="eleccion-op"><span>Noche Ibérica 🐷</span><span class="no">Principal</span><span class="tic">✓</span></button>
+      <button class="eleccion-op"><span>Patatas chafadas</span><span class="no">Acompañamiento</span><span class="tic">✓</span></button>
+      <button class="eleccion-op"><span>Helado con Limoncello</span><span class="no">Postre</span><span class="tic">✓</span></button>
+      <div class="grupo-cat">Entrante</div>
+      <button class="eleccion-op"><span>Ensalada Feta</span></button>
+      <div class="grupo-cat">Principal</div>
+      <button class="eleccion-op"><span>Pinchos Arnall</span></button>
+    </div></div>
+    <div class="op-cost">Lo que llevas puesto se ve sin buscarlo, y quitar es lo que más se hace al
+      corregir. <b>Lo paga</b> que un plato <b>salta de sitio</b> al marcarlo, que es la peor
+      sorpresa de una lista.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">E4</span><span class="op-nom">Agrupado, con recuento</span>
+      <span class="medida" data-mide="e4"></span></div>
+    <div class="movil capa"><div id="e4">
+      <div class="buscador">Buscar…</div>
+      <div class="grupo-cat">Entrante · 0 de 3</div>
+      <button class="eleccion-op"><span>Ensalada Feta</span></button>
+      <div class="grupo-cat">Principal · 1 de 2</div>
+      <button class="eleccion-op"><span>Noche Ibérica 🐷</span><span class="tic">✓</span></button>
+      <button class="eleccion-op"><span>Pinchos Arnall</span></button>
+      <div class="grupo-cat">Acompañamiento · 1 de 2</div>
+      <button class="eleccion-op"><span>Patatas chafadas</span><span class="tic">✓</span></button>
+    </div></div>
+    <div class="op-cost">Como E2 y además dice qué llevas de cada cosa, así que se ve de un vistazo
+      que falta el postre. <b>Lo paga</b> el rótulo, que pasa de una palabra a una cuenta.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte seis ·</span> las tres combinaciones que tienen sentido</h2>
+<ul>
+  <li><b>La corta</b> — <b>T2 · P1 · L4 · E2</b>: el titular nombra los tres platos en voz baja,
+  tocarlo abre el día en lectura, y el elegidor se agrupa. Es lo que menos cambia «Hoy».</li>
+  <li><b>La completa</b> — <b>T3 · P1 · L2 · E2</b>: las tres cosas del día en la tarjeta con su
+  icono, la capa en lectura con la carta entera, elegidor agrupado. Es la que contesta «qué se hace
+  hoy» sin tocar nada.</li>
+  <li><b>La de una pantalla</b> — <b>T5 · L2 · E2</b>, sin parte tres: el día vive entero en «Hoy»
+  y no hay capa que abrir. La más directa y la que más alto ocupa.</li>
+</ul>
+
+<h2><span class="num">Y además ·</span> lo que no depende de esto</h2>
+<ul>
+  <li><b>De quién es cada bunga.</b> Hoy sale el mote («LosMejores») y no la familia; la capa del
+  día sí lo dice. Si el titular crece, dirá las dos cosas.</li>
+  <li><b>El día que no hay nada.</b> «Día libre» tiene que seguir cabiendo: todas las opciones se
+  encogen a un renglón cuando no hay cena, bungas ni plan.</li>
+  <li><b>Quién puede tocar qué</b> no cambia: montar el día sigue siendo de los adultos (§14.43), y
+  el modo lectura es de todos.</li>
+</ul>
+
+<script>
+for (const b of document.querySelectorAll('.medida')) {
+  const el = document.getElementById(b.dataset.mide)
+  if (!el) { b.remove(); continue }
+  const alto = el.getBoundingClientRect().height
+  b.textContent = (Math.round(alto * 10) / 10).toString().replace('.', ',') + ' pt'
+}
+</script>
+
+</div>
