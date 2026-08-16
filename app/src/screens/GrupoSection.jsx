@@ -269,43 +269,50 @@ export default function GrupoSection({ eventId, area = 'familias', abrir: abrirE
             const suyos = comentarios.filter((c) => c.ancla === anclaDe('bunga', b.id))
             const nuevos = sinLeer(suyos, { eventId, ancla: anclaDe('bunga', b.id), meId: me?.id })
             return (
-              <div className="row" key={b.id}>
-                <button type="button" className="row-quien" disabled={!conBungas} onClick={() => abrir({ tipo: 'bunga', id: b.id })}>
-                  <span className="ico"><Icono nombre="casa" /></span>
-                  <span className="main">
-                    <span className="n">{b.name}</span>
-                    {/* **El renglón lo dice todo del sitio** (§14.66): la frase
-                        con guasa que resume sus pegatinas y sus notas, y si no
-                        la hay, el mote de siempre. Marcada cuando se escribió
-                        antes de lo último que se apuntó: una frase convincente
-                        y desfasada es peor que ninguna en una lista que se mira
-                        para decidir con cuál te quedas. */}
-                    <span className={`sub${dice && !dice.vigente ? ' viejo' : ''}`}>
-                      {dice ? dice.frase : (b.alias || 'sin alias')}
+              /* **La evaluación va debajo, en su renglón** (§14.66-ter). Estaba
+                 en el subtítulo de la fila, o sea compitiendo por el ancho con el
+                 nombre del bunga y con la pastilla de su familia: quedaban 150 pt
+                 de los 390 para una frase que ahora está redactada. Abajo y a lo
+                 ancho caben dos líneas sin recortar nada. */
+              <div className="bunga-fila" key={b.id}>
+                <div className="row">
+                  <button type="button" className="row-quien" disabled={!conBungas} onClick={() => abrir({ tipo: 'bunga', id: b.id })}>
+                    <span className="ico"><Icono nombre="casa" /></span>
+                    <span className="main">
+                      <span className="n">{b.name}</span>
+                      <span className="sub">{b.alias || 'sin mote'}</span>
                     </span>
-                  </span>
-                </button>
-                {suyos.length > 0 && (
-                  <span className={`globo${nuevos > 0 ? ' nuevo' : ''}`} aria-label={`${suyos.length} comentarios${nuevos ? `, ${nuevos} sin leer` : ''}`}>
-                    💬 {suyos.length}
-                  </span>
+                  </button>
+                  {suyos.length > 0 && (
+                    <span className={`globo${nuevos > 0 ? ' nuevo' : ''}`} aria-label={`${suyos.length} comentarios${nuevos ? `, ${nuevos} sin leer` : ''}`}>
+                      💬 {suyos.length}
+                    </span>
+                  )}
+                  {/* **El nombre de la familia, no su alias** (§14.66-ter). Las
+                      dos letras funcionan donde firman algo —una idea, un voto—
+                      porque ahí lo que se pregunta es «¿de quién es esto?» sobre
+                      una lista de cosas de gente distinta. Aquí la pregunta es
+                      «¿quién duerme en el 12?», que se contesta con un nombre:
+                      «GA» obliga a traducir, y traducir cada vez cuesta más que
+                      los 30 pt que ahorra. El emoji se queda de seña. */}
+                  <button
+                    type="button"
+                    className={`pastilla de-quien${suya ? '' : ' vacia'}`}
+                    disabled={!conBungas}
+                    aria-label={suya ? `Es de los ${suya.name}` : 'No es de nadie'}
+                    onClick={() => emparejar({ que: 'familia', id: b.id })}
+                  >
+                    {suya
+                      ? <><span className="cara" aria-hidden>{suya.avatar}</span>{suya.name}</>
+                      : '— de nadie —'}
+                  </button>
+                </div>
+                {dice && (
+                  <p className={`bunga-eval${dice.vigente ? '' : ' viejo'}`}>
+                    {dice.frase}
+                    {!dice.vigente && <span className="be-viejo"> · escrita antes de lo último que se apuntó</span>}
+                  </p>
                 )}
-                {/* **La familia, con su emoji y su alias** y no con su nombre
-                    entero: es la pastilla de `Alias.jsx`, la misma que firma una
-                    idea y un voto, así que las tres cosas de una familia se
-                    reconocen sin leer ningún nombre — y aquí además cabe al lado
-                    de una frase larga, que «— de nadie —» y «Solteros» no. */}
-                <button
-                  type="button"
-                  className={`pastilla de-quien${suya ? '' : ' vacia'}`}
-                  disabled={!conBungas}
-                  aria-label={suya ? `Es de los ${suya.name}` : 'No es de nadie'}
-                  onClick={() => emparejar({ que: 'familia', id: b.id })}
-                >
-                  {suya
-                    ? <><span className="cara" aria-hidden>{suya.avatar}</span><Alias familia={suya} /></>
-                    : '— de nadie —'}
-                </button>
               </div>
             )
           })}

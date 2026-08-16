@@ -341,11 +341,19 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .resumen-bunga.viejo { border-left: 3px solid var(--gold); }
 .rb-frase { display: block; font-size: var(--t-row); line-height: 1.4; }
 .rb-viejo { display: block; margin-top: 5px; font-size: var(--t-micro); color: var(--ink-faint); }
-/* En la lista, la frase desfasada se apaga un punto: sigue diciendo casi todo,
-   pero no lo último. */
-.row .sub.viejo { opacity: .72; font-style: italic; }
-/* La pastilla de quién lo tiene: el emoji de la familia y su alias, que es la
-   misma pareja que firma una idea y un voto. */
+/* **La evaluación va debajo de la fila y a lo ancho** (§14.66-ter). En el
+   subtítulo competía por el ancho con el nombre del bunga y con la pastilla de
+   su familia —quedaban 150 pt de 390 para una frase redactada—; aquí caben dos
+   líneas sin recortar. Sangrada hasta donde empieza el nombre, para que se lea
+   como lo que es: algo que dice esa fila, no una fila más. */
+.bunga-fila + .bunga-fila { border-top: 1px solid var(--line-soft); }
+.bunga-eval { margin: -4px 0 10px; padding: 0 13px 0 58px; font-size: var(--t-sub);
+  line-height: 1.45; color: var(--ink-soft); }
+.bunga-eval.viejo { opacity: .72; }
+.be-viejo { color: var(--ink-faint); font-style: italic; }
+/* La pastilla de quién lo tiene: el emoji de la familia y **su nombre**. Las dos
+   letras obligaban a traducir, y traducir cada vez cuesta más que los 30 pt que
+   ahorran (§14.66-ter). */
 .pastilla.de-quien { display: inline-flex; align-items: center; gap: 5px; }
 .pastilla.de-quien .cara { font-size: var(--t-sub); line-height: 1; }
 

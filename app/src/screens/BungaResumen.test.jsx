@@ -48,43 +48,49 @@ beforeEach(async () => {
 afterEach(() => localStorage.clear())
 
 describe('la lista de bungas', () => {
-  it('sin resumen enseña el mote de siempre', async () => {
+  it('sin evaluación, la fila es el nombre y el mote', async () => {
     pintarBungas()
     expect(await screen.findByText('el de la piscina')).toBeInTheDocument()
+    expect(document.querySelector('.bunga-eval')).toBeNull()
   })
 
-  it('con resumen, lo enseña en su sitio', async () => {
+  // La evaluación va **debajo de la fila**, a lo ancho: en el subtítulo competía
+  // con el nombre del bunga y con la pastilla de su familia (§14.66-ter).
+  it('con evaluación, va en su renglón debajo de la fila', async () => {
     const sitio = (await listAlojamientos()).find((a) => a.id === ctx.aloj)
     await updateAlojamiento(ctx.aloj, {
-      resumen: 'nevera de sobra, bichos de propina', resumenDe: huellaDelSitio(sitio),
+      resumen: 'La nevera va sobrada y el baño está bien; hay bichos en la terraza.',
+      resumenDe: huellaDelSitio(sitio),
     })
     pintarBungas()
 
-    const frase = await screen.findByText('nevera de sobra, bichos de propina')
-    expect(frase).toBeInTheDocument()
+    const frase = await screen.findByText(/La nevera va sobrada/)
+    expect(frase.className).toMatch(/bunga-eval/)
     expect(frase.className).not.toMatch(/viejo/)
+    // Y el mote se queda donde estaba, bajo el nombre.
+    expect(screen.getByText('el de la piscina')).toBeInTheDocument()
   })
 
   // Una frase convincente y desfasada es peor que ninguna en una lista que se
   // mira para decidir con cuál te quedas.
-  it('un resumen escrito antes de la última nota sale marcado', async () => {
-    await updateAlojamiento(ctx.aloj, { resumen: 'nevera de sobra', resumenDe: 'huella_vieja' })
+  it('una escrita antes de la última nota sale marcada', async () => {
+    await updateAlojamiento(ctx.aloj, { resumen: 'La nevera va sobrada.', resumenDe: 'huella_vieja' })
     pintarBungas()
 
-    const frase = await screen.findByText('nevera de sobra')
+    const frase = await screen.findByText(/La nevera va sobrada/)
     expect(frase.className).toMatch(/viejo/)
+    expect(screen.getByText(/escrita antes de lo último/)).toBeInTheDocument()
   })
 
-  // El emoji y las dos letras, que es la misma pareja que firma una idea y un
-  // voto: las cosas de una familia se reconocen sin leer ningún nombre.
-  it('dice de quién es con el emoji y el alias de su familia', async () => {
+  // **El nombre y no las dos letras** (§14.66-ter): aquí la pregunta es «¿quién
+  // duerme en el 12?», y eso se contesta con un nombre. «GA» obliga a traducir.
+  it('dice de quién es con el emoji y el nombre de su familia', async () => {
     pintarBungas()
 
     const suya = await screen.findByRole('button', { name: 'Es de los García' })
     expect(within(suya).getByText('🏖️')).toBeInTheDocument()
-    expect(within(suya).getByText('GA')).toBeInTheDocument()
-    // El nombre entero ya no está: no cabe al lado de una frase larga.
-    expect(suya).not.toHaveTextContent('García')
+    expect(suya).toHaveTextContent('García')
+    expect(suya).not.toHaveTextContent('GA ')
   })
 
   it('y cuenta los comentarios que tiene', async () => {

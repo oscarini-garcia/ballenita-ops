@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.54.0',
+    fecha: '2026-08-16',
+    titulo: 'Los bungas, mejor explicados',
+    lineas: [
+      'En Grupo → Bungas, cada uno dice de qué familia es con su nombre entero en vez de las dos letras: «¿quién duerme en el 12?» se contesta con un nombre.',
+      'Y la evaluación del sitio baja a su propio renglón, debajo de la fila y a lo ancho, así que caben dos líneas enteras en vez de media.',
+      'Está redactada y ya no va de coña: la gracia la ponen las notas que escribís vosotros, y encima de ellas sobraba. Dice lo bueno primero y lo malo después, para decidir con qué bungalow te quedas.',
+    ],
+  },
+  {
     version: '0.53.0',
     fecha: '2026-08-16',
     titulo: 'Los bungas se cuentan solos',

@@ -87,8 +87,8 @@ export const ENCARGOS = [
   },
   {
     id: 'resumenDeBunga',
-    titulo: 'Resumir un bunga en una frase',
-    pista: `La línea que sale bajo el nombre de cada bunga en Grupo → Bungas. Se le dan sus pegatinas y las notas del sitio —lo que ha ido escribiendo quien ha dormido ahí— y devuelve UNA frase de menos de ${TOPE_DEL_RESUMEN} caracteres. Tiene que **decir cómo es el sitio** además de tener gracia: quien la lee está decidiendo si se queda con ese o con el de al lado, y una coña que no dice nada deja la lista igual que estaba. Espera un JSON con «resumen». El resumen se guarda con el sitio, así que lo pide uno y lo leen todos. Vacío, vuelve el encargo de origen.`,
+    titulo: 'Evaluar cómo es un bunga',
+    pista: `La evaluación que sale bajo cada bunga en Grupo → Bungas. Se le dan sus pegatinas y las notas del sitio —lo que ha ido escribiendo quien ha dormido ahí— y devuelve una o dos frases **redactadas** de menos de ${TOPE_DEL_RESUMEN} caracteres: lo bueno primero y lo malo después. Sin chistes a propósito (§14.66-ter): la gracia ya la ponen las notas, y quien lee esto está decidiendo con qué bungalow se queda. Espera un JSON con «resumen». Se rehace sola al cambiar una nota o una pegatina, y se guarda con el sitio, así que la escribe quien la cambió y la leen todos. Vacío, vuelve el encargo de origen.`,
     origen: RESUMEN_DE_BUNGA,
     // Una frase de camping no pide el modelo grande, como los recadillos.
     modelo: 'claude-haiku-4-5',

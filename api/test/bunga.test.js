@@ -1,5 +1,5 @@
 /**
- * El bunga resumido en una frase (SPECS §14.66).
+ * El bunga evaluado en dos frases (SPECS §14.66, §14.66-ter).
  *
  * Lo que se fija aquí es lo de siempre en los encargos de IA: que el material
  * que se le pasa al modelo diga lo que tiene que decir **y nada más** —ni un
@@ -43,13 +43,15 @@ test('no viajan los nombres: el material no sabe de quién es', () => {
 });
 
 // El encargo es lo que sube o baja el tono, y lo que ata la forma de la
-// respuesta: sin el JSON no sale nada, y sin el «di lo que hay» sale un chiste
-// que deja la lista igual que estaba.
-test('el encargo pide una frase corta, con guasa y que diga cómo es el sitio', () => {
-  assert.match(INSTRUCCION, /UNA sola frase/);
+// respuesta: sin el JSON no sale nada. **Y el chiste se prohíbe a propósito**
+// (§14.66-ter): la gracia ya la ponen las notas, y quien lee esto está
+// decidiendo con qué bungalow se queda.
+test('el encargo pide una evaluación redactada, y prohíbe el chiste y el folleto', () => {
+  assert.match(INSTRUCCION, /evaluación \*\*redactada\*\*/);
   assert.match(INSTRUCCION, new RegExp(String(TOPE_DEL_RESUMEN)));
-  assert.match(INSTRUCCION, /guasa/);
-  assert.match(INSTRUCCION, /decir lo que hay/);
+  assert.match(INSTRUCCION, /Ni chistes ni guasa/);
+  assert.match(INSTRUCCION, /folleto/);
+  assert.match(INSTRUCCION, /decir cómo es el sitio/);
   assert.match(INSTRUCCION, /"resumen"/);
 });
 
@@ -90,7 +92,7 @@ test('se pide con la clave, el modelo y el encargo que se le den', async () => {
   assert.equal(r, 'va bien');
   assert.equal(visto.cabeceras['x-api-key'], 'sk-prueba');
   assert.equal(visto.cuerpo.model, 'claude-haiku-4-5');
-  assert.match(visto.cuerpo.system, /UNA sola frase/);
+  assert.match(visto.cuerpo.system, /evaluación/);
 });
 
 test('un error del modelo sube con sus palabras y su estado', async () => {
