@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.51.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1053 pruebas en 114 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.52.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1054 pruebas en 114 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   242 pruebas en 24 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
