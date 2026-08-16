@@ -16,6 +16,17 @@
  */
 export const NOTAS = [
   {
+    version: '0.55.0',
+    fecha: '2026-08-16',
+    titulo: 'Los comentarios dejan de gritar',
+    lineas: [
+      'El hilo de comentarios era cuatro cajas apiladas —la del hilo, la de «ver los que faltan», la de escribir y el botón— y ocupaba dos tercios de la ventana de un plan. Ahora son dos fondos sin borde y un enlace.',
+      'Y un comentario se lee como lo que es: texto normal. Estaba pintado con la negrita del nombre de una fila, así que era lo más oscuro de la pantalla.',
+      'Para escribir hay una pastilla redonda con su botón dentro, y «Ver los N comentarios» es un enlace en vez de otro recuadro pegado al hilo.',
+      'Vale en los cuatro sitios donde hay comentarios: el plan, el gasto, el día y el bunga.',
+    ],
+  },
+  {
     version: '0.54.0',
     fecha: '2026-08-16',
     titulo: 'Los bungas, mejor explicados',

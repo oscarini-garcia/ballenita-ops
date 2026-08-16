@@ -1,0 +1,540 @@
+<title>Comentarios menos cantosos</title>
+<style>
+:root{
+  --pg:#f4f6f8; --pg-2:#ffffff; --tx:#16242c; --tx-2:#4d6674; --tx-3:#7c919d;
+  --ln:#dde6ea; --ac:#22708f; --mal:#a8443a; --bien:#2f7a5c;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --pg:#0e1a20; --pg-2:#152730; --tx:#e6eef3; --tx-2:#a9bfc9; --tx-3:#7c919d;
+    --ln:#233c48; --ac:#7fc2dd; --mal:#e0857a; --bien:#7fc7a4;
+  }
+}
+:root[data-theme="dark"]{
+  --pg:#0e1a20; --pg-2:#152730; --tx:#e6eef3; --tx-2:#a9bfc9; --tx-3:#7c919d;
+  --ln:#233c48; --ac:#7fc2dd; --mal:#e0857a; --bien:#7fc7a4;
+}
+body{margin:0;background:var(--pg);color:var(--tx);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+.wrap{max-width:1120px;margin:0 auto;padding:38px 20px 90px;}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.02em;margin:0 0 14px;max-width:20em;}
+h2{font-size:21px;margin:54px 0 6px;letter-spacing:-.01em;}
+h2 .num{color:var(--tx-3);font-weight:600;}
+h3{font-size:16px;margin:30px 0 8px;}
+p{margin:0 0 12px;max-width:62em;color:var(--tx-2);}
+p b,li b{color:var(--tx);}
+.ficha{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--pg-2);
+  border:1px solid var(--ln);border-radius:10px;font-size:13.5px;color:var(--tx-2);margin:0 0 10px;}
+.ficha b{color:var(--tx);}
+.aviso{border-left:3px solid var(--ac);padding:2px 0 2px 14px;margin:18px 0;}
+ul{margin:0 0 12px;padding-left:20px;color:var(--tx-2);max-width:62em;}
+li{margin:0 0 6px;}
+.rejilla{display:flex;flex-wrap:wrap;gap:26px;margin:20px 0 0;align-items:flex-start;}
+.op{width:326px;flex:none;}
+@media (max-width:480px){
+  .wrap{padding:24px 12px 70px;}
+  .rejilla{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}
+  .tabla-caja{overflow-x:auto;}
+}
+.op-cab{display:flex;align-items:baseline;gap:9px;margin:0 0 8px;}
+.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);
+  color:#fff;padding:3px 8px;border-radius:6px;}
+:root[data-theme="dark"] .cod, :root:not([data-theme="light"]) .cod{color:#0e1a20;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .cod{color:#fff;}}
+.op-nom{font-weight:650;font-size:15.5px;}
+.op-cost{font-size:13.5px;color:var(--tx-2);margin:9px 2px 0;line-height:1.5;}
+.op-cost .m{color:var(--tx);font-weight:650;font-variant-numeric:tabular-nums;}
+.medida{display:inline-block;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;
+  border:1px solid var(--ln);border-radius:6px;padding:2px 7px;color:var(--tx-2);margin-left:auto;}
+
+/* ── El móvil, con los tokens de verdad de la app (Abisal Sobrio, cara clara).
+      Se dibuja siempre claro aunque la hoja siga el tema del que mira: lo que
+      se compara es el tratamiento, y dos caras a la vez lo enturbian. ── */
+.movil{--foam:#f1f5f7;--foam-2:#ffffff;--ink:#12262f;--ink-soft:#4d6674;--ink-faint:#7c919d;
+  --line:#c3d2da;--line-soft:#dde6ea;--spout:#22708f;--papel:#ffffff;--r:9px;
+  --t-body:19.04px;--t-row:17.92px;--t-sub:15.68px;--t-label:14.56px;--t-micro:12.88px;
+  width:326px;box-sizing:border-box;background:var(--papel);color:var(--ink);
+  border:1px solid #a9bfc9;border-radius:14px;padding:14px 18px;
+  font:var(--t-body)/1.45 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+.movil .rot{font-size:var(--t-label);font-weight:650;color:var(--ink-soft);margin:0;}
+.movil .txt{margin:0;}
+.movil .quien{font-size:var(--t-sub);color:var(--ink-soft);}
+.pastilla{display:inline-block;font-size:var(--t-micro);font-weight:700;letter-spacing:.04em;
+  padding:1px 6px;border-radius:999px;margin-left:5px;vertical-align:1px;}
+.pe{background:#e0f0e8;color:#0a6b4c;} .ga{background:#ffe4d8;color:#ab3a14;}
+
+/* AHORA: lo que hay puesto en la v0.52.0 */
+.hoy-card{background:var(--foam);border:1px solid var(--line-soft);border-radius:var(--r);padding:8px 12px;}
+.hoy-fila{padding:11px 0;border-top:1px solid var(--line-soft);}
+.hoy-fila:first-child{border-top:none;}
+.hoy-n{font-size:var(--t-row);font-weight:550;}
+.hoy-ver{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;
+  background:var(--foam);border:1px solid var(--line-soft);border-radius:var(--r);padding:12px;
+  font-size:var(--t-row);font-weight:600;color:var(--ink);margin-top:5px;}
+.hoy-ver .v{margin-left:auto;color:var(--ink-faint);}
+.hoy-form{display:flex;gap:8px;align-items:center;margin-top:8px;}
+.hoy-form .cas{flex:1;background:var(--foam);border:1px solid var(--line);border-radius:7px;
+  padding:12px;font-size:var(--t-body);color:var(--ink-faint);}
+.hoy-form .env{width:44px;height:44px;flex:none;background:var(--spout);border-radius:8px;
+  display:grid;place-items:center;color:#fff;font-size:19px;}
+
+/* Piezas comunes de las opciones */
+.prosa{font-size:var(--t-body);font-weight:400;line-height:1.4;}
+.firma{font-size:var(--t-micro);color:var(--ink-soft);font-weight:600;}
+.firma .hace{font-weight:400;color:var(--ink-faint);}
+.avatar{width:26px;height:26px;flex:none;border-radius:50%;background:var(--foam);
+  display:grid;place-items:center;font-size:15px;}
+
+/* A1 sin caja */
+.a1 > .c{margin-bottom:13px;}
+.a1 > .c:last-child{margin-bottom:0;}
+/* A2 caja sin canto */
+.a2{background:var(--foam);border-radius:var(--r);padding:10px 12px;}
+.a2 > .c + .c{margin-top:12px;}
+/* A3 un globo por comentario */
+.a3 > .c{background:var(--foam);border-radius:14px;padding:9px 12px;}
+.a3 > .c + .c{margin-top:7px;}
+/* A4 línea de tiempo */
+.a4{border-left:2px solid var(--line-soft);padding-left:13px;}
+.a4 > .c + .c{margin-top:13px;}
+/* A5 solo separadores */
+.a5 > .c + .c{margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft);}
+
+/* B: quién habla */
+.b2 .firma{display:block;margin:0 0 2px;}
+.b3 .prosa .nom{font-weight:700;}
+.b4{display:flex;gap:10px;align-items:flex-start;}
+.b4 .cuerpo{flex:1;min-width:0;}
+
+/* C: escribir */
+.c2{display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--line);
+  padding:9px 2px;margin-top:10px;}
+.c2 .cas{flex:1;font-size:var(--t-body);color:var(--ink-faint);}
+.c2 .env{font-size:var(--t-label);font-weight:700;color:var(--ink-faint);}
+.c3{display:flex;gap:8px;align-items:center;background:var(--foam);border-radius:999px;
+  padding:6px 6px 6px 16px;margin-top:10px;}
+.c3 .cas{flex:1;font-size:var(--t-body);color:var(--ink-faint);}
+.c3 .env{width:34px;height:34px;flex:none;border-radius:50%;background:var(--spout);
+  display:grid;place-items:center;color:#fff;font-size:16px;}
+.c4{margin-top:10px;font-size:var(--t-body);color:var(--ink-faint);padding:4px 2px;}
+
+/* D: ver los que faltan */
+.d2{text-align:center;font-size:var(--t-label);font-weight:650;color:var(--spout);
+  padding:9px 0 2px;}
+.d3{font-size:var(--t-label);color:var(--ink-faint);padding:0 0 9px;}
+.d4{font-size:var(--t-label);font-weight:650;color:var(--spout);padding-top:11px;
+  margin-top:11px;border-top:1px solid var(--line-soft);}
+.tabla{border-collapse:collapse;font-size:14px;margin:10px 0 0;}
+.tabla td,.tabla th{border-bottom:1px solid var(--ln);padding:7px 16px 7px 0;text-align:left;
+  color:var(--tx-2);}
+.tabla th{color:var(--tx);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;}
+.tabla td:first-child{color:var(--tx);font-weight:650;white-space:nowrap;}
+</style>
+
+<div class="wrap">
+
+<h1>Un hilo de comentarios que son cuatro cajas, un titular en negrita, y 430 pt de una capa de 658</h1>
+
+<div class="ficha">
+  <span>Dibujado como está en la <b>v0.52.0</b></span>
+  <span>La capa de un plan: <b>326 pt</b> de ancho, dentro de una pantalla de 390</span>
+  <span>Abisal Sobrio, <b>cara clara</b></span>
+  <span>Medido en Chromium sobre el Demo, dentro de la capa de un plan</span>
+</div>
+<p>Las medidas de cada opción las calcula <b>la propia hoja</b> al abrirse, sobre el dibujo que
+estás viendo. Si un número dice 118 pt es porque ese bloque mide 118 pt aquí al lado.</p>
+
+<h2><span class="num">Parte uno ·</span> qué es lo que canta</h2>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">AHORA</span><span class="op-nom">v0.52.0</span>
+      <span class="medida" data-mide="ahora"></span></div>
+    <div class="movil" id="ahora">
+      <div class="rot">Comentarios · 3</div>
+      <div class="hoy-card">
+        <div class="hoy-fila">
+          <div class="hoy-n">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</div>
+          <div class="quien">Ana<span class="pastilla pe">PE</span> · hace 2 h</div>
+        </div>
+        <div class="hoy-fila">
+          <div class="hoy-n">Los niños van conmigo, que en el otro coche no caben las sillas.</div>
+          <div class="quien">Curro<span class="pastilla ga">GA</span> · hace un rato</div>
+        </div>
+      </div>
+      <div class="hoy-ver">Ver los 3 comentarios<span class="v">›</span></div>
+      <div class="hoy-form">
+        <div class="cas">Contesta algo…</div>
+        <div class="env">✓</div>
+      </div>
+    </div>
+    <div class="op-cost">
+      <b>Cuatro cantos apilados</b>: la tarjeta del hilo, «Ver los 3» —que es otro rectángulo
+      idéntico pegado debajo—, la casilla de escribir y el botón lleno de 44 pt. Y dentro de la
+      tarjeta, una línea más por comentario.
+    </div>
+  </div>
+
+  <div class="op" style="width:auto;flex:1;min-width:320px;max-width:520px">
+    <h3 style="margin-top:0">Lo que sale de medirlo</h3>
+    <div class="tabla-caja"><table class="tabla">
+      <tr><th>qué</th><th>cuánto</th></tr>
+      <tr><td>El bloque entero</td><td><b>430,2 pt</b> de una capa de 658,3 — el <b>65 %</b>
+        <span style="color:var(--tx-3)">(el dibujo de al lado: 432,1)</span></td></tr>
+      <tr><td>Un comentario de 79 letras</td><td><b>148,7 pt</b>, cuatro líneas</td></tr>
+      <tr><td>Su texto</td><td>17,92 px <b>peso 550</b> — el del nombre de una fila</td></tr>
+      <tr><td>«Ver los 3»</td><td><b>52,1 pt</b> en su propia caja</td></tr>
+      <tr><td>El renglón de escribir</td><td><b>53,6 pt</b>, con canto y botón lleno</td></tr>
+      <tr><td>Cantos de 1 px</td><td><b>4</b> cajas + 1 línea por comentario</td></tr>
+    </table></div>
+    <p style="margin-top:14px">El hilo se dibuja con <code>.row</code>, que es la clase de una fila
+    de lista —«nombre a la izquierda, importe a la derecha», centrada verticalmente—. Un comentario
+    no es una fila: su texto envuelve, no tiene columna derecha y lo que importa no es el objeto
+    sino <b>quién lo ha dicho</b>. El <code>envuelve</code> que se le añadió en §14.55 es un parche
+    sobre esa clase.</p>
+  </div>
+</div>
+
+<h2><span class="num">Antes de las opciones ·</span> dos arreglos que no se eligen</h2>
+<div class="aviso">
+  <p><b>Uno · un comentario es prosa, no un titular.</b> Se pinta a <b>peso 550</b> porque hereda
+  <code>.row .main .n</code>, que existe para el <i>nombre</i> de una fila. En la capa de un plan,
+  el texto de un comentario acaba siendo <b>lo más negro de la pantalla</b> —más que «Quién ha
+  votado»—. Baja a peso 400 y al cuerpo de lectura. No cuesta un pixel de alto y es la mitad de
+  lo que se está llamando «cantoso».</p>
+  <p><b>Dos · los comentarios dejan de tomar prestada <code>.row</code></b> y tienen su propia
+  clase. Mientras la compartan, cualquier cosa que se decida aquí hay que escribirla como
+  excepción a una fila de lista, que es como se ha llegado hasta aquí.</p>
+</div>
+
+<h2><span class="num">Parte dos ·</span> qué envuelve al hilo <span style="font-weight:400;color:var(--tx-3);font-size:16px">— elige una</span></h2>
+<p>Mismo contenido en las cinco, mismos dos arreglos de arriba aplicados. Lo único que cambia es
+qué dibuja el hilo.</p>
+
+<div class="rejilla">
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A1</span><span class="op-nom">Sin caja</span>
+      <span class="medida" data-mide="a1"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a1" id="a1">
+        <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+        <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+          <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+      </div></div>
+    <div class="op-cost">Cero cantos y cero fondos. <b>Lo paga</b> quien busca dónde acaba el hilo
+      y empieza lo siguiente: sobre el papel de la capa, un comentario y un párrafo cualquiera se
+      dibujan igual.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A2</span><span class="op-nom">Caja sin canto</span>
+      <span class="medida" data-mide="a2"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a2" id="a2">
+        <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+        <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+          <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+      </div></div>
+    <div class="op-cost">Un escalón de fondo (<code>--foam</code>) y nada más: <b>el hilo sigue
+      siendo un bloque</b> sin dibujar cuatro esquinas. <b>Lo paga</b> la cara oscura, donde un
+      solo escalón de fondo se distingue peor y hay que comprobarlo.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A3</span><span class="op-nom">Un globo por comentario</span>
+      <span class="medida" data-mide="a3"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a3" id="a3">
+        <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+        <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+          <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+      </div></div>
+    <div class="op-cost">Es lo que la gente reconoce como conversación, y separa un comentario del
+      siguiente sin una sola línea. <b>Lo paga</b> el alto: son N fondos en vez de uno, y crece
+      con cada comentario.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A4</span><span class="op-nom">Línea de tiempo</span>
+      <span class="medida" data-mide="a4"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a4" id="a4">
+        <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+        <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+          <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+      </div></div>
+    <div class="op-cost">Un solo trazo de 2 px dice «esto es un hilo y va en orden». <b>Lo paga</b>
+      el ancho: 15 pt de sangría que el texto pierde, y en un móvil de 390 eso es media palabra por
+      línea.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A5</span><span class="op-nom">Solo separadores</span>
+      <span class="medida" data-mide="a5"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a5" id="a5">
+        <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+        <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+          <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+      </div></div>
+    <div class="op-cost">Lo más barato en píxeles y lo que menos se parece a una caja. <b>Lo paga</b>
+      la separación con lo de al lado: sin fondo, el hilo y el renglón de escribir son la misma
+      columna de texto.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte tres ·</span> quién habla, y dónde se dice</h2>
+<p>Hoy va <b>debajo</b> del texto y en gris. En una conversación se lee primero quién habla: es lo
+que decide si lo que viene detrás te interesa. Dibujado sobre A2 en las cuatro.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">B1</span><span class="op-nom">Debajo, como ahora</span>
+      <span class="medida" data-mide="b1"></span></div>
+    <div class="movil"><div class="a2" id="b1">
+      <div class="c"><p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p>
+        <div class="firma" style="margin-top:3px">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div></div>
+      <div class="c"><p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p>
+        <div class="firma" style="margin-top:3px">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div></div>
+    </div></div>
+    <div class="op-cost">Nada que tocar. <b>Lo paga</b> la lectura: hay que leerse el comentario
+      entero para saber de quién es.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">B2</span><span class="op-nom">Encima, en micro</span>
+      <span class="medida" data-mide="b2"></span></div>
+    <div class="movil"><div class="a2 b2" id="b2">
+      <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+        <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+      <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+        <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+    </div></div>
+    <div class="op-cost">El orden de una conversación, y mismo alto que B1. <b>Lo paga</b>
+      nadie — salvo que se prefiera leer la frase antes que el nombre.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">B3</span><span class="op-nom">En línea, delante</span>
+      <span class="medida" data-mide="b3"></span></div>
+    <div class="movil"><div class="a2 b3" id="b3">
+      <div class="c"><p class="txt prosa"><span class="nom">Ana</span><span class="pastilla pe">PE</span>
+        ¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.
+        <span class="hace" style="font-size:var(--t-micro);color:var(--ink-faint)">hace 2 h</span></p></div>
+      <div class="c"><p class="txt prosa"><span class="nom">Curro</span><span class="pastilla ga">GA</span>
+        Los niños van conmigo, que en el otro coche no caben las sillas.
+        <span class="hace" style="font-size:var(--t-micro);color:var(--ink-faint)">hace un rato</span></p></div>
+    </div></div>
+    <div class="op-cost">Ahorra un renglón por comentario: es <b>lo más corto</b> de las cuatro.
+      <b>Lo paga</b> el hilo largo, donde los nombres dejan de formar columna y hay que buscarlos
+      dentro del párrafo — y el «hace un rato» del final, que parte de línea con la frase (se ve
+      en la combinación de abajo).</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">B4</span><span class="op-nom">Con avatar</span>
+      <span class="medida" data-mide="b4"></span></div>
+    <div class="movil"><div class="a2" id="b4">
+      <div class="c b4"><div class="avatar">🧑</div><div class="cuerpo">
+        <div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+        <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div></div>
+      <div class="c b4"><div class="avatar">🧔</div><div class="cuerpo">
+        <div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+        <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div></div>
+    </div></div>
+    <div class="op-cost">El emoji que cada uno ha elegido, que es como se reconoce a la gente en el
+      resto de la app. <b>Lo paga</b> el ancho: 36 pt de columna izquierda, y el texto suele ganar
+      una línea.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cuatro ·</span> el renglón de escribir</h2>
+<p>Hoy son <b>53,6 pt</b>: una casilla con canto de 1 px y un botón lleno de 44 × 44 que está
+apagado hasta que escribes. Dos de los cuatro cantos del apartado están aquí.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">C1</span><span class="op-nom">Como ahora</span>
+      <span class="medida" data-mide="c1"></span></div>
+    <div class="movil"><div class="hoy-form" id="c1" style="margin-top:0">
+      <div class="cas">Contesta algo…</div><div class="env">✓</div></div></div>
+    <div class="op-cost">Se ve dónde se escribe sin pensarlo. <b>Lo paga</b> la pantalla: es la
+      pieza más pesada del bloque y está ahí aunque nadie vaya a escribir.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C2</span><span class="op-nom">Solo una línea</span>
+      <span class="medida" data-mide="c2"></span></div>
+    <div class="movil"><div class="c2" id="c2" style="margin-top:0">
+      <div class="cas">Contesta algo…</div><div class="env">ENVIAR</div></div></div>
+    <div class="op-cost">Un trazo abajo y el verbo en texto, que se enciende al escribir.
+      <b>Lo paga</b> quien no ve bien: una línea de 1 px es menos evidente como «aquí se escribe»
+      que una caja.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C3</span><span class="op-nom">Pastilla de chat</span>
+      <span class="medida" data-mide="c3"></span></div>
+    <div class="movil"><div class="c3" id="c3" style="margin-top:0">
+      <div class="cas">Contesta algo…</div><div class="env">↑</div></div></div>
+    <div class="op-cost">Redondo y sin canto: es la forma que ya significa «escribe aquí».
+      <b>Lo paga</b> el botón, que baja de 44 a 34 pt — por debajo del suelo de iOS si no se le
+      da área tocable por fuera.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C4</span><span class="op-nom">Hasta que se toca, nada</span>
+      <span class="medida" data-mide="c4"></span></div>
+    <div class="movil"><div class="c4" id="c4" style="margin-top:0">Escribe algo…</div></div>
+    <div class="op-cost">Cero cajas en reposo: al tocarlo se convierte en C1 o C3. <b>Lo paga</b>
+      el segundo toque, y que un texto gris suelto puede leerse como un comentario vacío en vez
+      de como una invitación.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cinco ·</span> los que no caben</h2>
+<p>Se enseñan los dos últimos y el resto se esconde (§14.55 · K2). Hoy el acceso al resto es
+<b>una caja idéntica a la del hilo, pegada justo debajo</b>: dos rectángulos iguales que se tocan
+se leen como uno partido.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">D1</span><span class="op-nom">Su caja, como ahora</span>
+      <span class="medida" data-mide="d1"></span></div>
+    <div class="movil"><div class="hoy-ver" id="d1" style="margin-top:0">Ver los 3 comentarios<span class="v">›</span></div></div>
+    <div class="op-cost">Es un objetivo de 52 pt, imposible de fallar. <b>Lo paga</b> el dibujo:
+      es el cuarto canto y el que hace que el hilo parezca roto.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">D2</span><span class="op-nom">Enlace centrado</span>
+      <span class="medida" data-mide="d2"></span></div>
+    <div class="movil"><div class="d2" id="d2">Ver los 3 comentarios</div></div>
+    <div class="op-cost">Una caja menos y <b>–19,9 pt</b> (52 → 32,1). <b>Lo paga</b> el pulgar:
+      hay que darle área tocable por fuera para no bajar de 44 pt.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">D3</span><span class="op-nom">Arriba, en su orden</span>
+      <span class="medida" data-mide="d3"></span></div>
+    <div class="movil"><div class="d3" id="d3">··· y 1 comentario antes</div>
+      <div class="a2">
+        <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+      </div></div>
+    <div class="op-cost">Lo escondido está <b>antes</b> en el tiempo, así que va arriba: es el
+      orden real de la conversación. <b>Lo paga</b> la costumbre — el botón deja de estar donde
+      lleva estando.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">D4</span><span class="op-nom">Última línea del hilo</span>
+      <span class="medida" data-mide="d4"></span></div>
+    <div class="movil"><div class="a2" id="d4">
+      <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+        <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+      <div class="d4">Ver los 3 comentarios</div>
+    </div></div>
+    <div class="op-cost">Dentro del mismo bloque: una caja en vez de dos, sin perder el sitio.
+      <b>Lo paga</b> la lectura, porque un verbo y un comentario comparten fondo.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte seis ·</span> las tres combinaciones que tienen sentido</h2>
+<p>Casi nunca gana una opción suelta. Estas son enteras: hilo, firma, escribir y los que no caben.</p>
+
+<div class="rejilla">
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A2·B2<br>C3·D4</span><span class="op-nom">Chat sobrio</span>
+      <span class="medida" data-mide="k1"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a2 b2" id="k1a">
+        <div class="c"><div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div>
+        <div class="c"><div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+          <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div>
+        <div class="d4">Ver los 3 comentarios</div>
+      </div>
+      <div class="c3"><div class="cas">Contesta algo…</div><div class="env">↑</div></div>
+    </div>
+    <div class="op-cost"><b>Un canto en toda la pieza</b> —ninguno, en realidad: dos fondos sin
+      borde—. Es lo más cerca de un chat sin dejar de ser esta app. <b>–45,0 pt</b> sobre lo de
+      hoy (432,1 → 387,1).</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A5·B3<br>C2·D2</span><span class="op-nom">Lo más plano</span>
+      <span class="medida" data-mide="k2"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a5 b3" id="k2a">
+        <div class="c"><p class="txt prosa"><span class="nom">Ana</span><span class="pastilla pe">PE</span>
+          ¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.
+          <span style="font-size:var(--t-micro);color:var(--ink-faint)">hace 2 h</span></p></div>
+        <div class="c"><p class="txt prosa"><span class="nom">Curro</span><span class="pastilla ga">GA</span>
+          Los niños van conmigo, que en el otro coche no caben las sillas.
+          <span style="font-size:var(--t-micro);color:var(--ink-faint)">hace un rato</span></p></div>
+      </div>
+      <div class="d2">Ver los 3 comentarios</div>
+      <div class="c2"><div class="cas">Contesta algo…</div><div class="env">ENVIAR</div></div>
+    </div>
+    <div class="op-cost">Cero fondos y cero cajas: solo texto y tres líneas de 1 px. <b>Es el más
+      corto de los tres</b>: <b>–101,3 pt</b> sobre lo de hoy (432,1 → 330,8). Lo paga la
+      jerarquía — todo pesa lo mismo.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A3·B4<br>C3·D2</span><span class="op-nom">Lo más chat</span>
+      <span class="medida" data-mide="k3"></span></div>
+    <div class="movil"><div class="rot">Comentarios · 3</div>
+      <div class="a3" id="k3a">
+        <div class="c b4"><div class="avatar">🧑</div><div class="cuerpo">
+          <div class="firma">Ana<span class="pastilla pe">PE</span> <span class="hace">· hace 2 h</span></div>
+          <p class="txt prosa">¿A qué hora salimos? Si es antes de las 9 me da tiempo a pasar por el súper.</p></div></div>
+        <div class="c b4"><div class="avatar">🧔</div><div class="cuerpo">
+          <div class="firma">Curro<span class="pastilla ga">GA</span> <span class="hace">· hace un rato</span></div>
+          <p class="txt prosa">Los niños van conmigo, que en el otro coche no caben las sillas.</p></div></div>
+      </div>
+      <div class="d2">Ver los 3 comentarios</div>
+      <div class="c3"><div class="cas">Contesta algo…</div><div class="env">↑</div></div>
+    </div>
+    <div class="op-cost">El que más se reconoce de un vistazo como «aquí se habla». <b>Lo paga</b>
+      el alto y el ancho a la vez: globos por comentario más columna de avatares. Aun así,
+      <b>–50,0 pt</b> sobre lo de hoy (432,1 → 382,1), porque la firma en micro y la prosa sin
+      negrita compensan.</div>
+  </div>
+</div>
+
+<h2><span class="num">Y además ·</span> tres cosas que no dependen de lo que elijas</h2>
+<ul>
+  <li><b>El aspa de borrar</b> es hoy un botón de 44 pt dentro de la fila, en <i>tus</i>
+  comentarios. Con el hilo sin caja, esa columna derecha desaparece: el borrado tendría que ir
+  al deslizar, como en Gastos y Mejoras, o detrás de una pulsación larga.</li>
+  <li><b>El punto de «no lo has visto»</b> (`.globo.nuevo`) vive en la fila de fuera y no aquí
+  dentro; ninguna opción lo toca.</li>
+  <li><b>La hoja de «ver todos»</b> reutiliza el mismo dibujo del hilo, así que lo que se elija
+  vale para las dos.</li>
+</ul>
+
+<script>
+// La hoja se mide a sí misma: cada `data-mide` lee el alto real del bloque que
+// nombra. Un número escrito a mano se desfasa en cuanto se toca un padding.
+for (const b of document.querySelectorAll('.medida')) {
+  const id = b.dataset.mide
+  const el = document.getElementById(id) || document.getElementById(id + 'a')
+  if (!el) { b.remove(); continue }
+  const caja = el.closest('.movil')
+  const alto = (id.startsWith('k') || id === 'ahora')
+    ? caja.getBoundingClientRect().height - 28   // el móvil entero, sin su relleno
+    : el.getBoundingClientRect().height
+  b.textContent = (Math.round(alto * 10) / 10).toString().replace('.', ',') + ' pt'
+}
+</script>
+
+</div>

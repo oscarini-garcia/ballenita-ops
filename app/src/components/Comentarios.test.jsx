@@ -84,7 +84,7 @@ describe('Comentarios', () => {
     render(<Comentarios eventId={eventId} ancla={ancla} />)
 
     await screen.findByText('primero')
-    const textos = [...document.querySelectorAll('.row .n')].map((n) => n.textContent)
+    const textos = [...document.querySelectorAll('.coment-txt')].map((n) => n.textContent)
     expect(textos).toEqual(['primero', 'segundo'])
   })
 
@@ -108,6 +108,37 @@ describe('Comentarios', () => {
     await userEvent.click(screen.getByRole('button', { name: /Confirmar que se borra/ }))
 
     await waitFor(async () => { expect(await comentariosDe(eventId, ancla)).toHaveLength(0) })
+  })
+
+  // La figura elegida en `docs/diseño/comentarios.html` · A2·B1·C3·D2: dos
+  // fondos sin borde y un enlace, donde había cuatro cajas con canto.
+  it('ni el hilo, ni el renglón, ni «ver los que faltan» llevan canto', async () => {
+    const { eventId, ancla } = await viaje()
+    for (const t of ['uno', 'dos', 'tres']) { await addComentario(eventId, { ancla, texto: t }); await unTic() }
+    render(<Comentarios eventId={eventId} ancla={ancla} />)
+
+    await screen.findByText('tres')
+    expect(document.querySelector('.hilo')).not.toBeNull()
+    expect(document.querySelector('.coment-escribir')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /Ver los 3 comentarios/ })).toHaveClass('ver-todos')
+    // Las cuatro cajas de antes: la tarjeta del hilo, el renglón de «ver los
+    // que faltan», la casilla con canto y el botón lleno de 44.
+    expect(document.querySelector('.card')).toBeNull()
+    expect(document.querySelector('.acor-ido')).toBeNull()
+    expect(document.querySelector('.renglon-linea')).toBeNull()
+    expect(document.querySelector('.btn.cuadrado')).toBeNull()
+  })
+
+  it('un comentario es prosa y no una fila de lista', async () => {
+    // Heredaba `.row .main .n`, que existe para el **nombre** de una fila: se
+    // pintaba a peso 550 y acababa siendo lo más negro de la capa de un plan.
+    const { eventId, ancla } = await viaje()
+    await addComentario(eventId, { ancla, texto: 'los niños van conmigo' })
+    render(<Comentarios eventId={eventId} ancla={ancla} />)
+
+    const txt = await screen.findByText('los niños van conmigo')
+    expect(txt).toHaveClass('coment-txt')
+    expect(txt.closest('.row')).toBeNull()
   })
 
   it('cada ancla es su hilo: dos cosas distintas no se mezclan', async () => {

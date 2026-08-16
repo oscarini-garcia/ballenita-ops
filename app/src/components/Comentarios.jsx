@@ -54,7 +54,7 @@ export default function Comentarios({ eventId, ancla, titulo = 'Comentarios' }) 
       <label>{titulo}{hilo.length > 0 ? ` · ${hilo.length}` : ''}</label>
 
       {hilo.length > 0 && (
-        <div className="card tight">
+        <div className="hilo">
           {aLaVista.map((c) => (
             <Comentario key={c.id} c={c} persons={persons} families={families} meId={meId} />
           ))}
@@ -62,15 +62,12 @@ export default function Comentarios({ eventId, ancla, titulo = 'Comentarios' }) 
       )}
 
       {escondidos > 0 && (
-        <button type="button" className="acor-ido" onClick={() => { tap(); setTodos(true) }}>
-          <span className="main">
-            <span className="n">Ver los {hilo.length} comentarios</span>
-          </span>
-          <span className="v" aria-hidden>›</span>
+        <button type="button" className="ver-todos" onClick={() => { tap(); setTodos(true) }}>
+          Ver los {hilo.length} comentarios
         </button>
       )}
 
-      <form className="renglon-linea" onSubmit={enviar} style={{ marginTop: 8 }}>
+      <form className="coment-escribir" onSubmit={enviar}>
         <input
           type="text"
           aria-label="Escribe un comentario"
@@ -79,14 +76,14 @@ export default function Comentarios({ eventId, ancla, titulo = 'Comentarios' }) 
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
         />
-        <button className="btn cuadrado" type="submit" disabled={!texto.trim()} aria-label="Enviar comentario">
+        <button className="coment-enviar" type="submit" disabled={!texto.trim()} aria-label="Enviar comentario">
           <Icono nombre="visto" />
         </button>
       </form>
 
       {todos && (
         <Hoja titulo={titulo} onCerrar={() => setTodos(false)}>
-          <div className="card tight">
+          <div className="hilo">
             {hilo.map((c) => (
               <Comentario key={c.id} c={c} persons={persons} families={families} meId={meId} />
             ))}
@@ -98,8 +95,14 @@ export default function Comentarios({ eventId, ancla, titulo = 'Comentarios' }) 
 }
 
 /**
- * Un comentario: lo que dice, quién y cuándo. Y el aspa **solo en los tuyos**:
- * borrar lo que escribió otro no es moderar, es reescribir la conversación.
+ * Un comentario: lo que dice, y debajo quién y cuándo (B1). Y el aspa **solo en
+ * los tuyos**: borrar lo que escribió otro no es moderar, es reescribir la
+ * conversación.
+ *
+ * El texto va primero y la firma debajo, que es lo que ya hacía: se probó
+ * ponerla encima (B2) y se descartó. Lo que cambia es el peso —prosa a 400 en
+ * vez del 550 de un titular— y el tamaño de la firma, que baja a `--t-micro`
+ * para que la línea de servicio no compita con lo que se dijo.
  */
 function Comentario({ c, persons, families, meId }) {
   const [quitando, setQuitando] = useState(false)
@@ -109,28 +112,28 @@ function Comentario({ c, persons, families, meId }) {
   const mio = Boolean(meId) && c.autorId === meId
 
   return (
-    <div className="row">
-      <div className="main">
-        <div className="n envuelve">{c.texto}</div>
-        <div className="sub">
+    <div className="coment">
+      <p className="coment-txt">{c.texto}</p>
+      <div className="coment-pie">
+        <span className="coment-quien">
           {quien ? <>{quien.apodo || quien.name}<Alias familia={familia} /></> : 'alguien'}
-          {cuando && ` · ${cuando}`}
-        </div>
+          {cuando && <span className="hace"> · {cuando}</span>}
+        </span>
+        {mio && (
+          <button
+            type="button"
+            className={`coment-x${quitando ? ' seguro' : ''}`}
+            aria-label={quitando ? 'Confirmar que se borra tu comentario' : 'Borrar tu comentario'}
+            onClick={() => {
+              tap()
+              if (quitando) removeComentario(c.id)
+              else setQuitando(true)
+            }}
+          >
+            {quitando ? '¿Seguro?' : <Icono nombre="papelera" />}
+          </button>
+        )}
       </div>
-      {mio && (
-        <button
-          type="button"
-          className={`btn sm ghost quitar${quitando ? ' seguro' : ''}`}
-          aria-label={quitando ? 'Confirmar que se borra tu comentario' : 'Borrar tu comentario'}
-          onClick={() => {
-            tap()
-            if (quitando) removeComentario(c.id)
-            else setQuitando(true)
-          }}
-        >
-          {quitando ? '¿Seguro?' : <Icono nombre="papelera" className="g" />}
-        </button>
-      )}
     </div>
   )
 }
