@@ -98,25 +98,20 @@ Nada corre por horario: ningún `schedule:` en los flujos ni handler `scheduled`
 
 ## Módulos
 
-Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
+Primera frase de la cabecera de cada módulo.
 
 **`app/src/`**
 
 - `App.jsx` — El esqueleto de la aplicación: cabecera, cuerpo y barra de cinco destinos.
 - `db.js` — IndexedDB desde el día 1 (§14).
-  ↳ setApplyingRemote, removeRow, importSnapshot, exportSnapshot, olvidarTodo, createEvent · +92 más
 - `main.jsx` — El arranque: monta React en el DOM y pone el tema y el tamaño de letra antes del primer pintado, para que la app no aparezca con la cara equivocada.
 
 **`app/src/auth/`**
 
 - `apple.js` — Acceso con Sign in with Apple — **solo dentro de la app de iOS**.
-  ↳ codigoDeApple, explicarFalloDeApple, codigoDeAutorizacionDeApple, entrarConApple
 - `enlace.js` — El enlace de acceso, del lado del navegador (SPECS §14.61).
-  ↳ paseDeLaUrl, limpiarLaUrl, canjearEnlace, urlDeEnlace
 - `espera.js` — La sala de espera, del lado del móvil.
-  ↳ leerEspera, guardarEspera, olvidarEspera, preguntarSiYaEntro
 - `sesion.js` — La sesión de este dispositivo: el token que firmó el Worker y a quién corresponde.
-  ↳ leerSesion, guardarSesion, borrarSesion, actualizarCuenta, modoLocal, activarModoLocal · +2 más
 
 **`app/src/components/`**
 
@@ -124,7 +119,6 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `Alias.jsx` — El alias de una familia, en pastilla y con su color (`docs/diseño/planes-ideas.html` · B3).
 - `AvisoDeAvisos.jsx` — El recordatorio de los avisos, en «Hoy» (SPECS §14.65).
 - `BotonDePerfil.jsx` — Emojis rápidos para el avatar (también se escribe a mano).
-  ↳ Cara
 - `BotonIA.jsx` — Un botón que le pregunta algo al modelo, y **dice que está pensando**.
 - `Campo.jsx` — Un campo: su rótulo, el control, y **debajo la línea que lo explica**.
 - `Comentarios.jsx` — El hilo de cualquier cosa, enchufable donde haga falta (SPECS §14.55).
@@ -132,138 +126,78 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `Deslizable.jsx` — Una fila que se desliza a la izquierda para descubrir sus verbos.
 - `Fab.jsx` — El botón de crear, con la palabra puesta.
 - `Hoja.jsx` — Una hoja que sube desde el borde de abajo (`docs/diseño/gente-editar.html · F2`).
-  ↳ HojaDeEleccion
 - `HojaDeEstado.jsx` — Tu estado, en una capa centrada (`docs/diseño/estado.html` · M2 · I1 · I3).
 - `Icono.jsx` — Los dibujos de la app, en una sola tabla.
-  ↳ NOMBRES
 - `Ingredientes.jsx` — Los ingredientes de una receta: **una lista sin cajas y un renglón al pie**.
-  ↳ detalleDe, resumenDeLista
 - `LineaDelHorizonte.jsx` — La línea del horizonte: tres puntos bajo la cabecera que son el día.
 - `PadDeImporte.jsx` — La cifra grande y el pad de dieciséis teclas (`docs/diseño/gasto-nuevo.html` · A1, SPECS §14.26).
 - `PastillaDeEstado.jsx` — Tu estado, en la segunda línea de la cabecera (`docs/diseño/estado.html` · A3 · V1).
 - `PieDeVersion.jsx` — La versión que hay puesta, al final del scroll, y el botón de actualizar.
 - `ProgresoModal.jsx` — Lo que está pasando, contado de arriba abajo, mientras dura un proceso largo.
-  ↳ ListaDePasos
 - `Recado.jsx` — Un emoji y una frase, al final de la lista.
-  ↳ useRecado
 - `SubNav.jsx` — Control segmentado que vive bajo la cabecera, dentro de una pestaña, para dividir una sección en dos (p. ej. Dinero → Gastos / Saldos).
 - `SyncDot.jsx` — Punto de estado de la sincronización: color + ayuda + si conviene animar.
-  ↳ enCambios, estadoSync
 - `WhaleLogo.jsx` — La marca: **el icono de la app**, el mismo que se toca en la pantalla de inicio.
 
 **`app/src/lib/`**
 
 - `admin.js` — Quién manda aquí, y por qué está escrito a mano.
-  ↳ ADMINISTRADOR, esAdministrador
 - `alias.js` — El alias de una familia: **dos letras**.
-  ↳ aliasSugerido, aliasDe, aliasSigueAlNombre
 - `alojamientos.js` — El bunga como **sitio** y no como fila de un evento (SPECS §14.56, `docs/diseño/siete-encargos.html` · B2 · B4 · B5).
-  ↳ historicoDe, resumenDelHistorico, conPegatina, huellaDelSitio, resumenDelSitio, pegatinasPuestas · +1 más
 - `areas.js` — El área elegida dentro de una sección, que no se olvida al salir y volver.
-  ↳ useArea, ponerArea, olvidarAreas
 - `asignacion.js` — Quién se queda con qué bunga: el emparejamiento familia ↔ bunga.
-  ↳ bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre
 - `avatares.js` — Foto de avatar de una persona.
-  ↳ leerFoto, guardarFoto, borrarFoto, comprimirFoto
 - `avisos.js` — Lo que está esperando a que alguien haga algo.
-  ↳ avisosDeCuentas, avisosPara
 - `borrados.js` — Qué se lleva por delante un borrado, dicho en una frase.
-  ↳ familiasQueTocaUnGasto, queSeLlevaUnGasto, queSeLlevaUnPago, loQueSeCaeDeLaCompra, queSeLlevaUnaCena
 - `cacharros.js` — El ranking de cacharros: quién gana, quién puede votar y qué se dice de él (SPECS §14.57, `docs/diseño/siete-encargos.html` · G1·G2·G3·G4).
-  ↳ loQueVoto, votar, votosDeCacharro, puedeVotar, ranking, quienesPuedenVotar · +1 más
 - `categorias.js` — Las cinco categorías de un gasto.
-  ↳ CATEGORIES, catOf
 - `cielo.js` — De qué color está el cielo a esta hora.
-  ↳ cieloDelMomento
 - `cocina.js` — Con qué se cocina, tal como lo cuenta la pantalla (SPECS §14.20-quater).
-  ↳ COCINA_DE_ORIGEN
 - `comentarios.js` — Los comentarios: de quién es un hilo, qué hay sin leer y a quién avisa (SPECS §14.55, `docs/diseño/donde-vive-el-grupo.html` · K2 · K4 · K6).
-  ↳ leidos, marcarLeido, olvidarLeidos, olvidarTodosLosLeidos, sinLeer, aQuienLeImporta · +3 más
 - `compra-familias.js` — Cómo se agrupa la lista de la compra cuando cada familia tiene la suya (SPECS §14.54, `docs/diseño/siete-encargos.html` · C1 · C2).
-  ↳ gruposDeCompra, dondeSeApunta
 - `compra.js` — De las cenas a la lista de la compra, pasando por las dos mesas.
-  ↳ racionesPorMesa, platosDeLaCena, loQueHayQueComprar, comoSeReparte
 - `config.js` — Configuración del despliegue, leída **en caliente** de `config.json`.
-  ↳ cargarConfiguracion, olvidarConfiguracion, estaConfigurada
 - `demo.js` — Modo de demostración: la app entera, con datos inventados y sin servidor.
-  ↳ enDemo, activarDemo, salirDemo
 - `destino.js` — A dónde lleva tocar un aviso (SPECS §14.60, `docs/diseño/donde-vive-el-grupo.html` · R2 · R3 · R4).
-  ↳ leerDestino, guardarDestino, tomarDestino, destinoDeAviso, hayDestino
 - `dias.js` — Los días de un evento, y qué se hace en cada uno.
-  ↳ diasDe, numeroYDia, diasEntre, platoQueManda, resumenDeDia, diaQueEnsenaHoy · +9 más
 - `emojis.js` — Contar y cortar emoji **por dibujos**, y no por unidades de texto (SPECS §14.47).
-  ↳ racimos, contarEmojis, cortarEmojis, TOPE_EMOJIS
 - `estados.js` — Un estado es **un emoji y una frase corta**: «🍺 de resaca».
-  ↳ partirEstado, cincoAlAzar, quienTieneEstado, ESTADOS_DE_SIEMPRE, estadoEnUnaLinea
 - `evento.js` — Qué se cae fuera al cambiar las fechas de un evento.
-  ↳ dentroDeFechas, loQueSeCaeFuera, porDia, enPalabras
 - `fechas.js` — Las dos reglas de un par de fechas «desde – hasta».
-  ↳ diaSiguiente, finPara
 - `hace.js` — Cuánto hace, escrito en palabras.
-  ↳ formatearHace
 - `ia.js` — ¿Se le puede preguntar algo al modelo **ahora mismo**?
-  ↳ useIaDisponible
 - `identidad.js` — Quién eres en un evento.
-  ↳ getMeId, setMeId, useIdentidad, personaDeLaCuenta
 - `ids.js` — IDs generados en cliente (§12.2): así dos dispositivos offline no chocan al sincronizar.
-  ↳ uid, now
 - `importe.js` — La máquina de teclear un importe (SPECS §14.26, `docs/diseño/gasto-nuevo.html` · A1).
-  ↳ desdeCents, totalCents, teclear, cinta, IMPORTE_VACIO, guardable · +2 más
 - `money.js` — Todo el dinero se maneja en CÉNTIMOS enteros para no arrastrar errores de coma flotante.
-  ↳ eurosToCents, centsToEuros, formatCents
 - `native.js` — Puente con las capacidades nativas (Capacitor).
-  ↳ urlDelManifiestoOta, isNative, tap, share, hayOtaNueva, checkForOtaUpdate · +13 más
 - `notas.js` — Qué cambió cada versión publicada, en el idioma del grupo — la prosa de las tarjetas de Ajustes → 🐳 La app (SPECS §14.34, figura de `meeting-ops-air`).
-  ↳ NOTAS
 - `permisos.js` — Quién puede tocar qué del grupo (SPECS §14.63).
-  ↳ puedeEditarFamilia, porQueNoPuedes, hayCerrojos, mandaEnTodo, esAdultoDelGrupo, puedeEditarBungas · +2 más
 - `personas.js` — Lo que hace falta saber de una persona, sin React de por medio.
-  ↳ EDADES, pesoDe, esMayor, puedeOrganizar, EMOJIS_PERSONA
 - `planes.js` — Lo que se dice de un plan sin abrirlo: cuántos lo quieren y quién falta.
-  ↳ quienFaltaPorVotar, votosDe, ESTADO_VOTANDO, ESTADO_SE_HACE, seHace
 - `primeraBajada.js` — La primera bajada: traer lo del grupo justo después de entrar por primera vez.
-  ↳ primeraBajada
 - `push.js` — Que el servidor sepa a qué aparato mandar, sin que nadie lo pida.
-  ↳ asegurarPush
 - `pwa.js` — Fuerza que la PWA cargue la última versión desplegada sin tener que quitar y volver a añadir a la pantalla de inicio.
-  ↳ marcarPostActualizacion, veniaDeActualizar, limpiarMarcaActualizacion, forzarActualizacion, comprobarActualizacion, UPDATE_STEPS
 - `recados.js` — Los recados: un emoji y una frase, sacados de lo que está pasando en el viaje.
-  ↳ recadosDeDatos, bolsaDeRecados, elegirRecado
 - `recap.js` — El recap del viaje, sacado del registro (SPECS §14.50).
-  ↳ componerRecap, porDias, diaDe
 - `receta.js` — Una receta con cantidades, y cómo se estira para la gente que hay.
-  ↳ normalizarIngredientes, estirar, cifra, loQueSeCompra, partirCantidad, juntarCantidad · +3 más
 - `recordatorioDeAvisos.js` — Volver a acordarse de los avisos, cada tanto (SPECS §14.65).
-  ↳ ultimoRecordatorio, apuntarRecordatorio, queDecir, tocaRecordar, CADA_MS
 - `registro.js` — La bitácora del viaje: qué ha hecho cada uno, para el recap del final.
-  ↳ apunteDe, MISMA_COSA_MS, TABLAS_QUE_SE_APUNTAN, CLASES, claseDe
 - `reparto-gente.js` — Entre quién se divide un gasto: los atajos, las familias y el buscador.
-  ↳ genteDeAtajo, atajoDe, porFamilias, estadoDeFamilia, quienDeFamilia, buscarGente · +4 más
 - `reparto.js` — Motor de reparto — el corazón de Ballena Ops (§3, §14.7 del spec).
-  ↳ splitCents, expensePersonShares, expenseFamilyShares, computeFamilyBalances, simplifyDebts
 - `salida.js` — Salir de la cuenta sin llevarse por delante lo que todavía no ha subido.
-  ↳ comprobarAntesDeSalir, avisoDeSalida
 - `scrollLock.js` — Bloqueo del scroll del fondo mientras hay un modal abierto.
-  ↳ bloquearScrollDeFondo, liberarScrollDeFondo, useBloqueoDeScroll
 - `sincronizarTodo.js` — Inyectada por Vite.
-  ↳ informeDelFallo, sincronizarTodo, MOTIVOS
 - `sol.js` — A qué hora sale y se pone el sol, y en qué punto del día estamos.
-  ↳ solDelDia, momentoDelDia, enPalabras, LAT, LON
 - `stats.js` — Estadísticas del evento (§7).
-  ↳ computeStats
 - `tamano.js` — Tamaño del texto, por dispositivo.
-  ↳ getTamano, setTamano, applyTamano, useTamano, TAMANOS
 - `tanda.js` — Cuándo se pide la tanda de recadillos, y dónde se guarda mientras tanto.
-  ↳ leerTanda, asegurarTanda, olvidarTandas, VENTANA_MS, LATIDO_MS, tocaPedir
 - `tema.js` — El tema, que ahora es **uno solo** con sus dos caras.
-  ↳ getTema, setTema, applyTema, useTema, TEMAS
 - `vigilante.js` — Quién vigila si ha salido versión nueva mientras la app está abierta (SPECS §14.46).
-  ↳ creaVigilante
 
 **`app/src/screens/`**
 
 - `AccesoScreen.jsx` — Puerta de entrada al grupo.
-  ↳ CADA
 - `AgendaScreen.jsx` — «Agenda», partida en tres áreas (opciones A1 y B2 de `docs/diseño/navegacion.html`; la tercera llegó después, desde Ajustes).
 - `BalancesScreen.jsx` — Saldos: cuánto debe cada familia y quién paga a quién.
 - `BienvenidaScreen.jsx` — Lo que se ve la primera vez que entras, mientras baja lo del grupo.
@@ -272,16 +206,13 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 - `ComidasScreen.jsx` — «Comidas», con tres áreas (opciones A1, C1 y D1 de `docs/diseño/navegacion.html`).
 - `CompraScreen.jsx` — La lista de la compra: lo que sale de las recetas y lo que se apunta a mano.
 - `CuentasSection.jsx` — Las cuentas que han pedido entrar, y con quién es cada una.
-  ↳ useCuentas, NotificacionesSection, IASection
 - `DiasScreen.jsx` — «Días»: la lista de días del evento, con un resumen de cada uno.
 - `DineroScreen.jsx` — «Dinero» une las dos caras de lo económico: metes el gasto y ves quién debe a quién sin cambiar de pestaña.
 - `EnlaceScreen.jsx` — Lo que se ve mientras un enlace de acceso se canjea, y cuando no puede (SPECS §14.61).
 - `EventSettingsScreen.jsx` — Lo que la lista terminada se queda en pantalla antes de recargar, para poder leerla.
-  ↳ motivoDelOta, EditorEvento, otaFueBien
 - `EventsScreen.jsx` — La lista de eventos: cuál está activo, y crear o editar uno.
 - `ExpensesScreen.jsx` — «19:40» — desempata dos gastos de la misma categoría el mismo día.
 - `FichaDeGasto.jsx` — La ficha de un gasto (SPECS §14.26 · `docs/diseño/gasto-nuevo.html`, combinación A1 · B3 · C1 · D2 · E2).
-  ↳ cuadrar, DetallesDeGasto
 - `GrupoScreen.jsx` — Grupo: quién viene, dónde duerme cada familia y qué gadget ha traído.
 - `GrupoSection.jsx` — El grupo en una sola sección: una ficha por familia, con su bunga y su gente.
 - `HojaDeEntre.jsx` — Entre quién se divide (SPECS §14.27 · `docs/diseño/gasto-entre.html`, combinación A3 · B2 · C2 con el renglón de C4 · D2 + D4, y E1 en vez de E2).
@@ -297,61 +228,36 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`app/src/sync/`**
 
 - `api.js` — Transporte contra la API propia (Worker + D1).
-  ↳ hayApi, PLAZO_API, traerInstantanea, enviarCambios, listarCuentas, gestionarCuenta · +20 más
 - `engine.js` — El orquestador de la sincronización: cuándo se sube la cola y se baja la instantánea.
-  ↳ ultimaSincronizacion, syncNow, useSyncEngine, LATIDO_DATOS_MS
 - `tables.js` — Tablas que se sincronizan (todo lo que es "hecho" del grupo).
-  ↳ SYNC_TABLES
 
 **`api/src/`**
 
 - `administrador.js` — Quién administra, y cómo se le reconoce sin que nadie le abra la puerta.
-  ↳ normalizarNombre, esCorreoDelAdministrador, esNombreDelAdministrador, ADMINISTRADOR
 - `apns.js` — El transporte hasta el teléfono: APNs con autenticación por token.
-  ↳ hayApnsConfigurado, tokenDeProveedor, enviarAviso, olvidarTokenDeProveedor
 - `apple.js` — Verificación del token de identidad de Sign in with Apple.
-  ↳ base64urlADatos, verificarTokenDeApple
 - `avisos.js` — A quién le importa lo que acaba de pasar, y qué se le dice.
-  ↳ importe, familiasDeUnGasto, elGastoMueveElSaldo, avisosDeGasto, avisoDeGastoBorrado, avisoDeGasto · +9 más
 - `bunga.js` — El bunga, resumido en una línea y con guasa (SPECS §14.66).
-  ↳ materialDelBunga, leerResumen, pedirResumen, TOPE_DEL_RESUMEN, INSTRUCCION
 - `cantidades.js` — Cuánto de cada ingrediente, y en qué se compra.
-  ↳ materialDelPlato, leerCantidades, pedirCantidades, INSTRUCCION
 - `cocina.js` — Con qué se cocina en este viaje (SPECS §14.20-quater).
-  ↳ COCINA_DE_ORIGEN, cocinaDe, renglonDeCocina
 - `encargos.js` — Lo que se le pide al modelo, en un sitio y por escrito.
-  ↳ encargosDe, modelosDe, encargosPublicos, ENCARGOS, claveDeEncargo, claveDeModelo · +1 más
 - `estados.js` — Los estados de una persona: «🍺 de resaca», «🏖️ tirado en la toalla».
-  ↳ materialDeEstados, materialDeUnEstado, leerEstados, leerUnEstado, pedirEstados, pedirGracia · +3 más
 - `ia.js` — Los dos servicios de la pantalla de IA: **qué modelos hay** y **si la clave vale**.
-  ↳ listarModelos, masCercano, conModeloVigente, probar
 - `idea.js` — El encargo del botón «Mejorarla» del editor de una idea (SPECS §14.24).
-  ↳ materialDeLaIdea, leerMejora, pedirMejora, INSTRUCCION_MEJORAR
 - `index.js` — API de Ballena Ops sobre Cloudflare Workers y D1. 🐳
-  ↳ sobresDeLosCambios, default
 - `migraciones.js` — Generado por `herramientas/generar-migraciones.mjs` — no editar a mano.
-  ↳ MIGRACIONES
 - `migrador.js` — Poner la base al día desde el propio Worker (SPECS §14.23).
-  ↳ sentencias, objetivo, estadoDeMigraciones, aplicarMigracion
 - `recados.js` — Una tanda de recados para el viaje: un emoji y una frase corta, con gracia.
-  ↳ retratoDelGrupo, materialDelViaje, leerRecados, pedirRecados, sigueSirviendo, POR_TANDA · +2 más
 - `receta.js` — Los dos encargos del editor de una receta (SPECS §14.20-bis).
-  ↳ materialDeLaLista, materialDelPlatoParecido, leerArreglo, leerParecidos, pedirArreglo, pedirParecidos · +2 más
 - `repositorio.js` — Lectura y escritura del registro del grupo sobre D1.
-  ↳ cuentaPorApple, cuentaPorId, cuentaPorPersona, hayAlgunaCuenta, crearCuenta, ponerJtiDeEnlace · +32 más
 - `revocacion.js` — Revocación del token de Sign in with Apple al darse de baja.
-  ↳ hayRevocacionConfigurada, secretoDeCliente, revocarEnApple
 - `sesion.js` — Sesión propia: un JWT HS256 corto que el dispositivo presenta en cada petición.
-  ↳ emitirSesion, emitirPaseDeEspera, verificarPaseDeEspera, emitirPaseDeEnlace, verificarPaseDeEnlace, verificarSesion · +1 más
 - `sugerencias.js` — Cinco planes propuestos para un viaje.
-  ↳ retratoDelGrupo, materialDelViaje, leerPropuestas, pedirPropuestas, INSTRUCCION
 - `tablas.js` — Descripción de las tablas sincronizadas: qué columnas tiene cada una y cuáles necesitan conversión al cruzar la frontera entre SQLite y JavaScript.
-  ↳ filaAObjeto, objetoAColumnas, COLUMNAS_COMUNES, TABLAS, NOMBRES, existeTabla
 
 **`api/herramientas/`**
 
 - `datos-ejemplo.mjs` — El evento de prueba «Ballenita 2026», en un fichero aparte para que también lo puedan usar las pruebas: así se garantiza que estos datos siguen entrando en el esquema real y saliendo íntegr…
-  ↳ instantaneaDeEjemplo
 - `generar-migraciones.mjs` — Copia las migraciones de `migraciones/*.sql` a `src/migraciones.js`, para que el Worker las lleve dentro.
 - `sembrar-desde-jsonbin.mjs` — Trae el documento que el grupo tiene en JSONBin y lo siembra en la base nueva.
 - `sembrar-ejemplo.mjs` — Siembra la base con el evento de ejemplo «Ballenita 2026», para poder probar la app con datos antes de que entren los de verdad.
@@ -359,23 +265,18 @@ Primera frase de la cabecera de cada módulo, y sus símbolos públicos debajo.
 **`api/test/`**
 
 - `d1.js` — Adaptador mínimo de D1 sobre `node:sqlite`, para poder probar el repositorio contra el esquema de verdad en lugar de contra un doble de mentira.
-  ↳ baseDePrueba
 
 **`app/scripts/`**
 
 - `appdelegate.mjs` — El puente entre APNs y el plugin de avisos, que vive en `AppDelegate.swift`.
-  ↳ conAvisosDeRegistro, MARCA
 - `entitlements.mjs` — El permiso de avisos del binario, que son **dos** cosas y no una.
-  ↳ conPermisoDeAvisos, conEntitlementEnProyecto, APS_ENVIRONMENT, ENTITLEMENTS_NUEVO
 - `iconos-web.mjs` — Los iconos de la web y de la PWA, sacados de `assets/icon.png`.
 - `patch-ios.mjs` — Aplica al proyecto iOS generado por Capacitor lo que no cabe en la web: el fix del rebote (rubber-band) del scroll, la declaración de que esto es una app de iPhone, el cumplimiento de expor…
 - `revision-de-avisos.mjs` — Lo que tiene que estar puesto en el binario para que los avisos existan, leído **después** de haberlo escrito.
-  ↳ revisionDeAvisos, lineasDeRevision
 
 **`herramientas/`**
 
 - `escaner.mjs` — Escáner léxico de JavaScript: separa el código de sus comentarios y literales.
-  ↳ escanear, cabecera, prosa, primeraFrase, simbolosPublicos, literalDe · +2 más
 - `mapa.mjs` — Compone el mapa del repositorio leyendo el código, no un resumen escrito a mano. 🐳
 
 ## Qué parte del spec implementa cada módulo
