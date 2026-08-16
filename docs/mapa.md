@@ -9,7 +9,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.54.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+- **`app/`** v0.55.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
   1074 pruebas en 115 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   253 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
@@ -237,7 +237,7 @@ Primera frase de la cabecera de cada módulo.
 - `apns.js` — El transporte hasta el teléfono: APNs con autenticación por token.
 - `apple.js` — Verificación del token de identidad de Sign in with Apple.
 - `avisos.js` — A quién le importa lo que acaba de pasar, y qué se le dice.
-- `bunga.js` — El bunga, resumido en una línea y con guasa (SPECS §14.66).
+- `bunga.js` — El bunga, evaluado en dos frases (SPECS §14.66, §14.66-ter).
 - `cantidades.js` — Cuánto de cada ingrediente, y en qué se compra.
 - `cocina.js` — Con qué se cocina en este viaje (SPECS §14.20-quater).
 - `encargos.js` — Lo que se le pide al modelo, en un sitio y por escrito.

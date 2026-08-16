@@ -4366,6 +4366,29 @@ OTA y no cerrar la app significaba quedarse en la de antes toda la tarde.
   «Rehaciéndola con lo último…» en vez de marcarla como desfasada: es verdad
   durante dos segundos y ya se está arreglando.
 
+### 14.66-ter La familia por su nombre, y la evaluación debajo y redactada
+
+- **Las dos letras obligaban a traducir.** La pastilla decía «GA» (§14.66), que
+  es la firma de `Alias.jsx` y funciona **donde firma algo** —una idea, un voto—:
+  ahí la pregunta es «¿de quién es esto?» sobre una lista de cosas de gente
+  distinta, y las dos letras se leen de un vistazo. Aquí la pregunta es **«¿quién
+  duerme en el 12?»**, y eso se contesta con un nombre. Traducir cada vez cuesta
+  más que los 30 pt que ahorra. **Va el nombre, y el emoji se queda de seña.**
+- **✅ Y la evaluación baja a su propio renglón, a lo ancho.** Estaba en el
+  subtítulo de la fila, o sea compitiendo por el ancho con el nombre del bunga y
+  con la pastilla de la familia: quedaban unos 150 pt de los 390 para una frase
+  que ahora está redactada. Debajo y sangrada hasta donde empieza el nombre caben
+  **dos líneas** sin recortar nada, y el mote vuelve a su sitio, bajo el nombre.
+- **✅ Sin coña, a petición.** §14.66 pedía guasa; se corrige media hora después
+  y **manda esta**. El motivo, escrito para dentro de seis meses: **la gracia ya
+  la ponen las notas** —las escribe el grupo, y son suyas—, así que un chiste
+  encima de ellas es una capa de más. Lo que hace falta al repartir los bungas es
+  que alguien te diga cómo es: lo bueno primero, lo malo después, concreto. El
+  encargo prohíbe además el otro extremo, el lenguaje de folleto —«acogedor»,
+  «ideal»—: es lo que le contarías a un amigo que pregunta qué tal está.
+- **El tope sube de 90 a 180 caracteres.** Noventa era lo que cabía compartiendo
+  renglón, y obligaba a elegir entre decir lo bueno o decir lo malo.
+
 ## 15. Registro de decisiones
 
 ### ✅ Cerradas
