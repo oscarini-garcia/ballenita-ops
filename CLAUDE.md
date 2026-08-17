@@ -134,6 +134,21 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   color del fondo, 1,0 : 1. **La IA sugiere ideas**
   (`api/src/sugerencias.js`, §14.19-bis): tanda de cinco, el material lo compone el Worker y
   **los nombres no viajan**.
+- **Las cenas se montan en el día, y el gasto dice cómo se reparte** (SPECS §14.68,
+  `docs/diseño/cenas-fuera-y-reparto.html` · N1·H3·K1·R1+R5): Comidas se queda en **Carta ·
+  Compra** —una cena es de un día, y tener dos puertas que no se parecían dejaba crear cenas
+  en fechas que el viaje no tiene—. Lo que solo vivía en «Cenas» se muda al elegidor del día:
+  crear un plato **sale del buscador** cuando lo escrito no existe (nace sin categoría), y la
+  mesa de niños es un **segmentado** y no dos listas seguidas, que en una capa de 658,3 pt
+  obligan a cruzar el catálogo entero para llegar a la segunda. En el gasto, **una línea**
+  antes de Guardar —«3 familias · 16,20 € cada una», o el suelo y el techo si no es a partes
+  iguales— y **la lista por familia dentro de Detalles**, colgando del rótulo «Cómo se
+  reparte» que ya existía. Que quepa en **un renglón** es el requisito y no el estilo: en dos
+  líneas el botón de guardar se quedaba al 59 %. Nada de esto pidió lógica nueva
+  (`expenseFamilyShares` ya lo calculaba); `lib/reparto-vista.js` solo ordena y redacta. Y
+  tres garantías vivían en «Cenas» y se mudaron con ella: la cena **fuera de fechas** vuelve
+  al final de Días marcada (§14.10-quater), «quitar la cena» vuelve a **contar las líneas de
+  la compra** que se caen (§14.38), y su test se muda en vez de borrarse.
 - **Un día del viaje son cuatro renglones** (SPECS §14.21, `docs/diseño/agenda-dia.html` ·
   A1·B4·F1·G1·C2·D2·E1): qué bungas, **qué se cena** y **qué plan**. La fila de un día ya no
   lleva lápiz —un día no se edita, existe porque el evento tiene esas fechas— y el modal pasó

@@ -4478,6 +4478,105 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.68 Las cenas se montan en el día, y el gasto dice cómo se reparte
+
+Decidido en
+[`docs/diseño/cenas-fuera-y-reparto.html`](diseño/cenas-fuera-y-reparto.html) ·
+**N1 · H3 · K1 · R1 + R5**. Dos encargos que se decidieron juntos porque los dos
+chocaban con lo que ya había puesto: el primero es una retirada y había que
+recolocar lo que se caía con ella; el segundo es añadir, y el sitio donde había
+que añadirlo estaba lleno.
+
+- **El defecto, medido:** montar una cena tenía **dos puertas que no se
+  parecían** —una lista de tarjetas en Comidas → Cenas con un modal de fecha
+  libre, y la capa del día— y la de Comidas dejaba crear una cena en una fecha
+  que el viaje no tiene, que es de donde salían las cenas huérfanas de
+  §14.10-quater. Y al apuntar un gasto, lo que mueve el saldo de tres casas
+  **no lo decía ninguna pantalla hasta después de guardarlo**.
+- **✅ N1 · Comidas se queda en Carta y Compra.** Lo que queda es lo que **no
+  cuelga de un día**. Se descartó N3 («Cocina»): el rótulo de la barra es lo
+  único de esto que hay que aprenderse y lleva puesto desde §14.10-ter. La
+  compra **no** se va a Agenda: es lo que se abre en el súper, de pie y con el
+  carro. Con dos áreas el mando da 173 pt por hueco.
+- **Un área que ya no existe cae en la primera.** `lib/areas.js` es memoria del
+  módulo y sobrevive a un cambio de pestaña, así que quien tuviera «Cenas»
+  abierta se quedaba con el mando sin nada marcado y el cuerpo en blanco.
+- **✅ H3 · el buscador ofrece crear el plato**, y no es la mudanza del
+  formulario de «Cenas» —nombre más las cinco categorías, siempre desplegado—,
+  que aquí no cabe y hace falta una vez de cada veinte. Cero controles en
+  reposo: el verbo sale **solo cuando lo buscado no existe**, con el nombre ya
+  escrito. El plato **nace sin categoría** y se completa en la Carta.
+- **El alta escribe en el catálogo aunque luego se cancele**, y es a propósito.
+  Un plato es del grupo y de todos los viajes; lo que el borrador de §14.31
+  protege es *qué se cena hoy*. Aplazarlo hasta «Listo» obligaría a guardar un
+  plato a medio nacer dentro del borrador y a perderlo al cancelar, que es justo
+  lo que se lee como que la app pierde cosas.
+- **✅ K1 · la mesa de niños, en el elegidor — con un segmentado y no dos listas
+  seguidas.** La hoja aceptaba «dos listas», y dibujadas una debajo de otra son
+  dos catálogos enteros en una capa cuyo tope son 658,3 pt: para llegar a la
+  segunda hay que pasar por toda la primera. Las dos listas están, se enseña una
+  cada vez, y el buscador y el orden sirven a las dos. Mientras hereden (`null`)
+  no hay segmentado ni nada que leer, solo el verbo de una línea.
+- **Y el día lo dice sin abrir el elegidor**: «tres platos · los niños, otra
+  cosa». Vive dentro del elegidor, así que sin esto habría que abrirlo para
+  saberlo — el mismo error que este apartado arregla en el punto de abajo.
+- **✅ R1 · una línea, antes de Guardar.** «3 familias · **16,20 €** cada una»,
+  y cuando el reparto no es a partes iguales, «3 familias · de **8,10** a
+  **24,30 €**» — porque «a cada una» con coeficientes distintos **sería
+  mentira**, y es justo el caso en que hace falta mirar. Un céntimo de
+  diferencia sigue siendo «a cada una»: repartir 10,00 entre tres da 3,34 · 3,33
+  · 3,33 por resto mayor, y eso es un reparto igual con el pico colocado.
+- **Que quepa en un renglón no es estilo, es el requisito, y costó tres
+  redacciones.** La ficha rápida cabía **exacta** en Grande —0 pt de scroll— con
+  su botón de guardar entero. Con «Se reparte entre 3 familias, de 8,10 € a
+  24,30 €.» se iba a dos líneas: 41 pt de scroll y el botón al **59 %**. La
+  línea puesta para no tener que abrir nada obligaba a rodar para llegar a
+  Guardar. En una son 15 pt y el botón vuelve al **100 %**. Por eso no dice «Les
+  toca» ni «Se reparte entre»: cada palabra de cortesía costaba el renglón. En
+  el intervalo el símbolo va **una vez** («de 8,10 a 24,30 €»), que con seis
+  familias y cifras de cuatro dígitos es lo que lo parte en dos —y hay guardia
+  de 34 letras en `reparto-vista.test.js`, contando letras porque en jsdom no
+  hay maquetación—.
+- **Lo que cuesta en Enorme, dicho:** ahí la ficha **ya rodaba** 30 pt antes de
+  esto, con el botón al 84 %; con la línea son 62 pt y el 12 %. Se acepta porque
+  §14.27-bis ya fijó que esta capa **no cambia de tamaño, hace scroll**, pero es
+  el coste real de R1 y no conviene que se descubra dentro de seis meses.
+- **✅ R5 · y en Detalles, lo que le toca a cada familia en euros.** Cuelga del
+  `<label>Cómo se reparte</label>` **que ya estaba ahí** desde §14.26 —no
+  estrena sección, que dejaría dos con el mismo nombre en dos capas— y va debajo
+  del control, para mover un coeficiente y ver el efecto sin cerrar la capa.
+- **El agujero era más estrecho de lo que parecía**, y verlo cambió el
+  planteamiento: en «Partes» e «Importes» cada casa **ya tenía su casilla con su
+  número**. El único modo sin ninguna cifra era **«Coeficiente»**, que es el de
+  fábrica y el de casi todos los gastos.
+- **Ninguna de las dos necesitó lógica nueva**: `expenseFamilyShares` ya
+  devolvía el reparto en céntimos con los tres modos. `lib/reparto-vista.js` es
+  un envoltorio que ordena, quita las familias a cero —una casa que no entra no
+  es un renglón que diga «0,00 €»— y compone la frase.
+- **Tres cosas que la hoja no vio y salieron al implementar**, las tres del
+  mismo tipo —una garantía que vivía en «Cenas» y se caía con ella—:
+  1. **Una cena fuera de las fechas se quedaba invisible.** `diasDe` solo mira
+     los días apuntados **cuando el evento no tiene fechas**, así que con fechas
+     puestas no salía ninguna fila. Seguiría contando en Números y ocupando
+     bunga, que es exactamente lo que §14.10-quater se puso para evitar. Ahora
+     bajan al final de Días, marcadas. **Solo las cenas**: un plan que se cayó
+     fuera ya sale en Planes y en `libres` de cualquier día.
+  2. **Quitar la cena dejaba de decir qué se lleva.** El renglón del día tenía
+     una frase a mano que nombra platos y bungas y **calla la compra**; la de
+     §14.38 la compone `queSeLlevaUnaCena`, que cuenta las líneas que se caen
+     —hay que calcularlo, porque una línea no apunta a su cena—. Se muda el
+     `Confirmar` entero, y con él `queSeLlevaUnaCena`, que si no quedaba muerta.
+  3. **`FueraDeFechas.test.jsx` se quedaba sin sujeto.** El reflejo fácil era
+     borrar sus dos casos: suite verde y la cena del 14 invisible. Un test que
+     guarda una regla se **muda** con ella.
+- **Lo que se retira:** `CenasScreen.jsx` entero, y de
+  `SoloAdultosOrganizan.test.jsx` el bloque «las cenas las montan los adultos» —
+  ese cerrojo es el que ya prueba «colocar el día», y mudarlo sería el mismo
+  test dos veces.
+- **Lo que la hoja dejó abierto y sigue abierto:** «la semana» no existe. Agenda
+  es Hoy · Días · Números y «Días» es la lista del viaje. Si algún día se quiere
+  una rejilla de siete días, es otra obra y otra hoja.
+
 ### 14.67 «Hoy» cuenta el día, y el día se puede mirar sin montarlo
 
 Decidido en [`docs/diseño/hoy-el-dia.html`](diseño/hoy-el-dia.html) ·

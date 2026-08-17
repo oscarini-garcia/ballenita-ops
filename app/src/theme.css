@@ -1834,6 +1834,27 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 .reng-campo .resto { width: 104px; flex: none; text-align: right; padding: 8px 10px;
   font-size: var(--t-body); font-weight: 600; color: var(--ink-soft); }
 
+/* ── El reparto a la vista (SPECS §14.68, cenas-fuera-y-reparto.html · R1·R5) ──
+   La ficha de un gasto mide 658,3 pt —el tope de una capa— y las dos, la rápida
+   y Detalles, **ya rodaban** antes de esto. Por eso R1 es una línea de texto y
+   no una tarjeta: una caja con su papel y su canto cuesta 24 pt de relleno y
+   canto para decir lo mismo, y aquí cada renglón se paga con scroll. */
+.reparto-resumen { margin-top: 8px; font-size: var(--t-sub); line-height: 1.35;
+  color: var(--ink-soft); text-align: center; }
+.reparto-resumen b { color: var(--ink); font-weight: 650;
+  font-variant-numeric: tabular-nums; }
+
+/* R5, debajo de los chips de «Cómo se reparte». Sin papel propio por lo mismo
+   que arriba, y con el dinero en cifras de ancho fijo, que es lo que deja
+   comparar tres importes leyendo hacia abajo. */
+.reparto-cuentas { list-style: none; margin: 10px 0 0; padding: 0; }
+.reparto-cuentas li { display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  border-top: 1px solid var(--line-soft); font-size: var(--t-row); }
+.reparto-cuentas li:first-child { border-top: none; }
+.reparto-cuentas .n { flex: 1; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.reparto-cuentas .eu { flex: none; font-weight: 650; }
+
 
 /* ── «Entre quién se divide» (SPECS §14.27, docs/diseño/gasto-entre.html) ─────
    Eran dos chips y los nueve nombres del grupo puestos uno detrás de otro: 711,3

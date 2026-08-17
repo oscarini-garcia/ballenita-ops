@@ -321,7 +321,9 @@ describe('Gastos · Detalles', () => {
     await userEvent.clear(screen.getByLabelText('García'))
     await userEvent.type(screen.getByLabelText('García'), '18')
     // Y el último renglón lleva lo que falte, así que no se puede descuadrar.
-    expect(screen.getByText('6,00 €')).toBeInTheDocument()
+    // Se busca **en su propio hueco**: desde §14.68 la misma cifra sale otra vez
+    // abajo, en la lista que dice cómo queda el reparto (R5).
+    expect(document.querySelector('.reng-campo .resto').textContent).toMatch(/6,00/)
 
     await userEvent.click(screen.getByRole('button', { name: 'Hecho' }))
     await userEvent.click(screen.getByRole('button', { name: 'Guardar gasto' }))
@@ -360,6 +362,97 @@ describe('Gastos · corregir', () => {
       expect(gastos[0].amountCents).toBe(2640)
       // La fecha es cuándo se gastó, no cuándo se cayó en la cuenta del error.
       expect(gastos[0].dateISO).toBe(FECHA)
+    })
+  })
+})
+
+/**
+ * El reparto a la vista (§14.68 · R1 · R5,
+ * `docs/diseño/cenas-fuera-y-reparto.html`).
+ *
+ * Apuntar un gasto mueve el saldo de varias casas y hasta ahora ninguna pantalla
+ * lo decía **antes** de guardar. El agujero era además más estrecho de lo que
+ * parecía: en «Partes» e «Importes» cada familia ya tenía su casilla con su
+ * número, y el modo que no enseñaba ninguna cifra era «Coeficiente», que es el
+ * de fábrica.
+ *
+ * El grupo de la semilla son Curro (García) y Ana + Pablo el niño (Pérez), así
+ * que por coeficiente son 1 contra 1,6: nunca a partes iguales.
+ */
+describe('Gastos · cómo se va a repartir', () => {
+  it('sin importe tecleado no dice nada: no hay reparto que contar', async () => {
+    const { eventId, event } = await sembrar({ conGasto: false })
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+
+    expect(document.querySelector('.reparto-resumen')).toBeNull()
+  })
+
+  it('R1 · con la cifra puesta, una línea dice cómo queda', async () => {
+    const { eventId, event } = await sembrar({ conGasto: false })
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+    await pad('2', '6', '0', '0')
+
+    const linea = await waitFor(() => {
+      const e = document.querySelector('.reparto-resumen')
+      expect(e).not.toBeNull()
+      return e
+    })
+    // 26,00 entre 1 y 1,6 son 10,00 y 16,00: no es a partes iguales, así que
+    // «a cada una» sería mentira y se dice el suelo y el techo.
+    expect(linea.textContent).toMatch(/10,00/)
+    expect(linea.textContent).toMatch(/16,00/)
+  })
+
+  it('R1 · con una sola familia dentro, lo dice de otra manera', async () => {
+    const { eventId, event, curro } = await sembrar({ conGasto: false })
+    setMeId(eventId, curro)
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+    await pad('2', '6', '0', '0')
+
+    // «Entre» → fuera los Pérez, así que solo queda una casa dentro.
+    await userEvent.click(screen.getByRole('button', { name: /Entre/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Quitar a los Pérez' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+
+    await waitFor(() => {
+      expect(document.querySelector('.reparto-resumen').textContent)
+        .toBe('Entero para García')
+    })
+  })
+
+  it('R5 · dentro de Detalles, cada familia con lo suyo en euros', async () => {
+    const { eventId, event } = await sembrar({ conGasto: false })
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+    await pad('2', '6', '0', '0')
+    await userEvent.click(screen.getByRole('button', { name: /Detalles/ }))
+
+    await screen.findByRole('dialog', { name: 'Detalles del gasto' })
+    const filas = [...document.querySelectorAll('.reparto-cuentas li')]
+      .map((li) => [li.querySelector('.n').textContent, li.querySelector('.eu').textContent])
+    expect(filas.map((f) => f[0])).toEqual(['Pérez', 'García'])
+    expect(filas[0][1]).toMatch(/16,00/)
+    expect(filas[1][1]).toMatch(/10,00/)
+  })
+
+  it('R5 · y sigue a los coeficientes: al pasar a partes iguales, cambia', async () => {
+    const { eventId, event } = await sembrar({ conGasto: false })
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Añadir gasto' }))
+    await pad('2', '6', '0', '0')
+    await userEvent.click(screen.getByRole('button', { name: /Detalles/ }))
+    await screen.findByRole('dialog', { name: 'Detalles del gasto' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Partes' }))
+
+    await waitFor(() => {
+      const euros = [...document.querySelectorAll('.reparto-cuentas .eu')].map((e) => e.textContent)
+      expect(euros).toHaveLength(2)
+      expect(euros[0]).toMatch(/13,00/)
+      expect(euros[1]).toMatch(/13,00/)
     })
   })
 })

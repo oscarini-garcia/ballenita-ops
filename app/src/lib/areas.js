@@ -25,7 +25,9 @@ const elegidas = new Map()
 export const AREA_DE_ORIGEN = {
   agenda: 'hoy',
   dinero: 'gastos',
-  comidas: 'cenas',
+  // «Cenas» se retiró (§14.68 · N1): una cena se monta en el día. Comidas
+  // empieza por la Carta.
+  comidas: 'platos',
   planes: 'planes',
   grupo: 'familias',
 }

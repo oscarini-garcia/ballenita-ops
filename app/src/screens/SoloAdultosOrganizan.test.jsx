@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import CenasScreen from './CenasScreen.jsx'
 import DiasScreen from './DiasScreen.jsx'
 import IdeasScreen from './IdeasScreen.jsx'
 import PlanesScreen from './PlanesScreen.jsx'
@@ -38,26 +37,15 @@ beforeEach(async () => {
   ctx = await sembrar()
 })
 
-describe('las cenas las montan los adultos', () => {
-  it('con identidad de niño no hay «+ Cena» ni borrar', async () => {
-    soy(ctx.nino)
-    const { container } = render(<CenasScreen eventId={ctx.eventId} event={ctx.event} />)
-    await screen.findByText(/Paella mixta/)
-
-    expect(container.querySelector('.fab')).toBeNull()
-    expect(screen.queryByText('Borrar la cena')).toBeNull()
-    expect(screen.getByText(/las montan los adultos/)).toBeInTheDocument()
-  })
-
-  it('con identidad adulta, los verbos están donde siempre', async () => {
-    soy(ctx.adulto)
-    const { container } = render(<CenasScreen eventId={ctx.eventId} event={ctx.event} />)
-    await screen.findByText(/Paella mixta/)
-
-    expect(container.querySelector('.fab')).not.toBeNull()
-    expect(screen.getByText('Borrar la cena')).toBeInTheDocument()
-  })
-})
+/*
+ * «Las cenas las montan los adultos» se probaba aquí sobre Comidas → Cenas —el
+ * `+ Cena` y el «Borrar la cena» de aquella lista—. El área se retiró
+ * (§14.68 · N1) y una cena solo se monta desde el día, así que ese cerrojo es
+ * exactamente el que prueba «colocar el día» un poco más abajo: los renglones
+ * de la capa dejan de ser botones, y sin renglones no hay elegidor ni verbo de
+ * quitar. Se borra en vez de mudarse porque mudarlo sería el mismo test dos
+ * veces.
+ */
 
 describe('pasar una idea a propuesta', () => {
   it('el adolescente ve el catálogo pero no propone', async () => {
