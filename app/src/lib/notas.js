@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.60.0',
+    fecha: '2026-08-17',
+    titulo: 'En claro, tu estado ya se lee',
+    lineas: [
+      'Lo que escribías en «Tu estado» salía casi blanco sobre un campo casi blanco: en la cara clara no se veía. En la oscura estaba bien, y por eso había pasado desapercibido.',
+      'Arreglado para todos los campos de la app, no solo ese: un cuadro de texto ya no coge el color de donde esté colgado.',
+    ],
+  },
+  {
     version: '0.59.0',
     fecha: '2026-08-17',
     titulo: '«Hoy» cuenta qué se cena y dónde',

@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.59.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1082 pruebas en 116 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.60.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1083 pruebas en 116 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   261 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -342,7 +342,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.52** El grupo dejó de ser un ajuste, y Ajustes sube a un botón → `App.jsx`, `EventSettingsScreen.jsx`, `GrupoScreen.jsx`, `db.js`, `repositorio.js`, `tables.js`
 - **§14.53** Los trucos: lo que hay que acordarse de un viaje a otro → `PlanesConAreasScreen.jsx`, `TrucosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.54** La compra, por familia → `CompraScreen.jsx`, `compra-familias.js`, `db.js`, `tablas.js`
-- **§14.55** Los comentarios: una tabla con ancla, y un componente → `Comentarios.jsx`, `DiasScreen.jsx`, `FichaDeGasto.jsx`, `GrupoSection.jsx`, `Hoja.jsx`, `PlanesScreen.jsx` · +4 más
+- **§14.55** Los comentarios: una tabla con ancla, y un componente → `BotonDePerfil.jsx`, `Comentarios.jsx`, `DiasScreen.jsx`, `FichaDeGasto.jsx`, `GrupoSection.jsx`, `Hoja.jsx` · +6 más
 - **§14.56** El bunga es un sitio, y por eso puede tener historia → `GrupoSection.jsx`, `PlatosScreen.jsx`, `alojamientos.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.57** El cacharro del año → `CacharrosSection.jsx`, `cacharros.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.58** Quién lleva las cuentas → `GrupoSection.jsx`, `avisos.js`, `db.js`, `index.js`, `tablas.js`, `tables.js`

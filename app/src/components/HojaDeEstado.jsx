@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import { estadoConGracia, estadosSugeridos, hayApi } from '../sync/api.js'
@@ -78,7 +79,10 @@ export default function HojaDeEstado({ eventId, persona, onGuardar, onCerrar }) 
     onGuardar(limpio ? `${emoji || '🙂'} ${limpio}`.trim() : '')
   }
 
-  return (
+  return createPortal(
+  // Por un portal al `body` (§14.55-ter): esta hoja la abre la pastilla de la
+  // **cabecera**, así que sin él cuelga de `.appbar` —que lleva su propia tinta
+  // clara para el fondo oscuro— y hereda cosas que no son suyas.
     <div className="modal-bg center" onClick={onCerrar}>
       <div className="modal center formulario" onClick={(e) => e.stopPropagation()}>
         <h2>Tu estado</h2>
@@ -152,6 +156,7 @@ export default function HojaDeEstado({ eventId, persona, onGuardar, onCerrar }) 
           <button type="button" className="btn" onClick={guardar}>Guardar</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
