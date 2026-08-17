@@ -1,0 +1,386 @@
+<title>Cenas fuera, y el reparto a la vista</title>
+<style>
+:root{--pg:#f4f6f8;--pg-2:#ffffff;--tx:#16242c;--tx-2:#4d6674;--tx-3:#7c919d;--ln:#dde6ea;--ac:#22708f;--mal:#a8443a;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--mal:#e0857a;}}
+:root[data-theme="dark"]{--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--mal:#e0857a;}
+body{margin:0;background:var(--pg);color:var(--tx);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+.wrap{max-width:1180px;margin:0 auto;padding:38px 20px 90px;}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.02em;margin:0 0 14px;max-width:19em;}
+h2{font-size:21px;margin:56px 0 6px;letter-spacing:-.01em;}
+h2 .num{color:var(--tx-3);font-weight:600;}
+h2 .elige{font-weight:400;color:var(--tx-3);font-size:16px;}
+p{margin:0 0 12px;max-width:62em;color:var(--tx-2);}
+p b,li b,td b{color:var(--tx);}
+.ficha{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--pg-2);border:1px solid var(--ln);border-radius:10px;font-size:13.5px;color:var(--tx-2);margin:0 0 10px;}
+.ficha b{color:var(--tx);}
+.aviso{border-left:3px solid var(--ac);padding:2px 0 2px 14px;margin:18px 0;}
+.aviso.ojo{border-color:var(--mal);}
+ul{margin:0 0 12px;padding-left:20px;color:var(--tx-2);max-width:62em;}
+li{margin:0 0 7px;}
+.rejilla{display:flex;flex-wrap:wrap;gap:26px;margin:20px 0 0;align-items:flex-start;}
+.op{width:362px;flex:none;}
+@media (max-width:480px){.wrap{padding:24px 12px 70px;}.rejilla{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}.tabla-caja{overflow-x:auto;}}
+.op-cab{display:flex;align-items:baseline;gap:9px;margin:0 0 8px;}
+.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);color:#fff;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+:root[data-theme="dark"] .cod,:root:not([data-theme="light"]) .cod{color:#0e1a20;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .cod{color:#fff;}}
+.op-nom{font-weight:650;font-size:15.5px;}
+.op-cost{font-size:13.5px;color:var(--tx-2);margin:9px 2px 0;line-height:1.5;}
+.medida{display:inline-block;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;border:1px solid var(--ln);border-radius:6px;padding:2px 7px;color:var(--tx-2);margin-left:auto;white-space:nowrap;}
+.tabla{border-collapse:collapse;font-size:14px;margin:10px 0 0;}
+.tabla td,.tabla th{border-bottom:1px solid var(--ln);padding:7px 16px 7px 0;text-align:left;color:var(--tx-2);vertical-align:top;}
+.tabla th{color:var(--tx);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;}
+.tabla td:first-child{color:var(--tx);font-weight:650;}
+.tabla .ojo{color:var(--mal);}
+code{font:600 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--pg-2);border:1px solid var(--ln);border-radius:5px;padding:1px 5px;color:var(--tx);}
+.medida.rota{border-color:var(--mal);color:var(--mal);}
+
+.movil{--foam:#f1f5f7;--foam-2:#ffffff;--ink:#12262f;--ink-soft:#4d6674;--ink-faint:#7c919d;
+  --line:#c3d2da;--line-soft:#dde6ea;--spout:#22708f;--spout-deep:#1a6280;--papel:#ffffff;--r:9px;
+  --t-title:23.52px;--t-body:19.04px;--t-row:17.92px;--t-sub:15.68px;--t-label:14.56px;--t-micro:12.88px;
+  width:362px;box-sizing:border-box;background:var(--papel);color:var(--ink);border:1px solid #a9bfc9;
+  border-radius:14px;padding:12px 14px;font:var(--t-body)/1.45 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+.subnav{display:flex;gap:4px;background:var(--foam);border-radius:10px;padding:3px;margin-bottom:10px;}
+.subnav span{flex:1;text-align:center;font-size:var(--t-label);font-weight:600;color:var(--ink-soft);padding:9px 4px;border-radius:8px;}
+.subnav span.on{background:var(--foam-2);color:var(--ink);box-shadow:0 1px 2px rgba(4,18,26,.10);}
+.sec-h{font-size:var(--t-micro);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin:10px 0 5px;}
+.card{background:var(--foam-2);border:1px solid var(--line-soft);border-radius:var(--r);padding:8px 12px;}
+.reng{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line-soft);font-size:var(--t-row);}
+.reng:first-child{border-top:none;}
+.reng .k{font-weight:600;min-width:62px;}
+.reng .v{margin-left:auto;color:var(--ink-soft);}
+.reng .fl{color:var(--ink-faint);}
+.cifra{font-size:34px;font-weight:700;letter-spacing:-.02em;text-align:right;font-variant-numeric:tabular-nums;}
+.pill{display:inline-block;font-size:var(--t-micro);font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:5px;}
+.ga{background:#ffe4d8;color:#ab3a14;} .pe{background:#e0f0e8;color:#0a6b4c;} .so{background:#dbecfc;color:#0a6bb8;}
+.rep{margin:0;padding:0;list-style:none;}
+.rep li{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line-soft);font-size:var(--t-row);}
+.rep li:first-child{border-top:none;}
+.rep .eu{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:650;}
+.rep .cuantos{font-size:var(--t-sub);color:var(--ink-faint);}
+.resumen{font-size:var(--t-sub);color:var(--ink-soft);padding:8px 0 2px;}
+.resumen b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums;}
+.barra{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:8px 0 6px;}
+.barra i{display:block;}
+.leyenda{display:flex;flex-wrap:wrap;gap:5px 12px;font-size:var(--t-sub);color:var(--ink-soft);}
+.leyenda span{display:flex;align-items:center;gap:5px;}
+.pto{width:9px;height:9px;border-radius:2px;flex:none;}
+.abrir{display:block;text-align:center;font-size:var(--t-label);font-weight:650;color:var(--spout-deep);padding:9px 0 2px;}
+.rot{font-size:var(--t-label);font-weight:650;color:var(--ink-soft);margin:8px 0 5px;}
+.chips{display:flex;gap:6px;}
+.chip{font-size:var(--t-sub);border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--ink-soft);}
+.chip.on{background:var(--spout);border-color:var(--spout);color:#fff;}
+</style>
+
+<div class="wrap">
+
+<h1>Quitar «Cenas» de Comidas deja dos cosas sin casa, y el formulario de un gasto ya no tiene un pixel libre</h1>
+
+<div class="ficha">
+  <span>Medido sobre la <b>v0.60.0</b></span>
+  <span>Pantalla <b>390 pt</b> · la ficha de un gasto ocupa <b>362</b></span>
+  <span>Abisal Sobrio, <b>cara clara</b></span>
+  <span>Contenido real del Demo</span>
+</div>
+<p>Dos encargos en una hoja. El primero es una retirada y hay que decidir <b>a dónde va lo que se
+cae con ella</b>; el segundo es añadir, y el sitio donde hay que añadirlo <b>ya está lleno</b>.</p>
+
+<h2><span class="num">Parte uno ·</span> qué se lleva quitar «Cenas»</h2>
+<p>Comidas son hoy tres casillas: <b>Cenas · Carta · Compra</b>. Lo que hay dentro de «Cenas» y en
+qué otro sitio está:</p>
+
+<div class="tabla-caja"><table class="tabla">
+  <tr><th>lo que hace «Cenas»</th><th>¿está en el día?</th></tr>
+  <tr><td>Ver qué se cena cada día</td><td>Sí — la lista de Días y el titular de «Hoy» (§14.67)</td></tr>
+  <tr><td>Elegir los platos</td><td>Sí — el elegidor del día, agrupado por categoría</td></tr>
+  <tr><td>Poner los dos bungas</td><td>Sí — los dos renglones del día</td></tr>
+  <tr><td>Quitar la cena</td><td>Sí — «Quitar la cena de este día», con su segunda pulsación</td></tr>
+  <tr><td><b>«Nuevo plato al vuelo»</b></td><td><b class="ojo">No.</b> Solo aquí se crea un plato sin salir de la cena</td></tr>
+  <tr><td><b>«Los niños comen otra cosa»</b></td><td><b class="ojo">No.</b> La lista aparte de la mesa de niños solo se escribe aquí</td></tr>
+</table></div>
+
+<div class="aviso ojo">
+  <p><b>Sin recolocar esas dos, quitar «Cenas» las retira de la app.</b> La primera es un atajo —los
+  platos se crean en la Carta— pero se usa justo cuando hace falta: montando la cena te acuerdas de
+  que falta «Tortilla de patata». La segunda es la única forma de que los niños cenen otra cosa
+  (§14.20 · G2), y de ella depende el reparto de la compra.</p>
+</div>
+
+<h2><span class="num">Parte dos ·</span> qué queda en Comidas <span class="elige">— elige una</span></h2>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">N1</span><span class="op-nom">Carta y Compra</span></div>
+    <div class="movil"><div class="subnav"><span class="on">Carta</span><span>Compra</span></div>
+      <div class="sec-h">La carta</div>
+      <div class="card">
+        <div class="reng"><span>Paella mixta</span><span class="v">Principal</span></div>
+        <div class="reng"><span>Pan con tomate</span><span class="v">Acompañamiento</span></div>
+        <div class="reng"><span>Sandía</span><span class="v">Postre</span></div>
+      </div>
+    </div>
+    <div class="op-cost"><b>Lo pedido, literal.</b> Comidas se queda con lo que no cuelga de un día:
+      el catálogo y la compra. <b>Lo paga</b> quien quiera ver de un tirón las ocho cenas del viaje
+      —eso pasa a ser la lista de Días—.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">N2</span><span class="op-nom">Cenas, pero de solo mirar</span></div>
+    <div class="movil"><div class="subnav"><span class="on">Cenas</span><span>Carta</span><span>Compra</span></div>
+      <div class="sec-h">Las ocho noches</div>
+      <div class="card">
+        <div class="reng"><span class="k">sáb 15</span><span>Paella mixta</span><span class="v">3</span></div>
+        <div class="reng"><span class="k">dom 16</span><span>Noche Ibérica 🐷</span><span class="v">3</span></div>
+        <div class="reng"><span class="k">lun 17</span><span class="fl">sin montar</span></div>
+      </div>
+      <div class="abrir">Se montan en Agenda → el día</div>
+    </div>
+    <div class="op-cost">El menú del viaje entero de un vistazo, que es lo que un día no enseña.
+      <b>Lo paga</b> una casilla del mando para algo que no se toca — y un área que solo mira suele
+      acabar siendo un área que nadie abre.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">N3</span><span class="op-nom">Y la sección se llama «Cocina»</span></div>
+    <div class="movil"><div class="subnav"><span class="on">Carta</span><span>Compra</span></div>
+      <div class="sec-h">la barra de abajo</div>
+      <div class="card"><div class="reng"><span>🍴 Cocina</span><span class="v">Carta · Compra</span></div></div>
+    </div>
+    <div class="op-cost">Como N1, y además el rótulo deja de prometer cenas: lo que queda dentro es
+      el catálogo y la compra. <b>Lo paga</b> aprenderse una palabra nueva en la barra — «Comidas»
+      lleva ahí desde §14.10-ter.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">N4</span><span class="op-nom">Comidas entera se retira</span></div>
+    <div class="movil"><div class="subnav"><span class="on">Días</span><span>Compra</span><span>Carta</span></div>
+      <div class="op-cost" style="margin:0;padding:8px 0">La Carta y la Compra se van a Agenda, y la
+        quinta casilla de la barra queda libre.</div>
+    </div>
+    <div class="op-cost">Una sección menos. <b>Lo paga</b> Agenda, que pasa a cinco áreas y deja de
+      ser «el calendario» — y la compra la mira quien va al súper, no quien mira el calendario.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte tres ·</span> dónde va «Nuevo plato al vuelo» <span class="elige">— elige una</span></h2>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">H1</span><span class="op-nom">Dentro del elegidor del día</span></div>
+    <div class="movil">
+      <div class="sec-h">Los platos de esta cena</div>
+      <div class="card"><div class="reng"><span>Paella mixta</span><span class="v">✓</span></div></div>
+      <div class="abrir">+ Plato nuevo…</div>
+    </div>
+    <div class="op-cost">Está donde surge la falta, que es marcando los platos. <b>Lo paga</b> el
+      elegidor, que trabaja sobre un borrador (§14.31) y tendría que escribir un plato de verdad en
+      mitad de él.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">H2</span><span class="op-nom">Solo en la Carta</span></div>
+    <div class="movil">
+      <div class="sec-h">La carta</div>
+      <div class="card"><div class="reng"><span>Paella mixta</span><span class="v">Principal</span></div></div>
+      <div class="abrir">+ Plato</div>
+    </div>
+    <div class="op-cost">Un solo sitio donde nacen los platos, que ya existe y ya se puede corregir.
+      <b>Lo paga</b> el viaje: salir de la cena, crear el plato y volver a buscarla.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">H3</span><span class="op-nom">El buscador lo ofrece</span></div>
+    <div class="movil">
+      <div class="sec-h">Los platos de esta cena</div>
+      <div class="card"><div class="reng"><span class="fl">tortilla de pa|</span></div></div>
+      <div class="abrir">Crear «tortilla de pa» y marcarlo</div>
+    </div>
+    <div class="op-cost">Cero controles en reposo: el verbo sale solo cuando lo que buscas no
+      existe, con el nombre ya escrito. <b>Lo paga</b> que un plato nace sin categoría —hay que
+      ponérsela luego en la Carta—.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cuatro ·</span> dónde va «los niños comen otra cosa» <span class="elige">— elige una</span></h2>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">K1</span><span class="op-nom">Un segundo grupo en el elegidor</span></div>
+    <div class="movil">
+      <div class="sec-h">Los platos de esta cena</div>
+      <div class="card"><div class="reng"><span>Noche Ibérica 🐷</span><span class="v">✓</span></div></div>
+      <div class="abrir">Los niños comen otra cosa…</div>
+    </div>
+    <div class="op-cost">Donde ya se eligen los platos, y con el mismo verbo de una línea que tiene
+      hoy. <b>Lo paga</b> el elegidor, que pasa a llevar dos listas.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">K2</span><span class="op-nom">Un cuarto renglón en el día</span></div>
+    <div class="movil">
+      <div class="sec-h">La cena</div>
+      <div class="card">
+        <div class="reng"><span>🍽️</span><span>Noche Ibérica 🐷 y dos más</span><span class="v">›</span></div>
+        <div class="reng"><span>🧒</span><span class="fl">Los niños, lo mismo</span><span class="v">›</span></div>
+      </div>
+    </div>
+    <div class="op-cost">Se ve sin abrir nada si esa noche comen otra cosa. <b>Lo paga</b> el día,
+      que gana un renglón permanente para lo que pasa una noche de ocho.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">K3</span><span class="op-nom">Se retira</span></div>
+    <div class="movil">
+      <div class="sec-h">La cena</div>
+      <div class="card"><div class="reng"><span>🍽️</span><span>Noche Ibérica 🐷 y dos más</span><span class="v">›</span></div></div>
+      <div class="op-cost" style="margin:0;padding:6px 0">Los niños comen siempre lo mismo.</div>
+    </div>
+    <div class="op-cost">Menos modelo y menos pantalla. <b>Lo paga</b> la compra, que deja de poder
+      contar una noche de macarrones aparte — y el reparto por raciones con ella (§14.20 · G2).</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cinco ·</span> el reparto a la vista, al apuntar un gasto <span class="elige">— elige una</span></h2>
+<div class="aviso">
+  <p><b>El sitio ya está lleno, y esto no es una opinión:</b> las dos capas de un gasto miden
+  <b>658,3 pt</b> —el tope de una capa— y <b>las dos ruedan ya</b>: la rápida lleva 736 pt de
+  contenido en 656 de hueco, y Detalles 687 en los mismos 656. Lo que se añada, o sustituye a algo,
+  o vive detrás de un toque, o acepta más scroll. La insignia de cada opción dice <b>cuánto añade</b>
+  —solo la pieza nueva, no el mock entero— y el renglón de coste dice cuál de las tres elige.</p>
+</div>
+<p>Y el hueco es más pequeño de lo que parece, porque <b>parte ya está resuelta</b>: en «Partes» e
+«Importes» cada familia tiene su casilla y el número se ve. Lo que no enseña una cifra es
+<b>«Coeficiente»</b>, que es el modo de fábrica y el de casi todos los gastos: ahí solo hay una nota
+que explica la regla con palabras. <b>El agujero es ese</b>, y R1–R4 lo tapan en la ficha rápida
+mientras R5 lo tapa donde ya se decide.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">R1</span><span class="op-nom">Un renglón de resumen</span>
+      <span class="medida" data-mide="r1"></span></div>
+    <div class="movil">
+      <div class="cifra">48,60 €</div>
+      <div class="card" style="margin-top:8px">
+        <div class="reng"><span class="k">Paga</span><span class="v">García ›</span></div>
+        <div class="reng"><span class="k">Entre</span><span class="v">todos (6) ›</span></div>
+      </div>
+      <div class="resumen" id="r1">Les toca <b>16,20 €</b> a cada una de las <b>3 familias</b>.</div>
+    </div>
+    <div class="op-cost">Una línea, y contesta la pregunta del 90 % de los gastos. <b>Lo paga</b> el
+      otro 10 %: con pesos distintos por familia, «a cada una» es mentira y hay que decir otra cosa.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">R2</span><span class="op-nom">La lista, siempre</span>
+      <span class="medida" data-mide="r2"></span></div>
+    <div class="movil">
+      <div class="card">
+        <div class="reng"><span class="k">Entre</span><span class="v">todos (6) ›</span></div>
+      </div>
+      <div id="r2">
+        <div class="sec-h">Cómo se reparte</div>
+        <div class="card"><ul class="rep">
+          <li><span class="pill ga">GA</span><span>García</span><span class="cuantos">3</span><span class="eu">24,30 €</span></li>
+          <li><span class="pill pe">PE</span><span>Pérez</span><span class="cuantos">2</span><span class="eu">16,20 €</span></li>
+          <li><span class="pill so">SO</span><span>Solteros</span><span class="cuantos">1</span><span class="eu">8,10 €</span></li>
+        </ul></div>
+      </div>
+    </div>
+    <div class="op-cost">Lo dice todo y sin tocar nada: cuánto le toca a cada casa y por qué —la
+      gente que entra—. <b>Lo paga</b> el alto, y es el caro de los cinco: con tres familias añade
+      <b>184,6 pt</b> a una ficha que ya se pasa 80, y cada familia de más son
+      <b class="mide-fila">—</b> pt.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">R3</span><span class="op-nom">Resumen, y la lista al tocarlo</span>
+      <span class="medida" data-mide="r3"></span></div>
+    <div class="movil">
+      <div class="card">
+        <div class="reng"><span class="k">Entre</span><span class="v">todos (6) ›</span></div>
+      </div>
+      <div id="r3">
+        <div class="resumen">Les toca <b>16,20 €</b> a cada una de las <b>3 familias</b>.</div>
+        <div class="abrir">Ver el reparto ▾</div>
+      </div>
+    </div>
+    <div class="op-cost">Lo corto por defecto y lo largo cuando hace falta, que es cuando el reparto
+      no es a partes iguales. <b>Lo paga</b> un toque, y que lo que más se mira queda escondido para
+      quien reparte fino.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">R4</span><span class="op-nom">Una barra y su leyenda</span>
+      <span class="medida" data-mide="r4"></span></div>
+    <div class="movil">
+      <div class="card">
+        <div class="reng"><span class="k">Entre</span><span class="v">todos (6) ›</span></div>
+      </div>
+      <div id="r4">
+        <div class="barra">
+          <i style="width:50%;background:#ab3a14"></i><i style="width:33.3%;background:#0a6b4c"></i><i style="width:16.7%;background:#0a6bb8"></i>
+        </div>
+        <div class="leyenda">
+          <span><i class="pto" style="background:#ab3a14"></i>García 24,30</span>
+          <span><i class="pto" style="background:#0a6b4c"></i>Pérez 16,20</span>
+          <span><i class="pto" style="background:#0a6bb8"></i>Solteros 8,10</span>
+        </div>
+      </div>
+    </div>
+    <div class="op-cost">La proporción se ve antes de leer un número. <b>Lo paga</b> el color: en
+      esta app el color informa y está reservado —las cinco categorías, el rojo y el verde de los
+      saldos (§14.13)—, y esto abre un sexto uso.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">R5</span><span class="op-nom">Dentro de «Detalles»</span>
+      <span class="medida" data-fijo="+0 pt">+0 pt</span></div>
+    <div class="movil">
+      <div class="sec-h">Detalles</div>
+      <div class="rot">Cómo se reparte</div>
+      <div class="chips"><span class="chip on">Coeficiente</span><span class="chip">Partes</span><span class="chip">Importes</span></div>
+      <div class="card" style="margin-top:8px"><ul class="rep">
+        <li><span class="pill ga">GA</span><span>García</span><span class="eu">24,30 €</span></li>
+        <li><span class="pill pe">PE</span><span>Pérez</span><span class="eu">16,20 €</span></li>
+        <li><span class="pill so">SO</span><span>Solteros</span><span class="eu">8,10 €</span></li>
+      </ul></div>
+    </div>
+    <div class="op-cost">Cero pt en la ficha rápida, y cuelga del rótulo <b>que ya se llama así</b>:
+      ver el efecto de un coeficiente sin cerrar la capa. <b>Lo paga</b> que quien apunta un gasto
+      normal no lo ve nunca —era justo lo pedido—, y que Detalles <b>también rueda ya</b>: 687 pt de
+      contenido en 656 de hueco.</div>
+  </div>
+</div>
+
+<h2><span class="num">Y además ·</span> cuatro cosas que no dependen de lo que elijas</h2>
+<ul>
+  <li><b>El reparto ya se sabe calcular</b>: <code>expenseFamilyShares</code> (<code>lib/reparto.js</code>)
+  lo devuelve en céntimos, con los tres modos —coeficiente, partes e importes— y sin perder un
+  céntimo. Ninguna opción necesita lógica nueva, solo dónde pintarla.</li>
+  <li><b>El rótulo ya existe.</b> En Detalles hay un <code>&lt;label&gt;Cómo se reparte&lt;/label&gt;</code>
+  desde §14.26, con sus tres chips debajo. Ninguna opción debería estrenar una sección con ese
+  mismo nombre en la otra capa: o cuelga de esa (R5) o se llama de otra manera.</li>
+  <li><b>«La semana» no existe hoy.</b> Agenda es Hoy · Días · Números, y «Días» es la lista del
+  viaje. Si al decir «se montan desde el día y la semana» te referías a esa lista, N1 basta; si
+  querías una rejilla de siete días, eso es otra obra y otra hoja.</li>
+  <li><b>Con un solo pagador y todos dentro</b>, el reparto es el 90 % de los gastos y siempre dice
+  lo mismo. Cualquier opción tiene que seguir siendo silenciosa en ese caso.</li>
+</ul>
+
+<script>
+// Cada insignia mide **solo la pieza nueva**, no el mock entero: la pregunta es
+// cuánto scroll añade a una ficha que ya rueda, no cuánto ocupa el dibujo.
+for (const b of document.querySelectorAll('.medida[data-mide]')) {
+  const el = document.getElementById(b.dataset.mide)
+  if (!el) { b.textContent = '¿?'; b.classList.add('rota'); continue }
+  const alto = Math.round(el.getBoundingClientRect().height * 10) / 10
+  b.textContent = '+' + alto.toString().replace('.', ',') + ' pt'
+}
+// Lo que cuesta cada familia de más en R2, medido sobre su propio renglón.
+const fila = document.querySelector('#r2 .rep li:last-child')
+for (const s of document.querySelectorAll('.mide-fila')) {
+  s.textContent = (Math.round(fila.getBoundingClientRect().height * 10) / 10).toString().replace('.', ',')
+}
+</script>
+
+</div>
