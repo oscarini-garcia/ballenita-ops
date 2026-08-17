@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   dinnersOf, addDinner, updateDinner, removeDinner,
-  plansOf, updatePlan, bungasOf, familiesOf, personsOf, listDishes, DISH_CATEGORIES,
+  plansOf, updatePlan, bungasOf, familiesOf, personsOf, listDishes,
   anclaDe,
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
@@ -10,6 +10,8 @@ import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
 import Comentarios from '../components/Comentarios.jsx'
+import ListaDePlatos from '../components/ListaDePlatos.jsx'
+import { agrupadosPorCategoria, categoriaDe, etiquetaCategoria } from '../lib/carta.js'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -143,7 +145,6 @@ export default function DiasScreen({ eventId, event, abrir, onAbierta }) {
   )
 }
 
-const etiquetaCategoria = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.label ?? id
 
 /**
  * El día, abierto en el mueble de un plan: la capa centrada de
@@ -166,9 +167,18 @@ const etiquetaCategoria = (id) => DISH_CATEGORIES.find((c) => c.id === id)?.labe
  * La cena sigue naciendo sola con el primer «Listo» que la necesita, con la
  * guarda de `cenaRef` para que dos seguidos no críen dos cenas.
  */
-function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, personas, platos, organiza = true, onClose }) {
+export function CapaDeDia({
+  eventId, event, dia, cena, planes, bungas, familias, personas, platos,
+  organiza = true, lectura: lecturaInicial = false, onClose,
+}) {
   useBloqueoDeScroll()
   const [eligiendo, setEligiendo] = useState(null)
+  // **El modo lectura** (`docs/diseño/hoy-el-dia.html` · P1): la misma capa, sin
+  // elegidores y con la carta entera en vez del titular de la cena. Se abre así
+  // desde «Hoy» —donde se viene a mirar— y se pasa a montar con un botón. Es una
+  // sola capa y no dos pantallas parecidas que mantener a la par.
+  const [lectura, setLectura] = useState(lecturaInicial)
+  const tocable = organiza && !lectura
   // La cena recién nacida, antes de que la consulta viva la traiga: sin esto,
   // dos «Listo» seguidos crearían dos cenas el mismo día.
   const cenaRef = useRef(null)
@@ -217,8 +227,8 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
       elegido: Boolean(b),
       n: b ? `${quien} · ${b.alias || b.name}` : quien,
       s: b
-        ? (f ? `el de los ${f.name}` : (organiza ? 'toca para cambiarlo' : 'sin familia'))
-        : (organiza ? 'toca para elegir el bunga' : 'sin elegir'),
+        ? (f ? `el de los ${f.name}` : (tocable ? 'toca para cambiarlo' : 'sin familia'))
+        : (tocable ? 'toca para elegir el bunga' : 'sin elegir'),
     }
   }
   const may = filaBunga(cena?.bungaMayoresId, 'Mayores')
@@ -226,10 +236,13 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
 
   const subCena = nPlatos
     ? (nPlatos === 1 ? 'un plato' : `${enLetras(nPlatos)} platos`)
-    : (organiza ? 'toca para elegir los platos' : 'sin platos todavía')
-  const subPlanes = libres.length
-    ? `${libres.length} ${libres.length === 1 ? 'plan libre' : 'planes libres'} por traer`
-    : 'ningún plan libre — nacen en Planes'
+    : (tocable ? 'toca para elegir los platos' : 'sin platos todavía')
+  // Mirando, el renglón del plan no cuenta lo que se podría traer: eso es una
+  // tarea de montar el día, no un dato de lo que se hace hoy.
+  const subPlanes = !tocable ? 'sin plan todavía'
+    : libres.length
+      ? `${libres.length} ${libres.length === 1 ? 'plan libre' : 'planes libres'} por traer`
+      : 'ningún plan libre — nacen en Planes'
   const sinNadaQueTraer = delDia.length === 0 && libres.length === 0
 
   // El fondo, con un elegidor abierto, es su «Cancelar»: descarta y vuelve al
@@ -253,7 +266,7 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
         </div>
       </>
     )
-    if (!organiza) return <div className="row fila-capa">{cuerpo}</div>
+    if (!tocable) return <div className="row fila-capa">{cuerpo}</div>
     return (
       <button
         className="row fila-boton fila-capa"
@@ -278,13 +291,17 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
                 ámbar —pendiente—, no en rojo, que aquí significa deuda. */}
             <div className="sec-h" style={{ marginTop: 10 }}>La cena</div>
             <div className="card tight" style={{ marginTop: 6 }}>
-              {renglon({
-                icono: 'restaurante',
-                verde: nPlatos > 0,
-                n: titularDeCena(cena ?? null, elegidos),
-                s: subCena,
-                abre: 'platos',
-              })}
+              {/* Mirando, la carta entera (L2); montando, el titular y su
+                  flecha — que es el botón que abre el elegidor. */}
+              {lectura && nPlatos > 0
+                ? <ListaDePlatos platos={elegidos} />
+                : renglon({
+                  icono: 'restaurante',
+                  verde: nPlatos > 0,
+                  n: titularDeCena(cena ?? null, elegidos),
+                  s: subCena,
+                  abre: 'platos',
+                })}
             </div>
 
             <div className="sec-h" style={{ marginTop: 6 }}>Los bungas</div>
@@ -313,6 +330,19 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
                 habla de un día sigue valiendo aunque se cambie la cena. */}
             <Comentarios eventId={eventId} ancla={anclaDe('dia', dia)} titulo="Comentarios del día" />
 
+            {/* La salida del modo lectura: la misma capa se pone a montar sin
+                cerrarse ni cambiar de sitio. Quien no organiza no la ve. */}
+            {lectura && organiza && (
+              <button
+                type="button"
+                className="ver-todos"
+                onClick={() => { tap(); setLectura(false) }}
+              >
+                Montar este día
+              </button>
+            )}
+
+            {!lectura && (
             <div className="note" style={{ marginTop: 12 }}>
               {organiza ? (
                 <>
@@ -326,6 +356,7 @@ function CapaDeDia({ eventId, event, dia, cena, planes, bungas, familias, person
                 </>
               )}
             </div>
+            )}
           </>
         )}
 
@@ -439,9 +470,34 @@ function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCance
   const opciones = platos.map((p) => ({
     id: p.id,
     etiqueta: `${p.name}${p.esFavorito ? ' ⭐' : ''}`,
-    nota: etiquetaCategoria(p.categorias?.[0]),
+    nota: etiquetaCategoria(categoriaDe(p)),
+    plato: p,
   }))
   const visibles = filtraOpciones(opciones, busca)
+  // **Lo puesto arriba, y el resto por categorías** (`hoy-el-dia.html` · E3).
+  // Con nueve platos y tres marcados, los tres estaban repartidos por la lista y
+  // quitar uno pedía buscarlo; y montar un menú es elegir un principal y un
+  // postre, no recorrer un catálogo. Los marcados **no se sacan del grupo al
+  // marcarlos**: la lista se recompone al abrirla, no bajo el dedo — un plato
+  // que salta de sitio al tocarlo es la peor sorpresa de una lista.
+  const [puestos] = useState(() => new Set(inicial))
+  const arriba = visibles.filter((o) => puestos.has(o.id))
+  const grupos = agrupadosPorCategoria(visibles.filter((o) => !puestos.has(o.id)).map((o) => o.plato))
+    .map((g) => ({ ...g, opciones: g.platos.map((p) => visibles.find((o) => o.id === p.id)) }))
+
+  const fila = (o, conNota) => (
+    <button
+      key={o.id}
+      type="button"
+      className="eleccion-op"
+      aria-pressed={marcados.has(o.id)}
+      onClick={() => { tap(); alternar(o.id) }}
+    >
+      <span className="et">{o.etiqueta}</span>
+      {conNota && o.nota && <span className="no">{o.nota}</span>}
+      {marcados.has(o.id) && <span className="tic"><Icono nombre="visto" /></span>}
+    </button>
+  )
 
   function alternar(id) {
     const s = new Set(marcados)
@@ -465,23 +521,18 @@ function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCance
       {platos.length > 0 && visibles.length === 0 && (
         <div className="apunte" style={{ marginTop: 10 }}>Ningún plato se llama así.</div>
       )}
-      {visibles.length > 0 && (
-        <div className="eleccion">
-          {visibles.map((o) => (
-            <button
-              key={o.id}
-              type="button"
-              className="eleccion-op"
-              aria-pressed={marcados.has(o.id)}
-              onClick={() => { tap(); alternar(o.id) }}
-            >
-              <span className="et">{o.etiqueta}</span>
-              {o.nota && <span className="no">{o.nota}</span>}
-              {marcados.has(o.id) && <span className="tic"><Icono nombre="visto" /></span>}
-            </button>
-          ))}
-        </div>
+      {arriba.length > 0 && (
+        <>
+          <div className="grupo-cat puesto">Esta cena · {arriba.length}</div>
+          <div className="eleccion">{arriba.map((o) => fila(o, true))}</div>
+        </>
       )}
+      {grupos.map((g) => (
+        <div key={g.id ?? 'sueltos'}>
+          <div className="grupo-cat">{g.label}</div>
+          <div className="eleccion">{g.opciones.map((o) => fila(o, false))}</div>
+        </div>
+      ))}
       <div className="apunte" style={{ marginTop: 10 }}>
         Los platos se crean y se corrigen en Comidas → Carta.
       </div>

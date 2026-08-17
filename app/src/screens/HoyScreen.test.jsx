@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import HoyScreen from './HoyScreen.jsx'
 import { db, createEvent, getEvent, addBunga, addPerson, addDish, addDinner, addPlan } from '../db.js'
 
@@ -34,19 +34,32 @@ function hoyEs(iso) {
   vi.setSystemTime(new Date(`${iso}T12:00:00Z`))
 }
 
+/** El titular es un botón con la frase dentro, en trozos: se lee su texto. */
+const pantalla = {
+  frase: async () => {
+    await waitFor(() => expect(document.querySelector('.titular .frase')).not.toBeNull())
+    return document.querySelector('.titular .frase').textContent
+  },
+}
+
 describe('HoyScreen', () => {
   beforeEach(async () => {
     for (const t of ['events', 'bungas', 'persons', 'dishes', 'dinners', 'plans', 'outbox']) await db[t].clear()
   })
   afterEach(() => { vi.useRealTimers() })
 
-  it('titula el día con el plato principal y cuenta el resto con letra', async () => {
+  // La cena se **redacta** (`hoy-el-dia.html` · T1): decía el plato que manda y
+  // llamaba «cinco cosas más» a las otras cinco, así que de seis platos se
+  // nombraba uno. La frase se compone de trozos para poder poner en negrita lo
+  // que se busca, así que se lee el titular entero y no un nodo suelto.
+  it('la cena se cuenta redactada: el plato que manda, el resto y dónde se cena', async () => {
     const { eventId, event } = await sembrar()
     hoyEs('2026-08-09')
     render(<HoyScreen eventId={eventId} event={event} />)
 
-    expect(await screen.findByText('Paella mixta y cinco cosas más')).toBeInTheDocument()
-    expect(screen.getByText('Mayores en El del ruido · niños en El del fondo')).toBeInTheDocument()
+    const frase = await pantalla.frase()
+    expect(frase).toMatch(/^Esta noche Paella mixta/)
+    expect(frase).toMatch(/Los mayores cenan en El del ruido y los niños en El del fondo\./)
   })
 
   it('un día sin planes lo dice sin que parezca que la app está rota', async () => {
@@ -134,7 +147,7 @@ describe('HoyScreen', () => {
     hoyEs('2026-08-09')
     render(<HoyScreen eventId={eventId} event={event} />)
 
-    await screen.findByText('Paella mixta y cinco cosas más')
+    await waitFor(async () => expect(await pantalla.frase()).toMatch(/Paella mixta/))
     expect(screen.queryByText('Quién anda en qué')).toBeNull()
   })
 

@@ -448,13 +448,10 @@ export const settlementsOf = (eventId) => db.settlements.where({ eventId }).toAr
 export const removeSettlement = (id) => removeRow('settlements', id)
 
 // ── Platos (catálogo global, §6.2) ──
-export const DISH_CATEGORIES = [
-  { id: 'aperitivo', label: 'Aperitivo' },
-  { id: 'entrante', label: 'Entrante' },
-  { id: 'principal', label: 'Principal' },
-  { id: 'acompanamiento', label: 'Acompañamiento' },
-  { id: 'postre', label: 'Postre' },
-]
+// El orden de la carta vive en `lib/carta.js`: no es un hecho de la base, es
+// cómo se come, y lo leen cuatro pantallas. Se reexporta para no romper a quien
+// ya lo importaba de aquí.
+export { DISH_CATEGORIES } from './lib/carta.js'
 /**
  * El catálogo de platos es **compartido entre eventos**, y así tiene que seguir:
  * la paella no se reescribe cada verano. La excepción es el evento de

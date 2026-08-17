@@ -53,12 +53,6 @@ export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
           hay que llegar hasta abajo, y en Gastos eso es todo el viaje. */}
       <Recado evento={event} />
 
-      <div className="card tight" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div><div className="cifra-l">Gasto total del evento</div>
-          <div className="tnum cifra">{formatCents(total, event.currency)}</div></div>
-        <div className="pill neutral">{expenses.length} gastos</div>
-      </div>
-
       {expenses.length === 0 && (
         <div className="empty">
           <span className="e">💸</span>Ni un gasto todavía.<br />
@@ -138,6 +132,17 @@ export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
           />
         )}
       </div>
+      {/* **El total, al final de todo.** Estaba arriba, antes de la lista: un
+          dato de cierre en el sitio por donde se entra. Se busca cuando ya has
+          repasado los gastos, así que va donde acaba el repaso. */}
+      {expenses.length > 0 && (
+        <div className="card tight total-final">
+          <div><div className="cifra-l">Gasto total del evento</div>
+            <div className="tnum cifra">{formatCents(total, event.currency)}</div></div>
+          <div className="pill neutral">{expenses.length} gastos</div>
+        </div>
+      )}
+
 
       {soloMirar && (
         <div className="note">🐳 Los gastos y los pagos los tocan los adultos. Mirar, todo lo que quieras.</div>

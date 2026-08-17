@@ -4420,6 +4420,56 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.67 «Hoy» cuenta el día, y el día se puede mirar sin montarlo
+
+Decidido en [`docs/diseño/hoy-el-dia.html`](diseño/hoy-el-dia.html) ·
+**T1 · P1 · L2 · E3**, más las dos cosas que iban ya decididas.
+
+- **El defecto, medido:** el titular de «Hoy» nombraba **1 plato de 3** —los
+  otros eran «y dos cosas más»—, los bungas salían por su mote sin decir de qué
+  familia son, **el plan del día no estaba** y la tarjeta **no se tocaba**. Todo
+  lo que faltaba estaba a un toque pero en otra pantalla, y esa pantalla es el
+  **editor** del día: para mirarlo había que entrar en la herramienta de
+  montarlo.
+- **✅ T1 · la cena se redacta.** «Esta noche **Paella mixta**, con pan con
+  tomate y sandía. Los mayores cenan en **El del ruido** y los niños en **El del
+  fondo**.» `fraseDeLaNoche` (`lib/dias.js`) devuelve **trozos** con su `fuerte`
+  y no una cadena: lo que se busca va en negrita, y componer eso en la pantalla
+  sería volver a partir la frase allí. Fuera del día de hoy abre con «Se cena».
+  Sin cena manda el plan y se queda el titular de siempre (§14.30 · P2).
+- **Los nombres de los platos van tal como están escritos**, también en medio de
+  la frase: bajarles la primera letra convertiría «BBQ de pescado» en «bBQ de
+  pescado», y un plato es un nombre propio.
+- **✅ P1 · el titular se toca y abre el día en lectura.** Es **la misma**
+  `CapaDeDia` con `lectura`, no una pantalla nueva: sin elegidores, con la carta
+  entera en vez del titular de la cena, y con «Montar este día» para quien
+  organiza —que apaga el modo sin cerrar la capa ni cambiar de sitio—. Dos
+  pantallas parecidas era el coste que marcaba la hoja, y así no se paga.
+- **Mirando, ningún renglón promete un gesto**: «sin elegir» en vez de «toca
+  para elegir el bunga», y el renglón del plan deja de contar cuántos hay libres
+  por traer — eso es una tarea de montar el día, no un dato de lo que se hace.
+- **✅ L2 · los platos, en el orden en que se comen y diciendo de qué es cada
+  uno.** `lib/carta.js` —nuevo— se lleva `DISH_CATEGORIES` de `db.js`: **no es un
+  hecho de la base, es cómo se come**, y lo leen cuatro pantallas, tres de las
+  cuales tenían su propia copia de la misma línea (`etiquetaCategoria`,
+  `catLabel`, `etiqueta`). De ahí salen `porOrdenDeCarta` —estable dentro de cada
+  categoría— y `agrupadosPorCategoria`.
+- **✅ E3 · el elegidor de platos, agrupado y con lo puesto arriba.** Con nueve
+  platos y tres marcados, los tres estaban repartidos por la lista. Los marcados
+  **no saltan de sitio al marcarlos**: el grupo «Esta cena» se compone al abrir
+  el elegidor, no bajo el dedo — un plato que se mueve al tocarlo es la peor
+  sorpresa de una lista.
+- **✅ El total de Dinero, al final de todo.** Estaba antes de la lista: un dato
+  de cierre en el sitio por donde se entra.
+- **✅ Los niños comen lo mismo y ya no se anuncia.** Una tarjeta de dos
+  renglones decía en **todas** las cenas lo que pasa siempre; queda el verbo en
+  una línea —«Los niños comen otra cosa…»— y la tarjeta vuelve en cuanto tienen
+  lista propia.
+- **Lo que se vio en el navegador y no en las pruebas:** la categoría de un plato
+  salía **con borde y en columna**. `.cat` es la casilla de categoría de un
+  gasto —`display: flex; flex-direction: column`, con su borde— y se colaba
+  entera; la clase pasa a `.tipo`.
+
 ### ✅ Cerradas
 | # | Decisión | Resolución |
 |---|---|---|

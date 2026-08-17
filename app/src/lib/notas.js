@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.58.0',
+    fecha: '2026-08-16',
+    titulo: '«Hoy» cuenta qué se cena y dónde',
+    lineas: [
+      'El titular de Hoy ya no dice «Paella mixta y dos cosas más»: lo cuenta redactado —qué se cena, con qué, y quién cena en cada bunga— en una frase.',
+      'Y se toca: abre el día entero en modo lectura, con la carta de la cena en el orden en que se come, los dos bungas y el plan. Quien organiza tiene ahí mismo «Montar este día».',
+      'Al elegir los platos de una cena, la lista va agrupada por entrante, principal, postre… y los que ya llevas puestos salen arriba del todo.',
+      'En Dinero, el total del evento pasa al final de la lista, que es donde se busca al acabar de repasar.',
+      'Y se retira el aviso de que los niños comen otra cosa: comen lo mismo salvo que digas lo contrario, y decirlo en todas las cenas sobraba.',
+    ],
+  },
+  {
     version: '0.57.0',
     fecha: '2026-08-16',
     titulo: 'Tocar la pestaña donde ya estás te devuelve al principio',

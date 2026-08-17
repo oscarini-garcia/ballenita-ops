@@ -7,6 +7,8 @@ import Recado from '../components/Recado.jsx'
 import AvisoDeAvisos from '../components/AvisoDeAvisos.jsx'
 import Alias from '../components/Alias.jsx'
 import HojaDeEstado from '../components/HojaDeEstado.jsx'
+import { CapaDeDia } from './DiasScreen.jsx'
+import { puedeOrganizar } from '../lib/personas.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { tap } from '../lib/native.js'
 import { estadoEnUnaLinea, partirEstado, quienTieneEstado } from '../lib/estados.js'
@@ -45,6 +47,8 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   // exige que el orden no cambie entre pintados.
   const { me } = useIdentidad(eventId, personas)
   const [poniendoEstado, setPoniendoEstado] = useState(false)
+  // El día abierto en lectura desde el titular (· P1).
+  const [viendoDia, setViendoDia] = useState(false)
 
   const dias = diasDe(event, [...cenas.map((c) => c.dia), ...planes.map((p) => p.dia)])
   const cual = diaQueEnsenaHoy(dias)
@@ -76,12 +80,13 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
   // sigue estando para cambiarlo, y dos invitaciones a la vez son ruido.
   const invita = Boolean(me) && !String(me.estado ?? '').trim()
 
-  const { grande, pequeno } = titularDeHoy({
+  const { grande, pequeno, frase } = titularDeHoy({
     cena,
     platos: susPlatos,
     planes: delDia,
     bungaMayores: nombreBunga(cena?.bungaMayoresId),
     bungaNinos: nombreBunga(cena?.bungaNinosId),
+    esHoy: cual.estado === 'hoy',
   })
 
   return (
@@ -97,12 +102,47 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
       <Recado evento={event} />
 
       {/* El titular. Es lo único grande de la pantalla: si compite con otra
-          tarjeta deja de ser un titular y hay que leer para saber qué pasa. */}
-      <div className="titular">
-        <div className="l">{rotuloDelDia(cual, { hayCena: !!cena })}</div>
-        <div className="g">{grande}</div>
-        <div className="p">{pequeno}</div>
-      </div>
+          tarjeta deja de ser un titular y hay que leer para saber qué pasa.
+
+          **Con cena, se redacta** (`docs/diseño/hoy-el-dia.html` · T1): decía el
+          plato que manda y llamaba «dos cosas más» a los otros dos, así que de
+          una cena de tres platos se nombraba uno. Ahora es una frase que dice
+          qué se cena y quién cena dónde, con lo que se busca en negrita. Sin
+          cena manda el plan y se queda el titular de siempre (§14.30 · P2).
+
+          **Y se toca**: abre el día entero en modo lectura (· P1). Antes no
+          llevaba a ningún sitio, y todo lo que no cabía en tres renglones estaba
+          en Agenda → Días, que es el editor del día. */}
+      <button type="button" className="titular titular-toca" onClick={() => { tap(); setViendoDia(true) }}>
+        <span className="l">{rotuloDelDia(cual, { hayCena: !!cena })}</span>
+        {frase ? (
+          <span className="frase">
+            {frase.map((t, i) => (t.fuerte ? <b key={i}>{t.t}</b> : <span key={i}>{t.t}</span>))}
+          </span>
+        ) : (
+          <>
+            <span className="g">{grande}</span>
+            <span className="p">{pequeno}</span>
+          </>
+        )}
+      </button>
+
+      {viendoDia && (
+        <CapaDeDia
+          eventId={eventId}
+          event={event}
+          dia={cual.dia}
+          cena={cena}
+          planes={planes}
+          bungas={bungas}
+          familias={familias}
+          personas={personas}
+          platos={platos}
+          organiza={puedeOrganizar(me)}
+          lectura
+          onClose={() => setViendoDia(false)}
+        />
+      )}
 
       <div className="sec-h">{cual.estado === 'hoy' ? 'Planes de hoy' : `Planes del ${fmtDiaCorto(cual.dia)}`}</div>
       <div className="card tight">
