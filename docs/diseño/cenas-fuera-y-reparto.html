@@ -1,8 +1,14 @@
-<title>Cenas fuera, y el reparto a la vista</title>
+<title>Cenas fuera y el reparto a la vista</title>
 <style>
-:root{--pg:#f4f6f8;--pg-2:#ffffff;--tx:#16242c;--tx-2:#4d6674;--tx-3:#7c919d;--ln:#dde6ea;--ac:#22708f;--mal:#a8443a;}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--mal:#e0857a;}}
-:root[data-theme="dark"]{--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--mal:#e0857a;}
+/* Las tres caras del visor: `:root` a secas es la clara —y es la que se ve
+   cuando nadie ha elegido—, el `@media` la oscura del sistema y el
+   `[data-theme]` la elegida a mano. Todo color sale de una variable declarada
+   en las tres: un color que solo exista dentro del `@media` no se aplica en el
+   estado sin sellar, que es el más común. `--cod-tx` está aquí por eso — era
+   una regla de descendencia con tres capas que se pisaban. */
+:root{--pg:#f4f6f8;--pg-2:#ffffff;--tx:#16242c;--tx-2:#4d6674;--tx-3:#7c919d;--ln:#dde6ea;--ac:#22708f;--cod-tx:#ffffff;--mal:#a8443a;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;}}
+:root[data-theme="dark"]{--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;}
 body{margin:0;background:var(--pg);color:var(--tx);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
 .wrap{max-width:1180px;margin:0 auto;padding:38px 20px 90px;}
 h1{font-size:30px;line-height:1.2;letter-spacing:-.02em;margin:0 0 14px;max-width:19em;}
@@ -21,9 +27,7 @@ li{margin:0 0 7px;}
 .op{width:362px;flex:none;}
 @media (max-width:480px){.wrap{padding:24px 12px 70px;}.rejilla{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}.tabla-caja{overflow-x:auto;}}
 .op-cab{display:flex;align-items:baseline;gap:9px;margin:0 0 8px;}
-.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);color:#fff;padding:3px 8px;border-radius:6px;white-space:nowrap;}
-:root[data-theme="dark"] .cod,:root:not([data-theme="light"]) .cod{color:#0e1a20;}
-@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .cod{color:#fff;}}
+.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);color:var(--cod-tx);padding:3px 8px;border-radius:6px;white-space:nowrap;}
 .op-nom{font-weight:650;font-size:15.5px;}
 .op-cost{font-size:13.5px;color:var(--tx-2);margin:9px 2px 0;line-height:1.5;}
 .medida{display:inline-block;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;border:1px solid var(--ln);border-radius:6px;padding:2px 7px;color:var(--tx-2);margin-left:auto;white-space:nowrap;}
