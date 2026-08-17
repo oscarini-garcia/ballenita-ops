@@ -16,6 +16,17 @@
  */
 export const NOTAS = [
   {
+    version: '0.63.0',
+    fecha: '2026-08-17',
+    titulo: 'El enlace de acceso ya no se gasta al abrirlo',
+    lineas: [
+      'Un enlace de «Entrar sin iPhone» valía una sola vez, y con eso se caían usos de lo más normales: abrirlo dos veces, verlo en el móvil y luego en el portátil, o que la vista previa de WhatsApp lo estrenara antes que su dueño.',
+      'Ahora se abre las veces que haga falta. Sigue caducando a los tres días, y generar otro deja el anterior sin valor — que ahora vale también para anular el de alguien que ya había entrado.',
+      'En Ajustes → Cuentas, la pastilla pasa de «enlace sin usar» a «con enlace activo»: dice si hay uno por ahí que todavía abre esa cuenta, que es lo que hay que saber para decidir si conviene revocarlo.',
+      'Lleva un cambio en la base: quien administra lo verá en Ajustes → Actualizar.',
+    ],
+  },
+  {
     version: '0.62.0',
     fecha: '2026-08-17',
     titulo: 'Cada día dice lo que hay, en vez de contarlo',

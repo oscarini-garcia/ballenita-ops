@@ -4208,6 +4208,46 @@ encendida no hacía nada.
   que sugiere la app, y un Bizum de 20 sobre una deuda de 34,67 no se puede
   decir. Es el hueco grande que queda frente a Splitwise, y es otra vuelta.
 
+### 14.61-bis El enlace deja de ser de un solo uso
+
+- **El defecto:** §14.61 lo dejó de **un solo uso** por ser una credencial al
+  portador, y sobre el papel se sostiene. En la mano no: lo que ese cierre tiraba
+  abajo casi nunca era un reenvío con mala idea, sino **el camino normal** —
+  abrirlo y volver a abrirlo, mirarlo primero en el móvil y luego en el portátil,
+  cerrar la pestaña sin querer, o que la **vista previa de WhatsApp** lo estrene
+  antes que su dueño—. Y el que se quedaba fuera era **quien no tiene iPhone**,
+  o sea exactamente aquel para quien se hizo esto: su único camino de entrada
+  también era el único que se rompía solo.
+- **✅ Se puede canjear las veces que haga falta.** El canje ya no borra
+  `cuenta.enlaceJti`; solo comprueba que el pase sea **el** enlace vivo de esa
+  cuenta.
+- **Los otros dos cierres se quedan enteros**, y son los que de verdad acotan una
+  credencial al portador: **caduca a los tres días** sola, y **generar otro
+  revoca el anterior** en el acto. El segundo, además, **ahora sirve para algo
+  más**: mientras era de un solo uso, un enlace ya canjeado se revocaba solo y no
+  había forma de anular el de alguien que ya había entrado.
+- **Y de quitarlo salió una columna** (`cuenta.enlaceExpira`, migración `0020`).
+  No es de adorno ni se coló de paso: la pantalla de Cuentas enseña `enlaceVivo`
+  para separar «se lo he mandado» de «ya ha entrado», y eso lo contestaba
+  `enlaceJti IS NOT NULL` **porque el canje lo vaciaba**. Sin el vaciado esa
+  columna no vuelve a ser `NULL` nunca, así que la pastilla se quedaría puesta
+  para siempre, también con el enlace caducado hace meses — **peor que no
+  tenerla, porque miente**. Con la fecha, `enlaceVivo` pasa a contestar la
+  pregunta que ahora importa: **¿hay por ahí un enlace que todavía abre esta
+  cuenta?**, que es lo que se mira para decidir si conviene generar otro y
+  revocarlo.
+- **La fecha no se deduce de nada de lo que ya había**: el `jti` es aleatorio y
+  no lleva nada dentro, y el `exp` del pase lo tiene quien lo recibió, no el
+  servidor. Sale de `VIGENCIA_ENLACE`, que pasa a exportarse para que el papel y
+  la columna no puedan decir cosas distintas.
+- **La pastilla cambia de palabras**: «enlace sin usar» → **«con enlace
+  activo»**. «Ya ha entrado» lo sigue contestando el renglón de al lado, con
+  `ultimoAcceso`, que es de donde salía de verdad.
+- **Y el estado `usado` se llama ahora `caducado`**, porque ya no existe el
+  motivo que le daba nombre: si un enlace no vale es porque hay otro más nuevo.
+  El texto lo dice así — «se ha generado otro más nuevo», sin el «ya se ha usado»
+  que mandaba a mirar en el sitio equivocado.
+
 ### 14.61 Entrar sin iPhone: un enlace que abre la puerta una vez
 
 - **El defecto:** el acceso lo firma Apple, y esa hoja vive **en la cáscara

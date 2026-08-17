@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.62.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+- **`app/`** v0.63.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
   1112 pruebas en 117 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  261 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  262 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -349,7 +349,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.58** Quién lleva las cuentas → `GrupoSection.jsx`, `avisos.js`, `db.js`, `index.js`, `tablas.js`, `tables.js`
 - **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `planes.js`
 - **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `PlanesScreen.jsx` · +5 más
-- **§14.61** Entrar sin iPhone: un enlace que abre la puerta una vez → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `GrupoSection.jsx`, `api.js`, `enlace.js` · +3 más
+- **§14.61** El enlace deja de ser de un solo uso → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `GrupoSection.jsx`, `api.js`, `enlace.js` · +3 más
 - **§14.62** Tu perfil vive detrás de tu emoji, y «Quién eres» se retira → `App.jsx`, `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`
 - **§14.63** El grupo, en tres áreas y con tres niveles de permiso → `Acordeon.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `permisos.js`
 - **§14.64** Un plato dice qué lleva y ahora también cómo se hace → `PlatosScreen.jsx`, `db.js`, `tablas.js`

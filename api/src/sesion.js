@@ -121,20 +121,27 @@ export async function verificarPaseDeEspera(secreto, pase) {
  *
  *   1. **Dura tres días.** Los treinta del pase de espera valen para un papel
  *      que solo sirve para preguntar; este abre la puerta.
- *   2. **Es de un solo uso**, y de eso no puede encargarse el papel —un JWT no
- *      sabe cuántas veces lo han leído—. Lleva un `jti` que se guarda en su
- *      cuenta (`cuenta.enlaceJti`) y se borra al canjearlo: el mismo enlace
- *      reenviado por WhatsApp ya no vale, y generar otro invalida el anterior,
- *      que es lo que hace de «generar» una forma de revocar.
+ *   2. **Se puede revocar**, y de eso no puede encargarse el papel —un JWT no
+ *      sabe que alguien ha cambiado de idea—. Lleva un `jti` que se guarda en su
+ *      cuenta (`cuenta.enlaceJti`), y generar otro lo sobrescribe: el anterior
+ *      deja de valer en el acto, que es lo que hace de «generar» una forma de
+ *      revocar.
  *   3. **Viaja en el fragmento** de la URL (`#pase=…`), no en la consulta. El
  *      fragmento no se manda al servidor, así que no acaba en los registros de
  *      nadie ni en la cabecera `Referer` de la primera página que se visite
  *      después.
  *
+ * **Lo que ya no es: de un solo uso** (SPECS §14.61-bis). Se quemaba al
+ * canjearlo, y lo que eso tiraba abajo no eran ataques sino usos normales —
+ * abrirlo dos veces, mirarlo en el móvil y luego en el portátil, o que la vista
+ * previa de WhatsApp lo estrene antes que su dueño—. El que se quedaba fuera era
+ * quien no tiene iPhone, o sea justo aquel para quien existe esto. Contra el
+ * reenvío siguen los otros dos cierres: caduca solo y se revoca a mano.
+ *
  * Lo que **no** cambia es el cierre de siempre: `tipo` lo separa de una sesión y
  * `verificarSesion` rechaza cualquier papel que lo lleve.
  */
-const VIGENCIA_ENLACE = 60 * 60 * 24 * 3;
+export const VIGENCIA_ENLACE = 60 * 60 * 24 * 3;
 
 export async function emitirPaseDeEnlace(secreto, cuentaId, jti) {
   const ahora = Math.floor(Date.now() / 1000);

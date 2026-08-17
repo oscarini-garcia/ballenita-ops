@@ -53,7 +53,7 @@ export function limpiarLaUrl() {
  *
  * Devuelve lo que conteste el Worker, que es una de cinco:
  *   · `{ estado: 'dentro', token, cuenta }` — esto **es** la sesión
- *   · `{ estado: 'usado', mensaje }`        — ya se canjeó, o hay otro más nuevo
+ *   · `{ estado: 'caducado', mensaje }`     — hay otro más nuevo, y este ya no vale
  *   · `{ estado: 'no-vale', mensaje }`      — caducado, roto al copiarlo, o de otra base
  *   · `{ estado: 'desactivada', mensaje }`  — le han cerrado la puerta a propósito
  *   · `{ estado: 'sin-respuesta' }`         — la red, y solo la red
