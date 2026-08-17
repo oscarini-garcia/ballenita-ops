@@ -3572,6 +3572,30 @@ Como toda migración, la `0013` **no se aplica sola** (§14.23): hasta que se
 lance desde Ajustes → Actualizar, el Worker no conoce la columna y el «cuándo»
 no sobrevive a una vuelta de sincronización.
 
+### 14.36-ter En claro, el campo del estado se veía en blanco
+
+**Lo que se veía:** en la cara clara, lo que escribías en «Tu estado» no se leía.
+En la oscura, perfecto.
+
+- **La causa, medida:** tinta `#e6eef3` sobre campo `#f1f5f7` — **1,1 : 1**. Los
+  campos heredan el color (`button, input, select, textarea { color: inherit }`)
+  y esta hoja la abre **la pastilla de la cabecera**, así que colgaba de
+  `.appbar` → `.modal-bg` → `.modal`. Y `.appbar` lleva `--appbar-ink`, que es la
+  tinta **clara** con la que se escribe sobre la barra oscura. En la cara oscura
+  no se notaba porque ahí la tinta del cuerpo también es clara.
+- **✅ La regla de los campos declara su tinta** (`color: var(--ink)`): un campo
+  no puede depender del subárbol en el que lo hayan colgado. Es el **cuarto**
+  mordisco de esa lista —`password`, `url`, `datetime-local` y ahora esto— y el
+  primero que no es un `type` que faltaba sino una herencia; por eso la guardia
+  de `estilos.test.js` crece con él.
+- **✅ Y las dos capas de la cabecera salen por un portal al `body`**
+  (§14.55-ter): la hoja del estado y el modal del perfil. Colgar una capa de la
+  barra es lo que hizo posible el fallo, y arreglar solo el color habría dejado
+  el resto de la herencia —tipografía, apilado, el `fixed` del WebKit— esperando
+  su turno.
+- **Comprobado en el navegador, en las dos caras:** de **1,1 : 1 a 14,24 : 1** en
+  claro, y 14,35 en oscuro, que ya estaba bien.
+
 ### 14.37 La marca es el icono, y el rojo se reserva para lo que falla
 
 Tres cosas que dijo la pantalla de Ajustes → 🐳 La app, ninguna de diseño

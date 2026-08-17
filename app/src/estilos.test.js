@@ -176,4 +176,19 @@ describe('los campos de formulario', () => {
     const huerfanos = [...usados].filter((t) => !aparte.has(t) && !LISTA.includes(`input[type=${t}]`))
     expect(huerfanos.join(', '), 'sin vestir se pintan con el fondo del navegador').toBe('')
   })
+
+  /**
+   * Y la regla **declara su propia tinta**.
+   *
+   * `button, input, select, textarea { color: inherit }` hace que un campo
+   * herede el color de donde esté montado, y la hoja del estado se pintaba
+   * dentro de `.appbar` —tinta clara, para el fondo oscuro de la barra—: en la
+   * cara clara salía texto de `#e6eef3` sobre campo de `#f1f5f7`, **1,1 : 1**.
+   * Es el cuarto mordisco de esta lista y el primero que no es un `type`.
+   */
+  it('y declara el color, que si no lo hereda de donde esté montada', () => {
+    const regla = CSS.slice(CSS.indexOf('\ninput[type=text]'))
+    const cuerpo = regla.slice(regla.indexOf('{'), regla.indexOf('}'))
+    expect(cuerpo, 'un campo no puede depender del subárbol en el que cuelgue').toMatch(/color:\s*var\(--ink\)/)
+  })
 })

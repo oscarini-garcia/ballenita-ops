@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { personsOf, ponerEstado, updatePerson } from '../db.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -159,7 +160,9 @@ function PerfilModal({ eventId, personas, onCerrar }) {
     )
   }
 
-  return (
+  return createPortal(
+  // Por un portal al `body` (§14.55-ter): este modal lo abre el emoji de la
+  // **cabecera**, y sin él cuelga de `.appbar` con su tinta y su apilado.
     <div className="modal-bg center" onClick={onCerrar}>
       <div className="modal center" onClick={(e) => e.stopPropagation()}>
         <button className="x" onClick={onCerrar} aria-label="Cerrar">×</button>
@@ -259,6 +262,7 @@ function PerfilModal({ eventId, personas, onCerrar }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

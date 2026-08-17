@@ -653,9 +653,17 @@ label { display: block; font-size: var(--t-label); font-weight: 700; color: var(
    de un gasto se veía literalmente en blanco sobre el tema oscuro. De paso traía
    su propio ancho (287 pt de los 356) y un borde de 2. Va `time` con él, que
    todavía no se usa pero es el mismo caso esperando. */
+/* **Y su propio color de tinta.** Los campos heredaban `color` de donde
+   estuvieran montados (`button, input, select, textarea { color: inherit }`), y
+   la hoja del estado se pinta **dentro de `.appbar`**, que lleva la tinta clara
+   de la barra oscura: en la cara clara salía texto de `#e6eef3` sobre campo de
+   `#f1f5f7` —**1,1 : 1**, invisible—. Un campo no puede depender de en qué
+   subárbol lo hayan colgado; su tinta es la del cuerpo. Cuarta vez que muerde
+   la lista de campos, y la primera que no es un `type` sino una herencia. */
 input[type=text], input[type=password], input[type=number], input[type=date], input[type=email], input[type=url],
 input[type=datetime-local], input[type=time], input[type=search], select, textarea {
-  width: 100%; background: var(--foam-2); border: 1px solid var(--line); border-radius: 7px;
+  width: 100%; background: var(--foam-2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 7px;
   /* 16px mínimo: por debajo, iOS hace zoom automático al enfocar el campo. */
   /* Nunca por debajo de 16 px: iOS hace zoom al enfocar el campo si el cuerpo
      es menor. `--t-body` ya son 17 px de origen y sube con la escala. */

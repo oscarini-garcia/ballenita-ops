@@ -45,11 +45,13 @@ describe('decir en qué andas desde Hoy', () => {
   // que haya: pedir uno por su nombre sería un test que falla algunas veces.
   it('y abre la misma hoja, que guarda con su «cuándo»', async () => {
     soy(ctx.mariona)
-    const { container } = pintar()
+    pintar()
 
     await userEvent.click(await screen.findByText('+ di en qué andas'))
-    await waitFor(() => expect(container.querySelector('.eleccion-op')).not.toBeNull())
-    await userEvent.click(container.querySelector('.eleccion-op'))
+    // La hoja sale **por un portal al `body`** (§14.55-ter), así que ya no está
+    // dentro del `container` de esta pantalla: se busca en el documento.
+    await waitFor(() => expect(document.querySelector('.eleccion-op')).not.toBeNull())
+    await userEvent.click(document.querySelector('.eleccion-op'))
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
 
     await waitFor(async () => {
