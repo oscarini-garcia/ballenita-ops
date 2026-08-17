@@ -255,3 +255,41 @@ describe('para la receta o por persona', () => {
     expect(juntarCantidad({ cantidad: 1.2345, unidad: 'kg' })).toBe('1,2345 kg')
   })
 })
+
+/**
+ * Una noche que se cena fuera no manda nada a la compra (§14.70).
+ *
+ * Es la parte de esto que cuesta dinero si sale mal: comprar arroz para una
+ * paella que nadie va a cocinar. Se corta en `platosDeLaCena` y no en cada
+ * consumidor, para que la lista y la pregunta de borrar una cena cuenten lo
+ * mismo — si no, la pregunta diría un número que el recálculo luego no hace.
+ */
+describe('se cena fuera', () => {
+  const enCasa = { platoIds: ['p1'] }
+  const fuera = { platoIds: ['p1'], fuera: 1, donde: 'El chiringuito de Paco' }
+
+  it('no aporta ningún plato, aunque los tenga marcados', () => {
+    expect(platosDeLaCena(fuera)).toEqual({ mayores: [], ninos: [], hereda: true })
+  })
+
+  it('los platos marcados no se borran: se quedan por si se vuelve atrás', () => {
+    // Lo que cambia es cómo se lee la cena, no lo que hay guardado en ella.
+    expect(fuera.platoIds).toEqual(['p1'])
+  })
+
+  it('y por eso no sale nada que comprar por esa noche', () => {
+    const conCasa = loQueHayQueComprar({ cenas: [enCasa], platos: [PAELLA], personas: GENTE })
+    expect(conCasa.length).toBeGreaterThan(0)
+
+    const conFuera = loQueHayQueComprar({ cenas: [fuera], platos: [PAELLA], personas: GENTE })
+    expect(conFuera).toEqual([])
+  })
+
+  it('pero las otras noches siguen contando enteras', () => {
+    const solaEnCasa = loQueHayQueComprar({ cenas: [enCasa], platos: [PAELLA], personas: GENTE })
+    const conUnaFuera = loQueHayQueComprar({
+      cenas: [enCasa, fuera], platos: [PAELLA], personas: GENTE,
+    })
+    expect(conUnaFuera).toEqual(solaEnCasa)
+  })
+})

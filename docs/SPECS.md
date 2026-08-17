@@ -4518,6 +4518,50 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.70 Noches que se cena fuera, y dónde
+
+- **El defecto:** no había forma de decirlo. Las noches de chiringuito se
+  apuntaban como **plan** —«Tardeo cena de chiringo», «Cena en la playa con
+  música!»— porque era el único sitio donde cabía escribirlo, y de ahí salían
+  tres cosas mal a la vez: el día decía **«sin cena»** teniendo la cena decidida,
+  el semáforo no se ponía verde nunca porque le faltaba justo lo que no puede
+  tener, y la noche no contaba como cena en ningún sitio.
+- **✅ Una cena puede ser «fuera», con su sitio.** `dinners.fuera` (0/1) y
+  `dinners.donde` (texto libre), migración `0021`.
+- **Dos columnas y no una.** La alternativa era guardar solo el sitio y leer «hay
+  sitio» como «se cena fuera», y eso deja `''` —salir y no saber aún dónde—
+  valiendo lo mismo que `NULL` en cualquier `if` de JavaScript. Es el tipo de
+  trampa que se paga meses después y en la pantalla de otro.
+- **El sitio en blanco es legítimo**, y por eso la frase no lo inventa: «Se cena
+  fuera» ya es la noticia, y el dónde se sabe más tarde. Con sitio, «Fuera · El
+  chiringuito de Paco».
+- **Lo compone un solo sitio** (`titularDeFuera`, `lib/dias.js`) porque lo dicen
+  **cuatro** pantallas —la lista de Días, el renglón del día, «Hoy» y la capa en
+  lectura—, y una frase escrita cuatro veces es un desfase esperando a pasar.
+- **✅ No entra en la lista de la compra**, que es la parte que cuesta dinero si
+  sale mal: comprar arroz para una paella que nadie va a cocinar. Se corta en
+  `platosDeLaCena` (`lib/compra.js`) y **no en cada consumidor**, para que la
+  lista y la pregunta de borrar una cena (§14.38) cuenten lo mismo — si no, la
+  pregunta diría un número que el recálculo luego no hace.
+- **Los platos marcados no se borran al salir.** Se quedan por si se vuelve
+  atrás; lo que cambia es cómo se lee la cena, no lo que hay guardado en ella.
+- **En el elegidor, «fuera» sustituye a la lista en vez de convivir con ella**
+  (§14.31): elegir platos y decir que se sale son la misma decisión con dos
+  respuestas, y enseñadas a la vez habría que leer para saber cuál manda. Se
+  entra por un verbo de una línea —la figura de «Los niños comen otra cosa…»— y
+  se vuelve con «Cenamos en el camping». Todo dentro del borrador: no escribe
+  hasta «Listo».
+- **✅ Y decirlo cría la cena** aunque no haya ni un plato ni un sitio: es una
+  decisión tomada, no el hueco reservado de una cena vacía. Por eso el renglón
+  del día sale **verde** con `fuera`, y por eso no reclama platos —esa noche no
+  cocina nadie— ni dice «cena sin platos».
+- **Y no pide bungas.** El día se cuenta como completo con `fuera` y un plan, sin
+  los dos bungas: no acoge nadie, así que exigirlos era pedir lo imposible.
+- **Lo que se deja igual a propósito:** la racha de cenas de Números sigue
+  contando una noche fuera como noche con cena —lo es— y el balance de anfitrión
+  no la cuenta, porque no tiene bungas que contar. Ninguno de los dos necesitó
+  tocarse.
+
 ### 14.69 Un día dice lo que hay, en vez de contarlo
 
 Decidido en [`docs/diseño/dia-titular.html`](diseño/dia-titular.html) ·
