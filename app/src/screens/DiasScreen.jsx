@@ -117,9 +117,15 @@ export default function DiasScreen({ eventId, event, abrir, onAbierta }) {
      * platos, los dos bungas y algo de plan, los cuatro estados de G1—,
      * ámbar al que le falta algo.
      */
+    // Se cena fuera: la cena está resuelta y **no hacen falta bungas**, que esa
+    // noche no acoge nadie. Sin esto, una noche de chiringuito no se ponía
+    // verde nunca por faltarle justo lo que no puede tener.
     const completo = Boolean(
-      cena && (cena.platoIds?.length ?? 0) > 0
-      && cena.bungaMayoresId && cena.bungaNinosId && susPlanes.length > 0,
+      cena && susPlanes.length > 0 && (
+        cena.fuera
+          ? true
+          : (cena.platoIds?.length ?? 0) > 0 && cena.bungaMayoresId && cena.bungaNinosId
+      ),
     )
     return (
       <div className={`row fila-dia${esHoy ? ' es-hoy' : ''}`} key={dia}>
@@ -286,10 +292,15 @@ export function CapaDeDia({
   // siete noches de ocho, y repetirlo en todas es un renglón que nadie lee.
   const ninosAparte = (cena?.platoIdsNinos ?? null) !== null
   const platosNinos = (cena?.platoIdsNinos ?? []).map((id) => porId[id]).filter(Boolean)
-  const baseCena = nPlatos
-    ? (nPlatos === 1 ? 'un plato' : `${enLetras(nPlatos)} platos`)
-    : (tocable ? 'toca para elegir los platos' : 'sin platos todavía')
-  const subCena = ninosAparte ? `${baseCena} · los niños, otra cosa` : baseCena
+  // Se cena fuera: no faltan platos, así que el renglón no los reclama — y con
+  // el sitio en blanco dice lo único que queda por decidir.
+  const seCenaFuera = Boolean(cena?.fuera)
+  const baseCena = seCenaFuera
+    ? ((cena.donde ?? '').trim() ? 'no cocina nadie' : (tocable ? 'toca para decir dónde' : 'sin sitio todavía'))
+    : nPlatos
+      ? (nPlatos === 1 ? 'un plato' : `${enLetras(nPlatos)} platos`)
+      : (tocable ? 'toca para elegir los platos' : 'sin platos todavía')
+  const subCena = ninosAparte && !seCenaFuera ? `${baseCena} · los niños, otra cosa` : baseCena
   // Mirando, el renglón del plan no cuenta lo que se podría traer: eso es una
   // tarea de montar el día, no un dato de lo que se hace hoy.
   const subPlanes = !tocable ? 'sin plan todavía'
@@ -346,18 +357,20 @@ export function CapaDeDia({
             <div className="card tight" style={{ marginTop: 6 }}>
               {/* Mirando, la carta entera (L2); montando, el titular y su
                   flecha — que es el botón que abre el elegidor. */}
-              {lectura && nPlatos > 0
+              {lectura && nPlatos > 0 && !seCenaFuera
                 ? <ListaDePlatos platos={elegidos} />
                 : renglon({
                   icono: 'restaurante',
-                  verde: nPlatos > 0,
+                  // Una cena fuera está **decidida**: verde aunque no haya
+                  // sitio, que el sitio es un detalle y no la decisión.
+                  verde: nPlatos > 0 || seCenaFuera,
                   n: titularDeCena(cena ?? null, elegidos),
                   s: subCena,
                   abre: 'platos',
                 })}
               {/* Mirando, la carta de los niños entera: es la pantalla a la que
                   se viene a saber qué se cena, y «otra cosa» no lo contesta. */}
-              {lectura && ninosAparte && (
+              {lectura && ninosAparte && !seCenaFuera && (
                 <>
                   <div className="grupo-cat">Los niños</div>
                   {platosNinos.length > 0
@@ -430,13 +443,15 @@ export function CapaDeDia({
             evento={event}
             inicial={cena?.platoIds ?? []}
             inicialNinos={cena?.platoIdsNinos ?? null}
+            inicialFuera={Boolean(cena?.fuera)}
+            inicialDonde={cena?.donde ?? ''}
             hayCena={Boolean(cena || cenaRef.current)}
             queSeLleva={queSeLlevaUnaCena(cena ?? { id: cenaRef.current }, {
               dia: fmtDiaLargo(dia), platos, cenas, personas, lineas: compra,
             })}
             onQuitarCena={quitarCena}
             onCancelar={() => setEligiendo(null)}
-            onListo={async (ids, idsNinos) => {
+            onListo={async (ids, idsNinos, sitio) => {
               // Sin cena y sin nada marcado no hay nada que escribir: un
               // «Listo» vacío no cría una cena vacía. Y un «Listo» sin cambios
               // no encola un cambio que no cambia nada.
@@ -447,9 +462,16 @@ export function CapaDeDia({
                   ? a === b
                   : a.length === b.length && a.every((x) => b.includes(x))
               )
-              const igual = mismaLista(ids, antes) && mismaLista(idsNinos, antesNinos)
-              const hayAlgo = ids.length > 0 || idsNinos !== null || cena || cenaRef.current
-              if (!igual && hayAlgo) await escribeCena({ platoIds: ids, platoIdsNinos: idsNinos })
+              const fuera = sitio?.fuera ? 1 : 0
+              const donde = (sitio?.donde ?? '').trim()
+              const igualFuera = fuera === (cena?.fuera ? 1 : 0) && donde === (cena?.donde ?? '').trim()
+              const igual = mismaLista(ids, antes) && mismaLista(idsNinos, antesNinos) && igualFuera
+              // Decir «se cena fuera» **cría la cena** aunque no haya ni un
+              // plato: es una decisión tomada, no un hueco vacío.
+              const hayAlgo = ids.length > 0 || idsNinos !== null || fuera || cena || cenaRef.current
+              if (!igual && hayAlgo) {
+                await escribeCena({ platoIds: ids, platoIdsNinos: idsNinos, fuera, donde })
+              }
               setEligiendo(null)
             }}
           />
@@ -567,13 +589,18 @@ function Buscador({ valor, onCambio, etiqueta }) {
  * «comen lo mismo», que es la noche normal, y solo está el verbo de una línea.
  */
 function ElegidorDePlatos({
-  dia, platos, evento, inicial, inicialNinos, hayCena, queSeLleva, onQuitarCena, onCancelar, onListo,
+  dia, platos, evento, inicial, inicialNinos, inicialFuera, inicialDonde,
+  hayCena, queSeLleva, onQuitarCena, onCancelar, onListo,
 }) {
   const [marcados, setMarcados] = useState(() => new Set(inicial))
   // `null` = los niños comen lo mismo. Es lo de fábrica porque separar las dos
   // listas cuesta un toque y no separarlas, ninguno.
   const [ninos, setNinos] = useState(() => (inicialNinos ? new Set(inicialNinos) : null))
   const [mesa, setMesa] = useState('mayores')
+  // **Se cena fuera, y dónde** (§14.70). Va en el borrador como todo lo demás:
+  // marcarlo no escribe nada hasta «Listo» (§14.31).
+  const [fuera, setFuera] = useState(Boolean(inicialFuera))
+  const [donde, setDonde] = useState(inicialDonde ?? '')
   const [busca, setBusca] = useState('')
   const [quitando, setQuitando] = useState(false)
   const [creando, setCreando] = useState(false)
@@ -645,12 +672,41 @@ function ElegidorDePlatos({
 
   return (
     <Elegidor
-      titulo={enNinos ? 'Los platos de los niños' : 'Los platos de esta cena'}
+      titulo={fuera ? 'Esta noche se cena fuera' : enNinos ? 'Los platos de los niños' : 'Los platos de esta cena'}
       dia={dia}
-      buscador={<Buscador valor={busca} onCambio={setBusca} etiqueta="Buscar un plato" />}
+      buscador={fuera ? null : <Buscador valor={busca} onCambio={setBusca} etiqueta="Buscar un plato" />}
       onCancelar={onCancelar}
-      onListo={() => onListo([...marcados], ninos ? [...ninos] : null)}
+      onListo={() => onListo([...marcados], ninos ? [...ninos] : null, { fuera, donde })}
     >
+      {/* **Se cena fuera** (§14.70): sustituye a la lista en vez de convivir con
+          ella. Elegir platos y decir que se sale son la misma decisión con dos
+          respuestas, y enseñadas a la vez el elegidor pediría leer para saber
+          cuál manda. Lo marcado **no se borra**: se queda por si se vuelve. */}
+      {fuera ? (
+        <>
+          <label htmlFor="donde-se-cena" style={{ marginTop: 10 }}>¿Dónde?</label>
+          <input
+            id="donde-se-cena"
+            type="text"
+            value={donde}
+            onChange={(e) => setDonde(e.target.value)}
+            placeholder="El chiringuito de Paco"
+          />
+          <div className="apunte" style={{ marginTop: 8 }}>
+            Se puede dejar en blanco: que se sale ya es la noticia, y el sitio se
+            pone cuando se sepa. Esta noche no entra en la lista de la compra.
+          </div>
+          <button
+            type="button"
+            className="btn sm ghost block"
+            style={{ marginTop: 12 }}
+            onClick={() => { tap(); setFuera(false) }}
+          >
+            Cenamos en el camping
+          </button>
+        </>
+      ) : (
+      <>
       {ninos && (
         <div className="segmentado" role="group" aria-label="Qué mesa" style={{ marginTop: 10 }}>
           <button
@@ -728,6 +784,16 @@ function ElegidorDePlatos({
       <div className="apunte" style={{ marginTop: 10 }}>
         Los platos se corrigen —tipo, receta e ingredientes— en Comidas → Carta.
       </div>
+      <button
+        type="button"
+        className="renglon-mas"
+        style={{ marginTop: 10 }}
+        onClick={() => { tap(); setFuera(true) }}
+      >
+        Esta noche se cena fuera…
+      </button>
+      </>
+      )}
       {/* Quitar la cena vive aquí, con segunda pulsación (dia-abierto.html ·
           H1). Es la única salida del elegidor que escribe sin «Listo»: es un
           verbo con su propia confirmación, no parte del borrador.

@@ -16,6 +16,19 @@
  */
 export const NOTAS = [
   {
+    version: '0.64.0',
+    fecha: '2026-08-17',
+    titulo: 'Noches que se cena fuera, y dónde',
+    lineas: [
+      'En el día, al elegir los platos, hay un verbo nuevo: «Esta noche se cena fuera…». Se pone el sitio —«el chiringuito de Paco»— o se deja en blanco hasta que se sepa.',
+      'Hasta ahora eso se apuntaba como un plan, y el día se quedaba diciendo «sin cena» teniendo la cena decidida.',
+      'Esa noche no entra en la lista de la compra: no hay que comprar arroz para una paella que no va a cocinar nadie.',
+      'Y cuenta como cena montada: el renglón se pone verde sin pedir platos ni bungas, que esa noche no acoge nadie.',
+      'Los platos que tuvieras marcados no se borran — si volvéis a cenar en el camping, siguen ahí.',
+      'Lleva un cambio en la base: quien administra lo verá en Ajustes → Actualizar.',
+    ],
+  },
+  {
     version: '0.63.0',
     fecha: '2026-08-17',
     titulo: 'El enlace de acceso ya no se gasta al abrirlo',

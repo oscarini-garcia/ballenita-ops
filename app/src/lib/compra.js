@@ -36,8 +36,18 @@ export function racionesPorMesa(personas = []) {
   }
 }
 
-/** Qué platos come cada mesa. `platoIdsNinos` nulo = heredan los de arriba. */
+/**
+ * Qué platos come cada mesa. `platoIdsNinos` nulo = heredan los de arriba.
+ *
+ * **Una cena fuera no lleva ninguno** (§14.70), y se corta aquí y no en cada
+ * consumidor a propósito: de esta función cuelgan la lista de la compra y la
+ * cuenta de lo que se cae al borrar una cena (`lib/borrados.js`), y si una de
+ * las dos contase los platos de una noche que se cena en el chiringuito, la
+ * pregunta de borrar diría un número que el recálculo luego no hace. Los
+ * `platoIds` no se borran al marcar «fuera»: se quedan por si se vuelve atrás.
+ */
 export function platosDeLaCena(cena) {
+  if (cena?.fuera) return { mayores: [], ninos: [], hereda: true }
   const mayores = cena?.platoIds ?? []
   return { mayores, ninos: cena?.platoIdsNinos ?? mayores, hereda: !cena?.platoIdsNinos }
 }

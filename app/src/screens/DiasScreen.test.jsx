@@ -335,6 +335,85 @@ describe('DiasScreen', () => {
     expect(await screen.findByText(/los niños, otra cosa/)).toBeInTheDocument()
   })
 
+  /**
+   * Se cena fuera (§14.70). El día 13 de Ballenita'26 —«Tardeo cena de
+   * chiringo»— se apuntaba como plan porque era el único sitio donde cabía, y el
+   * día se quedaba diciendo «sin cena» teniendo la cena decidida.
+   */
+  it('se puede decir que se cena fuera, y dónde', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    // El día 10 no tiene cena montada.
+    await abrirDia('lunes, 10 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /toca para elegir los platos/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Esta noche se cena fuera…' }))
+
+    // La lista de platos se aparta: es la misma decisión con otra respuesta.
+    expect(screen.getByRole('heading', { name: 'Esta noche se cena fuera' })).toBeInTheDocument()
+    expect(screen.queryByRole('searchbox')).toBeNull()
+
+    await userEvent.type(screen.getByLabelText('¿Dónde?'), 'El chiringuito de Paco')
+    // Todavía sin escribir: el elegidor es un borrador (§14.31).
+    expect((await dinnersOf(eventId)).find((c) => c.dia === '2026-08-10')).toBeUndefined()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+    await waitFor(async () => {
+      const cena = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-10')
+      expect(cena.fuera).toBe(1)
+      expect(cena.donde).toBe('El chiringuito de Paco')
+    })
+    // Y la fila del día lo dice sin abrir nada. Se busca **en la lista**: la
+    // capa sigue abierta detrás diciendo lo mismo, que es justo lo que se quiere.
+    await waitFor(() => {
+      const filas = [...document.querySelectorAll('.fila-dia .n')].map((e) => e.textContent)
+      expect(filas).toContain('Fuera · El chiringuito de Paco')
+    })
+  })
+
+  it('decirlo sin sitio también vale, y cría la cena igual', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('lunes, 10 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /toca para elegir los platos/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Esta noche se cena fuera…' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+
+    await waitFor(async () => {
+      const cena = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-10')
+      expect(cena.fuera).toBe(1)
+      expect(cena.donde).toBe('')
+    })
+    await waitFor(() => {
+      const filas = [...document.querySelectorAll('.fila-dia .n')].map((e) => e.textContent)
+      expect(filas).toContain('Se cena fuera')
+    })
+  })
+
+  it('y se puede volver al camping', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    // El día 9 tiene cena con platos: se sale y se vuelve, y los platos siguen.
+    await abrirDia('domingo, 9 de agosto')
+    await abrirLosPlatos()
+    await userEvent.click(screen.getByRole('button', { name: 'Esta noche se cena fuera…' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Cenamos en el camping' }))
+
+    expect(await screen.findByRole('button', { name: /^Paella mixta/, pressed: true })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+
+    await waitFor(async () => {
+      const cena = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09')
+      expect(cena.fuera).toBeFalsy()
+      expect(cena.platoIds).toHaveLength(2)
+    })
+  })
+
   /** H1 de dia-abierto.html: quitar la cena sigue pidiendo segunda pulsación. */
   it('quitar la cena pide segunda pulsación, y se lleva platos y bungas', async () => {
     const { eventId, event } = await sembrar()

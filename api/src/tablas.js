@@ -95,7 +95,9 @@ export const TABLAS = {
   },
   dinners: {
     // `platoIdsNinos` en NULL quiere decir «los niños comen lo mismo» (§14.20).
-    columnas: ['eventId', 'dia', 'platoIds', 'platoIdsNinos', 'bungaMayoresId', 'bungaNinosId', 'queSeHace', 'cantidades'],
+    // `fuera` en 1 es que esa noche se cena fuera y `donde` es el sitio, texto
+    // libre y vacío legítimo —se sabe que se sale y no dónde— (§14.70).
+    columnas: ['eventId', 'dia', 'platoIds', 'platoIdsNinos', 'bungaMayoresId', 'bungaNinosId', 'fuera', 'donde', 'queSeHace', 'cantidades'],
     json: ['platoIds', 'platoIdsNinos'],
   },
   planIdeas: {

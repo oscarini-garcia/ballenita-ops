@@ -97,6 +97,19 @@ export function platoQueManda(platos = []) {
 export const LETRAS_DEL_TITULAR = 26
 
 /**
+ * Cómo se nombra una noche que se cena fuera (§14.70).
+ *
+ * Vive aquí y no repetido en cada pantalla porque lo dicen **cuatro** —la lista
+ * de Días, el renglón del día, «Hoy» y la capa en lectura—, y una frase escrita
+ * cuatro veces es un desfase esperando a pasar. Sin sitio no se inventa nada:
+ * «Se cena fuera» ya es la noticia, y es legítimo saberlo antes que el dónde.
+ */
+export function titularDeFuera(cena) {
+  const donde = (cena?.donde ?? '').trim()
+  return donde ? `Fuera · ${donde}` : 'Se cena fuera'
+}
+
+/**
  * El titular de una cena en la lista de días: **los principales**
  * (`docs/diseño/dia-titular.html` · P4).
  *
@@ -138,7 +151,11 @@ export function resumenDeDia({ cena, planes = [], platos = [], bungaMayores, esP
   const nPlanes = planes.length
 
   let titulo
-  if (cena) {
+  if (cena?.fuera) {
+    // Se cena fuera: eso **es** el titular del día, con o sin sitio. Antes esto
+    // se apuntaba como plan y el día decía «sin cena» teniendo la cena decidida.
+    titulo = titularDeFuera(cena)
+  } else if (cena) {
     // El plato manda y **la bunga no entra en el titular**: la hoja de opciones
     // lo dibujaba como «Paella mixta en El del ruido», y puesto en la app real
     // eso son 268 pt en una fila que tiene 237 con el lápiz — se recortaba en
@@ -176,7 +193,9 @@ export function resumenDeDia({ cena, planes = [], platos = [], bungaMayores, esP
     trozos.push('sin planes')
   }
   if (!cena) trozos.push('sin cena')
-  else if (nPlatos === 0) trozos.push('cena sin platos')
+  // Con cena fuera no falta nada que apuntar: los platos son cosa de quien
+  // cocina, y esa noche no cocina nadie.
+  else if (nPlatos === 0 && !cena.fuera) trozos.push('cena sin platos')
 
   return { titulo, detalle: trozos.filter(Boolean).join(' · ') }
 }
@@ -229,6 +248,7 @@ const LETRAS = ['cero', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete'
 export const enLetras = (n) => (n >= 0 && n <= 10 ? LETRAS[n] : String(n))
 export function titularDeCena(cena, platos = []) {
   if (!cena) return 'Sin cena montada'
+  if (cena.fuera) return titularDeFuera(cena)
   return titularDePlatos(platos) ?? 'Cena sin platos apuntados'
 }
 
@@ -311,8 +331,16 @@ export function enumerarConTope(nombres = [], letras = LETRAS_DEL_RENGLON) {
  * la frase: bajarles la primera letra convertiría «BBQ de pescado» en «bBQ de
  * pescado», y un plato es un nombre propio.
  */
-export function fraseDeLaNoche({ platos = [], bungaMayores, bungaNinos, esHoy = true } = {}) {
+export function fraseDeLaNoche({ cena, platos = [], bungaMayores, bungaNinos, esHoy = true } = {}) {
   const trozos = []
+  // Se cena fuera: ni platos ni bungas, que esta noche no acoge nadie.
+  if (cena?.fuera) {
+    const donde = (cena.donde ?? '').trim()
+    trozos.push({ t: esHoy ? 'Esta noche se cena fuera' : 'Se cena fuera' })
+    if (donde) trozos.push({ t: ', en ' }, { t: donde, fuerte: true })
+    trozos.push({ t: donde ? '.' : ', y todavía no se sabe dónde.' })
+    return trozos
+  }
   const manda = platoQueManda(platos)
   // En el orden en que se comen y no en el que se marcaron: «con patatas
   // chafadas y helado» y no «con helado y patatas chafadas».
@@ -352,6 +380,15 @@ export function fraseDeLaNoche({ platos = [], bungaMayores, bungaNinos, esHoy = 
  * hay plan: es un hueco reservado, no lo que se hace ese día.
  */
 export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bungaNinos, esHoy = true } = {}) {
+  // Una cena fuera **manda siempre**, aunque haya plan: es lo que se hace esa
+  // noche, y decidida está — no es el hueco reservado de una cena sin platos.
+  if (cena?.fuera) {
+    return {
+      grande: titularDeFuera(cena),
+      pequeno: planes.length ? planes[0].titulo : 'Esta noche no cocina nadie',
+      frase: fraseDeLaNoche({ cena, platos, esHoy }),
+    }
+  }
   const conPlatos = (cena?.platoIds?.length ?? 0) > 0
   if (conPlatos || (cena && planes.length === 0)) {
     const bungas = [bungaMayores && `Mayores en ${bungaMayores}`, bungaNinos && `niños en ${bungaNinos}`]
@@ -359,7 +396,7 @@ export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bun
     return {
       grande: titularDeCena(cena, platos),
       pequeno: bungas || 'Sin bungas repartidos todavía',
-      frase: fraseDeLaNoche({ platos, bungaMayores, bungaNinos, esHoy }),
+      frase: fraseDeLaNoche({ cena, platos, bungaMayores, bungaNinos, esHoy }),
     }
   }
   const deCena = cena ? 'cena sin platos apuntados' : 'sin cena montada todavía'

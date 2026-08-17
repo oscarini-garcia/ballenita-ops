@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
   diasDe, resumenDeDia, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, titularDeHoy,
   numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal, enLetras, filtraOpciones,
-  titularDePlatos, enumerarConTope, LETRAS_DEL_TITULAR, LETRAS_DEL_RENGLON,
+  titularDePlatos, enumerarConTope, LETRAS_DEL_TITULAR, LETRAS_DEL_RENGLON, titularDeFuera,
+  fraseDeLaNoche,
 } from './dias.js'
 import { diaSiguiente, finPara } from './fechas.js'
 
@@ -384,5 +385,69 @@ describe('enumerarConTope', () => {
   it('sin nada, no dice nada', () => {
     expect(enumerarConTope([])).toBe('')
     expect(enumerarConTope([null, undefined])).toBe('')
+  })
+})
+
+/**
+ * Noches que se cena fuera (§14.70).
+ *
+ * Antes esto se apuntaba como **plan** —«Tardeo cena de chiringo»— porque era el
+ * único sitio donde cabía escribirlo, y el día se quedaba diciendo «sin cena»
+ * teniendo la cena decidida.
+ */
+const FUERA = { platoIds: [], fuera: 1, donde: 'El chiringuito de Paco' }
+const FUERA_SIN_SITIO = { platoIds: [], fuera: 1, donde: '' }
+
+describe('se cena fuera', () => {
+  it('con sitio, el sitio es el titular', () => {
+    expect(titularDeFuera(FUERA)).toBe('Fuera · El chiringuito de Paco')
+  })
+
+  it('sin sitio no se inventa nada: que se sale ya es la noticia', () => {
+    expect(titularDeFuera(FUERA_SIN_SITIO)).toBe('Se cena fuera')
+    expect(titularDeFuera({ fuera: 1 })).toBe('Se cena fuera')
+  })
+
+  it('en la fila del día manda sobre los platos que hubiera marcados', () => {
+    // Los `platoIds` no se borran al salir: se quedan por si se vuelve atrás,
+    // y aun así el titular dice dónde se cena.
+    const r = resumenDeDia({ cena: { ...FUERA, platoIds: ['d1'] }, platos: [PAELLA], planes: [] })
+    expect(r.titulo).toBe('Fuera · El chiringuito de Paco')
+    // Y no reclama platos, que esa noche no cocina nadie.
+    expect(r.detalle).toBe('sin planes')
+  })
+
+  it('una cena fuera sin platos no se lee como una cena a medio montar', () => {
+    expect(resumenDeDia({ cena: FUERA_SIN_SITIO, planes: [] }).detalle).toBe('sin planes')
+    // …que es lo que sí dice una cena montada y vacía.
+    expect(resumenDeDia({ cena: { platoIds: [] }, planes: [] }).detalle)
+      .toBe('sin planes · cena sin platos')
+  })
+
+  it('el renglón de la cena del día lo dice igual', () => {
+    expect(titularDeCena(FUERA, [PAELLA])).toBe('Fuera · El chiringuito de Paco')
+    expect(titularDeCena(FUERA_SIN_SITIO, [])).toBe('Se cena fuera')
+  })
+
+  it('«Hoy» lo redacta, sin platos ni bungas', () => {
+    const t = titularDeHoy({
+      cena: FUERA,
+      platos: [PAELLA],
+      planes: [{ titulo: 'Playa de la Cala' }],
+      bungaMayores: 'El del ruido',
+      bungaNinos: 'El del fondo',
+    })
+    expect(t.grande).toBe('Fuera · El chiringuito de Paco')
+    // Manda sobre el plan, porque es lo que se hace esa noche.
+    expect(t.pequeno).toBe('Playa de la Cala')
+    const frase = t.frase.map((x) => x.t).join('')
+    expect(frase).toBe('Esta noche se cena fuera, en El chiringuito de Paco.')
+    // Ni bungas ni platos: esa noche no acoge nadie.
+    expect(frase).not.toMatch(/El del ruido|Paella/)
+  })
+
+  it('y sin sitio, «Hoy» dice que falta por saberse', () => {
+    const frase = fraseDeLaNoche({ cena: FUERA_SIN_SITIO }).map((x) => x.t).join('')
+    expect(frase).toBe('Esta noche se cena fuera, y todavía no se sabe dónde.')
   })
 })

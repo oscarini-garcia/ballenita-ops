@@ -510,6 +510,11 @@ export async function addDinner(eventId, d) {
     platoIdsNinos: d.platoIdsNinos ?? null,
     bungaMayoresId: d.bungaMayoresId ?? null,
     bungaNinosId: d.bungaNinosId ?? null,
+    // Se cena fuera, y dónde (§14.70). Dos campos y no uno: con el sitio solo,
+    // «se sale y aún no sé dónde» sería `''`, que en cualquier `if` de
+    // JavaScript vale lo mismo que no salir.
+    fuera: d.fuera ? 1 : 0,
+    donde: d.donde ?? '',
   })
 }
 export const dinnersOf = (eventId) => db.dinners.where({ eventId }).sortBy('dia')
