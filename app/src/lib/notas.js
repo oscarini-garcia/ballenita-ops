@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.62.0',
+    fecha: '2026-08-17',
+    titulo: 'Cada día dice lo que hay, en vez de contarlo',
+    lineas: [
+      'En Días, el renglón de debajo ya no pone «sin cena · 2 planes»: pone el nombre del plan que no cabía arriba. El segundo plan de un día no salía en ninguna pantalla sin abrir el día.',
+      'Y el titular de una cena nombra los platos principales, no solo el primero: una Noche Ibérica de jamón y tortilla se anuncia por los dos.',
+      'Con más de dos principales, o con dos nombres largos, nombra los que caben y cuenta el resto — la línea no parte, así que lo que sobra se recortaba.',
+      'El renglón de la cena dentro del día dice ahora lo mismo que la lista, que antes contaban cosas distintas.',
+      'Nada de esto ocupa más sitio: los ocho días siguen cabiendo igual en la pantalla.',
+    ],
+  },
+  {
     version: '0.61.0',
     fecha: '2026-08-17',
     titulo: 'Las cenas se montan en el día, y el gasto dice cómo se reparte',

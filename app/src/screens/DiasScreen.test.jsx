@@ -33,6 +33,20 @@ async function sembrar() {
 const abrirDia = async (nombre) =>
   userEvent.click(await screen.findByRole('button', { name: new RegExp(`^${nombre}`, 'i') }))
 
+/**
+ * El renglón de la cena dentro de la capa del día.
+ *
+ * Se busca **en el modal** y no por su texto: desde §14.69 dice «Paella mixta»
+ * igual que la fila de la lista que queda detrás, que es justo lo que se quería
+ * —dos pantallas hermanas no contestan distinto a la misma pregunta—, pero deja
+ * la búsqueda por texto ambigua.
+ */
+const abrirLosPlatos = async () => {
+  await waitFor(() => expect(document.querySelector('.modal .fila-boton')).not.toBeNull())
+  await userEvent.click(document.querySelector('.modal .fila-boton'))
+}
+
+
 describe('DiasScreen', () => {
   beforeEach(async () => {
     for (const t of ['events', 'families', 'bungas', 'persons', 'dishes', 'dinners', 'plans', 'outbox']) await db[t].clear()
@@ -57,10 +71,13 @@ describe('DiasScreen', () => {
     const { eventId, event } = await sembrar()
     render(<DiasScreen eventId={eventId} event={event} />)
 
+    // El renglón **nombra en vez de contar** (§14.69): del día 9 lo que hace
+    // falta saber es que no hay nada que hacer, no que haya dos platos.
     expect(await screen.findByText('Paella mixta')).toBeInTheDocument()
-    expect(screen.getByText('2 platos · sin planes')).toBeInTheDocument()
+    expect(screen.getByText('sin planes')).toBeInTheDocument()
+    // Y el plan que titula no se repite debajo: solo se dice lo que falta.
     expect(screen.getByText('Playa de la Cala')).toBeInTheDocument()
-    expect(screen.getByText('sin cena · 1 plan')).toBeInTheDocument()
+    expect(screen.getByText('sin cena')).toBeInTheDocument()
     // El primero y el último día vacíos se llaman por lo que son.
     expect(screen.getByText('Llegada')).toBeInTheDocument()
     expect(screen.getByText('Vuelta a casa')).toBeInTheDocument()
@@ -84,7 +101,7 @@ describe('DiasScreen', () => {
   it('la fecha entera se anuncia a quien no ve, aunque en pantalla sea un número', async () => {
     const { eventId, event } = await sembrar()
     render(<DiasScreen eventId={eventId} event={event} />)
-    expect(await screen.findByRole('button', { name: /^domingo, 9 de agosto: Paella mixta, 2 platos/i }))
+    expect(await screen.findByRole('button', { name: /^domingo, 9 de agosto: Paella mixta, sin planes/i }))
       .toBeInTheDocument()
   })
 
@@ -175,7 +192,7 @@ describe('DiasScreen', () => {
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
-    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    await abrirLosPlatos()
     // Desmarcar la paella en el borrador…
     await userEvent.click(await screen.findByRole('button', { name: /^Paella mixta/, pressed: true }))
     // …y arrepentirse.
@@ -193,7 +210,7 @@ describe('DiasScreen', () => {
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
-    expect(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ })).toBeInTheDocument()
+    expect(document.querySelector('.modal .fila-boton').textContent).toContain('Paella mixta')
   })
 
   /** S2 + B1: cada bunga tiene su renglón, y su elegidor nombra la familia. */
@@ -228,7 +245,7 @@ describe('DiasScreen', () => {
     expect(screen.queryByRole('searchbox')).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
 
-    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    await abrirLosPlatos()
     expect(screen.getByRole('searchbox', { name: 'Buscar un plato' })).toBeInTheDocument()
   })
 
@@ -239,7 +256,7 @@ describe('DiasScreen', () => {
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
-    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    await abrirLosPlatos()
     await userEvent.type(screen.getByRole('searchbox'), 'sandia')
 
     expect(screen.getByRole('button', { name: /^Sandía/ })).toBeInTheDocument()
@@ -257,7 +274,7 @@ describe('DiasScreen', () => {
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
-    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    await abrirLosPlatos()
     // En reposo no hay ningún verbo de crear: es el catálogo entero, no un alta.
     expect(screen.queryByRole('button', { name: /^Crear/ })).toBeNull()
 
@@ -296,7 +313,7 @@ describe('DiasScreen', () => {
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
-    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    await abrirLosPlatos()
     // Heredando: ni segmentado ni segunda lista, solo el verbo de una línea.
     expect(screen.queryByRole('group', { name: 'Qué mesa' })).toBeNull()
 
@@ -325,7 +342,7 @@ describe('DiasScreen', () => {
     await screen.findByText('Paella mixta')
 
     await abrirDia('domingo, 9 de agosto')
-    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    await abrirLosPlatos()
     await userEvent.click(await screen.findByRole('button', { name: 'Quitar la cena de este día' }))
     // Primera pulsación: todavía no ha pasado nada.
     expect((await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09')).toBeTruthy()

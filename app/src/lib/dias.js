@@ -81,6 +81,52 @@ export function platoQueManda(platos = []) {
 }
 
 /**
+ * Cuántas letras entran en el titular de una fila antes de que recorte
+ * (`docs/diseño/dia-titular.html`).
+ *
+ * La línea mide **289 pt** y lleva `white-space: nowrap`, así que lo que sobra
+ * no baja: se come. Medido con contenido real: «Bici electrica a Cadaques» son
+ * 25 letras y 253,1 pt —entra—, y «Cena en la playa con música!» son 28 y
+ * 293,4 —no entra, y hoy se ve recortada en la app—. De ahí el tope: **26**, la
+ * última medida que cabe con holgura en Grande.
+ *
+ * Es un número aproximado a propósito. La alternativa era medir el texto de
+ * verdad, y eso necesita el navegador dentro de una función que hoy es pura y
+ * corre en las pruebas sin montar nada.
+ */
+export const LETRAS_DEL_TITULAR = 26
+
+/**
+ * El titular de una cena en la lista de días: **los principales**
+ * (`docs/diseño/dia-titular.html` · P4).
+ *
+ * Antes mandaba **uno solo** (`platoQueManda`), así que una Noche Ibérica de
+ * jamón y tortilla se anunciaba por el jamón y la tortilla no salía en ninguna
+ * pantalla sin abrir el día.
+ *
+ * Tres reglas, y las tres son por lo mismo —que la línea no parte—:
+ *
+ *   · **solo los principales**, que es lo que se pidió: el aperitivo y el postre
+ *     acompañan, no titulan;
+ *   · **dos como tope**, y del tercero en adelante «y N más». Tres nombres
+ *     propios no caben en 289 pt ni encadenando los cortos;
+ *   · y si los dos juntos **se pasan de `LETRAS_DEL_TITULAR`**, se cae al
+ *     primero y se cuenta el resto: «Pinchos Arnall 🍖 y Tortilla de patata»
+ *     mide 370,7 pt y saldría cortada por la mitad, que es peor que contar.
+ *
+ * Sin ningún principal se queda la regla de antes —el primer plato—: nombrar dos
+ * acompañamientos como titular de la noche dice menos que nombrar uno.
+ */
+export function titularDePlatos(platos = []) {
+  const principales = platos.filter((p) => p?.categorias?.includes('principal'))
+  if (principales.length === 0) return platoQueManda(platos)?.name ?? null
+
+  const nombres = principales.map((p) => p.name)
+  const dos = juntarYContar(nombres, Math.min(2, nombres.length))
+  return dos.length <= LETRAS_DEL_TITULAR || nombres.length === 1 ? dos : juntarYContar(nombres, 1)
+}
+
+/**
  * Cómo se resume un día en una fila: un titular y una línea de debajo.
  *
  * El titular dice **lo que se hace** —la cena si la hay, y si no el primer plan—
@@ -99,9 +145,7 @@ export function resumenDeDia({ cena, planes = [], platos = [], bungaMayores, esP
     // «Paella mixta en El del…». Dónde se cena vive en el titular de «Hoy» y en
     // el modal del día, que es donde hay sitio; aquí solo cuando no hay plato
     // que enseñar y el titular se quedaría en un «Cena» pelado.
-    const plato = platoQueManda(platos)
-    if (plato) titulo = plato.name
-    else titulo = bungaMayores ? `Cena en ${bungaMayores}` : 'Cena'
+    titulo = titularDePlatos(platos) ?? (bungaMayores ? `Cena en ${bungaMayores}` : 'Cena')
   } else if (nPlanes > 0) {
     titulo = planes[0].titulo
   } else if (esPrimero) {
@@ -112,20 +156,29 @@ export function resumenDeDia({ cena, planes = [], platos = [], bungaMayores, esP
     titulo = 'Día libre'
   }
 
-  let detalle
-  if (!cena && nPlanes === 0) {
-    detalle = 'nada apuntado'
-  } else {
-    const dePlatos = cena
-      ? (nPlatos ? `${nPlatos} ${nPlatos === 1 ? 'plato' : 'platos'}` : 'cena sin platos')
-      : 'sin cena'
-    const dePlanes = nPlanes
-      ? `${nPlanes} ${nPlanes === 1 ? 'plan' : 'planes'}`
-      : 'sin planes'
-    detalle = `${dePlatos} · ${dePlanes}`
-  }
+  if (!cena && nPlanes === 0) return { titulo, detalle: 'nada apuntado' }
 
-  return { titulo, detalle }
+  // **El renglón nombra en vez de contar** (`dia-titular.html` · N1 · C1). Decía
+  // «sin cena · 2 planes», y para saber cuál era el segundo plan había que abrir
+  // el día: el titular solo enseña el primero. Contar sirve para comparar días;
+  // nombrar sirve para saber qué hay, que es a lo que se entra aquí.
+  //
+  // Se nombra **lo que no esté ya arriba**: con cena titulan los platos y bajan
+  // todos los planes; sin cena titula el primer plan y bajan los demás. Repetir
+  // el titular en su propio renglón es gastar la única línea que queda.
+  const planesAbajo = cena ? planes : planes.slice(1)
+  const trozos = []
+  if (planesAbajo.length) {
+    trozos.push(enumerarConTope(planesAbajo.map((p) => p.titulo).filter(Boolean), LETRAS_DEL_RENGLON))
+  } else if (nPlanes === 0) {
+    // Que un día no tenga nada que hacer es un dato, y es el que se busca al
+    // repasar el viaje. Sin cena no se dice: ahí el titular ya es el plan.
+    trozos.push('sin planes')
+  }
+  if (!cena) trozos.push('sin cena')
+  else if (nPlatos === 0) trozos.push('cena sin platos')
+
+  return { titulo, detalle: trozos.filter(Boolean).join(' · ') }
 }
 
 /**
@@ -159,20 +212,24 @@ export function rotuloDelDia({ dia, estado, distancia }, { hayCena = false } = {
 }
 
 /**
- * El titular de la cena: «Paella mixta y cinco cosas más».
+ * El titular de la cena en el renglón del día: **los principales**.
  *
- * Se cuenta con letra hasta diez porque un número dentro de una frase se lee
- * como un dato, y aquí es una manera de hablar.
+ * Decía «Paella mixta y cinco cosas más», con el mismo defecto que la lista de
+ * Días: nombraba **uno** y contaba el resto, así que la tortilla de una Noche
+ * Ibérica no salía en ninguna pantalla sin abrir el elegidor. Pasa a
+ * `titularDePlatos` (§14.69 · P4) por lo mismo y con las mismas reglas: dos como
+ * tope y el resto contado.
+ *
+ * **Y el recuento se va del titular** porque el renglón de debajo ya lo lleva
+ * —«tres platos»—, así que decirlo arriba era decirlo dos veces en la misma
+ * fila. Sin esto, las dos pantallas hermanas contestarían distinto a la misma
+ * pregunta, que es justo lo que `titularDeHoy` se puso para evitar.
  */
 const LETRAS = ['cero', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez']
 export const enLetras = (n) => (n >= 0 && n <= 10 ? LETRAS[n] : String(n))
 export function titularDeCena(cena, platos = []) {
   if (!cena) return 'Sin cena montada'
-  const plato = platoQueManda(platos)
-  if (!plato) return 'Cena sin platos apuntados'
-  const resto = platos.length - 1
-  if (resto <= 0) return plato.name
-  return `${plato.name} y ${enLetras(resto)} ${resto === 1 ? 'cosa más' : 'cosas más'}`
+  return titularDePlatos(platos) ?? 'Cena sin platos apuntados'
 }
 
 /** Sin tildes y en minúscula, la misma vara que `buscarGente` (lib/reparto-gente.js). */
@@ -195,6 +252,53 @@ const enumerar = (cosas = []) => (
   cosas.length <= 1 ? (cosas[0] ?? '')
     : `${cosas.slice(0, -1).join(', ')} y ${cosas[cosas.length - 1]}`
 )
+
+/**
+ * Los `cuantos` primeros por su nombre y el resto contado.
+ *
+ * La coma no es cosmética: con resto, la «y» ya la gasta el recuento, y
+ * enumerar de la forma normal daba **«Jamón y Tortilla y 1 más»**, con dos «y»
+ * seguidas que se leen como si el tercero se llamara «1 más». Sin resto se
+ * enumera como toda la vida.
+ */
+function juntarYContar(nombres, cuantos) {
+  const resto = nombres.length - cuantos
+  if (resto <= 0) return enumerar(nombres)
+  return `${nombres.slice(0, cuantos).join(', ')} y ${resto} más`
+}
+
+/**
+ * Cuántas letras entran en el renglón de debajo del titular.
+ *
+ * Mide los mismos **289 pt** pero con letra más pequeña (`--t-sub`), así que
+ * entra más: «Bici eléctrica · Kayak por la cala» son 34 letras y 250 pt, y
+ * «Bici eléctrica a Cadaqués · Kayak por la cala» son 44 y 347,4. El tope va en
+ * **36**, la última medida que cabe.
+ *
+ * Y aquí el tope importa **más** que en el titular, aunque este renglón sí parta
+ * línea: partirla cuesta **+22,8 pt**, y la tarjeta de ocho días mide 590,8 en
+ * un hueco de 594. Sobran 3,2 — o sea que un solo día que crezca hace rodar la
+ * lista entera.
+ */
+export const LETRAS_DEL_RENGLON = 36
+
+/**
+ * Enumera lo que quepa y cuenta el resto: «Kayak por la cala y 2 más».
+ *
+ * Va probando con uno menos hasta que entra, en vez de cortar por el número de
+ * elementos: dos planes de nombre corto caben y uno solo de nombre largo no, así
+ * que el tope tiene que ser el ancho y no la cuenta. Con uno solo se rinde y lo
+ * devuelve aunque se pase — algo hay que decir, y recortar es cosa del CSS.
+ */
+export function enumerarConTope(nombres = [], letras = LETRAS_DEL_RENGLON) {
+  const limpios = nombres.filter(Boolean)
+  if (limpios.length === 0) return ''
+  for (let n = limpios.length; n >= 1; n -= 1) {
+    const texto = juntarYContar(limpios, n)
+    if (texto.length <= letras || n === 1) return texto
+  }
+  return ''
+}
 
 /**
  * La cena de esta noche **redactada** (`docs/diseño/hoy-el-dia.html` · T1).
