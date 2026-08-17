@@ -9,7 +9,7 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.58.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+- **`app/`** v0.59.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
   1082 pruebas en 116 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   261 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
@@ -131,6 +131,7 @@ Primera frase de la cabecera de cada módulo.
 - `Icono.jsx` — Los dibujos de la app, en una sola tabla.
 - `Ingredientes.jsx` — Los ingredientes de una receta: **una lista sin cajas y un renglón al pie**.
 - `LineaDelHorizonte.jsx` — La línea del horizonte: tres puntos bajo la cabecera que son el día.
+- `ListaDePlatos.jsx` — Los platos de una cena, **en el orden en que se comen y diciendo de qué es cada uno** (`docs/diseño/hoy-el-dia.html` · L2).
 - `PadDeImporte.jsx` — La cifra grande y el pad de dieciséis teclas (`docs/diseño/gasto-nuevo.html` · A1, SPECS §14.26).
 - `PastillaDeEstado.jsx` — Tu estado, en la segunda línea de la cabecera (`docs/diseño/estado.html` · A3 · V1).
 - `PieDeVersion.jsx` — La versión que hay puesta, al final del scroll, y el botón de actualizar.
@@ -151,6 +152,7 @@ Primera frase de la cabecera de cada módulo.
 - `avisos.js` — Lo que está esperando a que alguien haga algo.
 - `borrados.js` — Qué se lleva por delante un borrado, dicho en una frase.
 - `cacharros.js` — El ranking de cacharros: quién gana, quién puede votar y qué se dice de él (SPECS §14.57, `docs/diseño/siete-encargos.html` · G1·G2·G3·G4).
+- `carta.js` — El orden de la carta: qué categorías hay y en qué orden se sirven.
 - `categorias.js` — Las cinco categorías de un gasto.
 - `cielo.js` — De qué color está el cielo a esta hora.
 - `cocina.js` — Con qué se cocina, tal como lo cuenta la pantalla (SPECS §14.20-quater).
@@ -319,7 +321,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `Confirmar.jsx`, `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`, `EnlaceScreen.jsx`
-- **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`
+- **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`, `HoyScreen.jsx`
 - **§14.31** Los elegidores del día: al centro, con borrador y buscador → `BotonDePerfil.jsx`, `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
 - **§14.32** El semáforo del día, y el género del bunga → `PlanesScreen.jsx`
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`

@@ -1344,6 +1344,33 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
   text-transform: uppercase; color: var(--spout-deep); }
 .titular .g { font-size: var(--t-body); font-weight: 650; letter-spacing: -.01em; margin-top: 4px; }
 .titular .p { font-size: var(--t-sub); color: var(--ink-soft); margin-top: 3px; }
+/* El titular se toca y abre el día en lectura (`hoy-el-dia.html` · P1): es un
+   botón, así que hay que devolverle lo que un botón se lleva —el ancho, el
+   texto a la izquierda y la tipografía—. */
+.titular.titular-toca { display: block; width: 100%; text-align: left; font-family: inherit;
+  color: inherit; cursor: pointer; }
+.titular.titular-toca:active { transform: translateY(1px); }
+.titular .l, .titular .g, .titular .p { display: block; }
+/* La cena redactada (· T1). Cuerpo de lectura y peso normal: es una frase, no un
+   titular, y lo que se busca dentro va en negrita. */
+.titular .frase { display: block; font-size: var(--t-body); line-height: 1.4; margin-top: 5px; }
+.titular .frase b { font-weight: 650; }
+
+/* Los platos de una cena, en orden y con su categoría (· L2). */
+.lista-platos { list-style: none; margin: 0; padding: 0; }
+.lista-platos li { display: flex; align-items: baseline; gap: 10px; padding: 8px 0;
+  border-top: 1px solid var(--line-soft); font-size: var(--t-row); }
+.lista-platos li:first-child { border-top: none; }
+.lista-platos .n { min-width: 0; }
+/* `.tipo` y no `.cat`: `.cat` es la casilla de categoría de un gasto —flex en
+   columna, con borde y color propio— y se colaba entera en este renglón. */
+.lista-platos .tipo { margin-left: auto; flex: none; font-size: var(--t-sub); color: var(--ink-faint); }
+
+/* El rótulo de un grupo del elegidor de platos (· E3). «Esta cena» lleva el
+   acento: es lo que llevas puesto, no una categoría más. */
+.grupo-cat { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-faint); margin: 12px 2px 5px; }
+.grupo-cat.puesto { color: var(--spout-deep); margin-top: 10px; }
 
 /* Una fila de día. La `.row` de siempre partida en dos objetivos: la fila
    entera abre el día y el lápiz también. El botón no está para tener que

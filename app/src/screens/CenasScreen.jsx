@@ -233,33 +233,45 @@ function AddDinnerModal({ eventId, evento, bungas, dishes, onClose }) {
 
         {/* Los niños heredan hasta que se toque (§14.20 · G2). Se sigue
             escribiendo **una** lista: separarlas es para la noche en que ellos
-            cenan macarrones y los mayores paella, no para todas. */}
+            cenan macarrones y los mayores paella, no para todas.
+
+            **Y mientras hereden no se anuncia** (`hoy-el-dia.html`): una tarjeta
+            de dos renglones para decir lo que pasa siempre es un renglón que se
+            lee en todas las cenas y hace falta en una. Queda el verbo, en una
+            línea; la tarjeta vuelve en cuanto tienen lista propia. */}
+        {!platosNinos ? (
+          <button
+            type="button"
+            className="renglon-mas"
+            style={{ marginTop: 10 }}
+            onClick={() => { tap(); setPlatosNinos(new Set(platoIds)) }}
+          >
+            Los niños comen otra cosa…
+          </button>
+        ) : (
         <div className="card tight" style={{ marginTop: 10 }}>
           <div className="row">
             <div className="main">
-              <div className="n">Los niños comen lo mismo</div>
-              <div className="sub">
-                {platosNinos ? 'Tienen su propia lista.' : 'Heredan los platos de arriba.'}
-              </div>
+              <div className="n">Los niños comen otra cosa</div>
+              <div className="sub">Tienen su propia lista.</div>
             </div>
             <button
               className="btn sm ghost"
-              aria-pressed={Boolean(platosNinos)}
-              onClick={() => { tap(); setPlatosNinos(platosNinos ? null : new Set(platoIds)) }}
+              aria-pressed
+              onClick={() => { tap(); setPlatosNinos(null) }}
             >
-              {platosNinos ? 'Que coman lo mismo' : 'Cambiar la suya'}
+              Que coman lo mismo
             </button>
           </div>
-          {platosNinos && (
-            <div className="chips" style={{ marginTop: 8 }}>
-              {dishes.map((d) => (
-                <button key={d.id} className={`chip${platosNinos.has(d.id) ? ' on' : ''}`} onClick={() => toggleNinos(d.id)}>
-                  {d.name}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="chips" style={{ marginTop: 8 }}>
+            {dishes.map((d) => (
+              <button key={d.id} className={`chip${platosNinos.has(d.id) ? ' on' : ''}`} onClick={() => toggleNinos(d.id)}>
+                {d.name}
+              </button>
+            ))}
+          </div>
         </div>
+        )}
 
         <div className="card tight" style={{ marginTop: 10 }}>
           <label style={{ marginTop: 0 }}>Nuevo plato al vuelo</label>

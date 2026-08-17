@@ -8,6 +8,7 @@
  * Ver `docs/diseño/navegacion.html` · B2 (Hoy · Días), E1 (qué enseña Hoy),
  * F3 (qué enseña cuando hoy no es del evento) y G1 (una fila por día).
  */
+import { porOrdenDeCarta } from './carta.js'
 
 /**
  * Un día en AAAA-MM-DD **desde la fecha local**, y nunca por `toISOString()`.
@@ -189,6 +190,51 @@ export function filtraOpciones(opciones = [], texto = '') {
   return opciones.filter((o) => plano(o.etiqueta).includes(q) || plano(o.nota).includes(q))
 }
 
+/** «a», «a y b», «a, b y c» — la enumeración de toda la vida. */
+const enumerar = (cosas = []) => (
+  cosas.length <= 1 ? (cosas[0] ?? '')
+    : `${cosas.slice(0, -1).join(', ')} y ${cosas[cosas.length - 1]}`
+)
+
+/**
+ * La cena de esta noche **redactada** (`docs/diseño/hoy-el-dia.html` · T1).
+ *
+ * Devuelve **trozos** y no una cadena porque hay que poner en negrita lo que se
+ * busca —el plato que manda y los dos bungas— y componer eso en la pantalla
+ * sería volver a partir la frase allí. `fuerte` es la negrita.
+ *
+ * Los nombres de los platos van **tal como están escritos**, también en medio de
+ * la frase: bajarles la primera letra convertiría «BBQ de pescado» en «bBQ de
+ * pescado», y un plato es un nombre propio.
+ */
+export function fraseDeLaNoche({ platos = [], bungaMayores, bungaNinos, esHoy = true } = {}) {
+  const trozos = []
+  const manda = platoQueManda(platos)
+  // En el orden en que se comen y no en el que se marcaron: «con patatas
+  // chafadas y helado» y no «con helado y patatas chafadas».
+  const resto = porOrdenDeCarta(platos.filter((p) => p !== manda)).map((p) => p.name)
+
+  if (!manda) {
+    trozos.push({ t: esHoy ? 'Esta noche hay cena, todavía sin platos apuntados.' : 'Hay cena, todavía sin platos apuntados.' })
+  } else {
+    trozos.push({ t: esHoy ? 'Esta noche ' : 'Se cena ' })
+    trozos.push({ t: manda.name, fuerte: true })
+    trozos.push({ t: resto.length ? `, con ${enumerar(resto)}.` : '.' })
+  }
+
+  if (bungaMayores && bungaNinos) {
+    trozos.push({ t: ' Los mayores cenan en ' }, { t: bungaMayores, fuerte: true })
+    trozos.push({ t: ' y los niños en ' }, { t: bungaNinos, fuerte: true }, { t: '.' })
+  } else if (bungaMayores) {
+    trozos.push({ t: ' Se cena en ' }, { t: bungaMayores, fuerte: true }, { t: '.' })
+  } else if (bungaNinos) {
+    trozos.push({ t: ' Los niños cenan en ' }, { t: bungaNinos, fuerte: true }, { t: '.' })
+  } else {
+    trozos.push({ t: ' Sin bungas repartidos todavía.' })
+  }
+  return trozos
+}
+
 /**
  * El titular grande de «Hoy» titula **lo que hay**, no siempre la cena
  * (`docs/diseño/dia-abierto.html` · P2): la cena con platos manda; sin ella,
@@ -201,7 +247,7 @@ export function filtraOpciones(opciones = [], texto = '') {
  * Una cena vacía pero montada (con bungas y sin platos) solo manda si tampoco
  * hay plan: es un hueco reservado, no lo que se hace ese día.
  */
-export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bungaNinos } = {}) {
+export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bungaNinos, esHoy = true } = {}) {
   const conPlatos = (cena?.platoIds?.length ?? 0) > 0
   if (conPlatos || (cena && planes.length === 0)) {
     const bungas = [bungaMayores && `Mayores en ${bungaMayores}`, bungaNinos && `niños en ${bungaNinos}`]
@@ -209,6 +255,7 @@ export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bun
     return {
       grande: titularDeCena(cena, platos),
       pequeno: bungas || 'Sin bungas repartidos todavía',
+      frase: fraseDeLaNoche({ platos, bungaMayores, bungaNinos, esHoy }),
     }
   }
   const deCena = cena ? 'cena sin platos apuntados' : 'sin cena montada todavía'
