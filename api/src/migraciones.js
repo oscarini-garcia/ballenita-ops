@@ -813,4 +813,35 @@ ALTER TABLE alojamientos ADD COLUMN resumen TEXT;
 ALTER TABLE alojamientos ADD COLUMN resumenDe TEXT;
 `,
   },
+  {
+    id: '0020_enlace_reutilizable',
+    sql: `-- El enlace de acceso deja de ser de un solo uso (SPECS §14.61-bis).
+--
+-- **\`cuenta.enlaceExpira\`** — hasta cuándo vale el enlace que hay generado, en
+-- segundos epoch, o NULL si no hay ninguno.
+--
+-- La columna nace **por un efecto secundario de quitar el solo uso**, y por eso
+-- entra en la misma vuelta. Antes \`enlaceJti\` se borraba al canjear el enlace,
+-- así que \`enlaceJti IS NOT NULL\` contestaba «tiene un enlace **sin usar**», que
+-- es lo que la pantalla de Cuentas enseña para separar «se lo he mandado» de
+-- «ya ha entrado». Si el enlace ya no se quema, esa columna **no vuelve a
+-- vaciarse nunca** y la pastilla se quedaría puesta para siempre, también
+-- cuando el enlace lleve meses caducado: peor que no tenerla, porque miente.
+--
+-- Con la fecha, la pregunta que contesta pasa a ser la que de verdad importa
+-- ahora —«¿hay por ahí suelto un enlace que todavía abre esta cuenta?»—, que es
+-- lo que hay que saber para decidir si conviene generar otro y revocarlo.
+--
+-- No la deduce el \`jti\`: el identificador es aleatorio y no lleva fecha dentro.
+-- Y no se lee del propio pase porque el pase lo tiene quien lo recibió, no el
+-- servidor.
+--
+-- Como las demás, no se toca \`0001_esquema.sql\`: aplicar todas las migraciones
+-- en orden tiene que reproducir producción (\`test/d1.js\`).
+--
+--   npm run migrar:remoto20
+
+ALTER TABLE cuenta ADD COLUMN enlaceExpira INTEGER;
+`,
+  },
 ];

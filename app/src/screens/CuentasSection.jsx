@@ -204,10 +204,12 @@ export default function CuentasSection({ eventId, sincronizar }) {
                         : 'todavía no es nadie del grupo'}
                       {c.porEnlace ? ' · por enlace' : ''}
                       {c.ultimoAcceso ? ` · ${formatearHace(c.ultimoAcceso)}` : ' · aún no ha entrado'}
-                      {/* Un enlace generado y sin canjear es lo que separa «se lo
-                          he mandado» de «ya ha entrado», que desde aquí se ven
-                          igual y se arreglan distinto. */}
-                      {c.enlaceVivo ? ' · enlace sin usar' : ''}
+                      {/* Ya no dice «sin usar»: desde §14.61-bis el enlace no se
+                          quema al canjearlo, así que lo que se sabe —y lo que
+                          hay que saber, porque es una credencial al portador— es
+                          que hay uno por ahí que todavía abre esta cuenta.
+                          «Ya ha entrado» lo contesta el renglón de al lado. */}
+                      {c.enlaceVivo ? ' · con enlace activo' : ''}
                     </span>
                   </span>
                   <button className="btn sm ghost" onClick={() => { tap(); setEnlazando(c) }}>
@@ -230,8 +232,8 @@ export default function CuentasSection({ eventId, sincronizar }) {
           <div className="note">
             La puerta de la app la abre Apple, así que quien no tiene iPhone no puede entrar. Con un
             enlace sí: se abre en cualquier navegador y entra como esa persona, con todo lo del grupo.
-            Vale <b>una sola vez</b> y caduca a los tres días; generar otro deja el anterior sin
-            valor, que es cómo se anula uno que acabó donde no debía.
+            Se puede abrir <b>las veces que haga falta</b> y caduca a los tres días; generar otro
+            deja el anterior sin valor, que es cómo se anula uno que acabó donde no debía.
           </div>
           <button className="btn sm ghost" onClick={() => { tap(); setEligiendoParaEnlace(true) }}>
             Crear un enlace de acceso…

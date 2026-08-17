@@ -53,7 +53,7 @@ import {
   avisoDeLiquidacion, avisosDeGasto, elGastoMueveElSaldo,
 } from './avisos.js';
 import {
-  coincideEnTiempoConstante, emitirPaseDeEnlace, emitirPaseDeEspera, emitirSesion,
+  coincideEnTiempoConstante, emitirPaseDeEnlace, emitirPaseDeEspera, emitirSesion, VIGENCIA_ENLACE,
   verificarPaseDeEnlace, verificarPaseDeEspera, verificarSesion,
 } from './sesion.js';
 import { hayRevocacionConfigurada, revocarEnApple } from './revocacion.js';
@@ -348,10 +348,17 @@ async function entrarPorEnlace(peticion, env) {
     return json({ estado: 'no-vale', mensaje: 'Esta cuenta ya no existe.' }, 401);
   }
 
+  // **El enlace vale las veces que haga falta** (SPECS §14.61-bis): lo único
+  // que se comprueba es que sea *el* enlace vivo de esta cuenta. Antes se
+  // quemaba al canjearlo, y con eso se caían usos que no son un ataque sino el
+  // camino normal —abrirlo dos veces, verlo primero en el móvil y luego en el
+  // portátil, o que la vista previa de WhatsApp lo estrene por ti—; y el que se
+  // quedaba fuera era quien no tiene iPhone, o sea justo a quien esto existe
+  // para dejar entrar. Lo que revoca sigue siendo generar otro.
   if (!cuenta.enlaceJti || !papel.jti || !coincideEnTiempoConstante(cuenta.enlaceJti, papel.jti)) {
     return json({
-      estado: 'usado',
-      mensaje: 'Este enlace ya se ha usado o se ha generado otro más nuevo. Pídele uno a quien lleva el grupo.',
+      estado: 'caducado',
+      mensaje: 'Este enlace ya no vale: se ha generado otro más nuevo. Pídele el último a quien lleva el grupo.',
     }, 401);
   }
 
@@ -359,7 +366,6 @@ async function entrarPorEnlace(peticion, env) {
     return json({ estado: 'desactivada', mensaje: 'Tu acceso al grupo está desactivado.' }, 403);
   }
 
-  await ponerJtiDeEnlace(env.DB, cuenta.id, null);
   await anotarAcceso(env.DB, cuenta.id);
 
   return json({
@@ -465,7 +471,11 @@ async function cuentas(peticion, env) {
     }
 
     const jti = crypto.randomUUID();
-    await ponerJtiDeEnlace(env.DB, cuenta.id, jti);
+    // La misma vigencia que lleva dentro el pase, guardada aparte: el servidor
+    // no se queda con el papel, así que sin esto no sabría hasta cuándo vale lo
+    // que acaba de firmar (§14.61-bis).
+    const expira = Math.floor(Date.now() / 1000) + VIGENCIA_ENLACE;
+    await ponerJtiDeEnlace(env.DB, cuenta.id, jti, expira);
     return json({ pase: await emitirPaseDeEnlace(env.SESION_SECRETO, cuenta.id, jti), id: cuenta.id });
   }
 

@@ -90,16 +90,21 @@ export async function crearCuenta(
 }
 
 /**
- * Guarda cuál es el pase de enlace que vale para esta cuenta, y borra el que
- * hubiera (SPECS §14.61).
+ * Guarda cuál es el pase de enlace que vale para esta cuenta, y hasta cuándo
+ * (SPECS §14.61, §14.61-bis).
  *
- * Es el mismo movimiento en los dos sentidos y por eso es una sola función: con
- * un `jti` se genera —y el enlace anterior deja de valer en el acto, que es
- * cómo se revoca uno que acabó donde no debía—, y con `null` se quema al
- * canjearlo, que es lo que lo hace de un solo uso.
+ * Sobrescribir es **revocar**: el enlace anterior deja de valer en el acto, que
+ * es lo que hay que poder hacer cuando uno acaba donde no debía. Con `null` se
+ * borra sin poner otro.
+ *
+ * La fecha va aparte del `jti` porque el identificador es aleatorio y no lleva
+ * nada dentro, y porque el `exp` del pase lo tiene quien lo recibió, no el
+ * servidor. Desde que el enlace **no se quema al canjearlo**, es lo único que
+ * distingue «hay un enlace suelto que abre esta cuenta» de «hubo uno hace meses».
  */
-export async function ponerJtiDeEnlace(db, cuentaId, jti) {
-  await db.prepare('UPDATE cuenta SET enlaceJti = ? WHERE id = ?').bind(jti, cuentaId).run();
+export async function ponerJtiDeEnlace(db, cuentaId, jti, expira = null) {
+  await db.prepare('UPDATE cuenta SET enlaceJti = ?, enlaceExpira = ? WHERE id = ?')
+    .bind(jti, jti ? expira : null, cuentaId).run();
 }
 
 export function listarCuentas(db) {
@@ -109,11 +114,14 @@ export function listarCuentas(db) {
     // instalación y no hace falta para nada en la pantalla—, pero sí sale lo
     // que se deduce de él: una cuenta con prefijo `enlace:` es de alguien que
     // entra por navegador y nunca ha pasado por Apple, y decirlo evita que se
-    // lea como una cuenta rota. `enlaceVivo` es si le queda un enlace sin
-    // canjear, que es lo que separa «se lo he mandado» de «ya ha entrado».
+    // lea como una cuenta rota. `enlaceVivo` es si **ahora mismo** hay un enlace
+    // suyo que todavía abre la puerta: desde §14.61-bis el enlace no se quema al
+    // canjearlo, así que «tiene `jti`» ya no quiere decir «sin usar» y se
+    // quedaría puesto para siempre. Lo que se pregunta ahora es lo que de verdad
+    // importa —si hay una credencial suelta— y lo contesta la fecha.
     `SELECT id, nombre, email, rol, activa, personId, creadoEn, ultimoAcceso,
             (appleSub LIKE 'enlace:%') AS porEnlace,
-            (enlaceJti IS NOT NULL) AS enlaceVivo
+            (enlaceJti IS NOT NULL AND enlaceExpira > unixepoch()) AS enlaceVivo
        FROM cuenta ORDER BY creadoEn`,
   );
 }

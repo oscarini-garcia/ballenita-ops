@@ -462,9 +462,15 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   autenticarse**— y ahora abre también en el navegador **con sesión**; sin ella, la web es
   la libreta local de siempre. Quien administra genera el enlace en Ajustes → Cuentas
   **eligiendo a la persona** (quien no ha podido entrar nunca no está en la lista de
-  cuentas), y las tres reglas salen todas de que un enlace es una **credencial al
-  portador**: un solo uso (`cuenta.enlaceJti`, migración `0016`), generar otro revoca el
-  anterior, y tres días. Va en el **fragmento** (`#pase=`), que no viaja al servidor. Se
+  cuentas), y las reglas salen de que un enlace es una **credencial al portador**:
+  caduca a los **tres días** y **generar otro revoca el anterior** (`cuenta.enlaceJti`).
+  **El «un solo uso» se retiró** (§14.61-bis): lo que tiraba abajo casi nunca era un
+  reenvío con mala idea sino el camino normal —abrirlo dos veces, verlo en el móvil y
+  luego en el portátil, o que la vista previa de WhatsApp lo estrenase—, y el que se
+  quedaba fuera era quien no tiene iPhone, o sea justo aquel para quien existe esto. De
+  quitarlo salió `cuenta.enlaceExpira` (migración `0020`): sin el vaciado del canje, la
+  pastilla de Cuentas —ahora «con enlace activo»— se habría quedado puesta para siempre.
+  Va en el **fragmento** (`#pase=`), que no viaja al servidor. Se
   sigue ahorrando el montaje web de Apple —Services ID, verificación de dominio—, y lo que
   no hay en el navegador son **avisos**: el push es un plugin nativo.
 - **Configuración en caliente:** `app/public/config.json` (API, cliente de Apple, manifiesto

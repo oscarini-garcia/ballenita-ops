@@ -149,15 +149,23 @@ test('el enlace canjea una sesión de las de siempre', async () => {
   assert.ok((await cuentaPorId(db, id)).ultimoAcceso);
 });
 
-test('el mismo enlace no vale dos veces', async () => {
+/**
+ * **El mismo enlace vale las veces que haga falta** (SPECS §14.61-bis).
+ *
+ * Era de un solo uso, y lo que eso tiraba abajo no eran ataques sino el camino
+ * normal: abrirlo dos veces, mirarlo en el móvil y luego en el portátil, o que
+ * la vista previa de WhatsApp lo estrene antes que su dueño. El que se quedaba
+ * fuera era quien no tiene iPhone, o sea justo aquel para quien existe esto.
+ */
+test('el mismo enlace vale las veces que haga falta', async () => {
   const { env, token } = await conAdministrador();
   const { pase } = await (await generar(env, token, 'per_curro', 'Curro')).json();
 
-  assert.equal((await canjear(env, pase)).status, 200);
-
-  const segunda = await canjear(env, pase);
-  assert.equal(segunda.status, 401);
-  assert.equal((await segunda.json()).estado, 'usado');
+  for (let i = 0; i < 3; i += 1) {
+    const respuesta = await canjear(env, pase);
+    assert.equal(respuesta.status, 200, `el intento ${i + 1} tenía que entrar`);
+    assert.equal((await respuesta.json()).estado, 'dentro');
+  }
 });
 
 test('generar otro invalida el anterior, que es cómo se revoca', async () => {
@@ -167,9 +175,26 @@ test('generar otro invalida el anterior, que es cómo se revoca', async () => {
 
   const conElViejo = await canjear(env, viejo);
   assert.equal(conElViejo.status, 401);
-  assert.equal((await conElViejo.json()).estado, 'usado');
+  assert.equal((await conElViejo.json()).estado, 'caducado');
 
   assert.equal((await canjear(env, nuevo)).status, 200);
+});
+
+/**
+ * Y revocar sigue funcionando **después** de que lo hayan usado, que es cuando
+ * de verdad hace falta: mientras era de un solo uso, un enlace ya canjeado se
+ * revocaba solo y esto no se podía ni probar.
+ */
+test('generar otro revoca el anterior aunque ya se hubiera usado', async () => {
+  const { env, token } = await conAdministrador();
+  const viejo = (await (await generar(env, token, 'per_curro', 'Curro')).json()).pase;
+  assert.equal((await canjear(env, viejo)).status, 200);
+
+  await generar(env, token, 'per_curro', 'Curro');
+
+  const otraVez = await canjear(env, viejo);
+  assert.equal(otraVez.status, 401);
+  assert.equal((await otraVez.json()).estado, 'caducado');
 });
 
 test('un pase caducado se rechaza aunque la firma sea buena, y lo dice', async () => {
@@ -206,7 +231,7 @@ test('un pase sin jti no entra en una cuenta sin enlace vivo', async () => {
 
   const respuesta = await canjear(env, pase);
   assert.equal(respuesta.status, 401);
-  assert.equal((await respuesta.json()).estado, 'usado');
+  assert.equal((await respuesta.json()).estado, 'caducado');
 });
 
 test('si le cierran la puerta entre medias, el enlace no la abre', async () => {
@@ -220,7 +245,13 @@ test('si le cierran la puerta entre medias, el enlace no la abre', async () => {
   assert.equal((await respuesta.json()).estado, 'desactivada');
 });
 
-test('la lista dice quién entra por enlace y a quién le queda uno sin usar', async () => {
+/**
+ * `enlaceVivo` contesta **si hay una credencial suelta que abre esta cuenta**, y
+ * ya no «si le queda uno sin usar»: desde §14.61-bis canjearlo no lo quema, así
+ * que sin la fecha la pastilla se quedaría puesta para siempre — también con el
+ * enlace caducado hace meses, que es peor que no tenerla porque miente.
+ */
+test('la lista dice quién entra por enlace y quién tiene uno suelto', async () => {
   const { db, env, token } = await conAdministrador();
   const { pase, id } = await (await generar(env, token, 'per_curro', 'Curro')).json();
 
@@ -228,8 +259,12 @@ test('la lista dice quién entra por enlace y a quién le queda uno sin usar', a
   assert.equal(antes.porEnlace, 1);
   assert.equal(antes.enlaceVivo, 1);
 
+  // Usarlo **no** lo apaga: el enlace sigue por ahí y sigue abriendo.
   await canjear(env, pase);
+  assert.equal((await listarCuentas(db)).find((c) => c.id === id).enlaceVivo, 1);
 
-  const despues = (await listarCuentas(db)).find((c) => c.id === id);
-  assert.equal(despues.enlaceVivo, 0);
+  // Lo que lo apaga es que caduque.
+  await db.prepare('UPDATE cuenta SET enlaceExpira = ? WHERE id = ?')
+    .bind(Math.floor(Date.now() / 1000) - 60, id).run();
+  assert.equal((await listarCuentas(db)).find((c) => c.id === id).enlaceVivo, 0);
 });
