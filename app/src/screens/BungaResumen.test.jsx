@@ -10,16 +10,18 @@ import 'fake-indexeddb/auto'
  * alguien ha escrito algo sobre él, y de qué familia es de un vistazo.
  */
 const resumenDeBunga = vi.fn()
+const comentarioDeBunga = vi.fn()
 vi.mock('../sync/api.js', async (original) => ({
   ...(await original()),
   resumenDeBunga: (...a) => resumenDeBunga(...a),
+  comentarioDeBunga: (...a) => comentarioDeBunga(...a),
   hayApi: vi.fn(async () => true),
 }))
 
 const { default: GrupoSection } = await import('./GrupoSection.jsx')
 const {
   db, createEvent, addFamily, addBunga, addPerson, addAlojamiento, updateBunga,
-  updateAlojamiento, listAlojamientos, addComentario, anclaDe,
+  updateAlojamiento, listAlojamientos, addComentario, comentariosDe, anclaDe,
 } = await import('../db.js')
 const { huellaDelSitio } = await import('../lib/alojamientos.js')
 
@@ -40,6 +42,7 @@ const pintarBungas = () => render(<GrupoSection eventId={ctx.eventId} area="bung
 beforeEach(async () => {
   localStorage.clear()
   resumenDeBunga.mockReset()
+  comentarioDeBunga.mockReset()
   for (const t of ['events', 'persons', 'families', 'bungas', 'alojamientos', 'comentarios', 'outbox']) {
     await db[t].clear()
   }
@@ -178,6 +181,73 @@ describe('se rehace solo', () => {
     await abrirElBunga()
 
     expect(screen.getByLabelText('Escribe un comentario')).toBeInTheDocument()
+  })
+})
+
+/**
+ * El comentario que propone la ballena (§14.66-quater).
+ *
+ * Lo que se fija: que **lleve la evaluación** —era el encargo entero: «que tenga
+ * en cuenta lo de cómo es»—, que **no se mande solo** y que el botón se pueda
+ * volver a pulsar para otro distinto.
+ */
+describe('que lo escriba la ballena', () => {
+  const abrirConEvaluacion = async () => {
+    const sitio = (await listAlojamientos()).find((a) => a.id === ctx.aloj)
+    await updateAlojamiento(ctx.aloj, {
+      resumen: 'La nevera va sobrada; hay bichos en la terraza.',
+      resumenDe: huellaDelSitio(sitio),
+    })
+    pintarBungas()
+    await waitFor(async () => {
+      await userEvent.click(screen.getByRole('button', { name: /Bunga 12/ }))
+      expect(screen.getByText('Editar bunga')).toBeInTheDocument()
+    })
+  }
+
+  it('trae uno, lo pone en la casilla y no lo manda', async () => {
+    comentarioDeBunga.mockResolvedValue('¿Alguien mira lo de los bichos antes de agosto?')
+    await addComentario(ctx.eventId, { ancla: anclaDe('bunga', ctx.bunga), texto: 'se ha ido la luz otra vez' })
+    await abrirConEvaluacion()
+
+    await userEvent.click(screen.getByRole('button', { name: /Que lo escriba la ballena/ }))
+
+    const casilla = await screen.findByLabelText('Escribe un comentario')
+    await waitFor(() => expect(casilla).toHaveValue('¿Alguien mira lo de los bichos antes de agosto?'))
+    // Nada se ha escrito en el hilo: mandarlo sigue siendo el botón de siempre.
+    expect(await comentariosDe(ctx.eventId, anclaDe('bunga', ctx.bunga))).toHaveLength(1)
+
+    // Y lleva de qué hablar: la evaluación y lo que ya se ha dicho.
+    expect(comentarioDeBunga).toHaveBeenCalledWith(expect.objectContaining({
+      nombre: 'Bunga 12',
+      resumen: 'La nevera va sobrada; hay bichos en la terraza.',
+      hilo: ['se ha ido la luz otra vez'],
+      yaPropuestas: [],
+    }))
+  })
+
+  it('y volver a pulsarlo trae otro, diciéndole el que ya trajo', async () => {
+    comentarioDeBunga.mockResolvedValueOnce('el primero').mockResolvedValueOnce('el segundo')
+    await abrirConEvaluacion()
+
+    await userEvent.click(screen.getByRole('button', { name: /Que lo escriba la ballena/ }))
+    const otro = await screen.findByRole('button', { name: /otro distinto/i })
+    await userEvent.click(otro)
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Escribe un comentario')).toHaveValue('el segundo')
+    })
+    expect(comentarioDeBunga.mock.calls[1][0].yaPropuestas).toEqual(['el primero'])
+  })
+
+  it('si el modelo falla se dice, y la casilla se queda como estaba', async () => {
+    comentarioDeBunga.mockRejectedValue(new Error('la API respondió 409: no hay clave de IA configurada'))
+    await abrirConEvaluacion()
+
+    await userEvent.click(screen.getByRole('button', { name: /Que lo escriba la ballena/ }))
+
+    expect(await screen.findByText(/no hay clave de IA/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Escribe un comentario')).toHaveValue('')
   })
 })
 

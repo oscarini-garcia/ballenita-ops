@@ -456,6 +456,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-family: inherit; font-size: var(--t-label); font-weight: 650; color: var(--spout-deep);
   text-align: center; padding: 12px 0; }
 
+/* «Que lo escriba la ballena» (§14.66-quater). El mismo enlace que «Ver los N
+   comentarios» y no un botón lleno: escribirlo tú sigue siendo lo normal, y el
+   único botón lleno de esta hoja es Guardar. */
+.coment-ia { display: block; width: 100%; background: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: var(--t-label); font-weight: 650; color: var(--spout-deep);
+  text-align: center; padding: 10px 0 2px; }
+.coment-ia:disabled { color: var(--ink-faint); cursor: default; }
+
 /* Pastilla de demostración. Escrita y permanente, no un icono: durante una
    demostración todo lo que se ve es inventado, y esa es la única señal de que
    no se está mirando el evento de verdad del grupo. Es además la salida, y

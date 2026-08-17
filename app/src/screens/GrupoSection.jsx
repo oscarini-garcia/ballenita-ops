@@ -30,7 +30,7 @@ import {
 } from '../lib/alojamientos.js'
 import { mandaEnTodo, porQueNoPuedes, puedeEditarBungas, puedeEditarFamilia } from '../lib/permisos.js'
 import { leerSesion } from '../auth/sesion.js'
-import { resumenDeBunga } from '../sync/api.js'
+import { comentarioDeBunga, resumenDeBunga } from '../sync/api.js'
 import { sinLeer } from '../lib/comentarios.js'
 
 const COLORES = ['#E5544B', '#2E9E6B', '#1FA6D6', '#E7A33E', '#6E4C97', '#E5744B']
@@ -757,8 +757,24 @@ function EditorBunga({ eventId, bunga, familyIdFijo, families, bungas, cenas, on
           {/* El hilo, con la misma pieza que en un plan, un gasto y un día
               (§14.55). Un bunga es de las cosas que más se comentan —«¿os
               importa cambiarlo?», «se ha vuelto a ir la luz»— y era de las
-              pocas que no tenía dónde. */}
-          <Comentarios eventId={bunga.eventId} ancla={anclaDe('bunga', bunga.id)} />
+              pocas que no tenía dónde.
+
+              Y es el único de los cuatro que lleva `sugerir` (§14.66-quater):
+              detrás tiene la evaluación del sitio, que es de lo que el
+              comentario tiene que hablar. Un plan o un gasto no la tienen. */}
+          <Comentarios
+            eventId={bunga.eventId}
+            ancla={anclaDe('bunga', bunga.id)}
+            sugerir={({ hilo, yaPropuestas }) => comentarioDeBunga({
+              nombre: bunga.name,
+              alias: bunga.alias ?? '',
+              notas: sitio?.notas ?? '',
+              pegatinas: pegatinasPuestas(sitio?.pegatinas),
+              resumen: sitio?.resumen ?? '',
+              hilo,
+              yaPropuestas,
+            })}
+          />
 
           {/* El histórico (B5). No se guarda: se recorre `events` y `bungas` y
               se cuenta. */}

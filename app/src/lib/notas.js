@@ -16,8 +16,8 @@
  */
 export const NOTAS = [
   {
-    version: '0.58.0',
-    fecha: '2026-08-16',
+    version: '0.59.0',
+    fecha: '2026-08-17',
     titulo: '«Hoy» cuenta qué se cena y dónde',
     lineas: [
       'El titular de Hoy ya no dice «Paella mixta y dos cosas más»: lo cuenta redactado —qué se cena, con qué, y quién cena en cada bunga— en una frase.',
@@ -25,6 +25,17 @@ export const NOTAS = [
       'Al elegir los platos de una cena, la lista va agrupada por entrante, principal, postre… y los que ya llevas puestos salen arriba del todo.',
       'En Dinero, el total del evento pasa al final de la lista, que es donde se busca al acabar de repasar.',
       'Y se retira el aviso de que los niños comen otra cosa: comen lo mismo salvo que digas lo contrario, y decirlo en todas las cenas sobraba.',
+    ],
+  },
+  {
+    version: '0.58.0',
+    fecha: '2026-08-16',
+    titulo: 'La ballena te escribe el comentario del bunga',
+    lineas: [
+      'En el hilo de un bunga hay un botón nuevo, «Que lo escriba la ballena»: trae un comentario hecho a partir de cómo es el sitio —su evaluación, sus pegatinas y sus notas—, así que habla de la nevera o de los bichos y no de las ganas que hay de llegar.',
+      'Se pone en la casilla de escribir, no se manda: lo corriges, lo borras o lo envías tú, y va firmado con tu nombre como cualquier otro.',
+      'Si no te convence, vuelve a pulsarlo y trae otro distinto — sabe cuáles ya te ha propuesto y también lo que ya se ha dicho en el hilo, así que no se repite.',
+      'Solo está en los bungas: un plan o un gasto no tienen evaluación detrás de la que hablar.',
     ],
   },
   {

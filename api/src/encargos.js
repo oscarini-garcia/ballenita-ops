@@ -28,7 +28,10 @@ import { INSTRUCCION_ARREGLAR, INSTRUCCION_PARECIDOS } from './receta.js';
 import { INSTRUCCION_MEJORAR } from './idea.js';
 import { INSTRUCCION as RECADOS, POR_TANDA } from './recados.js';
 import { INSTRUCCION_TANDA, INSTRUCCION_GRACIA, POR_TANDA as ESTADOS_POR_TANDA } from './estados.js';
-import { INSTRUCCION as RESUMEN_DE_BUNGA, TOPE_DEL_RESUMEN } from './bunga.js';
+import {
+  INSTRUCCION as RESUMEN_DE_BUNGA, INSTRUCCION_COMENTARIO,
+  TOPE_DEL_RESUMEN, TOPE_DEL_COMENTARIO,
+} from './bunga.js';
 
 export const ENCARGOS = [
   {
@@ -92,6 +95,16 @@ export const ENCARGOS = [
     origen: RESUMEN_DE_BUNGA,
     // Una frase de camping no pide el modelo grande, como los recadillos.
     modelo: 'claude-haiku-4-5',
+  },
+  {
+    id: 'comentarioDeBunga',
+    titulo: 'Escribir un comentario de un bunga',
+    pista: `El botón «Que lo escriba la ballena» del hilo de un bunga. Se le da **cómo es el sitio** —la evaluación que tiene puesta, sus pegatinas y sus notas— y lo que ya se ha dicho en el hilo, y devuelve **un** comentario de menos de ${TOPE_DEL_COMENTARIO} caracteres que hable de eso: uno que valga para cualquier bungalow no vale. Espera un JSON con «comentario». Del hilo viaja lo que se dijo, nunca quién lo dijo. No se manda solo: rellena la casilla de escribir, se puede corregir, y el que lo envía es el botón de siempre — así que lo firmas tú. Vacío, vuelve el encargo de origen.`,
+    origen: INSTRUCCION_COMENTARIO,
+    // Sonnet fijado, como «Mejorar la redacción de una idea»: esto lo va a
+    // mandar una persona con su nombre debajo, y un comentario que no aterriza
+    // es peor que ninguno. Se pulsa poco, y solo cuando alguien quiere.
+    modelo: 'claude-sonnet-4-5',
   },
   {
     id: 'estadoGracia',

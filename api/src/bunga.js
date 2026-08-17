@@ -29,6 +29,11 @@
  *   pide una persona y lo leen los nueve. Sin eso, nueve teléfonos abriendo la
  *   lista serían nueve llamadas de pago para leer nueve bromas distintas sobre
  *   la misma nevera.
+ *
+ * Aquí vive además **el comentario que propone la ballena** (§14.66-quater), que
+ * es lo contrario del resumen y por eso convive con él sin mezclarse: el resumen
+ * lo escribe la app, se guarda con el sitio y sale solo; el comentario lo pide
+ * una persona con un botón, no se guarda hasta que lo manda, y lo firma ella.
  */
 
 const ANTHROPIC = 'https://api.anthropic.com/v1';
@@ -80,17 +85,92 @@ export function materialDelBunga({ nombre = '', alias = '', notas = '', pegatina
 }
 
 export function leerResumen(texto) {
+  return leerCampo(texto, 'resumen', TOPE_DEL_RESUMEN);
+}
+
+export async function pedirResumen({ clave, modelo, material, instruccion = INSTRUCCION, buscar = fetch }) {
+  return llamar({ clave, modelo, material, instruccion, buscar, leer: leerResumen });
+}
+
+/* ── Un comentario para el hilo (§14.66-quater) ───────────────────────────── */
+
+/**
+ * Lo que cabe en un comentario escrito por el modelo. El tope de la tabla son
+ * 2000 (`TOPE_DE_COMENTARIO` en `db.js`), pero eso es lo que aguanta la columna,
+ * no lo que escribe nadie en un hilo: los del grupo son de un renglón.
+ */
+export const TOPE_DEL_COMENTARIO = 160;
+
+/**
+ * El encargo del botón «Que lo escriba la ballena».
+ *
+ * La orden de arriba —**hablar de cómo es el sitio**— es la que pidió esta
+ * vuelta: sin ella salían comentarios que valen para cualquier bungalow del
+ * camping («¡qué ganas ya!»), que es lo mismo que no escribir nada. Lo que
+ * distingue este encargo del de la evaluación es a quién imita: la evaluación
+ * la firma la app y por eso es llana, y esto lo va a mandar una persona con su
+ * nombre, así que se escribe como se escribe en un chat.
+ */
+export const INSTRUCCION_COMENTARIO = [
+  'Escribes UN comentario para el hilo de un bungalow de camping, en el chat de un grupo',
+  'de amigos con niños que veranea junto desde hace años y se reparte las casas cada agosto.',
+  'Te doy cómo es el sitio —la evaluación que tiene puesta, sus pegatinas y las notas de',
+  'quienes han dormido ahí— y lo que ya se ha dicho en el hilo.',
+  '**El comentario tiene que hablar de lo que dice cómo es el sitio**: la nevera, los bichos,',
+  'la puerta que no cierra, lo que sea que ponga. Uno que valga para cualquier bungalow',
+  '—«¡qué ganas ya!»— es lo mismo que no escribir nada.',
+  `Una o dos frases, en español de España, de menos de ${TOPE_DEL_COMENTARIO} caracteres,`,
+  'en tono de colega escribiendo en un chat: puede tener guasa, pero antes tiene que decir algo.',
+  'Vale una pregunta al grupo, una pega, una propuesta o un aviso.',
+  'No repitas lo que ya está dicho en el hilo ni lo que ya hayas propuesto antes.',
+  'No nombres a nadie ni des por hecho quién duerme ahí, y no firmes.',
+  'Responde SOLO con un JSON: {"comentario":"…"}.',
+].join(' ');
+
+/**
+ * El material del comentario: lo del bunga **más la evaluación y el hilo**.
+ *
+ * La evaluación entra porque es justo lo que se pidió que tuviera en cuenta, y
+ * el hilo porque un comentario que repite el de arriba se nota enseguida. Lo que
+ * sigue sin viajar son los nombres: del hilo va **lo que se dijo**, nunca quién
+ * lo dijo — la regla de §14.19-bis, y aquí además no hace falta para nada.
+ */
+export function materialDelComentario({ resumen = '', hilo = [], yaPropuestas = [], ...bunga } = {}) {
+  const lineas = [materialDelBunga(bunga)];
+  lineas.push(String(resumen).trim()
+    ? `Cómo es, en una frase: ${String(resumen).trim()}`
+    : 'Todavía no tiene ninguna evaluación escrita.');
+  const dichos = hilo.map((t) => String(t).replace(/\s+/g, ' ').trim()).filter(Boolean).slice(-6);
+  if (dichos.length) lineas.push(`Ya se ha dicho en el hilo:\n${dichos.map((t) => `- ${t}`).join('\n')}`);
+  const antes = yaPropuestas.map((t) => String(t).trim()).filter(Boolean);
+  if (antes.length) {
+    lineas.push(`Ya has propuesto esto y no ha valido, escribe otro distinto:\n${antes.map((t) => `- ${t}`).join('\n')}`);
+  }
+  return lineas.join('\n');
+}
+
+export function leerComentario(texto) {
+  return leerCampo(texto, 'comentario', TOPE_DEL_COMENTARIO);
+}
+
+export async function pedirComentario({ clave, modelo, material, instruccion = INSTRUCCION_COMENTARIO, buscar = fetch }) {
+  return llamar({ clave, modelo, material, instruccion, buscar, leer: leerComentario });
+}
+
+/* ── La fontanería de los dos ─────────────────────────────────────────────── */
+
+function leerCampo(texto, campo, tope) {
   const crudo = String(texto ?? '');
   const recorte = crudo.slice(crudo.indexOf('{'), crudo.lastIndexOf('}') + 1);
   let datos = null;
   try { datos = JSON.parse(recorte); } catch { return null; }
-  const frase = String(datos?.resumen ?? '').replace(/\s+/g, ' ').trim();
+  const frase = String(datos?.[campo] ?? '').replace(/\s+/g, ' ').trim();
   // Un tope generoso al cortar: el encargo pide 180, y una de 200 se lee igual
   // de bien. Lo que no puede es venir un párrafo.
-  return frase ? frase.slice(0, TOPE_DEL_RESUMEN + 40) : null;
+  return frase ? frase.slice(0, tope + 40) : null;
 }
 
-export async function pedirResumen({ clave, modelo, material, instruccion = INSTRUCCION, buscar = fetch }) {
+async function llamar({ clave, modelo, material, instruccion, buscar, leer }) {
   const respuesta = await buscar(`${ANTHROPIC}/messages`, {
     method: 'POST',
     headers: { 'x-api-key': clave, 'anthropic-version': VERSION_API, 'content-type': 'application/json' },
@@ -105,5 +185,5 @@ export async function pedirResumen({ clave, modelo, material, instruccion = INST
     error.estado = respuesta.status;
     throw error;
   }
-  return leerResumen((datos.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(''));
+  return leer((datos.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(''));
 }

@@ -217,7 +217,13 @@ componente (`*.test.jsx`). Entorno: Vitest + jsdom + Testing Library + `fake-ind
   petición** (§14.66-bis): la frase se rehace sola al cambiar una nota o una pegatina, y lo
   que impide que sean nueve llamadas es que eso vive **dentro de la pantalla del bunga** —la
   que abre quien lo toca—, con huella, respiro de 1,5 s y un solo intento por huella. El **estado de la familia se
-  retira**: quien dice en qué anda es cada persona.
+  retira**: quien dice en qué anda es cada persona. **Y el hilo lleva botón** (§14.66-quater,
+  `comentarioDeBunga`): «Que lo escriba la ballena» propone un comentario hecho **con la
+  evaluación delante** —sin ella sale uno que vale para cualquier bungalow— y con los últimos
+  seis del hilo, para no repetirse; **rellena la casilla y no manda**, así que lo firma quien
+  pulsa, y volver a pulsarlo trae otro porque se le dicen los que ya trajo. `sugerir` es una
+  prop opcional de `Comentarios`: la pasa el bunga y no el plan, el gasto ni el día, que no
+  tienen de qué hablar.
 - **Los avisos se recuerdan, no se vuelven a pedir** (SPECS §14.65,
   `lib/recordatorioDeAvisos.js`): el permiso se pide en Ajustes y no al arrancar, y quien no
   pasa por ahí no lo enciende nunca. «Hoy» lo recuerda **cada siete días** —donde ya estabas,
