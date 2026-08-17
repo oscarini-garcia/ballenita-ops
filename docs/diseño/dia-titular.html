@@ -1,0 +1,473 @@
+<title>Un día que dice lo que hay</title>
+<style>
+/* Las tres caras del visor: `:root` a secas es la clara —y es la que se ve
+   cuando nadie ha elegido—, el `@media` la oscura del sistema y el
+   `[data-theme]` la elegida a mano. Todo color sale de una variable declarada
+   en las tres. */
+:root{--pg:#f4f6f8;--pg-2:#ffffff;--tx:#16242c;--tx-2:#4d6674;--tx-3:#7c919d;--ln:#dde6ea;--ac:#22708f;--cod-tx:#ffffff;--mal:#a8443a;--ok:#0a6b4c;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;--ok:#5fc79e;}}
+:root[data-theme="dark"]{--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;--ok:#5fc79e;}
+body{margin:0;background:var(--pg);color:var(--tx);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+.wrap{max-width:1180px;margin:0 auto;padding:38px 20px 90px;}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.02em;margin:0 0 14px;max-width:19em;}
+h2{font-size:21px;margin:56px 0 6px;letter-spacing:-.01em;}
+h2 .num{color:var(--tx-3);font-weight:600;}
+h2 .elige{font-weight:400;color:var(--tx-3);font-size:16px;}
+p{margin:0 0 12px;max-width:62em;color:var(--tx-2);}
+p b,li b,td b{color:var(--tx);}
+code{font:600 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--pg-2);border:1px solid var(--ln);border-radius:5px;padding:1px 5px;color:var(--tx);}
+.ficha{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--pg-2);border:1px solid var(--ln);border-radius:10px;font-size:13.5px;color:var(--tx-2);margin:0 0 10px;}
+.ficha b{color:var(--tx);}
+.aviso{border-left:3px solid var(--ac);padding:2px 0 2px 14px;margin:18px 0;}
+.aviso.ojo{border-color:var(--mal);}
+ul{margin:0 0 12px;padding-left:20px;color:var(--tx-2);max-width:62em;}
+li{margin:0 0 7px;}
+.rejilla{display:flex;flex-wrap:wrap;gap:26px;margin:20px 0 0;align-items:flex-start;}
+.op{width:362px;flex:none;}
+@media (max-width:480px){.wrap{padding:24px 12px 70px;}.rejilla{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}.tabla-caja{overflow-x:auto;}}
+.op-cab{display:flex;align-items:baseline;gap:9px;margin:0 0 8px;}
+.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);color:var(--cod-tx);padding:3px 8px;border-radius:6px;white-space:nowrap;}
+.op-nom{font-weight:650;font-size:15.5px;}
+.op-cost{font-size:13.5px;color:var(--tx-2);margin:9px 2px 0;line-height:1.5;}
+.medida{display:inline-block;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;border:1px solid var(--ln);border-radius:6px;padding:2px 7px;color:var(--tx-2);margin-left:auto;white-space:nowrap;}
+.medida.rota{border-color:var(--mal);color:var(--mal);}
+.tabla{border-collapse:collapse;font-size:14px;margin:10px 0 0;}
+.tabla td,.tabla th{border-bottom:1px solid var(--ln);padding:7px 16px 7px 0;text-align:left;color:var(--tx-2);vertical-align:top;}
+.tabla th{color:var(--tx);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;}
+.tabla td:first-child{color:var(--tx);font-weight:650;}
+.tabla .no{color:var(--mal);font-weight:650;}
+.tabla .si{color:var(--ok);font-weight:650;}
+.tnum{font-variant-numeric:tabular-nums;}
+
+/* ── El móvil, a 362 pt y con los tokens de Abisal Sobrio, cara clara ────────
+   Se dibuja a la medida a la que se sirve: la fila de un día mide 70,7 pt y el
+   titular tiene 289 de ancho, así que un recorte en la hoja es un recorte en la
+   app. `.n` va con `nowrap`+`ellipsis` como en `theme.css`; `.sub` con
+   `white-space: normal`, que es lo que la deja crecer. */
+.movil{--foam:#f1f5f7;--foam-2:#ffffff;--ink:#12262f;--ink-soft:#4d6674;--ink-faint:#7c919d;
+  --line:#c3d2da;--line-soft:#dde6ea;--spout:#22708f;--papel:#ffffff;--verde:#0a6b4c;--gold:#a8752a;
+  --t-row:17.92px;--t-sub:15.68px;--t-micro:12.88px;
+  width:362px;box-sizing:border-box;background:var(--papel);color:var(--ink);border:1px solid #a9bfc9;
+  border-radius:14px;padding:8px 12px;font:var(--t-row)/1.45 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+/* Calcado de `theme.css`, regla por regla, para que la insignia diga 70,7 como
+   la app y no un número parecido: `.dia-num` mide **36** de ancho y no 44, el
+   titular pesa **550** y no 650, y el renglón de abajo es `--ink-soft`. */
+.fd{display:flex;align-items:center;gap:0;padding:0;border-top:1px solid var(--line-soft);}
+.fd:first-child{border-top:none;}
+.abre{flex:1;min-width:0;display:flex;align-items:center;gap:11px;padding:11px 0;text-align:left;}
+.dnum{width:36px;flex:none;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;line-height:1.05;border-radius:8px;padding:4px 0;
+  background:rgba(10,107,76,.18);color:var(--verde);}
+.dnum.ambar{background:rgba(168,117,42,.22);color:var(--gold);}
+.dnum b{font-size:var(--t-row);font-weight:650;}
+.dnum span{font-size:var(--t-micro);opacity:.8;}
+.main{flex:1;min-width:0;display:block;}
+.n{display:block;font-size:var(--t-row);font-weight:550;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sub{display:block;font-size:var(--t-sub);color:var(--ink-soft);}
+.n2{display:block;font-size:var(--t-sub);color:var(--ink-soft);}
+.n2 .ic{color:var(--ink-faint);}
+/* La regla de hoy, para poder enseñar el recorte tal cual pasa. */
+.recorta{max-width:289px;}
+.marca{background:#fdecea;box-shadow:0 0 0 1.5px #d99;border-radius:3px;}
+</style>
+
+<div class="wrap">
+
+<h1>El titular de un día no cabe en dos planes: le faltan 156 pt de los 289 que tiene</h1>
+
+<div class="ficha">
+  <span>Medido sobre la <b>v0.61.0</b></span>
+  <span>Pantalla <b>390 pt</b> · la fila de un día mide <b>70,7</b> y su titular <b>289</b> de ancho</span>
+  <span>Abisal Sobrio, <b>cara clara</b>, tamaño <b>Grande</b> (el de fábrica)</span>
+  <span>Ocho días caben en <b>594 pt</b> y ocupan <b>590,8</b></span>
+  <span>Contenido real de <b>Ballenita’26</b></span>
+</div>
+<p>El segundo plan del día 20 no lo tengo, así que va dibujado como <b>«Kayak por la
+cala»</b> —un nombre del propio Demo— en todas las opciones por igual: lo que se compara es el
+tratamiento, no el nombre.</p>
+
+<h2><span class="num">Antes de las opciones ·</span> tres cosas que están mal y no se votan</h2>
+<p>Se arreglan y se cuentan; no son alternativas.</p>
+
+<div class="tabla-caja"><table class="tabla">
+  <tr><th>qué pasa hoy</th><th>medido</th></tr>
+  <tr>
+    <td>El día 19 <b>ya se recorta</b></td>
+    <td>«Cena en la playa con música!» mide <b class="tnum">293,4 pt</b> en una línea de
+      <b class="tnum">289</b>. Se ve «…con música<span class="marca">!</span>» comido por la mitad, y
+      no es culpa de esta vuelta.</td>
+  </tr>
+  <tr>
+    <td>El segundo plan del día 20 <b>no se dice en ningún sitio</b></td>
+    <td>El titular enseña el primero y el renglón de abajo dice «2 planes». Para saber cuál es el
+      otro hay que abrir el día. <span class="no">Es justo lo que pides arreglar.</span></td>
+  </tr>
+  <tr>
+    <td>En <b>Enorme</b> los ocho días ya ruedan</td>
+    <td><b class="tnum">58 pt</b> de más sobre el hueco. Y en Grande no sobra casi nada: la
+      tarjeta de los ocho mide <b class="tnum">590,8</b> en un hueco de <b class="tnum">594</b>, o
+      sea <b class="tnum">3,2 pt</b>. <span class="no">Un solo renglón de más, en un solo día, ya
+      hace rodar la lista.</span></td>
+  </tr>
+</table></div>
+
+<h2><span class="num">Parte uno ·</span> dónde van los nombres <span class="elige">— elige una</span></h2>
+
+<div class="aviso ojo">
+  <p><b>Lo pedido, literal, no cabe — y esto es cuánto le falta.</b> «Bici electrica a Cadaques ·
+  Kayak por la cala» mide <b class="tnum">445,2 pt</b>. El titular tiene <b class="tnum">289</b> y
+  <b>no parte línea nunca</b> (<code>white-space: nowrap</code>), así que le faltan
+  <b class="tnum">156,2 pt</b>: el <b>54 %</b>. En Enorme, 501,2 contra los mismos 289.</p>
+  <p><b>Pero el renglón de abajo sí parte línea</b> (<code>white-space: normal</code>), y ahí
+  «Bici eléctrica · Kayak por la cala» mide <b class="tnum">250 pt</b> y <b>entra sin tocar el
+  alto de la fila</b>. Esa es la diferencia que decide casi todo lo de abajo.</p>
+</div>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">N1</span><span class="op-nom">El renglón nombra en vez de contar</span>
+      <span class="medida" data-mide="n1"></span></div>
+    <div class="movil"><div id="n1">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica a Cadaques</span>
+          <span class="sub">Kayak por la cala · sin cena</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Noche Ibérica 🐷</span>
+          <span class="sub">Tardeo en el chiringuito</span></div></div></div>
+    </div></div>
+    <div class="op-cost"><b>Cero pt de coste</b> y la fila no cambia de alto: se cambia «2 planes»
+      por el nombre del que no se veía. <b>Lo paga</b> el recuento —ya no dice cuántos— y que con
+      tres planes vuelve a haber uno escondido.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">N2</span><span class="op-nom">Un renglón más, solo donde hace falta</span>
+      <span class="medida" data-mide="n2"></span></div>
+    <div class="movil"><div id="n2">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica a Cadaques</span>
+          <span class="n2"><span class="ic">📍</span> Kayak por la cala</span>
+          <span class="sub">sin cena · 2 planes</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Noche Ibérica 🐷</span>
+          <span class="sub">3 platos · 1 plan</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Cada plan con su línea entera, sin recortar nada. <b>Lo paga</b> el alto:
+      <b>+22,8 pt</b> por día con dos planes, y de los <b>3,2</b> que sobran. Con un solo día ya
+      son <b class="tnum">613,6</b> en 594 y la lista rueda; si un día la llevan los ocho,
+      <b class="tnum">773,2</b> — 179 de scroll, y en Enorme sobre los 58 que ya tiene.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">N3</span><span class="op-nom">Los dos en el titular, y que recorte</span>
+      <span class="medida" data-mide="n3"></span></div>
+    <div class="movil"><div id="n3">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n recorta">Bici electrica a Cadaques · Kayak por la cala</span>
+          <span class="sub">sin cena · 2 planes</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n recorta">Noche Ibérica 🐷 · Tardeo en el chiringuito</span>
+          <span class="sub">3 platos · 1 plan</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Lo pedido tal cual, y cero pt. <b>Lo paga</b> que <b>no se lee</b>: es
+      exactamente lo dibujado arriba —445,2 en 289—, así que del segundo plan se ve el principio y
+      poco más. Está aquí para poder descartarlo mirándolo.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">N4</span><span class="op-nom">Lo redacta la ballena</span>
+      <span class="medida" data-mide="n4"></span></div>
+    <div class="movil"><div id="n4">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici y kayak</span>
+          <span class="sub">Cadaqués por la mañana, cala por la tarde</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Noche Ibérica 🐷</span>
+          <span class="sub">Jamón, tortilla y tardeo en el chiringuito</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Un titular corto que <b>siempre cabe</b>, porque se escribe para caber, y
+      un renglón que cuenta el día entero. <b>Lo paga</b> que el titular <b>ya no es el nombre que
+      alguien escribió</b>: buscar «Kayak» en la lista deja de encontrarlo. Y la parte cuatro.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">N5</span><span class="op-nom">El titular junta lo corto y corta lo largo</span>
+      <span class="medida" data-mide="n5"></span></div>
+    <div class="movil"><div id="n5">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica · Kayak</span>
+          <span class="sub">sin cena · 2 planes</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Noche Ibérica 🐷 · Tardeo</span>
+          <span class="sub">3 platos · 1 plan</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Los dos en el titular, cabiendo: se acorta cada nombre por su primera
+      palabra larga hasta que la suma entra en 289. <b>Lo paga</b> que <b>la app reescribe lo que
+      escribiste</b> —«Bici electrica a Cadaques» pasa a «Bici electrica»— y que la regla de
+      acortar hay que inventarla y mantenerla.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte dos ·</span> qué platos entran <span class="elige">— elige una</span></h2>
+<p>Hoy manda <b>uno solo</b> (<code>platoQueManda</code>: el primer <code>principal</code>, y si no
+hay, el primero de la lista). Pides <b>los principales</b>. En la Noche Ibérica del día 16 hay tres
+platos; se dibujan como <b>jamón</b> y <b>tortilla</b> de principales y <b>sandía</b> de postre.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">P1</span><span class="op-nom">Solo los principales, enumerados</span>
+      <span class="medida" data-mide="p1"></span></div>
+    <div class="movil"><div id="p1">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Jamón y tortilla</span>
+          <span class="sub">3 platos · 1 plan</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum"><b>15</b><span>sáb</span></div>
+        <div class="main"><span class="n">BBQ de pescado</span>
+          <span class="sub">1 plato · 1 plan</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Lo pedido, literal. Con uno se lee igual que hoy. <b>Lo paga</b> el largo:
+      tres principales con nombres como los tuyos se pasan de 289 y vuelven a recortar — y una cena
+      <b>sin ningún principal</b> necesita la regla de hoy de todas formas.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">P2</span><span class="op-nom">El que manda, y el resto contado</span>
+      <span class="medida" data-mide="p2"></span></div>
+    <div class="movil"><div id="p2">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Jamón y 2 más</span>
+          <span class="sub">1 plan</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum"><b>15</b><span>sáb</span></div>
+        <div class="main"><span class="n">BBQ de pescado</span>
+          <span class="sub">1 plan</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Nunca recorta, porque «y 2 más» ocupa lo mismo con dos platos que con
+      nueve. <b>Lo paga</b> que <b>no es lo que pediste</b>: los principales siguen sin salir, solo
+      que ahora el recuento está arriba en vez de abajo.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">P3</span><span class="op-nom">Principales arriba, la cena entera abajo</span>
+      <span class="medida" data-mide="p3"></span></div>
+    <div class="movil"><div id="p3">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Jamón y tortilla</span>
+          <span class="sub">con sandía · 1 plan</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum"><b>15</b><span>sáb</span></div>
+        <div class="main"><span class="n">BBQ de pescado</span>
+          <span class="sub">1 plan</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Los principales arriba y lo que acompaña abajo, sin números en ningún
+      lado. <b>Lo paga</b> que el renglón de abajo se queda sin sitio para los planes cuando el día
+      tiene las dos cosas — se resuelve en la parte tres.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">P4</span><span class="op-nom">Los principales, y dos como tope</span>
+      <span class="medida" data-mide="p4"></span></div>
+    <div class="movil"><div id="p4">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Jamón y tortilla</span>
+          <span class="sub">3 platos · 1 plan</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum"><b>17</b><span>lun</span></div>
+        <div class="main"><span class="n">Pinchos Arnall 🍖 y 2 más</span>
+          <span class="sub">3 platos · sin planes</span></div></div></div>
+    </div></div>
+    <div class="op-cost">P1 con freno: hasta dos por su nombre, y del tercero en adelante «y N
+      más». <b>Lo paga</b> una regla más que explicar, y que el tope de dos es un número elegido a
+      ojo — aunque es el que hace que quepa con nombres como los tuyos.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte tres ·</span> el día que tiene cena <i>y</i> planes <span class="elige">— elige una</span></h2>
+<p>Hoy el titular es <b>la cena o el plan, nunca los dos</b>: con cena, el plan desaparece del
+titular. En tu viaje pasa en <b>dos días</b> —el <b>15</b> y el <b>16</b>, que tienen cena y plan—;
+el 17 solo tiene cena, el 18, 19 y 20 solo planes, y el 21 y 22 nada. Son pocos, pero son
+justamente los días en que hay algo que decidir.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">C1</span><span class="op-nom">La cena manda, el plan debajo</span>
+      <span class="medida" data-mide="c1"></span></div>
+    <div class="movil"><div id="c1">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Jamón y tortilla</span>
+          <span class="sub">Tardeo en el chiringuito</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica a Cadaques</span>
+          <span class="sub">Kayak por la cala</span></div></div></div>
+    </div></div>
+    <div class="op-cost">La regla de hoy, pero nombrando: arriba lo que hay de comer, abajo lo que
+      hay que hacer. <b>Lo paga</b> que un día con tres planes vuelve a esconder — y que el
+      recuento se va del todo.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C2</span><span class="op-nom">El plan manda, la cena debajo</span>
+      <span class="medida" data-mide="c2"></span></div>
+    <div class="movil"><div id="c2">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Tardeo en el chiringuito</span>
+          <span class="sub">Se cena jamón y tortilla</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica a Cadaques</span>
+          <span class="sub">Kayak por la cala · sin cena</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Un día se recuerda por lo que se hizo, no por lo que se cenó, y así los
+      ocho titulares son la misma clase de cosa. <b>Lo paga</b> darle la vuelta a la regla de
+      §14.67, donde la cena manda — y que «Noche Ibérica» dejaría de titular su noche.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C3</span><span class="op-nom">Dos renglones con su icono</span>
+      <span class="medida" data-mide="c3"></span></div>
+    <div class="movil"><div id="c3">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Noche Ibérica 🐷</span>
+          <span class="n2"><span class="ic">🍽</span> Jamón y tortilla</span>
+          <span class="n2"><span class="ic">📍</span> Tardeo en el chiringuito</span></div></div></div>
+    </div></div>
+    <div class="op-cost">Cada cosa en su renglón y nada compite. <b>Lo paga</b> el alto: son
+      <b>+22,8 pt</b> en los días con las dos cosas —<b>dos</b> de los tuyos—, así que la tarjeta
+      pasa de 590,8 a <b class="tnum">636,4</b> en un hueco de 594: <b>42,4 de scroll</b>. Con un
+      viaje donde casi todos los días tengan cena y plan, mucho más.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C4</span><span class="op-nom">Una frase con las dos cosas</span>
+      <span class="medida" data-mide="c4"></span></div>
+    <div class="movil"><div id="c4">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Noche Ibérica 🐷</span>
+          <span class="sub">Jamón y tortilla, y tardeo en el chiringuito</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici y kayak</span>
+          <span class="sub">Cadaqués por la mañana y cala por la tarde</span></div></div></div>
+    </div></div>
+    <div class="op-cost">El renglón de abajo cuenta el día entero en una frase, y como
+      <b>parte línea</b> nunca recorta: crece a dos renglones y ahí se queda. <b>Lo paga</b> que
+      cuando crece son los mismos <b>+22,8 pt</b> y sin avisar: el largo lo deciden los nombres
+      que escribáis, no la opción.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cuatro ·</span> qué pinta aquí la IA <span class="elige">— elige una</span></h2>
+<div class="aviso">
+  <p>Dices que no te importa usarla, así que va como pregunta aparte y no metida dentro de las de
+  arriba. Lo que hay que saber antes de elegir: <b>la app ya sabe redactar esto sin IA</b>. «Hoy»
+  lleva desde §14.67 una cena escrita en prosa —«Esta noche <b>Paella mixta</b>, con pan con tomate
+  y sandía»— que compone <code>fraseDeLaNoche</code>, <b>pura y sin red</b>. Nombrar dos planes es
+  el mismo problema y el mismo tamaño.</p>
+</div>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">I1</span><span class="op-nom">Sin IA</span></div>
+    <div class="movil">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica a Cadaques</span>
+          <span class="sub">Kayak por la cala · sin cena</span></div></div></div>
+    </div>
+    <div class="op-cost">Instantáneo, igual en los nueve móviles, funciona sin cobertura en el
+      camping y <b>cuesta cero</b>. Es enumerar lo que ya está escrito. <b>Lo paga</b> que la
+      gracia la tienen que poner los nombres que escribís vosotros.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">I2</span><span class="op-nom">IA por día, guardada en el evento</span></div>
+    <div class="movil">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici y kayak</span>
+          <span class="sub">Cadaqués por la mañana, cala por la tarde</span></div></div></div>
+    </div>
+    <div class="op-cost">Frases con guasa y que caben porque se piden cortas. Se guarda <b>en el
+      día</b> con la huella de lo que la escribió, como el resumen de un bunga (§14.66), así que la
+      pide uno y la leen los nueve. <b>Lo paga</b> una columna nueva, su migración, y que la lista
+      de Días pasa a depender de algo que puede tardar o fallar.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">I3</span><span class="op-nom">Sin IA, y un botón para que la escriba</span></div>
+    <div class="movil">
+      <div class="fd"><div class="abre"><div class="dnum"><b>16</b><span>dom</span></div>
+        <div class="main"><span class="n">Noche Ibérica 🐷</span>
+          <span class="sub">✨ Que lo cuente la ballena</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica a Cadaques</span>
+          <span class="sub">Kayak por la cala · sin cena</span></div></div></div>
+    </div>
+    <div class="op-cost">La lista siempre responde, y quien quiera guasa la pide — la figura del
+      comentario de un bunga (§14.66-quater) y de «Mejorarla» en una idea. <b>Lo paga</b> un
+      control en una lista que hoy no tiene ninguno, y ocho botones en la pantalla.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">I4</span><span class="op-nom">IA solo en «Hoy», y Días enumera</span></div>
+    <div class="movil">
+      <div class="fd"><div class="abre"><div class="dnum ambar"><b>20</b><span>jue</span></div>
+        <div class="main"><span class="n">Bici electrica a Cadaques</span>
+          <span class="sub">Kayak por la cala · sin cena</span></div></div></div>
+      <div class="fd"><div class="abre"><div class="main">
+        <span class="n2"><span class="ic">en «Hoy» ·</span> Hoy toca bici hasta Cadaqués y kayak
+          al volver, que nadie ha dicho que no.</span></div></div></div>
+    </div>
+    <div class="op-cost">Días enumera y «Hoy» —que ya es una frase redactada— la pide a la IA: una
+      llamada al día en vez de ocho, con la ventana de dos horas de los recadillos (§14.25).
+      <b>Lo paga</b> que en esta pantalla no se nota nada, que es donde has pedido el cambio.</div>
+  </div>
+</div>
+
+<h2><span class="num">Y las combinaciones ·</span> que casi siempre son la respuesta</h2>
+<div class="tabla-caja"><table class="tabla">
+  <tr><th>combinación</th><th>qué sale</th><th>alto</th></tr>
+  <tr>
+    <td>N1 · P1 · C1 · I1</td>
+    <td>Lo pedido con lo que ya hay: los principales arriba, los planes nombrados abajo, sin IA y
+      sin tocar el alto de ninguna fila.</td>
+    <td class="si">0 pt</td>
+  </tr>
+  <tr>
+    <td>N1 · P4 · C1 · I1</td>
+    <td>Igual, con el freno de «dos y luego cuenta» para que no recorte con tres platos.</td>
+    <td class="si">0 pt</td>
+  </tr>
+  <tr>
+    <td>N2 · P1 · C3 · I1</td>
+    <td>Todo con su renglón y su icono: no se esconde nada y no recorta nada.</td>
+    <td class="no">636,4 de 594</td>
+  </tr>
+  <tr>
+    <td>N4 · C4 · I2</td>
+    <td>La ballena escribe el titular y la frase del día entero.</td>
+    <td>0 pt, y a veces +22,8</td>
+  </tr>
+</table></div>
+
+<h2><span class="num">Y además ·</span> tres cosas que no dependen de lo que elijas</h2>
+<ul>
+  <li><b>Todo esto es una función pura de doce líneas.</b> <code>resumenDeDia</code>
+  (<code>lib/dias.js</code>) ya recibe la cena, sus platos y sus planes; hoy los cuenta y pasaría a
+  nombrarlos. Ninguna opción sin IA necesita base de datos, red ni migración.</li>
+  <li><b>El titular no parte línea y el renglón de abajo sí</b> (<code>nowrap</code> contra
+  <code>normal</code>, los dos de <code>theme.css</code>). No es un detalle de CSS: es la razón por
+  la que el nombre que sobra cabe abajo y no arriba, y por la que N3 no se puede leer.</li>
+  <li><b>Y hay un cuarto sitio donde esto se lee</b>: el aviso de un plan, «Hoy» y el propio día
+  abierto componen su titular por su cuenta. Si el de la lista pasa a nombrar, conviene mirar si
+  los otros tres dicen lo mismo — o quedará una pantalla contando y otra nombrando.</li>
+</ul>
+
+<script>
+// Cada insignia mide **la pieza dibujada**, que aquí es la fila entera: lo que se
+// compara entre opciones es cuánto ocupa un día, porque el tope son 844 pt de
+// ventana y ocho días ya llenan 629,6.
+for (const b of document.querySelectorAll('.medida[data-mide]')) {
+  const el = document.getElementById(b.dataset.mide)
+  if (!el) { b.textContent = '¿?'; b.classList.add('rota'); continue }
+  const fila = el.querySelector('.fd')
+  const alto = Math.round(fila.getBoundingClientRect().height * 10) / 10
+  b.textContent = alto.toString().replace('.', ',') + ' pt/día'
+}
+</script>
+
+</div>
