@@ -4478,6 +4478,73 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.69 Un día dice lo que hay, en vez de contarlo
+
+Decidido en [`docs/diseño/dia-titular.html`](diseño/dia-titular.html) ·
+**N1 · P4 · C1 · I1**.
+
+- **El defecto, y no cabía arreglarlo como se pidió.** El encargo era «si hay
+  más de un plan, que salga y el título tenga los planes». Medido: «Bici
+  electrica a Cadaques · Kayak por la cala» son **445,2 pt** y el titular tiene
+  **289** con `white-space: nowrap` — le faltan **156,2, el 54 %**. En Enorme,
+  501,2 contra los mismos 289. Lo que sí cabe es abajo: el renglón de debajo
+  **sí parte línea**, y ahí «Bici eléctrica · Kayak por la cala» mide 250 y entra
+  sin tocar el alto. La decisión no era si los nombres caben arriba sino **dónde
+  van**.
+- **✅ N1 · el renglón nombra en vez de contar.** «sin cena · 2 planes» pasa a
+  «Kayak por la cala · sin cena». Contar sirve para comparar días; nombrar sirve
+  para saber qué hay, que es a lo que se entra a esta pantalla. El segundo plan
+  del día **no salía en ninguna pantalla** sin abrir el día.
+- **Se nombra lo que no esté ya arriba.** Con cena titulan los platos y bajan
+  todos los planes; sin cena titula el primer plan y bajan los demás. Repetir el
+  titular en su propio renglón gasta la única línea que queda.
+- **✅ C1 · la cena manda y el plan baja**, que es la regla que ya tenía y la
+  que comparte con `titularDeHoy`. Arriba lo que hay de comer, abajo lo que hay
+  que hacer.
+- **«sin planes» se dice y «1 plan» no.** Que un día no tenga nada que hacer es
+  el dato que se busca al repasar el viaje; que tenga uno ya lo dice el titular.
+- **✅ P4 · el titular nombra los principales, con dos como tope.** Mandaba
+  **uno solo** (`platoQueManda`), así que la tortilla de una Noche Ibérica de
+  jamón y tortilla no salía en ninguna pantalla sin abrir el elegidor. Solo los
+  principales —el aperitivo y el postre acompañan, no titulan—, dos por su
+  nombre y del tercero en adelante «y N más».
+- **Y un tope de letras encima del tope de dos**, porque dos nombres largos
+  tampoco caben: «Pinchos Arnall 🍖 y Tortilla de patata» mide **370,7 pt** en
+  289 y saldría partida. `LETRAS_DEL_TITULAR = 26` y `LETRAS_DEL_RENGLON = 36`,
+  los dos sacados de medir contenido real —«Bici electrica a Cadaques» son 25
+  letras y 253,1 pt; «Cena en la playa con música!» son 28 y 293,4, que **hoy ya
+  se recorta en la app**—. Son aproximados a propósito: medir el texto de verdad
+  pide navegador, y esto es una función pura que corre en las pruebas sin montar
+  nada.
+- **Con uno solo se rinde y lo devuelve aunque se pase.** Algo hay que decir, y
+  recortar es cosa del CSS.
+- **✅ I1 · sin IA**, aunque el encargo la permitía. La app **ya sabe redactar
+  esto sin ella** desde §14.67 —`fraseDeLaNoche`, pura y sin red—, y aquí es
+  enumerar lo que ya está escrito: instantáneo, igual en los nueve móviles, sin
+  cobertura en el camping y sin coste. Las otras tres —una por día guardada en el
+  evento, un botón por día, o solo en «Hoy»— siguen dibujadas en la hoja por si
+  algún día la guasa compensa la dependencia.
+- **Lo que costó, medido: cero.** La tarjeta de ocho días medía **590,8 pt** en
+  un hueco de **594** —sobraban 3,2— y sigue midiendo 590,8. Ninguna fila creció:
+  por eso hay tope de letras en el renglón y no solo en el titular, porque ahí
+  partir línea cuesta **+22,8 pt** y con 3,2 de margen eso hace rodar la lista
+  entera. En Enorme rodaba 58 pt antes y sigue rodando 58.
+- **`titularDeCena` se alinea, y pierde su recuento.** Es el renglón de la cena
+  dentro de la capa del día, y decía «Paella mixta y cinco cosas más» con el
+  mismo defecto. Ahora nombra los principales igual que la lista —dos pantallas
+  hermanas no contestan distinto a la misma pregunta, que es la regla que
+  `titularDeHoy` se puso en §14.30— y el recuento se va porque el renglón de
+  debajo de esa misma fila ya lo lleva («tres platos»).
+- **Lo que encontraron las pruebas y no el navegador:** con dos nombrados y
+  resto, enumerar de la forma normal daba **«Jamón y Tortilla y 1 más»**, con dos
+  «y» seguidas que se leen como si el tercero se llamara «1 más». Con resto, los
+  nombrados se juntan con coma (`juntarYContar`).
+- **Lo que se deja sin arreglar, y por qué:** «Cena en la playa con música!»
+  **sigue recortándose**. Es el título que escribió una persona, mide 293,4 en
+  289, y las únicas salidas son partirlo en dos líneas —+22,8 pt sobre 3,2 de
+  margen, o sea rodar la lista entera por un nombre largo— o reescribírselo.
+  Recortar con puntos suspensivos es lo menos malo de los tres.
+
 ### 14.68 Las cenas se montan en el día, y el gasto dice cómo se reparte
 
 Decidido en

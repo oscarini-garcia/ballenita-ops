@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.61.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1100 pruebas en 117 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.62.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1112 pruebas en 117 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   261 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -357,3 +357,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.66** El bunga se resume en una frase, se comenta, y la familia va en pastilla → `Comentarios.jsx`, `GrupoSection.jsx`, `alojamientos.js`, `api.js`, `avisos.js`, `bunga.js` · +3 más
 - **§14.67** «Hoy» cuenta el día, y el día se puede mirar sin montarlo → `reparto-vista.js`
 - **§14.68** Las cenas se montan en el día, y el gasto dice cómo se reparte → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `areas.js`
+- **§14.69** Un día dice lo que hay, en vez de contarlo → `dias.js`

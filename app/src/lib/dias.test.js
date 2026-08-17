@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   diasDe, resumenDeDia, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, titularDeHoy,
   numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal, enLetras, filtraOpciones,
+  titularDePlatos, enumerarConTope, LETRAS_DEL_TITULAR, LETRAS_DEL_RENGLON,
 } from './dias.js'
 import { diaSiguiente, finPara } from './fechas.js'
 
@@ -44,7 +45,9 @@ describe('resumenDeDia', () => {
     // La bunga **no** entra en el titular: «Paella mixta en El del ruido» son
     // 268 pt en una fila que tiene 237, y se recortaba en «El del…».
     expect(r.titulo).toBe('Paella mixta')
-    expect(r.detalle).toBe('3 platos · sin planes')
+    // El renglón **nombra en vez de contar** (§14.69 · N1): «3 platos» se sabe
+    // leyendo el titular, y que no haya nada que hacer ese día no.
+    expect(r.detalle).toBe('sin planes')
   })
 
   it('sin plato que enseñar, la bunga rescata el titular de un «Cena» pelado', () => {
@@ -53,10 +56,12 @@ describe('resumenDeDia', () => {
     expect(resumenDeDia({ cena: { platoIds: [] } }).titulo).toBe('Cena')
   })
 
-  it('sin cena, titula el primer plan', () => {
+  it('sin cena, titula el primer plan y no lo repite debajo', () => {
     const r = resumenDeDia({ planes: [{ titulo: 'Playa de la Cala' }] })
     expect(r.titulo).toBe('Playa de la Cala')
-    expect(r.detalle).toBe('sin cena · 1 plan')
+    // «1 plan» sobra teniéndolo arriba, y repetirlo gastaría la única línea que
+    // queda. Lo que sí es dato es que ese día no se cena en el camping.
+    expect(r.detalle).toBe('sin cena')
   })
 
   it('un día sin nada lo dice, no se queda callado', () => {
@@ -69,12 +74,31 @@ describe('resumenDeDia', () => {
   })
 
   it('una cena montada sin platos no se confunde con no tener cena', () => {
-    expect(resumenDeDia({ cena: { platoIds: [] } }).detalle).toBe('cena sin platos · sin planes')
+    // Los planes van primero y el estado de la cena detrás, igual que en
+    // «Kayak por la cala · sin cena»: primero lo que hay, luego lo que falta.
+    expect(resumenDeDia({ cena: { platoIds: [] } }).detalle).toBe('sin planes · cena sin platos')
   })
 
-  it('cuenta en plural cuando toca', () => {
-    expect(resumenDeDia({ planes: [{ titulo: 'a' }, { titulo: 'b' }] }).detalle)
-      .toBe('sin cena · 2 planes')
+  /**
+   * Es el día 20 de Ballenita'26, el que motivó la vuelta: dos planes, y el
+   * segundo no salía en ninguna pantalla sin abrir el día.
+   */
+  it('con dos planes y sin cena, el segundo baja al renglón por su nombre', () => {
+    const r = resumenDeDia({
+      planes: [{ titulo: 'Bici eléctrica a Cadaqués' }, { titulo: 'Kayak por la cala' }],
+    })
+    expect(r.titulo).toBe('Bici eléctrica a Cadaqués')
+    expect(r.detalle).toBe('Kayak por la cala · sin cena')
+  })
+
+  it('con cena y planes, arriba se come y abajo se hace', () => {
+    const r = resumenDeDia({
+      cena: { platoIds: ['d1'] },
+      platos: [PAELLA],
+      planes: [{ titulo: 'Tardeo en el chiringuito' }],
+    })
+    expect(r.titulo).toBe('Paella mixta')
+    expect(r.detalle).toBe('Tardeo en el chiringuito')
   })
 })
 
@@ -125,18 +149,24 @@ describe('rotuloDelDia', () => {
 })
 
 describe('titularDeCena', () => {
-  it('cuenta con letra el resto de los platos', () => {
+  /**
+   * Nombra **los principales** y ya no cuenta el resto (§14.69 · P4): el
+   * recuento lo lleva el renglón de debajo de esa misma fila —«tres platos»—,
+   * así que arriba era decirlo dos veces.
+   */
+  it('nombra los principales y deja el recuento al renglón de abajo', () => {
     expect(titularDeCena({ platoIds: ['d1', 'd2', 'd3'] }, [PAELLA, ACEITUNAS, SANDIA]))
-      .toBe('Paella mixta y dos cosas más')
+      .toBe('Paella mixta')
   })
 
   it('un plato solo es un plato solo', () => {
     expect(titularDeCena({ platoIds: ['d1'] }, [PAELLA])).toBe('Paella mixta')
   })
 
-  it('dos platos son «una cosa más», en singular', () => {
-    expect(titularDeCena({ platoIds: ['d1', 'd2'] }, [PAELLA, ACEITUNAS]))
-      .toBe('Paella mixta y una cosa más')
+  it('con dos principales los nombra a los dos', () => {
+    const otro = { id: 'd9', name: 'Fideuá', categorias: ['principal'] }
+    expect(titularDeCena({ platoIds: ['d1', 'd9'] }, [PAELLA, otro]))
+      .toBe('Paella mixta y Fideuá')
   })
 
   it('sin cena y con cena vacía dicen cosas distintas', () => {
@@ -159,7 +189,7 @@ describe('titularDeHoy', () => {
       bungaMayores: 'El del ruido',
       bungaNinos: 'El del fondo',
     })
-    expect(t.grande).toBe('Paella mixta y una cosa más')
+    expect(t.grande).toBe('Paella mixta')
     expect(t.pequeno).toBe('Mayores en El del ruido · niños en El del fondo')
   })
 
@@ -280,5 +310,79 @@ describe('el día local, y no el de Greenwich', () => {
     expect(diaSiguiente('2026-12-31')).toBe('2027-01-01')
     expect(finPara('2026-08-08', '')).toBe('2026-08-09')
     expect(finPara('2026-08-08', '2026-08-15')).toBe('2026-08-15')
+  })
+})
+
+/**
+ * El titular con los principales (§14.69 · P4, `docs/diseño/dia-titular.html`).
+ *
+ * Antes mandaba **uno solo**, así que una Noche Ibérica de jamón y tortilla se
+ * anunciaba por el jamón. Lo que se prueba aquí no es enumerar —eso es de una
+ * línea— sino **cuándo deja de enumerar**, que es lo que evita que la línea se
+ * recorte: el titular mide 289 pt y no parte nunca.
+ */
+const JAMON = { id: 'j', name: 'Jamón', categorias: ['principal'] }
+const TORTILLA = { id: 't', name: 'Tortilla', categorias: ['principal'] }
+const PINCHOS = { id: 'p', name: 'Pinchos Arnall 🍖', categorias: ['principal'] }
+const TORTILLA_LARGA = { id: 'tl', name: 'Tortilla de patata con cebolla', categorias: ['principal'] }
+const PAN = { id: 'pt', name: 'Pan con tomate', categorias: ['acompanamiento'] }
+
+describe('titularDePlatos', () => {
+  it('nombra los principales, y solo los principales', () => {
+    expect(titularDePlatos([ACEITUNAS, JAMON, TORTILLA, SANDIA])).toBe('Jamón y Tortilla')
+  })
+
+  it('con uno solo se lee igual que antes', () => {
+    expect(titularDePlatos([ACEITUNAS, PAELLA, SANDIA])).toBe('Paella mixta')
+  })
+
+  it('del tercero en adelante, cuenta', () => {
+    expect(titularDePlatos([JAMON, TORTILLA, PAELLA])).toBe('Jamón, Tortilla y 1 más')
+    expect(titularDePlatos([JAMON, TORTILLA, PAELLA, PINCHOS])).toBe('Jamón, Tortilla y 2 más')
+  })
+
+  /**
+   * El caso que obliga al tope: «Pinchos Arnall 🍖 y Tortilla de patata con
+   * cebolla» mide mucho más de 289 pt y saldría partida por la mitad. Contar es
+   * peor que nombrar, pero mucho mejor que enseñar media palabra.
+   */
+  it('si los dos juntos no caben, nombra uno y cuenta el resto', () => {
+    const r = titularDePlatos([PINCHOS, TORTILLA_LARGA])
+    expect(r).toBe('Pinchos Arnall 🍖 y 1 más')
+    expect(r.length).toBeLessThanOrEqual(LETRAS_DEL_TITULAR)
+  })
+
+  it('pero con uno solo se rinde: algo hay que decir', () => {
+    expect(titularDePlatos([TORTILLA_LARGA])).toBe('Tortilla de patata con cebolla')
+  })
+
+  it('sin ningún principal se queda la regla de antes: el primero', () => {
+    expect(titularDePlatos([PAN, SANDIA])).toBe('Pan con tomate')
+  })
+
+  it('sin platos no hay titular que dar', () => {
+    expect(titularDePlatos([])).toBeNull()
+  })
+})
+
+describe('enumerarConTope', () => {
+  it('con lo que cabe, los nombra todos', () => {
+    expect(enumerarConTope(['Playa', 'Kayak'])).toBe('Playa y Kayak')
+  })
+
+  it('con lo que no cabe, nombra lo que entra y cuenta el resto', () => {
+    const r = enumerarConTope(['Bici eléctrica a Cadaqués', 'Kayak por la cala', 'Feria del pueblo'])
+    expect(r).toBe('Bici eléctrica a Cadaqués y 2 más')
+    expect(r.length).toBeLessThanOrEqual(LETRAS_DEL_RENGLON)
+  })
+
+  it('con uno solo se rinde aunque se pase — recortar es cosa del CSS', () => {
+    const largo = 'Un plan con un nombre larguísimo que no cabe de ninguna manera'
+    expect(enumerarConTope([largo])).toBe(largo)
+  })
+
+  it('sin nada, no dice nada', () => {
+    expect(enumerarConTope([])).toBe('')
+    expect(enumerarConTope([null, undefined])).toBe('')
   })
 })
