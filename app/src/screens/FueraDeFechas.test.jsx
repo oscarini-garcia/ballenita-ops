@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import CenasScreen from './CenasScreen.jsx'
+import DiasScreen from './DiasScreen.jsx'
 import PlanesScreen from './PlanesScreen.jsx'
 import { db, createEvent, getEvent, addBunga, addDish, addDinner, addPlan } from '../db.js'
 
@@ -14,6 +14,12 @@ import { db, createEvent, getEvent, addBunga, addDish, addDinner, addPlan } from
  *
  * No se esconde, se aparta: escondida seguiría contando en Estadísticas y
  * ocupando bunga en el balance de anfitrión, invisible.
+ *
+ * **Esto lo guardaba Comidas → Cenas y ahora lo guarda Días** (§14.68 · N1). Al
+ * retirarse aquella área la guardia se quedaba sin sujeto, y el reflejo fácil
+ * —borrar estos dos casos— habría dado una suite verde con la cena del 14
+ * invisible: `diasDe` solo mira los días apuntados **cuando el evento no tiene
+ * fechas**. Por eso el test se muda en vez de irse.
  */
 const VIAJE = { startDate: '2026-08-15', endDate: '2026-08-22' }
 
@@ -37,30 +43,29 @@ describe('lo que cae fuera de las fechas', () => {
     for (const t of ['events', 'bungas', 'dishes', 'dinners', 'plans', 'outbox']) await db[t].clear()
   })
 
-  it('Cenas: la del 14 no abre la lista y va marcada', async () => {
+  it('Días: el 14 no abre la lista, va al final y va marcado', async () => {
     const { eventId, event } = await sembrar()
-    render(<CenasScreen eventId={eventId} event={event} />)
+    render(<DiasScreen eventId={eventId} event={event} />)
 
-    // Los platos llegan por su propio `useLiveQuery`, así que se espera a uno.
-    await screen.findByText('Paella mixta')
-    const dias = screen.getAllByText(/agosto|ago/i, { selector: '.dia-cena' })
-    // La del viaje primero; la de fuera, la última.
-    expect(dias[0].textContent).toMatch(/16/)
-    expect(dias[dias.length - 1].textContent).toMatch(/14/)
+    await screen.findByText('Fuera de las fechas del viaje')
+    // Los ocho del viaje primero; el de fuera, el último de todos.
+    const numeros = textos('.dia-num b')
+    expect(numeros[0]).toBe('15')
+    expect(numeros[numeros.length - 1]).toBe('14')
 
-    expect(screen.getByText('Fuera de las fechas del viaje')).toBeInTheDocument()
     expect(screen.getByText('fuera del viaje')).toBeInTheDocument()
-    // Y sigue estando: apartar no es esconder.
-    expect(screen.getByText('Sardinas')).toBeInTheDocument()
+    // Y se puede abrir: apartar no es esconder — es lo que deja vaciarlo.
+    const filas = [...document.querySelectorAll('.dia-abre')]
+    expect(filas[filas.length - 1].getAttribute('aria-label')).toMatch(/14 de agosto/)
   })
 
-  it('Cenas: sin nada fuera, ni encabezado ni marca', async () => {
+  it('Días: sin nada fuera, ni encabezado ni marca', async () => {
     const eventId = await createEvent({ name: 'Viaje', ...VIAJE })
     const bunga = await addBunga(eventId, { name: 'Bunga 1' })
     await addDinner(eventId, { dia: '2026-08-16', platoIds: [], bungaMayoresId: bunga })
-    render(<CenasScreen eventId={eventId} event={await getEvent(eventId)} />)
+    render(<DiasScreen eventId={eventId} event={await getEvent(eventId)} />)
 
-    await screen.findByText(/16/, { selector: '.dia-cena' })
+    await screen.findByText('15', { selector: '.dia-num b' })
     expect(screen.queryByText('Fuera de las fechas del viaje')).not.toBeInTheDocument()
     expect(screen.queryByText('fuera del viaje')).not.toBeInTheDocument()
   })

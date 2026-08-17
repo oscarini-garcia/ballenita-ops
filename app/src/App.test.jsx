@@ -56,19 +56,22 @@ describe('App — navegación', () => {
     expect(screen.queryByText('Gasto total del evento')).not.toBeInTheDocument()
   })
 
-  it('«Comidas» tiene tres áreas: Cenas, la Carta y la Compra', async () => {
+  it('«Comidas» son dos áreas, la Carta y la Compra: «Cenas» se retiró', async () => {
     await abrirEjemplo()
     await userEvent.click(document.querySelectorAll('.tabbar .tab')[2])
 
-    for (const area of ['Cenas', 'Carta', 'Compra']) {
+    for (const area of ['Carta', 'Compra']) {
       expect(await screen.findByRole('tab', { name: area })).toBeInTheDocument()
     }
+    // Una cena cuelga de un día y se monta en Agenda → el día (§14.68 · N1).
+    expect(screen.queryByRole('tab', { name: 'Cenas' })).not.toBeInTheDocument()
+    // Y se abre por la Carta, que pasa a ser la primera.
+    expect(screen.getByRole('tab', { name: 'Carta' })).toHaveAttribute('aria-selected', 'true')
 
-    // La Carta es el catálogo de lo que se sabe cocinar, que hasta ahora solo
-    // existía dentro del modal de una cena y no se podía ni corregir. Se llamaba
-    // «Platos» y se confundía con los platos **de esta cena**, que son los que se
-    // marcan en Cenas y en el día.
-    await userEvent.click(screen.getByRole('tab', { name: 'Carta' }))
+    // La Carta es el catálogo de lo que se sabe cocinar, que hasta §14.10-ter
+    // solo existía dentro del modal de una cena y no se podía ni corregir. Se
+    // llamaba «Platos» y se confundía con los platos **de esta cena**, que son
+    // los que se marcan en el día.
     expect(await screen.findByText(/el mismo en todos los eventos/)).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Abrir Paella mixta' })).toBeInTheDocument()
 
@@ -126,7 +129,7 @@ describe('App — navegación', () => {
     // La primera casilla de cada mando, que es a donde vuelve la pestaña.
     const secciones = [
       { i: 1, dentro: 'Saldos', origen: 'Gastos' },
-      { i: 2, dentro: 'Compra', origen: 'Cenas' },
+      { i: 2, dentro: 'Compra', origen: 'Carta' },
       { i: 3, dentro: 'Ideas', origen: 'Planes' },
       { i: 4, dentro: 'Bungas', origen: 'Familias' },
     ]

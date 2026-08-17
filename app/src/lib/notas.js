@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.61.0',
+    fecha: '2026-08-17',
+    titulo: 'Las cenas se montan en el día, y el gasto dice cómo se reparte',
+    lineas: [
+      'Comidas se queda en dos: la Carta y la Compra. «Cenas» se retira, porque una cena es de un día y se monta mejor en Agenda → el día, donde además están sus bungas y su plan.',
+      'Lo que solo existía allí se muda al elegidor de platos del día: si buscas un plato que no está, sale «Crear “…” y marcarlo» con el nombre ya escrito; y «Los niños comen otra cosa» abre su propia lista, con un mando para pasar de una mesa a la otra.',
+      'Al apuntar un gasto, una línea nueva dice cómo va a quedar antes de guardarlo: «3 familias · 16,20 € cada una», o de cuánto a cuánto si no es a partes iguales.',
+      'Y dentro de Detalles, bajo «Cómo se reparte», sale lo que le toca a cada familia en euros — que hasta ahora, con el reparto por coeficiente, no se veía en ningún sitio.',
+      'Una cena que se quedó fuera de las fechas del viaje ya no desaparece: baja al final de Días, marcada, para poder vaciarla.',
+    ],
+  },
+  {
     version: '0.60.0',
     fecha: '2026-08-17',
     titulo: 'En claro, tu estado ya se lee',

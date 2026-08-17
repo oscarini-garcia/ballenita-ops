@@ -246,6 +246,78 @@ describe('DiasScreen', () => {
     expect(screen.queryByRole('button', { name: /^Paella mixta/ })).toBeNull()
   })
 
+  /**
+   * H3 de `cenas-fuera-y-reparto.html`: el alta de un plato se mudó aquí desde
+   * Comidas → Cenas, y **no es el formulario de allí**. Cero controles en
+   * reposo: el verbo sale solo cuando lo buscado no existe.
+   */
+  it('el buscador ofrece crear el plato que no existe, con el nombre puesto', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('domingo, 9 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    // En reposo no hay ningún verbo de crear: es el catálogo entero, no un alta.
+    expect(screen.queryByRole('button', { name: /^Crear/ })).toBeNull()
+
+    // Buscar algo que sí está tampoco lo ofrece: eso es estar buscándolo.
+    await userEvent.type(screen.getByRole('searchbox'), 'paella')
+    expect(screen.queryByRole('button', { name: /^Crear/ })).toBeNull()
+
+    await userEvent.clear(screen.getByRole('searchbox'))
+    await userEvent.type(screen.getByRole('searchbox'), 'Tortilla de patata')
+    await userEvent.click(await screen.findByRole('button', { name: 'Crear «Tortilla de patata» y marcarlo' }))
+
+    // Nace en el catálogo, sin tipo, y se queda marcado —pero todavía sin
+    // escribir en la cena, que eso es cosa de «Listo» (§14.31).
+    await waitFor(async () => {
+      expect((await db.dishes.toArray()).map((d) => d.name)).toContain('Tortilla de patata')
+    })
+    const nuevo = (await db.dishes.toArray()).find((d) => d.name === 'Tortilla de patata')
+    expect(nuevo.categorias).toEqual([])
+    expect((await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09').platoIds)
+      .not.toContain(nuevo.id)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+    await waitFor(async () => {
+      expect((await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09').platoIds)
+        .toContain(nuevo.id)
+    })
+  })
+
+  /**
+   * K1: la mesa de niños vive en el elegidor. Mientras hereden no hay nada que
+   * leer —`null` es «comen lo mismo»— y con lista propia sale el segmentado.
+   */
+  it('los niños pueden comer otra cosa, con su lista dentro del mismo elegidor', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('domingo, 9 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /Paella mixta y una cosa más/ }))
+    // Heredando: ni segmentado ni segunda lista, solo el verbo de una línea.
+    expect(screen.queryByRole('group', { name: 'Qué mesa' })).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Los niños comen otra cosa…' }))
+    expect(await screen.findByRole('group', { name: 'Qué mesa' })).toBeInTheDocument()
+    // Arranca de lo que comen los mayores y se pasa a su mesa.
+    expect(screen.getByRole('heading', { name: 'Los platos de los niños' })).toBeInTheDocument()
+
+    // Quitarles la sandía deja a los mayores como estaban.
+    await userEvent.click(screen.getByRole('button', { name: /^Sandía/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+
+    await waitFor(async () => {
+      const cena = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09')
+      expect(cena.platoIdsNinos).toHaveLength(1)
+      expect(cena.platoIds).toHaveLength(2)
+    })
+    // Y el día lo dice sin que haya que abrir el elegidor.
+    expect(await screen.findByText(/los niños, otra cosa/)).toBeInTheDocument()
+  })
+
   /** H1 de dia-abierto.html: quitar la cena sigue pidiendo segunda pulsación. */
   it('quitar la cena pide segunda pulsación, y se lleva platos y bungas', async () => {
     const { eventId, event } = await sembrar()

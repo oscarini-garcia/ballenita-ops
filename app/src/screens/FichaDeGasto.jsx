@@ -8,6 +8,7 @@ import { CATEGORIES, catOf } from '../lib/categorias.js'
 import { IMPORTE_VACIO, desdeCents, totalCents, guardable, enPalabras } from '../lib/importe.js'
 import { splitCents } from '../lib/reparto.js'
 import { comoSeReparte } from '../lib/reparto-gente.js'
+import { repartoDeFamilias, fraseDelReparto } from '../lib/reparto-vista.js'
 import Comentarios from '../components/Comentarios.jsx'
 import PadDeImporte from '../components/PadDeImporte.jsx'
 import { HojaDeEleccion } from '../components/Hoja.jsx'
@@ -111,6 +112,18 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
   const sePuede = guardable(importe) && payerFamily && (participantIds.length > 0 || reparto)
   const estado = { reparto, participantIds }
 
+  // **R1 · cómo va a quedar el reparto, en una línea** (§14.68). Lo que se
+  // apunta aquí mueve el saldo de tres casas y hasta ahora no lo decía ninguna
+  // pantalla hasta después de guardar. Se cuenta sobre lo tecleado —no sobre lo
+  // guardado—, así que cambia con el pad, con «Entre» y con los coeficientes.
+  const personsById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const filasDelReparto = repartoDeFamilias(
+    { amountCents: centsTecleados, participantIds, reparto },
+    familias,
+    personsById,
+  )
+  const frase = fraseDelReparto(filasDelReparto, currency)
+
   async function guardar() {
     if (!sePuede) return
     tap()
@@ -202,6 +215,20 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
             </button>
           </div>
 
+          {/* R1 · la línea del reparto, bajo los tres renglones y encima de
+              Guardar: es lo último que se lee antes de decidir. **Solo con
+              importe tecleado**: sin cifra no hay reparto que contar, y un
+              renglón que aparece y desaparece bajo el dedo mientras tecleas es
+              peor que no tenerlo — por eso vive aquí y no entre el pad y las
+              categorías, que es lo que se está mirando al teclear. */}
+          {frase && guardable(importe) && (
+            <div className="reparto-resumen">
+              {frase.map((t, i) => (
+                t.fuerte ? <b key={i}>{t.t}</b> : <span key={i}>{t.t}</span>
+              ))}
+            </div>
+          )}
+
           <button type="button" className="btn block guardar-gasto" disabled={!sePuede} onClick={guardar}>
             {editando ? 'Guardar los cambios' : 'Guardar gasto'}
           </button>
@@ -244,6 +271,7 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
           event={event}
           families={familias}
           totalCents={centsTecleados}
+          participantIds={participantIds} personsById={personsById}
           description={description} setDescription={setDescription}
           dateISO={dateISO} setDateISO={setDateISO}
           currency={currency} setCurrency={setCurrency}
@@ -269,13 +297,16 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
  * un campo, como en el editor de una idea (§14.24).
  */
 export function DetallesDeGasto({
-  event, families, totalCents: total,
+  event, families, totalCents: total, participantIds = [], personsById = {},
   description, setDescription, dateISO, setDateISO,
   currency, setCurrency, rate, setRate, reparto, setReparto, onCerrar,
 }) {
   useBloqueoDeScroll()
   const modo = reparto?.modo ?? 'pesos'
   const porFamilia = reparto?.porFamilia ?? {}
+  // Se recalcula en cada pintada, así que sigue a los coeficientes según se
+  // teclean: es lo que hace que el renglón sirva de algo aquí dentro.
+  const filas = repartoDeFamilias({ amountCents: total, participantIds, reparto }, families, personsById)
 
   function cambiarModo(nuevo) {
     tap()
@@ -376,6 +407,26 @@ export function DetallesDeGasto({
                 : <>El último renglón lleva <b>lo que falte</b> de los {formatCents(total, currency)}: así no se puede guardar un gasto descuadrado.</>}
             </div>
           </div>
+        )}
+
+        {/* **R5 · lo que sale de todo esto, en euros** (§14.68).
+            Cuelga del rótulo «Cómo se reparte» que ya estaba aquí desde §14.26
+            —no estrena sección, que hubiera dejado dos con el mismo nombre— y
+            va **debajo del control**, para poder mover un coeficiente y ver el
+            efecto sin cerrar la capa.
+            El agujero que tapa es estrecho y concreto: en «Partes» e «Importes»
+            cada casa ya tenía su casilla con su número, pero en «Coeficiente»
+            —el modo de fábrica, y el de casi todos los gastos— solo había una
+            nota explicando la regla con palabras. */}
+        {filas.length > 0 && (
+          <ul className="reparto-cuentas">
+            {filas.map((f) => (
+              <li key={f.id}>
+                <span className="n">{f.nombre}</span>
+                <span className="eu tnum">{formatCents(f.cents, currency)}</span>
+              </li>
+            ))}
+          </ul>
         )}
 
         <div className="grid2">

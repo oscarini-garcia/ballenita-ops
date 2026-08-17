@@ -2,15 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   dinnersOf, addDinner, updateDinner, removeDinner,
-  plansOf, updatePlan, bungasOf, familiesOf, personsOf, listDishes,
-  anclaDe,
+  plansOf, updatePlan, bungasOf, familiesOf, personsOf, listDishes, addDish,
+  shopItemsOf, anclaDe,
 } from '../db.js'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
 import Comentarios from '../components/Comentarios.jsx'
+import Confirmar from '../components/Confirmar.jsx'
 import ListaDePlatos from '../components/ListaDePlatos.jsx'
+import { queSeLlevaUnaCena } from '../lib/borrados.js'
 import { agrupadosPorCategoria, categoriaDe, etiquetaCategoria } from '../lib/carta.js'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
@@ -64,6 +66,25 @@ export default function DiasScreen({ eventId, event, abrir, onAbierta }) {
   const porId = Object.fromEntries(platos.map((p) => [p.id, p]))
   const nombreBunga = (id) => { const b = bungas.find((x) => x.id === id); return b ? (b.alias || b.name) : null }
   const hoy = hoyISO()
+  /**
+   * Un día que ya no cae dentro de las fechas **se aparta, no se esconde**
+   * (§14.10-quater): una cena del 14 en un viaje que empieza el 15, de cuando
+   * las fechas eran otras.
+   *
+   * Esto lo decía Comidas → Cenas, y al retirarse el área (§14.68 · N1) el
+   * aviso se habría venido abajo con ella. `diasDe` solo mira `apuntados`
+   * cuando el evento **no tiene fechas**, así que con fechas puestas esos días
+   * no salen: la cena quedaría invisible y a la vez contando en Números y
+   * ocupando bunga en el balance de anfitrión, que es justo lo que aquella
+   * sección se puso para evitar.
+   *
+   * **Solo las cenas**, y no los planes: un plan que se cayó fuera ya tiene dos
+   * sitios donde aparece —Planes lo aparta al final marcado, y `libres` lo
+   * recoge en la capa de cualquier día para volver a colocarlo—, así que
+   * abrirle además un día suelto sería decir lo mismo por tercera vez.
+   */
+  const diasFuera = [...new Set(cenas.map((c) => c.dia).filter(Boolean))]
+    .filter((d) => !dias.includes(d)).sort()
 
   if (dias.length === 0) {
     return (
@@ -77,54 +98,72 @@ export default function DiasScreen({ eventId, event, abrir, onAbierta }) {
     )
   }
 
+  function filaDeDia(dia, i, total, fuera = false) {
+    const cena = cenas.find((c) => c.dia === dia)
+    const susPlanes = planes.filter((p) => p.dia === dia)
+    const { titulo, detalle } = resumenDeDia({
+      cena,
+      planes: susPlanes,
+      platos: (cena?.platoIds ?? []).map((id) => porId[id]).filter(Boolean),
+      bungaMayores: nombreBunga(cena?.bungaMayoresId),
+      esPrimero: !fuera && i === 0,
+      esUltimo: !fuera && i === total - 1,
+    })
+    const { numero, semana } = numeroYDia(dia)
+    const esHoy = dia === hoy
+    /**
+     * El semáforo llega a la lista (`numeros.html`, que revisa la D1 de
+     * `dia-estado.html` a encargo): verde el día **completo** —cena con
+     * platos, los dos bungas y algo de plan, los cuatro estados de G1—,
+     * ámbar al que le falta algo.
+     */
+    const completo = Boolean(
+      cena && (cena.platoIds?.length ?? 0) > 0
+      && cena.bungaMayoresId && cena.bungaNinosId && susPlanes.length > 0,
+    )
+    return (
+      <div className={`row fila-dia${esHoy ? ' es-hoy' : ''}`} key={dia}>
+        {/* En pantalla el día es un número y tres letras; a quien no ve se
+            le dice la fecha entera, y de una sola manera: el rótulo lo
+            lleva el botón, no un `span` escondido al lado. */}
+        <button
+          className="dia-abre"
+          aria-label={`${fmtDiaLargo(dia)}: ${titulo}, ${detalle}`}
+          onClick={() => { tap(); setAbierto(dia) }}
+        >
+          <span className={`dia-num ${fuera ? 'ambar' : completo ? 'verde' : 'ambar'}`} aria-hidden>
+            <b>{numero}</b><span>{semana}</span>
+          </span>
+          <span className="main">
+            <span className="n">{titulo}</span>
+            <span className="sub">{detalle}</span>
+          </span>
+        </button>
+        {fuera && <span className="pill owe">fuera del viaje</span>}
+      </div>
+    )
+  }
+
   return (
     <div className="body">
       <div className="card tight">
-        {dias.map((dia, i) => {
-          const cena = cenas.find((c) => c.dia === dia)
-          const susPlanes = planes.filter((p) => p.dia === dia)
-          const { titulo, detalle } = resumenDeDia({
-            cena,
-            planes: susPlanes,
-            platos: (cena?.platoIds ?? []).map((id) => porId[id]).filter(Boolean),
-            bungaMayores: nombreBunga(cena?.bungaMayoresId),
-            esPrimero: i === 0,
-            esUltimo: i === dias.length - 1,
-          })
-          const { numero, semana } = numeroYDia(dia)
-          const esHoy = dia === hoy
-          /**
-           * El semáforo llega a la lista (`numeros.html`, que revisa la D1 de
-           * `dia-estado.html` a encargo): verde el día **completo** —cena con
-           * platos, los dos bungas y algo de plan, los cuatro estados de G1—,
-           * ámbar al que le falta algo.
-           */
-          const completo = Boolean(
-            cena && (cena.platoIds?.length ?? 0) > 0
-            && cena.bungaMayoresId && cena.bungaNinosId && susPlanes.length > 0,
-          )
-          return (
-            <div className={`row fila-dia${esHoy ? ' es-hoy' : ''}`} key={dia}>
-              {/* En pantalla el día es un número y tres letras; a quien no ve se
-                  le dice la fecha entera, y de una sola manera: el rótulo lo
-                  lleva el botón, no un `span` escondido al lado. */}
-              <button
-                className="dia-abre"
-                aria-label={`${fmtDiaLargo(dia)}: ${titulo}, ${detalle}`}
-                onClick={() => { tap(); setAbierto(dia) }}
-              >
-                <span className={`dia-num ${completo ? 'verde' : 'ambar'}`} aria-hidden>
-                  <b>{numero}</b><span>{semana}</span>
-                </span>
-                <span className="main">
-                  <span className="n">{titulo}</span>
-                  <span className="sub">{detalle}</span>
-                </span>
-              </button>
-            </div>
-          )
-        })}
+        {dias.map((dia, i) => filaDeDia(dia, i, dias.length))}
       </div>
+
+      {diasFuera.length > 0 && (
+        <>
+          <div className="sec-h">Fuera de las fechas del viaje</div>
+          <div className="note">
+            {diasFuera.length === 1 ? 'Este día cae' : 'Estos días caen'} donde el evento ya no
+            llega. {diasFuera.length === 1 ? 'Sigue' : 'Siguen'} contando en Números y ocupando
+            bunga, así que {diasFuera.length === 1 ? 'ábrelo' : 'ábrelos'} para vaciar
+            {diasFuera.length === 1 ? 'lo' : 'los'} o corrige las fechas en <b>Ajustes → Evento</b>.
+          </div>
+          <div className="card tight">
+            {diasFuera.map((dia, i) => filaDeDia(dia, i, diasFuera.length, true))}
+          </div>
+        </>
+      )}
 
       {abierto && (
         <CapaDeDia
@@ -172,6 +211,13 @@ export function CapaDeDia({
   organiza = true, lectura: lecturaInicial = false, onClose,
 }) {
   useBloqueoDeScroll()
+  // Las otras cenas y la lista de la compra, para poder decir qué se lleva
+  // quitar esta (§14.38): las líneas de la compra **no apuntan a su cena**
+  // —salen de sumar todas—, así que la cuenta es la lista con y sin ella. Se
+  // consultan aquí y no se reciben por prop porque esta capa la abren dos
+  // pantallas, y «Hoy» no tiene ninguna de las dos a mano.
+  const cenas = useLiveQuery(() => dinnersOf(eventId), [eventId], [])
+  const compra = useLiveQuery(() => shopItemsOf(eventId), [eventId], [])
   const [eligiendo, setEligiendo] = useState(null)
   // **El modo lectura** (`docs/diseño/hoy-el-dia.html` · P1): la misma capa, sin
   // elegidores y con la carta entera en vez del titular de la cena. Se abre así
@@ -234,9 +280,16 @@ export function CapaDeDia({
   const may = filaBunga(cena?.bungaMayoresId, 'Mayores')
   const nin = filaBunga(cena?.bungaNinosId, 'Niños')
 
-  const subCena = nPlatos
+  // La mesa de niños con lista propia **se dice en el día** (§14.68 · K1):
+  // vive dentro del elegidor, así que sin esto habría que abrirlo para saber si
+  // esa noche cenan otra cosa. Mientras hereden no se dice nada: es lo que pasa
+  // siete noches de ocho, y repetirlo en todas es un renglón que nadie lee.
+  const ninosAparte = (cena?.platoIdsNinos ?? null) !== null
+  const platosNinos = (cena?.platoIdsNinos ?? []).map((id) => porId[id]).filter(Boolean)
+  const baseCena = nPlatos
     ? (nPlatos === 1 ? 'un plato' : `${enLetras(nPlatos)} platos`)
     : (tocable ? 'toca para elegir los platos' : 'sin platos todavía')
+  const subCena = ninosAparte ? `${baseCena} · los niños, otra cosa` : baseCena
   // Mirando, el renglón del plan no cuenta lo que se podría traer: eso es una
   // tarea de montar el día, no un dato de lo que se hace hoy.
   const subPlanes = !tocable ? 'sin plan todavía'
@@ -302,6 +355,16 @@ export function CapaDeDia({
                   s: subCena,
                   abre: 'platos',
                 })}
+              {/* Mirando, la carta de los niños entera: es la pantalla a la que
+                  se viene a saber qué se cena, y «otra cosa» no lo contesta. */}
+              {lectura && ninosAparte && (
+                <>
+                  <div className="grupo-cat">Los niños</div>
+                  {platosNinos.length > 0
+                    ? <ListaDePlatos platos={platosNinos} />
+                    : <div className="apunte">Comen otra cosa, sin apuntar todavía.</div>}
+                </>
+              )}
             </div>
 
             <div className="sec-h" style={{ marginTop: 6 }}>Los bungas</div>
@@ -364,17 +427,29 @@ export function CapaDeDia({
           <ElegidorDePlatos
             dia={dia}
             platos={platos}
+            evento={event}
             inicial={cena?.platoIds ?? []}
+            inicialNinos={cena?.platoIdsNinos ?? null}
             hayCena={Boolean(cena || cenaRef.current)}
+            queSeLleva={queSeLlevaUnaCena(cena ?? { id: cenaRef.current }, {
+              dia: fmtDiaLargo(dia), platos, cenas, personas, lineas: compra,
+            })}
             onQuitarCena={quitarCena}
             onCancelar={() => setEligiendo(null)}
-            onListo={async (ids) => {
+            onListo={async (ids, idsNinos) => {
               // Sin cena y sin nada marcado no hay nada que escribir: un
               // «Listo» vacío no cría una cena vacía. Y un «Listo» sin cambios
               // no encola un cambio que no cambia nada.
               const antes = cena?.platoIds ?? []
-              const igual = ids.length === antes.length && ids.every((x) => antes.includes(x))
-              if (!igual && (ids.length > 0 || cena || cenaRef.current)) await escribeCena({ platoIds: ids })
+              const antesNinos = cena?.platoIdsNinos ?? null
+              const mismaLista = (a, b) => (
+                a === null || b === null
+                  ? a === b
+                  : a.length === b.length && a.every((x) => b.includes(x))
+              )
+              const igual = mismaLista(ids, antes) && mismaLista(idsNinos, antesNinos)
+              const hayAlgo = ids.length > 0 || idsNinos !== null || cena || cenaRef.current
+              if (!igual && hayAlgo) await escribeCena({ platoIds: ids, platoIdsNinos: idsNinos })
               setEligiendo(null)
             }}
           />
@@ -462,10 +537,50 @@ function Buscador({ valor, onCambio, etiqueta }) {
   )
 }
 
-function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCancelar, onListo }) {
+/**
+ * Los platos de la cena, con **dos mesas y un alta al vuelo**
+ * (`docs/diseño/cenas-fuera-y-reparto.html` · H3 · K1).
+ *
+ * Las dos cosas llegan aquí porque Comidas → Cenas se retiró y era el único
+ * sitio que las tenía (N1). Ninguna es una mudanza literal:
+ *
+ * **H3 · el buscador ofrece crear.** Cero controles en reposo: el verbo sale
+ * solo cuando lo que se busca no existe, con el nombre ya escrito. Se descartó
+ * el formulario de alta permanente que tenía «Cenas» —nombre más las cinco
+ * categorías, siempre desplegado— porque aquí no cabe y porque hace falta una
+ * vez de cada veinte. **El plato nace sin categoría** y sin receta: se completa
+ * en Comidas → Carta, y por eso la lista lo coloca en «Sin tipo».
+ *
+ * **El alta escribe en el catálogo aunque luego se cancele**, y es a propósito:
+ * un plato es del grupo y de todos los viajes, no de esta cena. Lo que el
+ * borrador de §14.31 protege es *qué se cena hoy* —eso sí se descarta con
+ * «Cancelar»—, no el catálogo. Si se aplazara hasta «Listo» habría que guardar
+ * un plato a medio nacer dentro del borrador y perderlo al cancelar, que es
+ * justo lo que se siente como que la app pierde cosas.
+ *
+ * **K1 · la mesa de niños, con un segmentado y no dos listas seguidas.** La
+ * hoja aceptaba «dos listas», y dibujadas una debajo de otra son dos catálogos
+ * enteros en una capa cuyo tope son 658,3 pt: para llegar a la segunda hay que
+ * pasar por toda la primera. Las dos listas siguen estando —es lo que se
+ * eligió— pero se enseña una cada vez, y el buscador y el orden sirven a las
+ * dos. Mientras los niños hereden no hay segmentado ni nada que leer: `null` es
+ * «comen lo mismo», que es la noche normal, y solo está el verbo de una línea.
+ */
+function ElegidorDePlatos({
+  dia, platos, evento, inicial, inicialNinos, hayCena, queSeLleva, onQuitarCena, onCancelar, onListo,
+}) {
   const [marcados, setMarcados] = useState(() => new Set(inicial))
+  // `null` = los niños comen lo mismo. Es lo de fábrica porque separar las dos
+  // listas cuesta un toque y no separarlas, ninguno.
+  const [ninos, setNinos] = useState(() => (inicialNinos ? new Set(inicialNinos) : null))
+  const [mesa, setMesa] = useState('mayores')
   const [busca, setBusca] = useState('')
   const [quitando, setQuitando] = useState(false)
+  const [creando, setCreando] = useState(false)
+
+  const enNinos = mesa === 'ninos' && ninos
+  const activos = enNinos ? ninos : marcados
+  const ponActivos = enNinos ? setNinos : setMarcados
 
   const opciones = platos.map((p) => ({
     id: p.id,
@@ -479,47 +594,102 @@ function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCance
   // quitar uno pedía buscarlo; y montar un menú es elegir un principal y un
   // postre, no recorrer un catálogo. Los marcados **no se sacan del grupo al
   // marcarlos**: la lista se recompone al abrirla, no bajo el dedo — un plato
-  // que salta de sitio al tocarlo es la peor sorpresa de una lista.
-  const [puestos] = useState(() => new Set(inicial))
-  const arriba = visibles.filter((o) => puestos.has(o.id))
-  const grupos = agrupadosPorCategoria(visibles.filter((o) => !puestos.has(o.id)).map((o) => o.plato))
+  // que salta de sitio al tocarlo es la peor sorpresa de una lista. Cada mesa
+  // congela la suya: al pasar a la de niños, «esta cena» es lo suyo.
+  const [puestos] = useState(() => ({
+    mayores: new Set(inicial),
+    ninos: new Set(inicialNinos ?? inicial),
+  }))
+  const susPuestos = puestos[enNinos ? 'ninos' : 'mayores']
+  const arriba = visibles.filter((o) => susPuestos.has(o.id))
+  const grupos = agrupadosPorCategoria(visibles.filter((o) => !susPuestos.has(o.id)).map((o) => o.plato))
     .map((g) => ({ ...g, opciones: g.platos.map((p) => visibles.find((o) => o.id === p.id)) }))
+
+  // El nombre tecleado no existe **exactamente** en el catálogo. Se mira sobre
+  // `visibles` y no sobre el texto: escribir «tortilla» con «Tortilla de patata»
+  // puesta no es querer crear nada, es estar buscándola.
+  const aCrear = busca.trim()
+  const puedeCrear = aCrear.length > 0 && visibles.length === 0
 
   const fila = (o, conNota) => (
     <button
       key={o.id}
       type="button"
       className="eleccion-op"
-      aria-pressed={marcados.has(o.id)}
+      aria-pressed={activos.has(o.id)}
       onClick={() => { tap(); alternar(o.id) }}
     >
       <span className="et">{o.etiqueta}</span>
       {conNota && o.nota && <span className="no">{o.nota}</span>}
-      {marcados.has(o.id) && <span className="tic"><Icono nombre="visto" /></span>}
+      {activos.has(o.id) && <span className="tic"><Icono nombre="visto" /></span>}
     </button>
   )
 
   function alternar(id) {
-    const s = new Set(marcados)
+    const s = new Set(activos)
     s.has(id) ? s.delete(id) : s.add(id)
-    setMarcados(s)
+    ponActivos(s)
+  }
+
+  async function crearYMarcar() {
+    if (!puedeCrear || creando) return
+    setCreando(true)
+    try {
+      const id = await addDish({ name: aCrear, categorias: [] }, evento)
+      ponActivos(new Set([...activos, id]))
+      setBusca('')
+    } finally {
+      setCreando(false)
+    }
   }
 
   return (
     <Elegidor
-      titulo="Los platos de esta cena"
+      titulo={enNinos ? 'Los platos de los niños' : 'Los platos de esta cena'}
       dia={dia}
       buscador={<Buscador valor={busca} onCambio={setBusca} etiqueta="Buscar un plato" />}
       onCancelar={onCancelar}
-      onListo={() => onListo([...marcados])}
+      onListo={() => onListo([...marcados], ninos ? [...ninos] : null)}
     >
-      {platos.length === 0 && (
-        <div className="note" style={{ marginTop: 10 }}>
-          El catálogo está vacío. Los platos se crean en Comidas → Carta.
+      {ninos && (
+        <div className="segmentado" role="group" aria-label="Qué mesa" style={{ marginTop: 10 }}>
+          <button
+            type="button"
+            className={mesa === 'mayores' ? 'on' : ''}
+            onClick={() => { tap(); setMesa('mayores') }}
+          >
+            Mayores<span className="peso">{marcados.size}</span>
+          </button>
+          <button
+            type="button"
+            className={mesa === 'ninos' ? 'on' : ''}
+            onClick={() => { tap(); setMesa('ninos') }}
+          >
+            Niños<span className="peso">{ninos.size}</span>
+          </button>
         </div>
       )}
+      {platos.length === 0 && !puedeCrear && (
+        <div className="note" style={{ marginTop: 10 }}>
+          El catálogo está vacío. Escribe arriba el nombre de un plato y sale el botón de crearlo.
+        </div>
+      )}
+      {/* H3: el verbo con el nombre ya escrito, donde estaba el «no hay nada». */}
+      {puedeCrear && (
+        <button
+          type="button"
+          className="renglon-mas"
+          style={{ marginTop: 10 }}
+          disabled={creando}
+          onClick={() => { tap(); crearYMarcar() }}
+        >
+          {creando ? 'Creando…' : `Crear «${aCrear}» y marcarlo`}
+        </button>
+      )}
       {platos.length > 0 && visibles.length === 0 && (
-        <div className="apunte" style={{ marginTop: 10 }}>Ningún plato se llama así.</div>
+        <div className="apunte" style={{ marginTop: 10 }}>
+          Ningún plato se llama así. Nacerá sin tipo: se le pone en Comidas → Carta.
+        </div>
       )}
       {arriba.length > 0 && (
         <>
@@ -533,21 +703,49 @@ function ElegidorDePlatos({ dia, platos, inicial, hayCena, onQuitarCena, onCance
           <div className="eleccion">{g.opciones.map((o) => fila(o, false))}</div>
         </div>
       ))}
+      {/* K1: mientras hereden, una línea; con lista propia, cómo deshacerlo.
+          El verbo arranca de lo que comen los mayores, que es de donde se parte
+          para decir «los niños, esto no». */}
+      {!ninos ? (
+        <button
+          type="button"
+          className="renglon-mas"
+          style={{ marginTop: 10 }}
+          onClick={() => { tap(); setNinos(new Set(marcados)); setMesa('ninos') }}
+        >
+          Los niños comen otra cosa…
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="btn sm ghost block"
+          style={{ marginTop: 10 }}
+          onClick={() => { tap(); setNinos(null); setMesa('mayores') }}
+        >
+          Que los niños coman lo mismo
+        </button>
+      )}
       <div className="apunte" style={{ marginTop: 10 }}>
-        Los platos se crean y se corrigen en Comidas → Carta.
+        Los platos se corrigen —tipo, receta e ingredientes— en Comidas → Carta.
       </div>
       {/* Quitar la cena vive aquí, con segunda pulsación (dia-abierto.html ·
           H1). Es la única salida del elegidor que escribe sin «Listo»: es un
-          verbo con su propia confirmación, no parte del borrador. */}
+          verbo con su propia confirmación, no parte del borrador.
+          **Y dice qué se lleva** (§14.38): la frase la compone
+          `queSeLlevaUnaCena`, que cuenta las líneas de la compra que se caen
+          —hay que calcularlo, porque una línea no apunta a su cena—. Esto lo
+          decía Comidas → Cenas con el mismo `Confirmar`; al retirarse el área
+          (§14.68 · N1) el renglón de aquí se habría quedado con su frase a
+          mano, que nombra los platos y las bungas y **calla la compra**. */}
       {hayCena && (quitando ? (
         <div style={{ marginTop: 10 }}>
-          <div className="note">
-            Se lleva los platos y las bungas de este día. Los planes se quedan.
-          </div>
-          <div className="chips" style={{ marginTop: 8 }}>
-            <button type="button" className="btn sm danger" onClick={() => { tap(); onQuitarCena() }}>Sí, quitarla</button>
-            <button type="button" className="btn sm ghost" onClick={() => setQuitando(false)}>Dejarla</button>
-          </div>
+          <Confirmar
+            queSeLleva={queSeLleva}
+            dejarlo="Dejarla"
+            borrar="Sí, quitarla"
+            onDejarlo={() => { tap(); setQuitando(false) }}
+            onBorrar={() => { tap(); onQuitarCena() }}
+          />
         </div>
       ) : (
         <div style={{ marginTop: 10 }}>

@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.60.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1083 pruebas en 116 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.61.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1100 pruebas en 117 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   261 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -187,6 +187,7 @@ Primera frase de la cabecera de cada módulo.
 - `recordatorioDeAvisos.js` — Volver a acordarse de los avisos, cada tanto (SPECS §14.65).
 - `registro.js` — La bitácora del viaje: qué ha hecho cada uno, para el recap del final.
 - `reparto-gente.js` — Entre quién se divide un gasto: los atajos, las familias y el buscador.
+- `reparto-vista.js` — Cómo se cuenta el reparto de un gasto en pantalla, sin pintar nada.
 - `reparto.js` — Motor de reparto — el corazón de Ballena Ops (§3, §14.7 del spec).
 - `salida.js` — Salir de la cuenta sin llevarse por delante lo que todavía no ha subido.
 - `scrollLock.js` — Bloqueo del scroll del fondo mientras hay un modal abierto.
@@ -205,8 +206,7 @@ Primera frase de la cabecera de cada módulo.
 - `BalancesScreen.jsx` — Saldos: cuánto debe cada familia y quién paga a quién.
 - `BienvenidaScreen.jsx` — Lo que se ve la primera vez que entras, mientras baja lo del grupo.
 - `CacharrosSection.jsx` — El cacharro del año: uno por familia, y se vota el mejor (SPECS §14.57).
-- `CenasScreen.jsx` — Las cenas del viaje: qué se come cada día y en qué bunga, mayores y niños.
-- `ComidasScreen.jsx` — «Comidas», con tres áreas (opciones A1, C1 y D1 de `docs/diseño/navegacion.html`).
+- `ComidasScreen.jsx` — «Comidas», con dos áreas: **la Carta y la Compra** (`docs/diseño/cenas-fuera-y-reparto.html` · N1).
 - `CompraScreen.jsx` — La lista de la compra: lo que sale de las recetas y lo que se apunta a mano.
 - `CuentasSection.jsx` — Las cuentas que han pedido entrar, y con quién es cada una.
 - `DiasScreen.jsx` — «Días»: la lista de días del evento, con un resumen de cada uno.
@@ -288,7 +288,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 
 - **§3** Gastos — "Modo Splitwise" 💸 → `reparto.js`
 - **§3.2** Cómo se divide el gasto → `reparto.js`
-- **§3.3** Splits predefinidos por familia (el requisito clave) ⭐ → `BalancesScreen.jsx`, `reparto.js`
+- **§3.3** Splits predefinidos por familia (el requisito clave) ⭐ → `BalancesScreen.jsx`, `reparto-vista.js`, `reparto.js`
 - **§3.4** Saldos y liquidación → `reparto.js`
 - **§3.6** Multi-moneda (decidido, con letra pequeña) → `money.js`
 - **§4** Planes 🗺️ → `db.js`
@@ -301,8 +301,8 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14** Arquitectura técnica (PWA) → `db.js`, `ids.js`
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
-- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CenasScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `MejorasSection.jsx`, `ProgresoModal.jsx` · +12 más
-- **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `alojamientos.js`, `scrollLock.js` · +1 más
+- **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `MejorasSection.jsx`, `ProgresoModal.jsx`, `api.js` · +11 más
+- **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `ComidasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `PlanesScreen.jsx`, `alojamientos.js` · +2 más
 - **§14.11** Tipografía: un número y toda la escala → `BalancesScreen.jsx`
 - **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `Confirmar.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `borrados.js`, `evento.js` · +1 más
@@ -311,27 +311,28 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.17** Avisos al móvil: APNs directo, sin SDK de nadie → `recordatorioDeAvisos.js`
 - **§14.18** El día es el de aquí, no el de Greenwich → `db.js`, `planes.js`
 - **§14.19** La versión, abajo y tocable → `ExpensesScreen.jsx`, `GrupoSection.jsx`, `IdeasScreen.jsx`, `MejorasSection.jsx`, `PlanesScreen.jsx`, `PlatosScreen.jsx` · +10 más
-- **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CenasScreen.jsx`, `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js` · +7 más
+- **§14.20** Recetas con cantidades, y la compra que sale de ellas → `CompraScreen.jsx`, `EventSettingsScreen.jsx`, `PlatosScreen.jsx`, `api.js`, `borrados.js`, `cocina.js` · +6 más
 - **§14.21** El día del viaje: qué bungas, qué se cena y qué plan → `db.js`
 - **§14.22** Mejoras: el roadmap de la app, apuntado desde el móvil → `Icono.jsx`, `db.js`, `index.js`, `repositorio.js`, `tablas.js`
 - **§14.23** Poner la base al día desde Ajustes, cuando va por detrás del código → `EventSettingsScreen.jsx`, `api.js`, `index.js`, `migraciones.js`, `migrador.js`, `repositorio.js`
 - **§14.24** El editor de una idea: centrado, sin teclado encima, y con «Mejorarla» → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `IdeasScreen.jsx`, `api.js`, `idea.js`, `index.js`
 - **§14.25** Que se note que es verano: el sol de la cabecera y los recados → `App.jsx`, `api.js`, `index.js`, `repositorio.js`
-- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `comentarios.js` · +4 más
+- **§14.26** Apuntar un gasto en la puerta del súper: sin teclado, y con la cuenta hecha → `FichaDeGasto.jsx`, `HojaDeEntre.jsx`, `PadDeImporte.jsx`, `avisos.js`, `borrados.js`, `comentarios.js` · +5 más
 - **§14.27** Entre quién se divide: cuatro atajos, las familias, y salir sin guardar → `Confirmar.jsx`, `DiasScreen.jsx`, `HojaDeEntre.jsx`, `Icono.jsx`, `reparto-gente.js`
 - **§14.28** El mapa del repositorio, compuesto leyendo el código → `native.js`
 - **§14.29** La puerta, la sala de espera y el primer arranque tras ser aceptado → `AccesoScreen.jsx`, `App.jsx`, `EnlaceScreen.jsx`
 - **§14.30** El día abierto: el mueble de un plan, y cada toque escribe → `DiasScreen.jsx`, `HoyScreen.jsx`
-- **§14.31** Los elegidores del día: al centro, con borrador y buscador → `BotonDePerfil.jsx`, `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
+- **§14.31** Los elegidores del día: al centro, con borrador y buscador → `BotonDePerfil.jsx`, `DiasScreen.jsx`, `HojaDeEstado.jsx`, `StatsScreen.jsx`, `stats.js`
 - **§14.32** El semáforo del día, y el género del bunga → `PlanesScreen.jsx`
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `db.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
+- **§14.38** Borrar pregunta, y la pregunta dice qué se lleva → `DiasScreen.jsx`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `avisos.js`, `index.js`
 - **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +5 más
 - **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`, `identidad.js`
-- **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `CenasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `personas.js`
-- **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CenasScreen.jsx`, `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
+- **§14.43** Organizar el viaje es de los adultos, y el evento de quien administra → `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `personas.js`
+- **§14.44** Los estados, uno debajo de otro; el recado, bajo el selector → `CompraScreen.jsx`, `ExpensesScreen.jsx`, `HoyScreen.jsx`, `PlatosScreen.jsx`
 - **§14.45** Quien administra sí cambia de persona, y «Hoy» invita a decir tu estado → `HoyScreen.jsx`, `db.js`, `identidad.js`
 - **§14.46** Al minuto: los datos se traen y la versión se vigila → `App.jsx`, `engine.js`, `native.js`, `vigilante.js`
 - **§14.47** Pulsar Agenda lleva al calendario, y en un emoji caben tres → `App.jsx`, `BotonDePerfil.jsx`, `areas.js`, `emojis.js`
@@ -354,3 +355,5 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.64** Un plato dice qué lleva y ahora también cómo se hace → `PlatosScreen.jsx`, `db.js`, `tablas.js`
 - **§14.65** Los avisos se recuerdan cada semana, y el bunga vuelve a su familia → `AvisoDeAvisos.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `HoyScreen.jsx`, `recordatorioDeAvisos.js`
 - **§14.66** El bunga se resume en una frase, se comenta, y la familia va en pastilla → `Comentarios.jsx`, `GrupoSection.jsx`, `alojamientos.js`, `api.js`, `avisos.js`, `bunga.js` · +3 más
+- **§14.67** «Hoy» cuenta el día, y el día se puede mirar sin montarlo → `reparto-vista.js`
+- **§14.68** Las cenas se montan en el día, y el gasto dice cómo se reparte → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `areas.js`

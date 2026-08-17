@@ -7,7 +7,7 @@ import {
   expensesOf, dinnersOf,
 } from '../db.js'
 import ExpensesScreen from './ExpensesScreen.jsx'
-import CenasScreen from './CenasScreen.jsx'
+import DiasScreen from './DiasScreen.jsx'
 
 /**
  * Los dos borrados que no preguntaban nada y sí arrastran
@@ -93,12 +93,23 @@ describe('borrar una cena', () => {
     await addShopItem(eventId, { texto: 'Arroz', origen: 'cena', clave: 'arroz|g', cantidad: 100, unidad: 'g' })
   })
 
+  /**
+   * Quitar la cena vive en el elegidor de platos del día (§14.30 · H1), que es
+   * a donde se mudó al retirarse Comidas → Cenas (§14.68 · N1). El camino es:
+   * abrir el día 14, tocar el renglón de la cena, y ahí abajo está el verbo.
+   */
   const abrirElVerbo = async () => {
-    render(<CenasScreen eventId={eventId} event={event} />)
-    await userEvent.click(await screen.findByRole('button', { name: 'Borrar la cena' }))
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await userEvent.click(await screen.findByLabelText(/14 de agosto/))
+    // El primer renglón de la capa es el de la cena. Se busca **dentro del
+    // modal** y no por su texto: el titular de la cena es el mismo que el de su
+    // fila en la lista de días, que sigue detrás.
+    await waitFor(() => expect(document.querySelector('.modal .fila-boton')).not.toBeNull())
+    await userEvent.click(document.querySelector('.modal .fila-boton'))
+    await userEvent.click(await screen.findByRole('button', { name: 'Quitar la cena de este día' }))
   }
 
-  it('el verbo ya no está en la cabecera de la tarjeta, y pregunta antes', async () => {
+  it('la primera pulsación no quita nada, pregunta antes', async () => {
     await abrirElVerbo()
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(await dinnersOf(eventId)).toHaveLength(1)
@@ -114,7 +125,7 @@ describe('borrar una cena', () => {
 
   it('confirmando se borra de verdad', async () => {
     await abrirElVerbo()
-    await userEvent.click(await screen.findByRole('button', { name: 'Sí, borrar' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Sí, quitarla' }))
     await waitFor(async () => expect(await dinnersOf(eventId)).toHaveLength(0))
   })
 })
