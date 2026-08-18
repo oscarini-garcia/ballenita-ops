@@ -260,6 +260,31 @@ export function avisoDeEstado(persona, anterior, { autor = null } = {}) {
 
 // ── Comentarios (§14.55) ──
 
+const DIAS_SEMANA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MESES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+
+/**
+ * Un día en palabras: `'2026-08-15'` → «el sábado 15 de agosto».
+ *
+ * **A mano y sin `Intl`**, como el importe de aquí arriba: el Worker no lleva
+ * datos de locales, así que `toLocaleDateString('es-ES')` devuelve el inglés o
+ * la fecha en crudo según dónde corra — y eso no se ve al probarlo, se ve en la
+ * pantalla de bloqueo de otro.
+ *
+ * En **UTC** a propósito: la fecha ya viene sin hora, y leerla en local la
+ * correría un día hacia atrás en cualquier huso al oeste de Greenwich.
+ */
+export function diaEnLetras(iso) {
+  const crudo = String(iso ?? '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(crudo)) return crudo;
+  const d = new Date(`${crudo}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return crudo;
+  return `el ${DIAS_SEMANA[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`;
+}
+
 /** De qué es un hilo: `'plan:abc'` → `{ tipo: 'plan', id: 'abc' }`. */
 export function deQueEs(ancla) {
   const crudo = String(ancla ?? '')
@@ -324,14 +349,21 @@ export function avisoDeComentario(comentario, {
   const sobreQue = {
     plan: planes.find((p) => p.id === id)?.titulo,
     gasto: gastos.find((g) => g.id === id)?.description,
-    dia: id,
     bunga: bungas.find((b) => b.id === id)?.name,
   }[tipo];
+
+  // **El día va sin comillas y en palabras** (§14.70-bis). Salía el `id` en
+  // crudo —«ha comentado en «2026-08-15»»—, que es la fecha tal como la guarda
+  // la base y en la pantalla de bloqueo se lee como una avería. Y las comillas
+  // sobran: entrecomillar una fecha la convierte en el nombre de algo.
+  const titulo = tipo === 'dia'
+    ? `${nombre} ha comentado en ${diaEnLetras(id)}`
+    : sobreQue ? `${nombre} ha comentado en «${sobreQue}»` : `${nombre} ha comentado`;
 
   return {
     clase: 'comentario',
     personIds,
-    titulo: sobreQue ? `${nombre} ha comentado en «${sobreQue}»` : `${nombre} ha comentado`,
+    titulo,
     cuerpo: String(comentario?.texto ?? '').slice(0, 180),
     // Por hilo y no por comentario: un ida y vuelta de seis mensajes deja **un**
     // aviso en la pantalla de bloqueo, con el último. Sin esto son seis.

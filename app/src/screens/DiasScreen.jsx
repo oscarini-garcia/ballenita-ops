@@ -380,11 +380,22 @@ export function CapaDeDia({
               )}
             </div>
 
-            <div className="sec-h" style={{ marginTop: 6 }}>Los bungas</div>
-            <div className="card tight" style={{ marginTop: 6 }}>
-              {renglon({ icono: 'casa', verde: may.elegido, n: may.n, s: may.s, abre: 'mayores' })}
-              {renglon({ icono: 'casa', verde: nin.elegido, n: nin.n, s: nin.s, abre: 'ninos' })}
-            </div>
+            {/* **O se cena fuera, o se reparten bungas** (§14.70-bis): son
+                alternativas, no dos preguntas del mismo día. Esa noche no acoge
+                nadie, así que los dos renglones se retiran enteros en vez de
+                quedarse pidiendo algo que no se puede contestar — que es como
+                estaban desde §14.70, ámbar y perpetuamente a medias.
+                Lo elegido **no se borra**: vuelve entero al volver al camping,
+                igual que los platos. Lo que se retira es la pregunta. */}
+            {!seCenaFuera && (
+              <>
+                <div className="sec-h" style={{ marginTop: 6 }}>Los bungas</div>
+                <div className="card tight" style={{ marginTop: 6 }}>
+                  {renglon({ icono: 'casa', verde: may.elegido, n: may.n, s: may.s, abre: 'mayores' })}
+                  {renglon({ icono: 'casa', verde: nin.elegido, n: nin.n, s: nin.s, abre: 'ninos' })}
+                </div>
+              </>
+            )}
 
             <div className="sec-h" style={{ marginTop: 6 }}>El plan</div>
             <div className="card tight" style={{ marginTop: 6 }}>

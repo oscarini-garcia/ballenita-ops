@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.65.0',
+    fecha: '2026-08-18',
+    titulo: 'O se cena fuera, o se reparten bungas',
+    lineas: [
+      'Al marcar que esa noche se cena fuera, los dos renglones de los bungas desaparecen del día: no acoge nadie, así que pedirlos era pedir lo imposible. Lo que tuvieras elegido no se borra — vuelve al volver al camping.',
+      'Y en Números, una noche fuera ya no le cuenta de anfitrión a nadie. Antes, si habías puesto los bungas y luego decías que se cenaba fuera, seguía contando.',
+      'Los avisos de un comentario en un día dicen «ha comentado en el sábado 15 de agosto» en vez de «en «2026-08-15»».',
+    ],
+  },
+  {
     version: '0.64.0',
     fecha: '2026-08-17',
     titulo: 'Noches que se cena fuera, y dónde',

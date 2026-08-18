@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGasto, avisoDeGastoBorrado, avisoDeLiquidacion, avisosDeGasto, contables, deQueEs, destinoDeAncla, elGastoMueveElSaldo, familiasDeUnGasto, importe,
+  CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGasto, avisoDeGastoBorrado, avisoDeLiquidacion, avisosDeGasto, contables, deQueEs, destinoDeAncla, elGastoMueveElSaldo, familiasDeUnGasto, importe, diaEnLetras,
 } from '../src/avisos.js';
 
 /**
@@ -259,6 +259,35 @@ test('§14.55 · en un día son todos: un día del viaje es de todos', () => {
     { personas: GENTE, autor: 'curro' },
   );
   assert.deepEqual(sobre.personIds.sort(), ['ana', 'luis', 'pablo']);
+});
+
+/**
+ * El día se nombra en palabras (§14.70-bis).
+ *
+ * Salía el `id` en crudo —«ha comentado en «2026-08-15»»—, que es la fecha tal
+ * como la guarda la base y en la pantalla de bloqueo se lee como una avería.
+ */
+test('§14.70-bis · el aviso de un día lo nombra en palabras, no en ISO', () => {
+  const sobre = avisoDeComentario(
+    { id: 'c1', ancla: 'dia:2026-08-15', texto: 'Llego tarde', autorId: 'curro' },
+    { personas: GENTE, autor: 'curro' },
+  );
+  // `GENTE` no lleva nombres, así que el autor sale con el «Alguien» de siempre:
+  // lo que se prueba aquí es la fecha, no el nombre.
+  assert.equal(sobre.titulo, 'Alguien ha comentado en el sábado 15 de agosto');
+  // Y sin comillas: entrecomillar una fecha la convierte en el nombre de algo.
+  assert.ok(!sobre.titulo.includes('«'));
+});
+
+test('§14.70-bis · la fecha se compone a mano, en UTC y sin Intl', () => {
+  assert.equal(diaEnLetras('2026-08-15'), 'el sábado 15 de agosto');
+  assert.equal(diaEnLetras('2026-01-01'), 'el jueves 1 de enero');
+  assert.equal(diaEnLetras('2026-12-31'), 'el jueves 31 de diciembre');
+  // Lo que no es una fecha se devuelve tal cual: un titular raro es mejor que
+  // un aviso que no sale porque algo reventó al formatear.
+  assert.equal(diaEnLetras('mañana'), 'mañana');
+  assert.equal(diaEnLetras(''), '');
+  assert.equal(diaEnLetras(null), '');
 });
 
 test('§14.55 · si no le importa a nadie, no se manda nada', () => {
