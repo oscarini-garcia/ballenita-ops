@@ -4518,6 +4518,45 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.70-bis O se cena fuera, o se reparten bungas — y el día se nombra en el aviso
+
+Dos remates de §14.70, y uno de ellos tapa un fallo que aquella vuelta dejó
+puesto sin verlo.
+
+- **✅ Los bungas se retiran cuando se cena fuera.** Son **alternativas**, no dos
+  preguntas del mismo día: esa noche no acoge nadie. §14.70 ya contaba el día
+  como completo sin ellos, pero los dos renglones se quedaban en pantalla,
+  **ámbar y perpetuamente a medias**, pidiendo algo que no se puede contestar —
+  la capa decía una cosa y el semáforo otra.
+- **Lo elegido no se borra**, igual que los platos: vuelve entero al volver al
+  camping. Lo que se retira es **la pregunta**, no la respuesta.
+- **✅ Y el balance de anfitrión deja de contarlas** (`lib/stats.js`). Esto era un
+  **fallo latente de §14.70**, y su spec llegó a afirmar lo contrario —«el
+  balance de anfitrión no la cuenta, porque no tiene bungas que contar»—, que
+  solo es verdad si nunca se pusieron. Poner los bungas y luego marcar «se cena
+  fuera» le apuntaba a alguien una noche de anfitrión **por una noche en la que
+  estaba en el chiringuito**. Se ve en Números y no en la capa del día, que es
+  por donde no se mira.
+- **✅ El aviso de un comentario en un día lo nombra en palabras**
+  (`api/src/avisos.js` · `diaEnLetras`): salía «ha comentado en «2026-08-15»» —el
+  `id` en crudo, que es la fecha tal como la guarda la base— y en la pantalla de
+  bloqueo se lee como una avería. Ahora, «ha comentado en el sábado 15 de
+  agosto», **sin comillas**: entrecomillar una fecha la convierte en el nombre
+  de algo.
+- **La fecha se compone a mano y en UTC**, como el importe: el Worker no lleva
+  datos de locales, así que `toLocaleDateString('es-ES')` devuelve el inglés o la
+  fecha en crudo según dónde corra — y eso no se ve al probarlo, se ve en el
+  móvil de otro. En UTC porque la fecha viene sin hora y leerla en local la
+  correría un día atrás al oeste de Greenwich.
+- **Lo que ya estaba bien y se comprobó antes de tocar nada:** un comentario en
+  un día **ya avisaba a todo el grupo** desde §14.55 (`avisoDeComentario`, rama
+  `tipo === 'dia'` → todas las personas menos quien escribe), y el hilo del día
+  se ve sin permisos. Se verificó de punta a punta por `sobresDeLosCambios` con
+  la forma real de la instantánea, no solo por la función pura. Lo único que
+  puede dejar a alguien sin recibirlo es lo de siempre: no tener cuenta enlazada,
+  no tener el aparato con avisos, o llevar apagada la clase **«Comentarios»** —
+  que apaga los de un plan, los de un gasto y los de un día a la vez.
+
 ### 14.70 Noches que se cena fuera, y dónde
 
 - **El defecto:** no había forma de decirlo. Las noches de chiringuito se

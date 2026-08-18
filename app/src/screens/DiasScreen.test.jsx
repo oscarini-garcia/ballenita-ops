@@ -414,6 +414,37 @@ describe('DiasScreen', () => {
     })
   })
 
+  /**
+   * O se cena fuera, o se reparten bungas (§14.70-bis): son alternativas, no dos
+   * preguntas del mismo día. Desde §14.70 los dos renglones se quedaban ahí,
+   * ámbar y perpetuamente a medias, pidiendo algo que esa noche no se puede
+   * contestar porque no acoge nadie.
+   */
+  it('al cenar fuera, los bungas se retiran de la capa del día', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    // El día 9 tiene cena y los dos bungas puestos.
+    await abrirDia('domingo, 9 de agosto')
+    expect(await screen.findByText('Los bungas')).toBeInTheDocument()
+
+    await abrirLosPlatos()
+    await userEvent.click(screen.getByRole('button', { name: 'Esta noche se cena fuera…' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+
+    await waitFor(() => expect(screen.queryByText('Los bungas')).toBeNull())
+    // Y lo elegido no se ha borrado: vuelve entero al volver al camping.
+    const cena = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-09')
+    expect(cena.bungaMayoresId).toBeTruthy()
+    expect(cena.bungaNinosId).toBeTruthy()
+
+    await abrirLosPlatos()
+    await userEvent.click(screen.getByRole('button', { name: 'Cenamos en el camping' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+    expect(await screen.findByText('Los bungas')).toBeInTheDocument()
+  })
+
   /** H1 de dia-abierto.html: quitar la cena sigue pidiendo segunda pulsación. */
   it('quitar la cena pide segunda pulsación, y se lleva platos y bungas', async () => {
     const { eventId, event } = await sembrar()

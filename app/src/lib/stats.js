@@ -42,6 +42,11 @@ export function computeStats({
     bungaId: b.id, name: b.alias || b.name, familyId: b.familyId ?? null, mayores: 0, ninos: 0,
   }]))
   for (const c of dinners) {
+    // **Una noche fuera no la acoge nadie** (§14.70-bis). Los bungas no se
+    // borran al marcar «se cena fuera» —se quedan por si se vuelve al camping,
+    // como los platos—, así que sin esta guarda el balance le apuntaba una
+    // noche de anfitrión a quien esa noche estaba en el chiringuito.
+    if (c.fuera) continue
     if (c.bungaMayoresId && host.has(c.bungaMayoresId)) host.get(c.bungaMayoresId).mayores++
     if (c.bungaNinosId && host.has(c.bungaNinosId)) host.get(c.bungaNinosId).ninos++
   }

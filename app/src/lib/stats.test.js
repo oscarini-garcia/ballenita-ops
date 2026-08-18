@@ -52,6 +52,25 @@ describe('computeStats', () => {
     expect(s.hostBalance.find((h) => h.bungaId === 'b2').familyId).toBe(null)
   })
 
+  /**
+   * Una noche fuera no la acoge nadie (§14.70-bis).
+   *
+   * Los bungas **no se borran** al marcar «se cena fuera» —se quedan por si se
+   * vuelve al camping, como los platos—, así que sin la guarda el balance le
+   * apuntaba una noche de anfitrión a quien esa noche estaba en el chiringuito.
+   */
+  it('una cena fuera no le cuenta de anfitrión a nadie', () => {
+    const antes = computeStats(base).hostBalance.find((h) => h.bungaId === 'b1')
+    expect(antes.mayores).toBe(2)
+
+    const conFuera = computeStats({
+      ...base,
+      dinners: base.dinners.map((d, i) => (i === 0 ? { ...d, fuera: 1, donde: 'El chiringuito' } : d)),
+    })
+    const b1 = conFuera.hostBalance.find((h) => h.bungaId === 'b1')
+    expect(b1.mayores).toBe(antes.mayores - 1)
+  })
+
   it('planes y el que más vota no', () => {
     const s = computeStats(base)
     expect(s.plansProposed).toBe(2)
