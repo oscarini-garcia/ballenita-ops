@@ -2,6 +2,7 @@
 // Nada aquí "señala" por defecto; las métricas con pique se filtran en la UI (opt-in).
 // Las fichas nuevas se decidieron en `docs/diseño/numeros.html` (T1–T4, T7, T8).
 import { isoLocal, diasDe, diasEntre } from './dias.js'
+import { anfitrionPorBunga } from './anfitrion.js'
 
 export function computeStats({
   expenses = [],
@@ -41,14 +42,13 @@ export function computeStats({
   const host = new Map(bungas.map((b) => [b.id, {
     bungaId: b.id, name: b.alias || b.name, familyId: b.familyId ?? null, mayores: 0, ninos: 0,
   }]))
-  for (const c of dinners) {
-    // **Una noche fuera no la acoge nadie** (§14.70-bis). Los bungas no se
-    // borran al marcar «se cena fuera» —se quedan por si se vuelve al camping,
-    // como los platos—, así que sin esta guarda el balance le apuntaba una
-    // noche de anfitrión a quien esa noche estaba en el chiringuito.
-    if (c.fuera) continue
-    if (c.bungaMayoresId && host.has(c.bungaMayoresId)) host.get(c.bungaMayoresId).mayores++
-    if (c.bungaNinosId && host.has(c.bungaNinosId)) host.get(c.bungaNinosId).ninos++
+  // La cuenta la hace `anfitrionPorBunga` y no este bucle: la lee también el
+  // elegidor de bunga de un día (§14.72), y dos copias de la misma cuenta acaban
+  // dando números distintos para la misma pregunta.
+  for (const [bungaId, veces] of anfitrionPorBunga(dinners)) {
+    if (!host.has(bungaId)) continue
+    host.get(bungaId).mayores = veces.mayores
+    host.get(bungaId).ninos = veces.ninos
   }
   const hostBalance = [...host.values()].map((h) => ({ ...h, total: h.mayores + h.ninos }))
 

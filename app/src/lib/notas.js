@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.67.0',
+    fecha: '2026-08-18',
+    titulo: 'Al elegir bunga se ve a quién le toca',
+    lineas: [
+      'En el elegidor de bunga de una cena, cada casa dice cuántas veces ha acogido ya: «El del ruido · 3 veces», «El de la piscina · aún ninguna».',
+      'Es el mismo balance de anfitrión que sale en Números, pero puesto donde se decide, sin salir del día a medio montar.',
+      'No cuenta la noche que estás decidiendo: la cuenta contesta a quién le toca aparte de esa. Y una noche que se cena fuera no la acoge nadie, así que tampoco suma.',
+    ],
+  },
+  {
     version: '0.66.0',
     fecha: '2026-08-18',
     titulo: 'El día enseña todos sus planes',
