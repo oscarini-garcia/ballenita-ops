@@ -4518,6 +4518,34 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.71 En el día se ven todos los planes, uno por renglón
+
+- **El defecto, en pantalla:** el martes 18 de Ballenita’26 tenía cuatro planes y
+  la capa del día enseñaba **uno**: «Torneo de pingpong comunitario **y tres
+  más**». Para saber cuáles eran los otros tres había que abrir el elegidor —
+  que es la herramienta de **cambiarlos**, no la de mirarlos—, y encima allí
+  salen mezclados con los libres del viaje.
+- Es **la misma corrección que §14.69** hizo en la lista de Días —nombrar en vez
+  de contar—, pero aquí ni siquiera hacía falta apretar: en la lista el titular
+  es una línea de 289 pt que no parte, y **la capa rueda**. Un plan más son
+  **56,4 pt** y no hay nada que recortar.
+- **✅ Un renglón por plan**, cada uno con **su** nota —«Confirmado», o
+  «1 👍 · faltan 4 por votar»—. Con el renglón único los votos **solo salían
+  cuando había un plan**: con dos o más se cambiaban por «11 planes libres por
+  traer», que es una tarea de montar el día y no un dato de lo que se hace.
+- **Todos abren el mismo elegidor**, así que «cada renglón abre su elegidor»
+  (§14.30) se sigue cumpliendo y no hace falta ningún control nuevo.
+- **El rótulo va en plural cuando toca**: «El plan» con uno, «Los planes» con
+  varios. Un encabezado en singular sobre tres filas se lee como un error.
+- **Sin planes no cambia nada**: sigue el renglón de «Nada apuntado» con su
+  cuenta de libres por traer y su apagado cuando no hay ninguno.
+- **Lo que se vio en el navegador y no en las pruebas:** React avisaba de
+  **claves repetidas**. `renglon()` traía `clave = null` de fábrica y varios
+  hermanos con `key={null}` son, para React, la misma clave; con los renglones
+  fijos de siempre no se notaba, y la primera lista de verdad lo destapó. Ahora
+  cada renglón lleva la suya —`'cena'`, `'mayores'`, `'ninos'`, el `id` del
+  plan—, que además es lo que le deja conservar la identidad al reordenarse.
+
 ### 14.70-bis O se cena fuera, o se reparten bungas — y el día se nombra en el aviso
 
 Dos remates de §14.70, y uno de ellos tapa un fallo que aquella vuelta dejó
