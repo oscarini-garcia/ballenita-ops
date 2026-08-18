@@ -1,8 +1,9 @@
 import Dexie from 'dexie'
-import { instanteDe } from './lib/horas.js'
+import { instanteDe, aEnPunto, enPunto, horaValida } from './lib/horas.js'
 import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
 import { esMayor, pesoDe } from './lib/personas.js'
+import { ESTADO_SE_HACE } from './lib/planes.js'
 import { MISMA_COSA_MS, apunteDe } from './lib/registro.js'
 import { getMeId } from './lib/identidad.js'
 import { loQueHayQueComprar } from './lib/compra.js'
@@ -862,12 +863,57 @@ export async function addPlan(eventId, p) {
     // calcula **el móvil** —`lib/horas.js`—, que es quien sabe su desfase; el
     // cron del Worker solo compara números. Nulos = el plan no tiene hora, que
     // es lo normal: «Día de playa» no empieza a ninguna.
-    hora: p.hora ?? null,
-    cuando: p.cuando ?? (p.hora ? instanteDe(p.dia, p.hora) : null),
+    hora: horaDePlan(p.hora),
+    cuando: instanteDePlan(p.dia, p.hora) ?? p.cuando ?? null,
   })
 }
 export const plansOf = (eventId) => db.plans.where({ eventId }).toArray()
-export const updatePlan = (id, patch) => escribir('plans', id, patch)
+
+/**
+ * **Solo horas en punto, y la regla vive en la puerta** (SPECS §14.75).
+ *
+ * El elegidor de S4 no sabe escribir un minuto, pero ponerlo solo ahí dejaría
+ * la garantía en manos de una pantalla: la pastilla de C2 enseña «20h» y eso
+ * únicamente es verdad si **nada** puede guardar «20:45». Aquí lo es de la
+ * tabla, así que vale también para lo que llegue de un cliente viejo por la
+ * cola de cambios.
+ *
+ * Y el instante se recalcula **siempre que venga la hora**, no solo cuando no
+ * viene `cuando`: redondear sin mover `cuando` dejaría el aviso a las 10:30 de
+ * un plan que pone «10h», que es la clase de desfase que no se ve hasta que
+ * suena el teléfono a la hora que no es.
+ */
+const horaDePlan = (hora) => (horaValida(hora) ? aEnPunto(hora) : null)
+const instanteDePlan = (dia, hora) => (horaValida(hora) ? instanteDe(dia, aEnPunto(hora)) : null)
+
+export function updatePlan(id, patch) {
+  if (!('hora' in patch)) return escribir('plans', id, patch)
+  const hora = horaDePlan(patch.hora)
+  // `dia` puede venir en el mismo parche —quitar un plan del día manda los tres
+  // campos a la vez—, y entonces el instante es del día nuevo, no del guardado.
+  const dia = 'dia' in patch ? patch.dia : undefined
+  return dia === undefined
+    ? db.plans.get(id).then((p) => escribir('plans', id, { ...patch, hora, cuando: instanteDePlan(p?.dia, patch.hora) }))
+    : escribir('plans', id, { ...patch, hora, cuando: instanteDePlan(dia, patch.hora) })
+}
+
+/**
+ * Redondea de una vez las horas con minutos que quedaran guardadas (§14.75).
+ *
+ * La puerta de arriba se ocupa de lo que se escriba a partir de ahora, pero un
+ * plan que nadie vuelva a abrir se quedaría con sus «23:46» y con la pastilla
+ * enseñándolos enteros, saliéndose de la caja — el defecto que C2 venía a
+ * arreglar, vivo en las tres filas que ya existen. Esto lo cierra.
+ *
+ * Es **idempotente y silencioso**: lee, y si no hay nada que redondear no
+ * escribe. Que los nueve móviles lo corran a la vez no rompe nada, porque los
+ * nueve escriben exactamente el mismo valor y el servidor es la autoridad.
+ */
+export async function redondearHorasDePlanes(eventId) {
+  const viejos = (await plansOf(eventId)).filter((p) => horaValida(p.hora) && !enPunto(p.hora))
+  for (const p of viejos) await updatePlan(p.id, { hora: p.hora })
+  return viejos.length
+}
 export const removePlan = (id) => removeRow('plans', id)
 
 // ── Lista de la compra (§6.6) — ítems simples que cualquiera apunta ──
@@ -1089,7 +1135,7 @@ async function sembrarElEjemplo() {
     bungaNinosId: bSolteros,
   })
 
-  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado', ubicacion: 'Cala del sur', votos: { [curro]: '👍', [ana]: '👍', [pablo]: '👍' } })
+  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: ESTADO_SE_HACE, ubicacion: 'Cala del sur', votos: { [curro]: '👍', [ana]: '👍', [pablo]: '👍' } })
   await addPlan(eventId, { titulo: 'Excursión a las cuevas', dia: '2026-08-12', costeEstimado: 1200, enlace: 'https://example.com/cuevas', votos: { [curro]: '👍', [ana]: '🤷' } })
   await addPlan(eventId, { titulo: 'Noche de juegos de mesa', votos: { [pablo]: '🤷' } })
 

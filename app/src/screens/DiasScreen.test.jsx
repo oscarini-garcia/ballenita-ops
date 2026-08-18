@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DiasScreen from './DiasScreen.jsx'
+import { ESTADO_SE_HACE } from '../lib/planes.js'
 import {
   db, createEvent, getEvent, addFamily, addBunga, addPerson, addDish, addDinner, addPlan,
   updatePlan, dinnersOf, plansOf,
@@ -25,7 +26,7 @@ async function sembrar() {
   await addDinner(eventId, {
     dia: '2026-08-09', platoIds: [paella, sandia], bungaMayoresId: ruido, bungaNinosId: fondo,
   })
-  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado' })
+  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: ESTADO_SE_HACE })
   await addPlan(eventId, { titulo: 'Noche de juegos de mesa', votos: { [curro]: '👍' } })
   return { eventId, event: await getEvent(eventId), ruido }
 }
@@ -531,7 +532,7 @@ describe('DiasScreen', () => {
     expect(screen.getByText('Los planes')).toBeInTheDocument()
     // Y cada uno lleva su nota: antes los votos solo salían con un plan. Sin
     // hora puesta, la nota lo dice — es lo que explica por qué está al final.
-    expect(screen.getByText(/a lo largo del día · Confirmado/)).toBeInTheDocument()
+    expect(screen.getByText(/a lo largo del día · Se hace/)).toBeInTheDocument()
   })
 
   it('y un día sin planes lo sigue diciendo en singular', async () => {
@@ -565,8 +566,12 @@ describe('DiasScreen', () => {
     // atar una hora. En la semilla, «Noche de juegos de mesa» está libre.
     expect(document.querySelectorAll('.reng-hora')).toHaveLength(1)
 
-    await userEvent.clear(screen.getByLabelText('A las'))
-    await userEvent.type(screen.getByLabelText('A las'), '20:00')
+    // Sin hora puesta hay un botón que la pone en 12h, y de ahí se sube a
+    // pulsos (§14.75 · S4). No hay campo que teclear: no sabe escribir minutos.
+    await userEvent.click(screen.getByRole('button', { name: 'Poner hora' }))
+    expect(screen.getByText('12h')).toBeInTheDocument()
+    for (let i = 0; i < 8; i += 1) await userEvent.click(screen.getByRole('button', { name: 'Una hora después' }))
+    expect(screen.getByText('20h')).toBeInTheDocument()
     // Borrador: todavía no ha escrito nada (§14.31).
     expect((await plansOf(eventId)).find((p) => p.titulo === 'Playa de la Cala').hora).toBeFalsy()
 
@@ -578,8 +583,48 @@ describe('DiasScreen', () => {
       // Worker solo compara números y no deduce ninguna zona horaria.
       expect(plan.cuando).toBe(Math.floor(new Date('2026-08-10T20:00:00').getTime() / 1000))
     })
-    // Y la fila lo enseña en el sitio del icono, en columna.
-    expect(await screen.findByText('20:00')).toBeInTheDocument()
+    // Y la fila lo enseña en el sitio del icono, en «20h» (§14.75 · C2).
+    expect(await screen.findByText('20h')).toBeInTheDocument()
+  })
+
+  /**
+   * **El selector da la vuelta** (§14.75 · S4). Sin esto, un plan de medianoche
+   * desde las 20h no se puede poner subiendo, y ese es justo el plan que se
+   * apunta a las once de la noche.
+   */
+  it('de 23h se sube a 0h y de 0h se baja a 23h', async () => {
+    const { eventId, event } = await sembrar()
+    await addPlan(eventId, { titulo: 'Cine de verano', dia: '2026-08-10', hora: '23:00' })
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('lunes, 10 de agosto')
+    await abrirLosPlanes()
+    await screen.findByRole('heading', { name: 'Los planes de este día' })
+
+    expect(screen.getByText('23h')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Una hora después' }))
+    expect(screen.getByText('0h')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Una hora antes' }))
+    expect(screen.getByText('23h')).toBeInTheDocument()
+  })
+
+  /**
+   * **Lo que ya estaba guardado con minutos se redondea** (§14.75). La pastilla
+   * de C2 solo puede decir «10h» si nada guarda «10:30», así que la puerta de
+   * `updatePlan` lo impone y el borrador del elegidor arranca ya en punto: abrir
+   * el día y dar a «Listo» lo deja limpio sin tocar nada.
+   */
+  it('un plan viejo con minutos se guarda en punto al pasar por el elegidor', async () => {
+    const { eventId, event } = await sembrar()
+    await addPlan(eventId, { titulo: 'Fata', dia: '2026-08-10', hora: '23:46' })
+    // Ni siquiera al crearlo se queda con los minutos: la regla vive en `db.js`.
+    expect((await plansOf(eventId)).find((p) => p.titulo === 'Fata').hora).toBe('23:00')
+
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+    await abrirDia('lunes, 10 de agosto')
+    expect(await screen.findByText('23h')).toBeInTheDocument()
   })
 
   it('los planes del día salen en orden, y los sueltos al final', async () => {
@@ -670,9 +715,9 @@ describe('DiasScreen', () => {
     await screen.findByText('Playa de la Cala')
 
     await abrirDia('lunes, 10 de agosto')
-    // «Confirmado» distingue el renglón de la capa de la fila del día 10 de la
+    // «Se hace» distingue el renglón de la capa de la fila del día 10 de la
     // lista de detrás, cuyo rótulo también nombra la playa.
-    await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala.*Confirmado/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala.*Se hace/ }))
     await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala/, pressed: true }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
 

@@ -16,6 +16,27 @@
  */
 export const NOTAS = [
   {
+    version: '0.70.0',
+    fecha: '2026-08-18',
+    titulo: 'La hora cabe, y se pone a pulsos',
+    lineas: [
+      'La hora de un plan ya no se sale de su casilla: dentro pone «20h», y ahora crece con el tamaño de letra como todo lo demás.',
+      'Para ponerla ya no sale el disco del sistema con sus minutos: hay un menos y un más, y solo horas exactas. Da la vuelta, así que de las 23h se sube a las 0h.',
+      'Sin hora puesta, «Poner hora» la deja en 12h y de ahí se mueve.',
+      'Las horas con minutos que hubiera puestas se redondean solas hacia abajo — 23:46 pasa a 23h — y su aviso se mueve con ellas.',
+    ],
+  },
+  {
+    version: '0.69.0',
+    fecha: '2026-08-18',
+    titulo: 'En «Hoy», un plan se toca y se abre',
+    lineas: [
+      'Los planes de hoy ya no dicen «A votación» debajo. Lo decían todos, que es como no decir nada: ahora solo sale lo que hay — «Se hace», y el sitio si lo tiene.',
+      'Y tocar un plan lo abre, en vez de dejarte en la lista de Planes buscándolo.',
+      'De paso, «Planes confirmados» en Números vuelve a contar: decía 0 en todos los eventos.',
+    ],
+  },
+  {
     version: '0.68.0',
     fecha: '2026-08-18',
     titulo: 'Los planes tienen hora, y avisan una hora antes',

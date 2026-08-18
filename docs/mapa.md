@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.68.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1151 pruebas en 119 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.70.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1163 pruebas en 119 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   272 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -349,7 +349,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.56** El bunga es un sitio, y por eso puede tener historia → `GrupoSection.jsx`, `PlatosScreen.jsx`, `alojamientos.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.57** El cacharro del año → `CacharrosSection.jsx`, `cacharros.js`, `db.js`, `permisos.js`, `tablas.js`
 - **§14.58** Quién lleva las cuentas → `GrupoSection.jsx`, `avisos.js`, `db.js`, `index.js`, `tablas.js`, `tables.js`
-- **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `planes.js`
+- **§14.59** Hay cosas que no se someten a votación → `Hoja.jsx`, `HoyScreen.jsx`, `IdeasScreen.jsx`, `PlanesScreen.jsx`, `db.js`, `dias.js` · +2 más
 - **§14.60** El aviso abre lo que lo generó → `App.jsx`, `DiasScreen.jsx`, `ExpensesScreen.jsx`, `GrupoScreen.jsx`, `GrupoSection.jsx`, `PlanesScreen.jsx` · +5 más
 - **§14.61** El enlace deja de ser de un solo uso → `App.jsx`, `CuentasSection.jsx`, `EnlaceScreen.jsx`, `GrupoSection.jsx`, `api.js`, `enlace.js` · +3 más
 - **§14.62** Tu perfil vive detrás de tu emoji, y «Quién eres» se retira → `App.jsx`, `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`
@@ -364,3 +364,5 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.71** En el día se ven todos los planes, uno por renglón → `DiasScreen.jsx`
 - **§14.72** El elegidor de bunga dice cuántas veces ha acogido cada uno → `DiasScreen.jsx`, `anfitrion.js`, `stats.js`
 - **§14.73** La hora de un plan, el día en orden y el aviso una hora antes → `DiasScreen.jsx`, `HoyScreen.jsx`, `avisos.js`, `db.js`, `horas.js`, `index.js` · +2 más
+- **§14.74** En «Hoy» un plan no dice «A votación», y tocarlo lo abre → `App.jsx`, `HoyScreen.jsx`, `dias.js`, `recados.js`, `stats.js`
+- **§14.75** La hora cabe en su pastilla, y se escoge a pulsos → `App.jsx`, `DiasScreen.jsx`, `db.js`, `horas.js`

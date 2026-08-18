@@ -14,10 +14,10 @@ import Confirmar from '../components/Confirmar.jsx'
 import ListaDePlatos from '../components/ListaDePlatos.jsx'
 import { queSeLlevaUnaCena } from '../lib/borrados.js'
 import { anfitrionPorBunga, vecesEnLetra } from '../lib/anfitrion.js'
-import { instanteDe, porHora, horaValida, SIN_HORA } from '../lib/horas.js'
+import { porHora, horaValida, horaCorta, aEnPunto, SIN_HORA } from '../lib/horas.js'
 import { agrupadosPorCategoria, categoriaDe, etiquetaCategoria } from '../lib/carta.js'
 import { dentroDeFechas } from '../lib/evento.js'
-import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
+import { votosDe, quienFaltaPorVotar, seHace } from '../lib/planes.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { puedeOrganizar } from '../lib/personas.js'
 import {
@@ -266,10 +266,10 @@ export function CapaDeDia({
     if (p.dia === dia) {
       // Sin hora se dice, porque es lo que explica por qué está al final.
       if (!horaValida(p.hora)) {
-        const votos = p.estado === 'confirmado' ? 'Confirmado' : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
+        const votos = seHace(p) ? 'Se hace' : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
         return `${SIN_HORA} · ${votos}`
       }
-      return p.estado === 'confirmado' ? 'Confirmado'
+      return seHace(p) ? 'Se hace'
         : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
     }
     if (p.dia) return `era el ${fmtDiaCorto(p.dia)}, fuera del viaje`
@@ -337,7 +337,7 @@ export function CapaDeDia({
             número en la lista de Días, y el icono que sustituye es una chincheta
             igual en los cuatro. Sin hora se queda el icono. */}
         {hora
-          ? <div className="ico-hora" aria-hidden><b>{hora}</b></div>
+          ? <div className="ico-hora" aria-hidden><b>{horaCorta(hora)}</b></div>
           : <div className={`ico ${verde ? 'verde' : 'ambar'}`}><Icono nombre={icono} /></div>}
         <div className="main">
           <div className="n">{n}</div>
@@ -558,23 +558,20 @@ export function CapaDeDia({
               // marcado nuevo se coloca. Lo que no cambió no se toca — no se
               // encolan cambios que no cambian nada.
               //
-              // La hora viaja con **su instante** (§14.73): lo calcula este
-              // móvil, que es quien sabe su desfase, y así el cron del Worker
-              // solo compara números. Cambiar la hora **borra `avisadoEl`**…
-              // que no se puede tocar desde aquí, así que mover una hora ya
-              // avisada no vuelve a avisar. Queda dicho en el spec.
-              const conHora = (p) => {
-                const hora = horaValida(horas[p.id]) ? horas[p.id] : null
-                return { hora, cuando: hora ? instanteDe(dia, hora) : null }
-              }
+              // El instante (`cuando`) ya no se calcula aquí: desde §14.75 lo
+              // pone `updatePlan` con la hora ya redondeada, que es el único
+              // sitio donde no se puede olvidar. Cambiar la hora **no borra
+              // `avisadoEl`** —no se puede tocar desde el cliente—, así que
+              // mover una hora ya avisada no vuelve a avisar. Queda en el spec.
+              const horaDe = (p) => (horaValida(horas[p.id]) ? aEnPunto(horas[p.id]) : null)
               for (const p of delDia) {
-                if (!ids.has(p.id)) { await updatePlan(p.id, { dia: null, hora: null, cuando: null }); continue }
-                const { hora, cuando } = conHora(p)
-                if ((p.hora ?? null) !== hora) await updatePlan(p.id, { hora, cuando })
+                if (!ids.has(p.id)) { await updatePlan(p.id, { dia: null, hora: null }); continue }
+                const hora = horaDe(p)
+                if ((p.hora ?? null) !== hora) await updatePlan(p.id, { hora })
               }
               for (const p of libres) {
                 if (!ids.has(p.id)) continue
-                await updatePlan(p.id, { dia, ...conHora(p) })
+                await updatePlan(p.id, { dia, hora: horaDe(p) })
               }
               setEligiendo(null)
             }}
@@ -950,6 +947,53 @@ function ElegidorDeBunga({ titulo, dia, bungas, familias, inicial, veces, onCanc
   )
 }
 
+/**
+ * La hora de un plan: **menos, la cifra y más** (`hora-que-quepa.html` · S4).
+ *
+ * Sustituye al `<input type="time">`, que sacaba el disco del sistema: dos
+ * rodillos y 1.440 posiciones para una decisión de 24, con las 20:45 tan fáciles
+ * de poner sin querer como las 20:00 porque el segundo rodillo arranca donde
+ * esté el reloj del móvil. Esto **no sabe escribir un minuto**.
+ *
+ * **Da la vuelta en los dos extremos** (23h → 0h y 0h → 23h): sin eso, un plan
+ * de medianoche desde las 20h no se puede poner subiendo, y el camino más corto
+ * entre dos horas cualesquiera nunca pasa de doce toques. Es lo que le quita
+ * hierro al coste conocido de S4 — que llegar es a pulsos.
+ *
+ * Sin hora puesta no hay cifra que mover, así que sale un botón que la pone en
+ * **12h**: es el punto del día desde el que ninguna hora queda a más de doce
+ * toques, y desde el que las de un camping —la playa por la mañana, la cena por
+ * la noche— quedan a cuatro y a ocho.
+ */
+function RenglonDeHora({ etiqueta, hora, onCambio }) {
+  const n = horaValida(hora) ? Number(hora.slice(0, 2)) : null
+  const mover = (d) => { tap(); onCambio(`${String((n + d + 24) % 24).padStart(2, '0')}:00`) }
+  // El rótulo es un `span` y no un `label`: un `label` con `htmlFor` le pone su
+  // texto de nombre accesible al control, y «Poner hora» pasaba a llamarse «A
+  // las». El grupo lleva el nombre, que es lo que hay que leer aquí.
+  const rotulo = <span className="rotulo">A las</span>
+
+  if (n === null) {
+    return (
+      <div className="reng-hora" role="group" aria-label={`Hora de ${etiqueta}`}>
+        {rotulo}
+        <button type="button" className="btn sm ghost" onClick={() => { tap(); onCambio('12:00') }}>
+          Poner hora
+        </button>
+      </div>
+    )
+  }
+  return (
+    <div className="reng-hora" role="group" aria-label={`Hora de ${etiqueta}`}>
+      {rotulo}
+      <button type="button" className="paso" aria-label="Una hora antes" onClick={() => mover(-1)}>−</button>
+      <span className="cifra-hora" aria-live="polite">{horaCorta(hora)}</span>
+      <button type="button" className="paso" aria-label="Una hora después" onClick={() => mover(1)}>+</button>
+      <button type="button" className="btn sm ghost" onClick={() => { tap(); onCambio(null) }}>Quitar</button>
+    </div>
+  )
+}
+
 function ElegidorDePlanes({ dia, delDia, libres, notaDePlan, onCancelar, onListo }) {
   const [marcados, setMarcados] = useState(() => new Set(delDia.map((p) => p.id)))
   /**
@@ -962,8 +1006,12 @@ function ElegidorDePlanes({ dia, delDia, libres, notaDePlan, onCancelar, onListo
    *
    * Es borrador como todo lo del elegidor (§14.31): se escribe en «Listo».
    */
+  // El borrador arranca **ya redondeado** (§14.75): un «23:46» guardado entra
+  // como «23:00», así que abrir el día y dar a «Listo» lo deja en punto sin que
+  // haya que tocar nada. Es la mitad de la normalización que se ve; la otra la
+  // hace `redondearHorasDePlanes` al arrancar, para los días que nadie abra.
   const [horas, setHoras] = useState(() => (
-    Object.fromEntries(delDia.filter((p) => horaValida(p.hora)).map((p) => [p.id, p.hora]))
+    Object.fromEntries(delDia.filter((p) => horaValida(p.hora)).map((p) => [p.id, aEnPunto(p.hora)]))
   ))
   const [busca, setBusca] = useState('')
 
@@ -1006,24 +1054,14 @@ function ElegidorDePlanes({ dia, delDia, libres, notaDePlan, onCancelar, onListo
                   al que atar una hora. Va fuera del botón porque un `input`
                   dentro de un `button` no se puede tocar sin disparar el botón. */}
               {marcados.has(o.id) && (
-                <div className="reng-hora">
-                  <label htmlFor={`hora-${o.id}`}>A las</label>
-                  <input
-                    id={`hora-${o.id}`}
-                    type="time"
-                    value={horas[o.id] ?? ''}
-                    onChange={(e) => setHoras({ ...horas, [o.id]: e.target.value })}
-                  />
-                  {horas[o.id] && (
-                    <button
-                      type="button"
-                      className="btn sm ghost"
-                      onClick={() => { tap(); const { [o.id]: _, ...resto } = horas; setHoras(resto) }}
-                    >
-                      Quitar
-                    </button>
-                  )}
-                </div>
+                <RenglonDeHora
+                  etiqueta={o.etiqueta}
+                  hora={horas[o.id] ?? null}
+                  onCambio={(h) => {
+                    if (h === null) { const { [o.id]: _, ...resto } = horas; setHoras(resto) }
+                    else setHoras({ ...horas, [o.id]: h })
+                  }}
+                />
               )}
             </div>
           ))}

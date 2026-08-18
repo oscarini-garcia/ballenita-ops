@@ -28,6 +28,7 @@
 
 import { formatCents } from './money.js'
 import { hoyISO, diasEntre } from './dias.js'
+import { seHace } from './planes.js'
 
 /** Plural sin pensar: `n === 1 ? uno : varios`. */
 const pl = (n, uno, varios) => (n === 1 ? uno : varios)
@@ -98,7 +99,8 @@ export function recadosDeDatos({
   }
 
   // ── Planes ───────────────────────────────────────────────────────────────
-  const aVotacion = planes.filter((p) => p.estado !== 'confirmado')
+  // Lo mismo de §14.74: sin esto, un plan ya decidido seguía «esperando votos».
+  const aVotacion = planes.filter((p) => !seHace(p))
   const sinVotos = aVotacion.filter((p) => Object.keys(p.votos ?? {}).length === 0)
   if (sinVotos.length > 0) {
     pon('sinvotos', '🗳️', `${sinVotos.length} ${pl(sinVotos.length, 'plan', 'planes')} sin un solo voto. Ni de quien lo propuso.`)

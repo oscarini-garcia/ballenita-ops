@@ -4518,6 +4518,133 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.75 La hora cabe en su pastilla, y se escoge a pulsos
+
+Decidido en `docs/diseño/hora-que-quepa.html` · **C2 · S4**. La hoja midió dos
+preguntas que resultaron ser una: **si el selector solo da horas en punto, la
+pastilla deja de tener un problema**.
+
+**Antes de las opciones, la hoja encontró dos defectos** y los dos se arreglan
+aquí:
+
+- **La maqueta que decidió §14.73 ya se salía.** `plan-con-hora.html` · V3 dibujó
+  la pastilla con dos renglones y luego metió «10:30» entero en el de arriba: a
+  13 px mide **41,4 pt** y la caja **34**. No se vio porque sus cinco insignias
+  `data-mide` medían la tarjeta de cuatro renglones, que mide lo mismo con la
+  hora dentro que con la hora fuera.
+- **La letra de la pastilla no pasaba por `--escala`** (`13px` a pelo): la hora
+  medía igual en Normal que en Enorme, o sea que quien agranda la app lo
+  agrandaba todo menos la hora.
+
+**C2 · dentro va «20h», no «20:00».** Sin los minutos cabe en una línea y con
+aire, y el cuerpo cuelga de la escala: `calc(12px * var(--escala))`. Medido en
+las tres tallas, «20h» da **25,3 · 28,3 · 31,8 pt** en una caja de 34 — cabe
+hasta en Enorme, que es lo que fija el número: con 13 px de base se salía por
+medio punto. Los 13,4 px de Grande son además un pelo **más** que los 13 fijos de
+antes. Sin el cero de delante: «9h» y no «09h».
+
+**S4 · menos, la cifra y más.** Fuera el `<input type="time">`, que sacaba el
+disco del sistema: dos rodillos y **1.440 posiciones para una decisión de 24**,
+con las 20:45 tan fáciles de poner sin querer como las 20:00 porque el segundo
+rodillo arranca donde esté el reloj del móvil. El renglón mide **60 pt** —los que
+sustituye medían 61,6—, cabe bajo cada plan marcado sin sacar el elegidor de su
+capa, y las dianas son de 44, el mínimo de Apple.
+
+- **Da la vuelta en los dos extremos**: 23h → 0h y 0h → 23h. Sin eso, el plan de
+  medianoche no se puede poner subiendo desde las 20h, y el camino más corto
+  entre dos horas cualesquiera nunca pasa de doce toques. Es lo que le quita
+  hierro al coste conocido de S4 —que llegar es a pulsos, y de 20 a 9 son once—.
+  Es **un dial sobre las 24 horas de ese día**, no aritmética sobre una línea de
+  tiempo: 0h es el principio del día, no el final. Es lo mismo que hacía el disco.
+- **Sin hora puesta sale «Poner hora», y pone las 12h.** Es el punto del día desde
+  el que ninguna hora queda a más de doce toques, y desde el que las de un camping
+  —la playa por la mañana, la cena por la noche— quedan a cuatro y a ocho. Con
+  rejilla no habría hecho falta ninguna; con un paso a paso hay que elegir.
+
+**Lo viejo con minutos se redondea, y por dos caminos.** C2 solo es honesta si
+nada puede guardar «20:45», así que:
+
+- **La regla vive en la puerta**, no en la pantalla: `addPlan` y `updatePlan`
+  (`db.js`) fuerzan la hora en punto. Vale también para lo que llegue de un
+  cliente viejo por la cola de cambios, que es lo que una comprobación en el
+  elegidor no cubre.
+- **Se redondea hacia abajo, nunca al más próximo**: subir las 23:46 a las 00:00
+  cambiaría el plan **de día**, y un plan que salta a la madrugada siguiente es
+  peor error que uno adelantado 46 minutos.
+- **El instante se rehace siempre que venga la hora.** Redondear sin mover
+  `cuando` dejaría el aviso sonando a las 10:30 de un plan que en pantalla pone
+  «10h» — la clase de desfase que no se ve hasta que suena el teléfono a la hora
+  que no es.
+- **Y un barrido al arrancar** (`redondearHorasDePlanes`, llamado desde
+  `App.jsx`): la puerta se ocupa de lo que se escriba a partir de ahora, pero un
+  plan que nadie vuelva a abrir se quedaría con sus «23:46» y con la pastilla
+  enseñándolos enteros, saliéndose de la caja. Lee, y si no hay nada que
+  redondear no escribe; que los nueve móviles lo corran a la vez no rompe nada,
+  porque los nueve escriben el mismo valor.
+- **Mientras tanto, la pastilla no miente**: `horaCorta` enseña **entera** una
+  hora que todavía lleve minutos. Decir «10h» donde pone «10:30» es la única
+  forma de que mienta, y caber no vale ese precio — se sale de la caja hasta que
+  se guarde, y guardarla es abrir su día o reabrir la app.
+
+**Lo que no se eligió y por qué se descartó**, para no rehacer el camino: C1 (dos
+renglones siempre) dejaba el minuto a 10 px, por debajo de todo lo demás de la
+app; C3 (caja de 48) costaba 14 pt de título en los cuatro renglones y dejaba el
+icono nadando; C4 (letra a 10 px) cabía por 2,2 pt que desaparecen al colgarla de
+la escala; S1 (rejilla de 24 en hoja propia) es mejor selector pero pedía un
+componente y un nivel de navegación; S2 y S5, desplegadas en su sitio, piden 222
+y 170 pt **por plan marcado** en una capa cuyo tope son 658,3.
+
+### 14.74 En «Hoy» un plan no dice «A votación», y tocarlo lo abre
+
+Dos peticiones de una pantalla, y debajo de la primera un valor muerto que
+llevaba cinco vueltas dando falso.
+
+- **✅ «A votación» se retiró de la lista de planes de «Hoy».** Los cuatro planes
+  del día lo decían, y no por casualidad: es el estado de origen de todo plan,
+  así que la línea repetía cuatro veces lo que ya se sabe por estar mirando una
+  lista de planes. Ahora **solo se dice lo afirmativo** —«Se hace», y el sitio si
+  lo hay— y sin nada que decir el subtítulo **no se pinta**, que no es lo mismo
+  que pintarlo vacío: la fila baja de 70,7 pt a 56.
+- **✅ Y tocar un plan lo abre.** Llevaba a la pestaña de Planes y ahí te dejaba,
+  con la lista entera delante y el plan que acababas de tocar en algún sitio de
+  ella. **El mecanismo ya existía**: `abrirFila` está desde §14.60 para que un
+  aviso tocado abra la fila de la que habla, y `PlanesScreen` ya lo consume
+  esperando a que los planes estén; solo estaba cableado al camino del aviso.
+  `onGoTab` pasa a ser `irA(destino, fila)` en `App.jsx`, y **pone también el
+  área**: Planes tiene tres —Planes · Ideas · Trucos— y las recuerda
+  (`lib/areas.js`), así que quien se dejó abierto el catálogo habría llegado a
+  Ideas y el plan no se habría abierto en ninguna parte.
+
+**El valor muerto.** Debajo de «A votación» había una comparación que **nunca
+podía dar verdadero**: `plan.estado === 'confirmado'`. Los estados de un plan
+son `'sehace'` y `'votando'` desde §14.59, y `'confirmado'` es de antes; el único
+sitio del código que lo escribía era **el sembrado del Demo** (`db.js`). O sea
+que la app decía «A votación» en todos los planes de todos los eventos, y en el
+Demo —el único donde alguien lo habría visto raro— decía lo correcto. Estaban
+afectados **seis sitios**, y se arreglan los seis porque son el mismo defecto:
+
+| dónde | qué salía mal |
+| --- | --- |
+| `screens/HoyScreen.jsx` | «A votación» en todos los planes del día |
+| `lib/dias.js` · `titularDeHoy` | lo mismo en el titular grande |
+| `screens/DiasScreen.jsx` · `notaDePlan` | un plan decidido enseñaba sus votos y quién falta, que es justo lo que §14.59 quitó |
+| `lib/stats.js` | «Planes confirmados» decía **0 de N** en todos los eventos |
+| `lib/recados.js` | un plan ya decidido seguía «esperando votos» |
+| `db.js` · sembrado del Demo | el único sitio que escribía el valor viejo |
+
+Todos pasan a `seHace()`, el predicado que §14.59 dejó escrito en
+`lib/planes.js` precisamente para esto, con su nota de que un plan sin estado
+también se vota.
+
+- **Lo que hizo que durase cinco vueltas fueron las pruebas.** No es que faltasen:
+  había cuatro, y **las cuatro fijaban el valor muerto** —sembraban
+  `estado: 'confirmado'` y comprobaban que salía «Confirmado»—, así que pasaban
+  en verde mientras la pantalla decía lo contrario. Una prueba que se escribe con
+  el mismo dato que el código compara no comprueba nada: comprueba que dos copias
+  del error coinciden. Ahora siembran `ESTADO_SE_HACE` —la constante, no la
+  cadena— y hay una nueva que dice lo que se pidió: **un plan a votación no dice
+  que está a votación**.
+
 ### 14.73 La hora de un plan, el día en orden y el aviso una hora antes
 
 Decidido en [`docs/diseño/plan-con-hora.html`](diseño/plan-con-hora.html) ·

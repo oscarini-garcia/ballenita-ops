@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { recadosDeDatos, bolsaDeRecados, elegirRecado } from './recados.js'
+import { ESTADO_SE_HACE } from './planes.js'
 
 const EVENTO = { id: 'ev1', currency: 'EUR', startDate: '2026-08-01', endDate: '2026-08-08' }
 const NUEVE = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}`, name: `P${i}` }))
@@ -89,8 +90,8 @@ describe('recadosDeDatos', () => {
     expect(porId(con, 'votacion').texto).toContain('1 plan espera votos')
   })
 
-  it('un plan confirmado ya no espera nada', () => {
-    const r = recadosDeDatos({ evento: EVENTO, planes: [{ estado: 'confirmado', votos: { p1: '👍' } }], hoy: '2026-08-03' })
+  it('un plan que se hace ya no espera nada', () => {
+    const r = recadosDeDatos({ evento: EVENTO, planes: [{ estado: ESTADO_SE_HACE, votos: { p1: '👍' } }], hoy: '2026-08-03' })
     expect(porId(r, 'votacion')).toBeUndefined()
     expect(porId(r, 'sinvotos')).toBeUndefined()
   })

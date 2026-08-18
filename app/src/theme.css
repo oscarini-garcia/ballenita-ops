@@ -1418,12 +1418,33 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 .ico-hora { width: 34px; height: 34px; flex: none; border-radius: 9px; display: grid;
   place-items: center; background: color-mix(in srgb, var(--spout) 12%, transparent);
   color: var(--spout-deep); }
-.ico-hora b { font-size: 13px; font-weight: 750; font-variant-numeric: tabular-nums; }
+/* **Dentro va «20h», no «20:00»** (`hora-que-quepa.html` · C2): «20:00» mide
+   41,4 pt a 13 px y la caja mide 34, así que se derramaba por los dos lados.
+   Sin los minutos —que desde §14.75 son siempre cero— cabe en una línea y con
+   aire. Y **el cuerpo cuelga de `--escala`** en vez de ir en píxeles a pelo, que
+   era el otro defecto: la hora medía igual en Normal que en Enorme, o sea que
+   quien agranda la app lo agrandaba todo menos la hora. Los 12 px de base dan
+   13,4 en Grande —un pelo más que los 13 fijos de antes— y **caben en Enorme**,
+   que es lo que decide el número: a 13 de base se salía por medio punto. */
+.ico-hora b { font-size: calc(12px * var(--escala)); font-weight: 750;
+  font-variant-numeric: tabular-nums; }
 
-/* El campo de la hora dentro del elegidor, bajo el plan que ya está marcado. */
+/* ── El selector de la hora: menos y más (`hora-que-quepa.html` · S4) ────────
+   Era un `<input type="time">` que sacaba el disco del sistema: 1.440 posiciones
+   para una decisión de 24, con las 20:45 tan fáciles de poner sin querer como
+   las 20:00. Esto no sabe escribir un minuto. Mide 60 pt, prácticamente lo mismo
+   que los 61,6 del campo que sustituye, y cabe bajo cada plan marcado sin sacar
+   el elegidor de su capa — que es lo que descarta una rejilla en el sitio. */
 .reng-hora { display: flex; align-items: center; gap: 8px; padding: 6px 12px 10px; }
-.reng-hora label { margin: 0; flex: none; }
-.reng-hora input[type=time] { width: auto; flex: none; padding: 7px 10px; }
+.reng-hora .rotulo { flex: none; font-size: var(--t-label); color: var(--ink-soft); }
+.reng-hora .paso { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  background: none; border: 1px solid var(--line); border-radius: 11px; color: var(--spout-deep);
+  font-size: var(--t-title); line-height: 1; cursor: pointer; }
+.reng-hora .paso:active { background: var(--line-soft); }
+/* La cifra en medio, con sitio fijo: sin `tabular-nums` y sin este ancho, pasar
+   de «9h» a «10h» empuja los dos botones y se falla el segundo toque. */
+.reng-hora .cifra-hora { flex: 1; text-align: center; font-size: var(--t-body); font-weight: 650;
+  font-variant-numeric: tabular-nums; }
 
 /* El verbo de una fila cuando no hay deslizamiento detrás: 44 × 44, que es el
    mínimo de Apple, y el dibujo dentro a 19. */
