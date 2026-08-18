@@ -4518,6 +4518,33 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.72 El elegidor de bunga dice cuántas veces ha acogido cada uno
+
+- **El defecto:** la pregunta que se hace al abrir ese elegidor no es «¿cuál es
+  cuál?» —eso ya lo contesta §14.31 · B1, con la familia mandando y el alias de
+  seña— sino **«¿a quién le toca?»**. Y eso se contestaba de memoria, o yéndose a
+  **Números** a mirar el balance de anfitrión: otra sección, y el día a medio
+  montar detrás.
+- **✅ Cada fila lo dice** en su renglón de abajo, donde había sitio: «El del
+  ruido · **3 veces**», «El de la piscina · **aún ninguna**».
+- **El cero se dice**, y es lo contrario de la regla de §14.38 —«el cero no se
+  dice»—. Allí es la ausencia de un dato; aquí **es la respuesta**: el bunga que
+  no ha acogido todavía es justo el que se está buscando.
+- **Sin la noche que se está decidiendo** (`excepto`). Al reabrir el bunga de una
+  noche ya repartida, contarla inflaría a quien está puesto y la cuenta dejaría
+  de contestar lo que se le pregunta, que es a quién le toca **aparte de esta**.
+- **Una noche puede sumar dos** —el mismo bunga acoge a mayores y a niños—, y
+  está bien: son dos mesas que montar y dos que recoger.
+- **Y una noche fuera no la acoge nadie** (§14.70-bis), que es la misma guarda
+  que ya llevaba Números.
+- **La cuenta se extrae a `lib/anfitrion.js`** (`anfitrionPorBunga`), y esa es la
+  decisión de fondo: ahora la leen **dos** pantallas —el balance de Números y
+  este elegidor—, que son la misma pregunta en dos momentos, «¿cómo ha quedado
+  el reparto?» y «¿a quién le toca hoy?». Dejarla copiada en `computeStats` y
+  escrita otra vez aquí es la clase de cosa que se desfasa en silencio y acaba
+  con dos pantallas dando números distintos para lo mismo — el mismo motivo por
+  el que §14.70 sacó `titularDeFuera` a un solo sitio.
+
 ### 14.71 En el día se ven todos los planes, uno por renglón
 
 - **El defecto, en pantalla:** el martes 18 de Ballenita’26 tenía cuatro planes y

@@ -13,6 +13,7 @@ import Comentarios from '../components/Comentarios.jsx'
 import Confirmar from '../components/Confirmar.jsx'
 import ListaDePlatos from '../components/ListaDePlatos.jsx'
 import { queSeLlevaUnaCena } from '../lib/borrados.js'
+import { anfitrionPorBunga, vecesEnLetra } from '../lib/anfitrion.js'
 import { agrupadosPorCategoria, categoriaDe, etiquetaCategoria } from '../lib/carta.js'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
@@ -517,6 +518,7 @@ export function CapaDeDia({
             bungas={bungas}
             familias={familias}
             inicial={(eligiendo === 'mayores' ? cena?.bungaMayoresId : cena?.bungaNinosId) ?? null}
+            veces={anfitrionPorBunga(cenas, { excepto: dia })}
             onCancelar={() => setEligiendo(null)}
             onListo={async (id) => {
               const campo = eligiendo === 'mayores' ? 'bungaMayoresId' : 'bungaNinosId'
@@ -867,16 +869,30 @@ function ElegidorDePlatos({
  * los motes—. Un bunga sin familia dueña se queda con su alias. Sin buscador
  * (L1): tres casas no se buscan.
  */
-function ElegidorDeBunga({ titulo, dia, bungas, familias, inicial, onCancelar, onListo }) {
+function ElegidorDeBunga({ titulo, dia, bungas, familias, inicial, veces, onCancelar, onListo }) {
   const [valor, setValor] = useState(inicial)
+
+  /**
+   * **Cuántas veces ha acogido cada uno** (§14.72). La pregunta que se hace al
+   * abrir esto no es «¿cuál es cuál?» sino **«¿a quién le toca?»**, y hasta hoy
+   * se contestaba de memoria o yéndose a Números —a otra sección, perdiendo el
+   * día a medio montar—.
+   *
+   * Va en el renglón de abajo junto al alias, que es donde había sitio, y **sin
+   * la noche que se está decidiendo** (`excepto`): contarla inflaría a quien ya
+   * está puesto y la cuenta dejaría de contestar lo que se le pregunta.
+   */
+  const cuenta = (id) => vecesEnLetra(veces?.get(id)?.total ?? 0)
 
   const opciones = [
     { id: null, etiqueta: 'Ninguno', familia: null, nota: null },
     ...bungas.map((b) => {
       const f = familias.find((x) => x.id === b.familyId)
+      // Con familia el alias es la seña y la cuenta va detrás; sin ella el alias
+      // ya titula, así que el renglón de abajo es la cuenta y nada más.
       return f
-        ? { id: b.id, etiqueta: f.name, familia: f, nota: b.alias || b.name }
-        : { id: b.id, etiqueta: b.alias || b.name, familia: null, nota: null }
+        ? { id: b.id, etiqueta: f.name, familia: f, nota: `${b.alias || b.name} · ${cuenta(b.id)}` }
+        : { id: b.id, etiqueta: b.alias || b.name, familia: null, nota: cuenta(b.id) }
     }),
   ]
 

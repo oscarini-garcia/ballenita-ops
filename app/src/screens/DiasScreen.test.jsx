@@ -224,15 +224,58 @@ describe('DiasScreen', () => {
     expect(await screen.findByRole('heading', { name: 'Bunga mayores' })).toBeInTheDocument()
     // Quitar también es elegir, y en masculino: «Ninguno», no «Ninguna».
     expect(screen.getByRole('button', { name: 'Ninguno' })).toBeInTheDocument()
-    // La fila dice la familia con su pastilla de dos letras (numeros.html · 2)
-    // y el alias de seña (B1).
-    await userEvent.click(screen.getByRole('button', { name: 'Pérez PE El del ruido' }))
+    // La fila dice la familia con su pastilla de dos letras (numeros.html · 2),
+    // el alias de seña (B1) y cuántas veces ha acogido ya (§14.72).
+    await userEvent.click(screen.getByRole('button', { name: /^Pérez PE El del ruido · / }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
 
     await waitFor(async () => {
       const nueva = (await dinnersOf(eventId)).find((c) => c.dia === '2026-08-14')
       expect(nueva?.bungaMayoresId).toBe(ruido)
     })
+  })
+
+  /**
+   * Cuántas veces ha acogido cada bunga (§14.72).
+   *
+   * La pregunta que se hace al abrir esto no es «¿cuál es cuál?» sino **«¿a
+   * quién le toca?»**, y se contestaba de memoria o yéndose a Números — a otra
+   * sección, y perdiendo el día a medio montar.
+   */
+  it('el elegidor de bunga dice cuántas veces ha acogido cada uno', async () => {
+    const { eventId, event, ruido } = await sembrar()
+    // El 9 ya acoge «El del ruido» (mayores) y «El del fondo» (niños); se le
+    // añaden dos noches más al primero para que la cuenta no sea trivial.
+    await addDinner(eventId, { dia: '2026-08-11', bungaMayoresId: ruido, platoIds: [] })
+    await addDinner(eventId, { dia: '2026-08-12', bungaNinosId: ruido, platoIds: [] })
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('viernes, 14 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /^Mayores toca para elegir/ }))
+    await screen.findByRole('heading', { name: 'Bunga mayores' })
+
+    const filas = [...document.querySelectorAll('.eleccion-op')].map((e) => e.textContent)
+    // Tres veces: el 9 de mayores, el 11 de mayores y el 12 de niños.
+    expect(filas.some((t) => /El del ruido · 3 veces/.test(t))).toBe(true)
+    // Y el que solo ha acogido una vez lo dice en singular.
+    expect(filas.some((t) => /El del fondo · 1 vez/.test(t))).toBe(true)
+  })
+
+  it('no se cuenta la propia noche que se está decidiendo', async () => {
+    const { eventId, event, ruido } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    // El 9 es justo la noche que ya acoge «El del ruido»: al reabrirla, contarla
+    // inflaría a quien está puesto y la cuenta dejaría de contestar a quién le
+    // toca **aparte de esta**.
+    await abrirDia('domingo, 9 de agosto')
+    await userEvent.click(await screen.findByRole('button', { name: /^Mayores/ }))
+    await screen.findByRole('heading', { name: 'Bunga mayores' })
+
+    const filas = [...document.querySelectorAll('.eleccion-op')].map((e) => e.textContent)
+    expect(filas.some((t) => /El del ruido · aún ninguna/.test(t))).toBe(true)
   })
 
   it('el elegidor de bungas no lleva buscador; el de platos sí', async () => {

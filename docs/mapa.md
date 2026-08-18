@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.66.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1130 pruebas en 117 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.67.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1139 pruebas en 118 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   264 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -146,6 +146,7 @@ Primera frase de la cabecera de cada módulo.
 - `admin.js` — Quién manda aquí, y por qué está escrito a mano.
 - `alias.js` — El alias de una familia: **dos letras**.
 - `alojamientos.js` — El bunga como **sitio** y no como fila de un evento (SPECS §14.56, `docs/diseño/siete-encargos.html` · B2 · B4 · B5).
+- `anfitrion.js` — Cuántas veces le ha tocado acoger a cada bunga.
 - `areas.js` — El área elegida dentro de una sección, que no se olvida al salir y volver.
 - `asignacion.js` — Quién se queda con qué bunga: el emparejamiento familia ↔ bunga.
 - `avatares.js` — Foto de avatar de una persona.
@@ -294,7 +295,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§4** Planes 🗺️ → `db.js`
 - **§6** Cenas 🍳 → `db.js`
 - **§6.2** Platos predefinidos → `db.js`
-- **§6.4** Bungas en las comidas — rotación diaria mayores / niños ⭐ → `stats.js`
+- **§6.4** Bungas en las comidas — rotación diaria mayores / niños ⭐ → `anfitrion.js`, `stats.js`
 - **§6.6** Lista de la compra compartida (manual) 🛒 ⭐ → `compra-familias.js`, `db.js`
 - **§7** Estadísticas 📊 → `StatsScreen.jsx`, `recap.js`, `stats.js`
 - **§12.2** Offline-first ⭐ → `ids.js`
@@ -327,7 +328,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `db.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
-- **§14.38** Borrar pregunta, y la pregunta dice qué se lleva → `DiasScreen.jsx`
+- **§14.38** Borrar pregunta, y la pregunta dice qué se lleva → `DiasScreen.jsx`, `anfitrion.js`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `avisos.js`, `index.js`
 - **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +5 más
 - **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`, `identidad.js`
@@ -358,5 +359,6 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.67** «Hoy» cuenta el día, y el día se puede mirar sin montarlo → `reparto-vista.js`
 - **§14.68** Las cenas se montan en el día, y el gasto dice cómo se reparte → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `areas.js`
 - **§14.69** Un día dice lo que hay, en vez de contarlo → `DiasScreen.jsx`, `dias.js`
-- **§14.70** O se cena fuera, o se reparten bungas — y el día se nombra en el aviso → `DiasScreen.jsx`, `avisos.js`, `compra.js`, `db.js`, `dias.js`, `stats.js` · +1 más
+- **§14.70** O se cena fuera, o se reparten bungas — y el día se nombra en el aviso → `DiasScreen.jsx`, `anfitrion.js`, `avisos.js`, `compra.js`, `db.js`, `dias.js` · +1 más
 - **§14.71** En el día se ven todos los planes, uno por renglón → `DiasScreen.jsx`
+- **§14.72** El elegidor de bunga dice cuántas veces ha acogido cada uno → `DiasScreen.jsx`, `anfitrion.js`, `stats.js`
