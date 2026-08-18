@@ -382,8 +382,9 @@ describe('DiasScreen', () => {
       expect(cena.platoIdsNinos).toHaveLength(1)
       expect(cena.platoIds).toHaveLength(2)
     })
-    // Y el día lo dice sin que haya que abrir el elegidor.
-    expect(await screen.findByText(/los niños, otra cosa/)).toBeInTheDocument()
+    // Y el día **dice qué comen** sin que haya que abrir el elegidor (§14.76):
+    // «los niños, otra cosa» avisaba de que había otra respuesta y no la daba.
+    expect(await screen.findByText('Los niños · Paella mixta')).toBeInTheDocument()
   })
 
   /**

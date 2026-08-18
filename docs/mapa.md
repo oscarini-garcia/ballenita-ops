@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.70.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1163 pruebas en 119 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.71.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1172 pruebas en 119 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   272 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -364,5 +364,6 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.71** En el día se ven todos los planes, uno por renglón → `DiasScreen.jsx`
 - **§14.72** El elegidor de bunga dice cuántas veces ha acogido cada uno → `DiasScreen.jsx`, `anfitrion.js`, `stats.js`
 - **§14.73** La hora de un plan, el día en orden y el aviso una hora antes → `DiasScreen.jsx`, `HoyScreen.jsx`, `avisos.js`, `db.js`, `horas.js`, `index.js` · +2 más
-- **§14.74** En «Hoy» un plan no dice «A votación», y tocarlo lo abre → `App.jsx`, `HoyScreen.jsx`, `dias.js`, `recados.js`, `stats.js`
+- **§14.74** En «Hoy» un plan no dice «A votación», y tocarlo lo abre → `App.jsx`, `DiasScreen.jsx`, `HoyScreen.jsx`, `dias.js`, `recados.js`, `stats.js`
 - **§14.75** La hora cabe en su pastilla, y se escoge a pulsos → `App.jsx`, `DiasScreen.jsx`, `db.js`, `horas.js`
+- **§14.76** En la capa del día la cena se nombra, incluida la de los niños → `DiasScreen.jsx`, `dias.js`
