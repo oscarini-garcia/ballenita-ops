@@ -9,10 +9,10 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.67.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1139 pruebas en 118 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.68.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1151 pruebas en 119 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
-  264 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
+  272 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
 ## Rutas que sirve el Worker
 
@@ -95,7 +95,7 @@ De la tabla `RUTAS` de `api/src/index.js`; la descripción, de la lista de su ca
   cuando: push (branches ['**']) · pull_request · workflow_dispatch
   corre: `npm ci`, `npm test`, `npm run build`, `node --test 'herramientas/*.test.mjs'`, `node herramientas/mapa.mjs --verificar`
 
-Nada corre por horario: ningún `schedule:` en los flujos ni handler `scheduled` en el Worker.
+Nada corre por horario: ningún `schedule:` en los flujos, pero el Worker sí tiene un handler `scheduled`.
 
 ## Módulos
 
@@ -169,6 +169,7 @@ Primera frase de la cabecera de cada módulo.
 - `evento.js` — Qué se cae fuera al cambiar las fechas de un evento.
 - `fechas.js` — Las dos reglas de un par de fechas «desde – hasta».
 - `hace.js` — Cuánto hace, escrito en palabras.
+- `horas.js` — La hora de un plan: cuándo es, en qué orden va y cómo se dice.
 - `ia.js` — ¿Se le puede preguntar algo al modelo **ahora mismo**?
 - `identidad.js` — Quién eres en un evento.
 - `ids.js` — IDs generados en cliente (§12.2): así dos dispositivos offline no chocan al sincronizar.
@@ -362,3 +363,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.70** O se cena fuera, o se reparten bungas — y el día se nombra en el aviso → `DiasScreen.jsx`, `anfitrion.js`, `avisos.js`, `compra.js`, `db.js`, `dias.js` · +1 más
 - **§14.71** En el día se ven todos los planes, uno por renglón → `DiasScreen.jsx`
 - **§14.72** El elegidor de bunga dice cuántas veces ha acogido cada uno → `DiasScreen.jsx`, `anfitrion.js`, `stats.js`
+- **§14.73** La hora de un plan, el día en orden y el aviso una hora antes → `DiasScreen.jsx`, `HoyScreen.jsx`, `avisos.js`, `db.js`, `horas.js`, `index.js` · +2 más

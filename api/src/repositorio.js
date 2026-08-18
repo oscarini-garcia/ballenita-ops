@@ -704,6 +704,32 @@ function filtrarPorClase(f, { clase, exceptoCuentaId }) {
  * cuente que lo ha apuntado, y avisarse a uno mismo es lo primero que hace que
  * se apaguen los avisos enteros.
  */
+/**
+ * Los planes con hora que aún no han avisado, para que el cron los mire
+ * (SPECS §14.73).
+ *
+ * Se acota en SQL a la hora que viene y no se traen todos: un evento de agosto
+ * tiene cuarenta planes y esto corre **cada cinco minutos** el año entero. Quién
+ * de esos entra en la ventana lo decide `planesQueTocaAvisar`, que es pura y se
+ * puede probar plantándose a una hora concreta.
+ */
+export function planesConHoraPendientes(db, desde, hasta) {
+  return filas(
+    db,
+    `SELECT id, eventId, titulo, dia, hora, cuando, avisadoEl
+       FROM plans
+      WHERE borrado = 0 AND avisadoEl IS NULL
+        AND cuando IS NOT NULL AND cuando > ? AND cuando <= ?`,
+    desde,
+    hasta,
+  );
+}
+
+/** Deja apuntado que ya salió, que es lo único que impide la tanda de doce. */
+export async function marcarPlanAvisado(db, planId, cuandoEpoch) {
+  await db.prepare('UPDATE plans SET avisadoEl = ? WHERE id = ?').bind(cuandoEpoch, planId).run();
+}
+
 export async function tokensParaAviso(db, { clase, personIds = null, exceptoCuentaId = null }) {
   const f = await filas(
     db,

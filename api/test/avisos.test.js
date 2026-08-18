@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGasto, avisoDeGastoBorrado, avisoDeLiquidacion, avisosDeGasto, contables, deQueEs, destinoDeAncla, elGastoMueveElSaldo, familiasDeUnGasto, importe, diaEnLetras,
+  CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGasto, avisoDeGastoBorrado, avisoDeLiquidacion, avisosDeGasto, contables, deQueEs, destinoDeAncla, elGastoMueveElSaldo, familiasDeUnGasto, importe, diaEnLetras, planesQueTocaAvisar, avisoDeRecordatorio, UNA_HORA,
 } from '../src/avisos.js';
 
 /**
@@ -322,4 +322,70 @@ test('§14.55 · los votos llegan como texto desde SQLite y se leen igual', () =
     { personas: GENTE, planes: comoEnD1, autor: 'pablo' },
   );
   assert.deepEqual(sobre.personIds, ['curro']);
+});
+
+/**
+ * Los recordatorios de una hora antes (SPECS §14.73).
+ *
+ * Es lo primero de esta app que se dispara solo, así que lo que hay que poder
+ * hacer es plantarse a una hora concreta y contar qué sale — de ahí que la
+ * selección sea pura y el reloj entre por parámetro.
+ */
+const T20 = 1786132800; // un «cuando» cualquiera: el plan es a esa hora
+const PLAN = { id: 'p1', titulo: 'Torneo de pingpong', dia: '2026-08-18', hora: '20:00', cuando: T20 };
+
+test('§14.73 · a falta de una hora justa, toca', () => {
+  assert.deepEqual(planesQueTocaAvisar([PLAN], T20 - UNA_HORA).map((p) => p.id), ['p1']);
+});
+
+test('§14.73 · dentro de la última hora también, que la pasada puede haberse perdido', () => {
+  // La ventana es «ya entra en la última hora», no «faltan exactamente 60»: con
+  // lo segundo, un despliegue a las 19:00 dejaría el aviso sin salir nunca.
+  for (const falta of [59 * 60, 30 * 60, 60]) {
+    assert.equal(planesQueTocaAvisar([PLAN], T20 - falta).length, 1, `a falta de ${falta}s`);
+  }
+});
+
+test('§14.73 · más de una hora antes, todavía no', () => {
+  assert.deepEqual(planesQueTocaAvisar([PLAN], T20 - UNA_HORA - 1), []);
+});
+
+test('§14.73 · un plan que ya ha empezado no avisa', () => {
+  // Apuntar a las 21:30 algo que era a las 21:00 no puede disparar un aviso de
+  // algo que ya está pasando.
+  assert.deepEqual(planesQueTocaAvisar([PLAN], T20), []);
+  assert.deepEqual(planesQueTocaAvisar([PLAN], T20 + 600), []);
+});
+
+test('§14.73 · uno ya avisado no repite: es lo que impide la tanda de doce', () => {
+  const ya = { ...PLAN, avisadoEl: T20 - UNA_HORA };
+  assert.deepEqual(planesQueTocaAvisar([ya], T20 - 1800), []);
+});
+
+test('§14.73 · sin hora no hay recordatorio, y lo borrado no cuenta', () => {
+  assert.deepEqual(planesQueTocaAvisar([{ ...PLAN, cuando: null }], T20 - 1800), []);
+  assert.deepEqual(planesQueTocaAvisar([{ ...PLAN, cuando: 0 }], T20 - 1800), []);
+  assert.deepEqual(planesQueTocaAvisar([{ ...PLAN, borrado: 1 }], T20 - 1800), []);
+});
+
+test('§14.73 · el aviso dice qué y a qué hora, y lleva al día', () => {
+  const sobre = avisoDeRecordatorio(PLAN);
+  assert.equal(sobre.titulo, 'Dentro de una hora: Torneo de pingpong');
+  assert.equal(sobre.cuerpo, 'A las 20:00.');
+  assert.equal(sobre.ir, 'agenda/dias/2026-08-18');
+  // `null` es «el grupo entero», como en `avisoDeEstado`: un plan es de todos y
+  // aquí no lo provoca una persona sino el reloj, así que no hay a quién excluir.
+  assert.equal(sobre.personIds, null);
+  // Uno por plan: dos a la misma hora son dos cosas que hacer, y agruparlos
+  // dejaría ver solo el segundo.
+  assert.equal(sobre.agrupa, 'recordatorio:p1');
+});
+
+test('§14.73 · «Una hora antes» es una clase propia, y nace encendida', () => {
+  const clase = CLASES_DE_AVISO.find((c) => c.id === 'recordatorio');
+  assert.ok(clase, 'la clase tiene que estar en el catálogo');
+  assert.ok(ES_CLASE('recordatorio'));
+  // Se guarda lo apagado, no lo encendido: por eso una clase nueva llega
+  // encendida a todo el mundo sin tocar ninguna fila.
+  assert.ok(!clase.soloAdministradores);
 });

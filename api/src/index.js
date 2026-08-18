@@ -50,7 +50,8 @@ import { verificarTokenDeApple } from './apple.js';
 import { enviarAviso, hayApnsConfigurado } from './apns.js';
 import {
   CLASES_DE_AVISO, ES_CLASE, avisoDeComentario, avisoDeEstado, avisoDeGastoBorrado,
-  avisoDeLiquidacion, avisosDeGasto, elGastoMueveElSaldo,
+  avisoDeLiquidacion, avisoDeRecordatorio, avisosDeGasto, elGastoMueveElSaldo,
+  planesQueTocaAvisar, UNA_HORA,
 } from './avisos.js';
 import {
   coincideEnTiempoConstante, emitirPaseDeEnlace, emitirPaseDeEspera, emitirSesion, VIGENCIA_ENLACE,
@@ -66,6 +67,7 @@ import {
   leerMejorasPendientes, listarCuentas,
   configuracionIAPublica, guardarConfiguracionIA, leerConfiguracionIA,
   guardarTokenPush, olvidarTokenPush, promoverCuentaAAdministrador, silenciarDispositivo,
+  planesConHoraPendientes, marcarPlanAvisado,
   tokensDeAdministradores, tokensDeCuenta, leerRecadosGuardados, guardarRecados,
 } from './repositorio.js';
 
@@ -1436,7 +1438,51 @@ const RUTAS = [
   ['POST', '/api/migraciones', migraciones],
 ];
 
+/**
+ * El reloj del Worker: los recordatorios de una hora antes (SPECS §14.73).
+ *
+ * **Es lo primero de esta app que se dispara solo.** Todo lo demás —los cinco
+ * avisos que había— sale de `POST /api/cambios`, o sea porque alguien acaba de
+ * tocar algo; «una hora antes» no lo toca nadie.
+ *
+ * Se exporta para poder probarlo con un reloj de mentira y una base de mentira,
+ * que es la única forma de plantarse a las 19:03 de un martes y contar qué sale.
+ *
+ * No lanza: un aviso que no sale no puede tumbar la siguiente pasada, y la
+ * siguiente es dentro de cinco minutos.
+ */
+export async function avisarDeLoQueViene(env, ahora = Math.floor(Date.now() / 1000)) {
+  if (!hayApnsConfigurado(env)) return { mandados: 0, motivo: 'sin-apns' };
+
+  // La consulta acota a la hora que viene; la ventana fina la decide
+  // `planesQueTocaAvisar`, que es pura.
+  const candidatos = await planesConHoraPendientes(env.DB, ahora, ahora + UNA_HORA);
+  const tocan = planesQueTocaAvisar(candidatos, ahora);
+
+  let mandados = 0;
+  for (const plan of tocan) {
+    const sobre = avisoDeRecordatorio(plan);
+    if (!sobre) continue;
+    // **Se marca antes de mandar.** Si APNs falla a medias, lo que se pierde es
+    // un aviso; marcando después, un fallo dejaría el plan sin marcar y la
+    // siguiente pasada volvería a intentarlo — y otra vez, cada cinco minutos
+    // hasta que llegue la hora. Un aviso perdido es mejor que doce repetidos.
+    await marcarPlanAvisado(env.DB, plan.id, ahora);
+    const tokens = await tokensParaAviso(env.DB, { clase: sobre.clase, personIds: sobre.personIds });
+    for (const token of tokens) {
+      const r = await enviarAviso(env, token, sobre);
+      if (r?.ok) mandados += 1;
+      if (r?.motivo === 'token-muerto') await olvidarTokenPush(env.DB, token);
+    }
+  }
+  return { mandados, planes: tocan.length };
+}
+
 export default {
+  async scheduled(evento, env, contexto) {
+    contexto.waitUntil(avisarDeLoQueViene(env));
+  },
+
   async fetch(peticion, env) {
     const cors = cabecerasCors(env, peticion);
 

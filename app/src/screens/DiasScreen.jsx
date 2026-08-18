@@ -14,6 +14,7 @@ import Confirmar from '../components/Confirmar.jsx'
 import ListaDePlatos from '../components/ListaDePlatos.jsx'
 import { queSeLlevaUnaCena } from '../lib/borrados.js'
 import { anfitrionPorBunga, vecesEnLetra } from '../lib/anfitrion.js'
+import { instanteDe, porHora, horaValida, SIN_HORA } from '../lib/horas.js'
 import { agrupadosPorCategoria, categoriaDe, etiquetaCategoria } from '../lib/carta.js'
 import { dentroDeFechas } from '../lib/evento.js'
 import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
@@ -239,7 +240,8 @@ export function CapaDeDia({
   const porId = Object.fromEntries(platos.map((p) => [p.id, p]))
   const elegidos = (cena?.platoIds ?? []).map((id) => porId[id]).filter(Boolean)
   const nPlatos = cena?.platoIds?.length ?? 0
-  const delDia = planes.filter((p) => p.dia === dia)
+  // **En orden** (§14.73 · S1): los que tienen hora primero, los sueltos al final.
+  const delDia = porHora(planes.filter((p) => p.dia === dia))
   /**
    * Libres son los que no tienen día **y los que se quedaron fuera de las
    * fechas** (§14.10-quater · opción D2): lo que cae fuera se aparta, no se
@@ -262,6 +264,11 @@ export function CapaDeDia({
 
   const notaDePlan = (p) => {
     if (p.dia === dia) {
+      // Sin hora se dice, porque es lo que explica por qué está al final.
+      if (!horaValida(p.hora)) {
+        const votos = p.estado === 'confirmado' ? 'Confirmado' : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
+        return `${SIN_HORA} · ${votos}`
+      }
       return p.estado === 'confirmado' ? 'Confirmado'
         : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
     }
@@ -321,10 +328,17 @@ export function CapaDeDia({
    * porque una fila apagada se lee como una avería, y aquí no falta nada:
    * simplemente no te toca a ti colocar el día.
    */
-  const renglon = ({ icono, verde, n, s, abre, apagado = false, clave }) => {
+  const renglon = ({ icono, verde, n, s, abre, apagado = false, clave, hora = null }) => {
     const cuerpo = (
       <>
-        <div className={`ico ${verde ? 'verde' : 'ambar'}`}><Icono nombre={icono} /></div>
+        {/* **La hora ocupa el sitio del icono** (`plan-con-hora.html` · V3): en
+            columna y siempre en la misma x, que es lo único que deja leer cuatro
+            horas seguidas sin pararse en cada una. Es la figura de la casilla del
+            número en la lista de Días, y el icono que sustituye es una chincheta
+            igual en los cuatro. Sin hora se queda el icono. */}
+        {hora
+          ? <div className="ico-hora" aria-hidden><b>{hora}</b></div>
+          : <div className={`ico ${verde ? 'verde' : 'ambar'}`}><Icono nombre={icono} /></div>}
         <div className="main">
           <div className="n">{n}</div>
           <div className="sub">{s}</div>
@@ -428,6 +442,7 @@ export function CapaDeDia({
                   clave: p.id,
                   icono: 'plan',
                   verde: true,
+                  hora: horaValida(p.hora) ? p.hora : null,
                   n: p.titulo,
                   s: notaDePlan(p),
                   abre: 'planes',
@@ -538,12 +553,29 @@ export function CapaDeDia({
             libres={libres}
             notaDePlan={notaDePlan}
             onCancelar={() => setEligiendo(null)}
-            onListo={async (ids) => {
+            onListo={async (ids, horas = {}) => {
               // El diff contra lo guardado: lo desmarcado vuelve a libres y lo
               // marcado nuevo se coloca. Lo que no cambió no se toca — no se
               // encolan cambios que no cambian nada.
-              for (const p of delDia) if (!ids.has(p.id)) await updatePlan(p.id, { dia: null })
-              for (const p of libres) if (ids.has(p.id)) await updatePlan(p.id, { dia })
+              //
+              // La hora viaja con **su instante** (§14.73): lo calcula este
+              // móvil, que es quien sabe su desfase, y así el cron del Worker
+              // solo compara números. Cambiar la hora **borra `avisadoEl`**…
+              // que no se puede tocar desde aquí, así que mover una hora ya
+              // avisada no vuelve a avisar. Queda dicho en el spec.
+              const conHora = (p) => {
+                const hora = horaValida(horas[p.id]) ? horas[p.id] : null
+                return { hora, cuando: hora ? instanteDe(dia, hora) : null }
+              }
+              for (const p of delDia) {
+                if (!ids.has(p.id)) { await updatePlan(p.id, { dia: null, hora: null, cuando: null }); continue }
+                const { hora, cuando } = conHora(p)
+                if ((p.hora ?? null) !== hora) await updatePlan(p.id, { hora, cuando })
+              }
+              for (const p of libres) {
+                if (!ids.has(p.id)) continue
+                await updatePlan(p.id, { dia, ...conHora(p) })
+              }
               setEligiendo(null)
             }}
           />
@@ -920,6 +952,19 @@ function ElegidorDeBunga({ titulo, dia, bungas, familias, inicial, veces, onCanc
 
 function ElegidorDePlanes({ dia, delDia, libres, notaDePlan, onCancelar, onListo }) {
   const [marcados, setMarcados] = useState(() => new Set(delDia.map((p) => p.id)))
+  /**
+   * **La hora, y solo la de los que están puestos en este día** (§14.73).
+   *
+   * Va aquí y no en la ficha del plan porque una hora es del **día**, no de la
+   * idea: «Kayak» no es a las diez, es a las diez *el martes*. Y por eso el
+   * campo sale al marcarlo y desaparece al desmarcarlo — un plan que vuelve a
+   * libres no tiene hora que guardar.
+   *
+   * Es borrador como todo lo del elegidor (§14.31): se escribe en «Listo».
+   */
+  const [horas, setHoras] = useState(() => (
+    Object.fromEntries(delDia.filter((p) => horaValida(p.hora)).map((p) => [p.id, p.hora]))
+  ))
   const [busca, setBusca] = useState('')
 
   const todos = [...delDia, ...libres]
@@ -938,7 +983,7 @@ function ElegidorDePlanes({ dia, delDia, libres, notaDePlan, onCancelar, onListo
       dia={dia}
       buscador={<Buscador valor={busca} onCambio={setBusca} etiqueta="Buscar un plan" />}
       onCancelar={onCancelar}
-      onListo={() => onListo(marcados)}
+      onListo={() => onListo(marcados, horas)}
     >
       {todos.length > 0 && visibles.length === 0 && (
         <div className="apunte" style={{ marginTop: 10 }}>Ningún plan se llama así.</div>
@@ -946,22 +991,48 @@ function ElegidorDePlanes({ dia, delDia, libres, notaDePlan, onCancelar, onListo
       {visibles.length > 0 && (
         <div className="eleccion nota-debajo">
           {visibles.map((o) => (
-            <button
-              key={o.id}
-              type="button"
-              className="eleccion-op"
-              aria-pressed={marcados.has(o.id)}
-              onClick={() => { tap(); alternar(o.id) }}
-            >
-              <span className="et">{o.etiqueta}</span>
-              {o.nota && <span className="no">{o.nota}</span>}
-              {marcados.has(o.id) && <span className="tic"><Icono nombre="visto" /></span>}
-            </button>
+            <div key={o.id}>
+              <button
+                type="button"
+                className="eleccion-op"
+                aria-pressed={marcados.has(o.id)}
+                onClick={() => { tap(); alternar(o.id) }}
+              >
+                <span className="et">{o.etiqueta}</span>
+                {o.nota && <span className="no">{o.nota}</span>}
+                {marcados.has(o.id) && <span className="tic"><Icono nombre="visto" /></span>}
+              </button>
+              {/* El campo sale **solo en los puestos**: en los libres no hay día
+                  al que atar una hora. Va fuera del botón porque un `input`
+                  dentro de un `button` no se puede tocar sin disparar el botón. */}
+              {marcados.has(o.id) && (
+                <div className="reng-hora">
+                  <label htmlFor={`hora-${o.id}`}>A las</label>
+                  <input
+                    id={`hora-${o.id}`}
+                    type="time"
+                    value={horas[o.id] ?? ''}
+                    onChange={(e) => setHoras({ ...horas, [o.id]: e.target.value })}
+                  />
+                  {horas[o.id] && (
+                    <button
+                      type="button"
+                      className="btn sm ghost"
+                      onClick={() => { tap(); const { [o.id]: _, ...resto } = horas; setHoras(resto) }}
+                    >
+                      Quitar
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
       <div className="apunte" style={{ marginTop: 10 }}>
-        Marcar lo pone en este día; desmarcar lo devuelve a libres.
+        Marcar lo pone en este día; desmarcar lo devuelve a libres. La hora es
+        opcional: sin ella el plan va al final, «{SIN_HORA}». Con ella, el grupo
+        recibe un aviso una hora antes.
       </div>
     </Elegidor>
   )
