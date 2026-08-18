@@ -576,6 +576,10 @@ body.modal-abierto .body { overflow: hidden; }
 .row .main .n { display: block; font-size: var(--t-row); font-weight: 550;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row .main .sub { display: block; font-size: var(--t-sub); color: var(--ink-soft); }
+/* El segundo renglón de una fila —hoy solo la mesa de los niños en la capa del
+   día (§14.76)— necesita separarse del primero: pegados, dos frases de la misma
+   letra y el mismo color se leen como un párrafo. */
+.row .main .sub + .sub { margin-top: 4px; }
 .row .amt { font-weight: 620; font-size: var(--t-row); white-space: nowrap; }
 
 /* El renglón del recap **dobla en vez de recortarse** (§14.50). En una lista de

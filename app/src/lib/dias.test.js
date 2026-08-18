@@ -3,7 +3,7 @@ import {
   diasDe, resumenDeDia, diaQueEnsenaHoy, rotuloDelDia, titularDeCena, titularDeHoy,
   numeroYDia, diasEntre, platoQueManda, hoyISO, isoLocal, enLetras, filtraOpciones,
   titularDePlatos, enumerarConTope, LETRAS_DEL_TITULAR, LETRAS_DEL_RENGLON, titularDeFuera,
-  fraseDeLaNoche,
+  fraseDeLaNoche, detalleDeLaCena, acompanan,
 } from './dias.js'
 import { diaSiguiente, finPara } from './fechas.js'
 import { ESTADO_SE_HACE } from './planes.js'
@@ -451,5 +451,81 @@ describe('se cena fuera', () => {
   it('y sin sitio, «Hoy» dice que falta por saberse', () => {
     const frase = fraseDeLaNoche({ cena: FUERA_SIN_SITIO }).map((x) => x.t).join('')
     expect(frase).toBe('Esta noche se cena fuera, y todavía no se sabe dónde.')
+  })
+})
+
+/**
+ * Lo que dice el renglón de la cena en la capa del día (§14.76).
+ *
+ * La regla es la de §14.69 —**se nombra en vez de contar**— y este era el único
+ * sitio de la app donde faltaba. «los niños, otra cosa» es la peor de las dos
+ * mitades que decía: avisa de que hay otra respuesta y no la da.
+ */
+const PRINCIPAL = (name) => ({ name, categorias: ['principal'] })
+const POSTRE = (name) => ({ name, categorias: ['postre'] })
+const ENTRANTE = (name) => ({ name, categorias: ['entrante'] })
+
+describe('el detalle de la cena en la capa del día', () => {
+  it('el renglón nombra lo que acompaña, y el titular ya lleva los principales', () => {
+    const platos = [PRINCIPAL('Paella mixta'), ENTRANTE('Ensaladilla rusa'), POSTRE('Sandía')]
+    expect(titularDeCena({}, platos)).toBe('Paella mixta')
+    expect(detalleDeLaCena({ cena: {}, platos }).resto).toBe('Ensaladilla rusa y Sandía')
+  })
+
+  it('con un solo plato no repite el titular debajo', () => {
+    const { resto } = detalleDeLaCena({ cena: {}, platos: [PRINCIPAL('Paella mixta')] })
+    expect(resto).toBeNull()
+  })
+
+  it('sin ningún principal titula el primero y acompaña el resto', () => {
+    const platos = [ENTRANTE('Ensaladilla rusa'), POSTRE('Sandía')]
+    expect(acompanan(platos).map((p) => p.name)).toEqual(['Sandía'])
+  })
+
+  it('los nombra todos: aquí no hay tope, la fila parte línea y la capa rueda', () => {
+    const platos = [
+      PRINCIPAL('Paella mixta'), ENTRANTE('Ensaladilla rusa'),
+      ENTRANTE('Pan con tomate'), POSTRE('Sandía'), POSTRE('Melón'),
+    ]
+    const { resto } = detalleDeLaCena({ cena: {}, platos })
+    // Con el tope de la lista de días esto decía «Ensaladilla rusa y 3 más»,
+    // que es seguir contando — justo lo que se venía a quitar (§14.76).
+    expect(resto).toBe('Ensaladilla rusa, Pan con tomate, Sandía y Melón')
+    expect(resto.length).toBeGreaterThan(LETRAS_DEL_RENGLON)
+  })
+
+  it('los niños van en su propio renglón y con sus platos por su nombre', () => {
+    const { resto, ninos } = detalleDeLaCena({
+      cena: {},
+      platos: [PRINCIPAL('Paella mixta'), POSTRE('Sandía')],
+      platosNinos: [PRINCIPAL('Nuggets')],
+      ninosAparte: true,
+    })
+    // Separados: juntos con un punto medio se van a tres líneas en Enorme.
+    expect(resto).toBe('Sandía')
+    expect(ninos).toBe('Los niños · Nuggets')
+  })
+
+  it('con mesa propia y sin platos lo dice, en vez de callarse', () => {
+    const { ninos } = detalleDeLaCena({
+      cena: {}, platos: [PRINCIPAL('Paella mixta')], platosNinos: [], ninosAparte: true,
+    })
+    expect(ninos).toBe('Los niños · otra cosa, sin apuntar')
+  })
+
+  it('heredando no se dice nada: es lo que pasa siete noches de ocho', () => {
+    expect(detalleDeLaCena({ cena: {}, platos: [PRINCIPAL('Paella mixta')] }).ninos).toBeNull()
+  })
+
+  it('se cena fuera: ni platos que nombrar ni mesa de niños que separar', () => {
+    expect(detalleDeLaCena({ cena: { fuera: 1, donde: 'El chiringuito' }, ninosAparte: true }))
+      .toEqual({ resto: 'no cocina nadie', ninos: null })
+    expect(detalleDeLaCena({ cena: { fuera: 1 }, tocable: true }).resto).toBe('toca para decir dónde')
+    expect(detalleDeLaCena({ cena: { fuera: 1 }, tocable: false }).resto).toBe('sin sitio todavía')
+  })
+
+  it('sin platos, el renglón dice qué falta y quién puede ponerlo', () => {
+    expect(detalleDeLaCena({ cena: {}, platos: [], tocable: true }).resto).toBe('toca para elegir los platos')
+    expect(detalleDeLaCena({ cena: {}, platos: [], tocable: false }).resto).toBe('sin platos todavía')
   })
 })

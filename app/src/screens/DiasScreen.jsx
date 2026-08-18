@@ -21,7 +21,8 @@ import { votosDe, quienFaltaPorVotar, seHace } from '../lib/planes.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { puedeOrganizar } from '../lib/personas.js'
 import {
-  diasDe, resumenDeDia, numeroYDia, fmtDiaLargo, fmtDiaCorto, hoyISO, titularDeCena, enLetras,
+  diasDe, resumenDeDia, numeroYDia, fmtDiaLargo, fmtDiaCorto, hoyISO, titularDeCena,
+  detalleDeLaCena,
   filtraOpciones,
 } from '../lib/dias.js'
 
@@ -303,12 +304,13 @@ export function CapaDeDia({
   // Se cena fuera: no faltan platos, así que el renglón no los reclama — y con
   // el sitio en blanco dice lo único que queda por decidir.
   const seCenaFuera = Boolean(cena?.fuera)
-  const baseCena = seCenaFuera
-    ? ((cena.donde ?? '').trim() ? 'no cocina nadie' : (tocable ? 'toca para decir dónde' : 'sin sitio todavía'))
-    : nPlatos
-      ? (nPlatos === 1 ? 'un plato' : `${enLetras(nPlatos)} platos`)
-      : (tocable ? 'toca para elegir los platos' : 'sin platos todavía')
-  const subCena = ninosAparte && !seCenaFuera ? `${baseCena} · los niños, otra cosa` : baseCena
+  // **Se nombra en vez de contar** (§14.76): decía «dos platos · los niños, otra
+  // cosa» en la pantalla a la que se entra a saber qué se cena. La composición
+  // es pura y vive en `lib/dias.js`, con los dos renglones separados: juntos se
+  // van a tres líneas en Enorme.
+  const { resto: subCena, ninos: subNinos } = detalleDeLaCena({
+    cena, platos: elegidos, platosNinos, ninosAparte, tocable,
+  })
   // Mirando, el renglón del plan no cuenta lo que se podría traer: eso es una
   // tarea de montar el día, no un dato de lo que se hace hoy.
   const subPlanes = !tocable ? 'sin plan todavía'
@@ -328,7 +330,7 @@ export function CapaDeDia({
    * porque una fila apagada se lee como una avería, y aquí no falta nada:
    * simplemente no te toca a ti colocar el día.
    */
-  const renglon = ({ icono, verde, n, s, abre, apagado = false, clave, hora = null }) => {
+  const renglon = ({ icono, verde, n, s, s2 = null, abre, apagado = false, clave, hora = null }) => {
     const cuerpo = (
       <>
         {/* **La hora ocupa el sitio del icono** (`plan-con-hora.html` · V3): en
@@ -341,7 +343,11 @@ export function CapaDeDia({
           : <div className={`ico ${verde ? 'verde' : 'ambar'}`}><Icono nombre={icono} /></div>}
         <div className="main">
           <div className="n">{n}</div>
-          <div className="sub">{s}</div>
+          {/* Sin nada que decir el renglón no se pinta: un `div` vacío ocupa su
+              línea igual (§14.74). `s2` es el segundo, que hoy solo usa la cena
+              para la mesa de los niños. */}
+          {s && <div className="sub">{s}</div>}
+          {s2 && <div className="sub">{s2}</div>}
         </div>
       </>
     )
@@ -382,6 +388,7 @@ export function CapaDeDia({
                   verde: nPlatos > 0 || seCenaFuera,
                   n: titularDeCena(cena ?? null, elegidos),
                   s: subCena,
+                  s2: subNinos,
                   abre: 'platos',
                   clave: 'cena',
                 })}

@@ -322,6 +322,69 @@ export function enumerarConTope(nombres = [], letras = LETRAS_DEL_RENGLON) {
 }
 
 /**
+ * Los platos que **no titulan**: lo que acompaña a los principales (§14.76).
+ *
+ * `titularDePlatos` nombra los principales —hasta dos, y del tercero «y N más»—,
+ * así que lo que le queda al renglón de debajo es exactamente el resto. Sin
+ * ningún principal titula el primer plato (`platoQueManda`), y entonces acompaña
+ * todo lo demás.
+ */
+export function acompanan(platos = []) {
+  const hayPrincipal = platos.some((p) => p?.categorias?.includes('principal'))
+  if (hayPrincipal) return platos.filter((p) => !p?.categorias?.includes('principal'))
+  const manda = platoQueManda(platos)
+  return platos.filter((p) => p !== manda)
+}
+
+/**
+ * Los dos renglones de debajo del titular de la cena, en la capa del día
+ * (SPECS §14.76).
+ *
+ * **Se nombra en vez de contar**, que es la regla de §14.69 y era el único sitio
+ * de la app donde faltaba: decía «dos platos · los niños, otra cosa», o sea que
+ * para saber qué se cena había que abrir el elegidor **desde la pantalla a la
+ * que se entra a saber qué se cena**. Y «los niños, otra cosa» es la peor de las
+ * dos mitades: dice que hay una respuesta distinta y no la da.
+ *
+ * **Los niños van en su propio renglón** y no encadenados con un punto medio.
+ * Medido a 257 pt, que es el ancho útil de la fila de la capa: «Ensaladilla
+ * rusa, Pan con tomate y 3 más · los niños, Nuggets» son 61 letras, dos líneas
+ * en Grande y **tres** en Enorme. Partidos en dos, cada uno se lee entero.
+ *
+ * **Y aquí no hay tope: se nombran todos.** `LETRAS_DEL_RENGLON` son 36 y existe
+ * para la **lista** de días, donde la fila no parte línea y ocho de ellas tienen
+ * que caber en 594 pt. Esto es otra cosa: una fila sola, que parte línea, en una
+ * capa que ya rueda. Con el tope, la cena de seis platos del camping decía
+ * «Aceitunas y altramuces y 4 más» — o sea que seguía contando, que es
+ * exactamente lo que se venía a quitar.
+ *
+ * Con cena fuera no hay platos que nombrar ni mesa de niños que separar: esa
+ * noche no cocina nadie.
+ */
+export function detalleDeLaCena({
+  cena, platos = [], platosNinos = [], ninosAparte = false, tocable = true,
+} = {}) {
+  if (cena?.fuera) {
+    const donde = (cena.donde ?? '').trim()
+    return {
+      resto: donde ? 'no cocina nadie' : (tocable ? 'toca para decir dónde' : 'sin sitio todavía'),
+      ninos: null,
+    }
+  }
+  const nombres = (lista) => porOrdenDeCarta(lista).map((p) => p?.name).filter(Boolean)
+  const resto = platos.length === 0
+    ? (tocable ? 'toca para elegir los platos' : 'sin platos todavía')
+    // Vacío si los principales ya lo dicen todo: un renglón en blanco no se
+    // pinta, y repetir el titular debajo sería gastar la línea en nada.
+    : (enumerar(nombres(acompanan(platos))) || null)
+  const ninos = !ninosAparte ? null
+    : platosNinos.length === 0
+      ? 'Los niños · otra cosa, sin apuntar'
+      : `Los niños · ${enumerar(nombres(platosNinos))}`
+  return { resto, ninos }
+}
+
+/**
  * La cena de esta noche **redactada** (`docs/diseño/hoy-el-dia.html` · T1).
  *
  * Devuelve **trozos** y no una cadena porque hay que poner en negrita lo que se

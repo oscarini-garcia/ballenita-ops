@@ -4518,6 +4518,44 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.76 En la capa del día la cena se nombra, incluida la de los niños
+
+El renglón de «La cena» decía **«dos platos · los niños, otra cosa»**, en la
+pantalla a la que se entra justamente a saber qué se cena. Era el último sitio de
+la app donde faltaba la regla de §14.69 —**se nombra en vez de contar**—, y de
+las dos mitades la peor era la segunda: «los niños, otra cosa» avisa de que hay
+una respuesta distinta y **no la da**.
+
+- **✅ El titular lleva los principales y el renglón lo que acompaña**
+  (`acompanan`, `lib/dias.js`, puro). No hay que adivinar qué nombró el titular:
+  `titularDePlatos` nombra principales, así que lo que le queda al renglón es
+  exactamente el resto. Sin ningún principal titula el primer plato y acompaña
+  todo lo demás. Se ordenan por la carta —aperitivo a postre— y no por el orden
+  en que se marcaron.
+- **✅ Los niños tienen su propio renglón**, no un trozo encadenado con un punto
+  medio. Medido a 257 pt, que es el ancho útil de la fila de la capa:
+  «Ensaladilla rusa, Pan con tomate y 3 más · los niños, Nuggets» son 61 letras,
+  dos líneas en Grande y **tres** en Enorme. Partidos en dos, cada uno se lee
+  entero. Con mesa propia y sin platos apuntados se dice —«otra cosa, sin
+  apuntar»— en vez de callarse; **mientras hereden no se dice nada**, que es lo
+  que pasa siete noches de ocho.
+- **✅ Y aquí no hay tope: se nombran todos.** `LETRAS_DEL_RENGLON` son 36 y
+  existe para la **lista** de días, donde la fila no parte línea y ocho tienen
+  que caber en 594 pt. Esto es otra cosa: una fila sola, que parte línea, en una
+  capa que ya rueda. Con el tope puesto, la cena de seis platos del camping decía
+  «Aceitunas y altramuces y 4 más» — o sea que seguía contando, que es
+  exactamente lo que se venía a quitar. Medido con esa cena: la fila pasa de 70,7
+  a **188,4 pt** en Grande y 208,7 en Enorme, y la capa sigue en su tope de 658,3
+  con los bungas y el plan a la vista.
+- **Un renglón vacío no se pinta** (la regla de §14.74): con un solo plato el
+  titular ya lo dice todo y debajo no va nada, en vez de un `div` en blanco que
+  ocupa su línea igual. `renglon()` acepta un segundo subtítulo (`s2`) y los dos
+  se separan **4 pt** en `theme.css`: pegados, dos frases de la misma letra y el
+  mismo color se leen como un párrafo.
+- **Solo cambia el modo montar.** En lectura la capa ya enseñaba las dos cartas
+  enteras con `ListaDePlatos` desde §14.30; lo que contaba era el otro modo, que
+  es donde se estaba mirando.
+
 ### 14.75 La hora cabe en su pastilla, y se escoge a pulsos
 
 Decidido en `docs/diseño/hora-que-quepa.html` · **C2 · S4**. La hoja midió dos

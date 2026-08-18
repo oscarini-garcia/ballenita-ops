@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.71.0',
+    fecha: '2026-08-18',
+    titulo: 'El día dice qué se cena, y qué cenan los niños',
+    lineas: [
+      'Al abrir un día, la cena ya no dice «dos platos»: los nombra todos, ordenados de aperitivo a postre.',
+      'Y si los niños comen otra cosa, sale en su propio renglón con sus platos — antes solo decía «los niños, otra cosa», que avisa y no cuenta.',
+      'Con un solo plato no se repite debajo, y mientras los niños coman lo mismo no se dice nada.',
+    ],
+  },
+  {
     version: '0.70.0',
     fecha: '2026-08-18',
     titulo: 'La hora cabe, y se pone a pulsos',
