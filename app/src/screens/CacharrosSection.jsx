@@ -1,4 +1,5 @@
-// El cacharro del año: uno por familia, y se vota el mejor (SPECS §14.57).
+// Los cacharros del año: los que traiga cada familia, y se vota el mejor
+// (SPECS §14.57, y §14.77 para el tope que se quitó).
 //
 // Vive dentro de Grupo y no en una pestaña propia porque **es de las familias**:
 // lo que se pregunta es cuál ha traído cada una, y eso se lee al lado de quién
@@ -14,9 +15,17 @@ import {
 } from '../lib/cacharros.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { porNombre } from '../lib/asignacion.js'
+import { enLetras } from '../lib/dias.js'
 import { tap } from '../lib/native.js'
 import Alias from '../components/Alias.jsx'
 import Icono from '../components/Icono.jsx'
+
+/** «sin cacharro este año», «trae uno», «trae tres». El cero no se cuenta. */
+function cuantosDeEnLetra(n) {
+  if (n === 0) return 'sin cacharro este año'
+  if (n === 1) return 'trae uno'
+  return `trae ${enLetras(n)}`
+}
 
 export default function CacharrosSection({ eventId, event }) {
   const cacharros = useLiveQuery(() => cacharrosOf(eventId), [eventId], [])
@@ -33,11 +42,12 @@ export default function CacharrosSection({ eventId, event }) {
   const miVoto = loQueVoto(cacharros, meId)
   const pueden = quienesPuedenVotar(cacharros, persons).length
   const yaVotaron = cuantosHanVotado(cacharros, persons)
-  // Las que aún no han traído nada. Es lo que convierte la sección vacía en una
-  // invitación en vez de un hueco.
-  const sinCacharro = [...families]
-    .filter((f) => !cacharros.some((c) => c.familyId === f.id))
-    .sort(porNombre)
+  // **Todas, siempre** (§14.77): el tope de uno por familia se quitó, así que la
+  // fila de apuntar no desaparece al traer el primero. Lo que decía «sin cacharro
+  // este año» ahora dice cuántos lleva, que es lo que hace falta saber para
+  // decidir si añadir otro.
+  const porFamilia = [...families].sort(porNombre)
+  const cuantosDe = (familyId) => cacharros.filter((c) => c.familyId === familyId).length
 
   async function elegir(cacharroId) {
     if (!meId) return
@@ -67,8 +77,8 @@ export default function CacharrosSection({ eventId, event }) {
 
       {lista.length === 0 ? (
         <div className="note">
-          🏆 Cada familia trae un cacharro y el grupo vota cuál es el mejor. Apunta el vuestro
-          abajo y a votar — <b>el de tu propia familia no cuenta</b>.
+          🏆 Cada familia trae los cacharros que quiera y el grupo vota cuál es el mejor. Apunta
+          los vuestros abajo y a votar — <b>los de tu propia familia no cuentan</b>.
         </div>
       ) : (
         <div className="card tight">
@@ -125,9 +135,9 @@ export default function CacharrosSection({ eventId, event }) {
         <div className="note">Para votar hace falta saber quién eres: tócate el <b>emoji de arriba</b> y dilo.</div>
       )}
 
-      {sinCacharro.length > 0 && (
+      {porFamilia.length > 0 && (
         <div className="card tight">
-          {sinCacharro.map((f) => (
+          {porFamilia.map((f) => (
             <div className="row" key={f.id}>
               {apuntando === f.id ? (
                 <div className="main" style={{ display: 'flex', gap: 8 }}>
@@ -136,7 +146,7 @@ export default function CacharrosSection({ eventId, event }) {
                     value={texto}
                     onChange={(e) => setTexto(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') guardar(f.id) }}
-                    placeholder={`Qué trae ${f.name}…`}
+                    placeholder={cuantosDe(f.id) > 0 ? `Qué más trae ${f.name}…` : `Qué trae ${f.name}…`}
                     aria-label={`Cacharro de ${f.name}`}
                     style={{ flex: 1 }}
                     autoFocus
@@ -147,13 +157,14 @@ export default function CacharrosSection({ eventId, event }) {
                 <>
                   <div className="main">
                     <div className="n">{f.name}<Alias familia={f} /></div>
-                    <div className="sub">sin cacharro este año</div>
+                    {/* Lo que ya trae, para no apuntar dos veces la misma nevera. */}
+                    <div className="sub">{cuantosDeEnLetra(cuantosDe(f.id))}</div>
                   </div>
                   <button
                     className="btn sm ghost"
                     onClick={() => { tap(); setTexto(''); setApuntando(f.id) }}
                   >
-                    + Cacharro
+                    {cuantosDe(f.id) > 0 ? '+ Otro' : '+ Cacharro'}
                   </button>
                 </>
               )}

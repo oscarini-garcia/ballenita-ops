@@ -1,6 +1,7 @@
 /**
  * El ranking de cacharros: quién gana, quién puede votar y qué se dice de él
- * (SPECS §14.57, `docs/diseño/siete-encargos.html` · G1·G2·G3·G4).
+ * (SPECS §14.57, `docs/diseño/siete-encargos.html` · G2·G3·G4; **G1 se retiró**
+ * en §14.77).
  *
  * Puro a propósito, como `lib/planes.js`: quién va ganando y si a alguien le
  * toca votar son cosas que se prueban contando, no abriendo la pantalla.
@@ -10,10 +11,17 @@
  * ganador. Es distinto de un plan a propósito: allí se decide si algo se hace
  * —y a eso puede decir que sí todo el mundo—, aquí quién gana.
  *
- * **Nadie vota el suyo** (G3). Quita la trampa evidente, y como cada familia
- * presenta uno solo (G1), con tres familias el ganador sale siempre de fuera.
- * El precio se dice al lado y no se esconde: una familia grande arrastra más
- * votos que una pequeña, así que esto es un juego y no unas elecciones.
+ * **Nadie vota el suyo** (G3). Quita la trampa evidente, y con dos familias o
+ * más el ganador sale siempre de fuera. El precio se dice al lado y no se
+ * esconde: una familia grande arrastra más votos que una pequeña, así que esto
+ * es un juego y no unas elecciones.
+ *
+ * **Y desde §14.77 una familia trae los que quiera** (G1 se retiró). Nada de
+ * este módulo cambia por ello —el voto sigue siendo uno por cabeza y `puedeVotar`
+ * sigue mirando la familia, no la fila—, pero sí cambia una cosa que conviene
+ * decir: con tres entradas se tienen tres oportunidades de llevarse el voto único
+ * de cada uno de los demás. Es otra ventaja de traer mucho, como la del tamaño
+ * de la familia, y va en la misma cuenta de que esto es un juego.
  */
 
 /** Cuántos han elegido este cacharro. */
