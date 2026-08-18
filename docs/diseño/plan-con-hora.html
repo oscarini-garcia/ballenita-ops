@@ -1,0 +1,412 @@
+<title>Un día en orden</title>
+<style>
+/* Tres caras: `:root` a secas es la clara —la que se ve si nadie ha elegido—,
+   el `@media` la oscura del sistema y `[data-theme]` la elegida a mano. */
+:root{--pg:#f4f6f8;--pg-2:#ffffff;--tx:#16242c;--tx-2:#4d6674;--tx-3:#7c919d;--ln:#dde6ea;--ac:#22708f;--cod-tx:#ffffff;--mal:#a8443a;--ok:#0a6b4c;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;--ok:#5fc79e;}}
+:root[data-theme="dark"]{--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;--ok:#5fc79e;}
+body{margin:0;background:var(--pg);color:var(--tx);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+.wrap{max-width:1180px;margin:0 auto;padding:38px 20px 90px;}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.02em;margin:0 0 14px;max-width:19em;}
+h2{font-size:21px;margin:56px 0 6px;letter-spacing:-.01em;}
+h2 .num{color:var(--tx-3);font-weight:600;}
+h2 .elige{font-weight:400;color:var(--tx-3);font-size:16px;}
+p{margin:0 0 12px;max-width:62em;color:var(--tx-2);}
+p b,li b,td b{color:var(--tx);}
+code{font:600 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--pg-2);border:1px solid var(--ln);border-radius:5px;padding:1px 5px;color:var(--tx);}
+.ficha{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--pg-2);border:1px solid var(--ln);border-radius:10px;font-size:13.5px;color:var(--tx-2);margin:0 0 10px;}
+.ficha b{color:var(--tx);}
+.aviso{border-left:3px solid var(--ac);padding:2px 0 2px 14px;margin:18px 0;}
+.aviso.ojo{border-color:var(--mal);}
+ul{margin:0 0 12px;padding-left:20px;color:var(--tx-2);max-width:62em;}
+li{margin:0 0 7px;}
+.rejilla{display:flex;flex-wrap:wrap;gap:26px;margin:20px 0 0;align-items:flex-start;}
+.op{width:362px;flex:none;}
+@media (max-width:480px){.wrap{padding:24px 12px 70px;}.rejilla{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}.tabla-caja{overflow-x:auto;}}
+.op-cab{display:flex;align-items:baseline;gap:9px;margin:0 0 8px;}
+.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);color:var(--cod-tx);padding:3px 8px;border-radius:6px;white-space:nowrap;}
+.op-nom{font-weight:650;font-size:15.5px;}
+.op-cost{font-size:13.5px;color:var(--tx-2);margin:9px 2px 0;line-height:1.5;}
+.medida{display:inline-block;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;border:1px solid var(--ln);border-radius:6px;padding:2px 7px;color:var(--tx-2);margin-left:auto;white-space:nowrap;}
+.medida.rota{border-color:var(--mal);color:var(--mal);}
+.tabla{border-collapse:collapse;font-size:14px;margin:10px 0 0;}
+.tabla td,.tabla th{border-bottom:1px solid var(--ln);padding:7px 16px 7px 0;text-align:left;color:var(--tx-2);vertical-align:top;}
+.tabla th{color:var(--tx);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;}
+.tabla td:first-child{color:var(--tx);font-weight:650;}
+.tabla .no{color:var(--mal);font-weight:650;}
+.tabla .si{color:var(--ok);font-weight:650;}
+.tnum{font-variant-numeric:tabular-nums;}
+
+/* ── El móvil, calcado de `theme.css` ────────────────────────────────────────
+   La capa de un día y sus renglones: `.fila-capa` mide **70,7 pt** y el titular
+   tiene **257** de ancho útil (menos que los 289 de la lista, por el icono). Y
+   aquí el titular **parte línea** (`white-space: normal`), al revés que en la
+   lista: lo que sobra no se recorta, crece hacia abajo. */
+.movil{--foam:#f1f5f7;--foam-2:#ffffff;--ink:#12262f;--ink-soft:#4d6674;--ink-faint:#7c919d;
+  --line:#c3d2da;--line-soft:#dde6ea;--spout:#22708f;--papel:#ffffff;--verde:#0a6b4c;--gold:#a8752a;
+  --t-row:17.92px;--t-sub:15.68px;--t-micro:12.88px;
+  width:362px;box-sizing:border-box;background:var(--papel);color:var(--ink);border:1px solid #a9bfc9;
+  border-radius:14px;padding:8px 12px;font:var(--t-row)/1.45 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+.sec-h{font-size:var(--t-micro);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin:8px 0 4px;}
+.fc{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line-soft);}
+.fc:first-child{border-top:none;}
+.ico{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;
+  background:rgba(10,107,76,.15);color:var(--verde);font-size:16px;}
+.ico.ambar{background:rgba(168,117,42,.20);color:var(--gold);}
+.main{flex:1;min-width:0;max-width:257px;}
+.n{display:block;font-size:var(--t-row);font-weight:550;}
+.sub{display:block;font-size:var(--t-sub);color:var(--ink-soft);}
+/* La hora como pastilla en el sitio del icono (V3). */
+.hora{width:34px;height:34px;flex:none;border-radius:9px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;line-height:1.05;background:rgba(34,112,143,.12);color:var(--spout);}
+.hora b{font-size:13px;font-weight:750;}
+.hora span{font-size:10px;}
+.suelta{color:var(--ink-faint);}
+
+/* Un aviso en la pantalla de bloqueo, para la parte de los recordatorios. */
+.push{width:362px;box-sizing:border-box;background:#f4f7f9;border:1px solid #cfdde4;border-radius:16px;
+  padding:11px 13px;font:15px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#12262f;}
+.push .cab{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#6b8592;text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:4px;}
+.push .cab i{width:14px;height:14px;border-radius:3px;background:#22708f;display:block;}
+.push .t{font-weight:700;}
+.push .c{color:#40616f;}
+.push + .push{margin-top:8px;}
+.nada{width:362px;box-sizing:border-box;border:1px dashed #a9bfc9;border-radius:16px;padding:16px 13px;
+  text-align:center;color:#7c919d;font-size:14px;}
+</style>
+
+<div class="wrap">
+
+<h1>Una hora se guarda en un campo; avisar una hora antes necesita algo que el servidor no tiene: un reloj</h1>
+
+<div class="ficha">
+  <span>Medido sobre la <b>v0.67.0</b></span>
+  <span>Pantalla <b>390 pt</b> · la fila de un plan en la capa mide <b>70,7</b> y su titular <b>257</b> de ancho</span>
+  <span>Abisal Sobrio, <b>cara clara</b>, tamaño <b>Grande</b></span>
+  <span>Contenido real de <b>Ballenita’26</b></span>
+</div>
+<p>Los tres encargos —hora, orden y aviso— parecen uno solo y son <b>dos de tamaños muy
+distintos</b>. La hora y el orden son un campo y un <code>sort</code>. El aviso a la hora justa
+es lo otro, y por eso se lleva la parte tres entera.</p>
+
+<h2><span class="num">Antes de las opciones ·</span> cinco cosas que hay que saber, comprobadas</h2>
+
+<div class="tabla-caja"><table class="tabla">
+  <tr><th>qué</th><th>cómo está hoy</th></tr>
+  <tr>
+    <td>Los planes de un día <b>no se ordenan</b></td>
+    <td><code>planes.filter((p) =&gt; p.dia === dia)</code>, y ya. El orden es el que devuelva
+      IndexedDB, que no es ninguno — por eso en tu captura salen como salen.</td>
+  </tr>
+  <tr>
+    <td><code>plans</code> <b>no tiene hora</b></td>
+    <td>Sus columnas son <code>dia</code>, <code>estado</code>, <code>votos</code>,
+      <code>ubicacion</code>, <code>enlace</code>… ninguna de tiempo. Migración nueva.</td>
+  </tr>
+  <tr>
+    <td><b class="no">El Worker no tiene reloj</b></td>
+    <td>No hay <code>[triggers]</code> en <code>wrangler.toml</code> ni <code>scheduled</code> en
+      <code>index.js</code>. <b>Los cinco avisos que existen salen todos de
+      <code>POST /api/cambios</code></b>: se mandan porque alguien acaba de tocar algo. Nada en
+      esta app se dispara por sí solo.</td>
+  </tr>
+  <tr>
+    <td><b class="no">APNs no programa entregas</b></td>
+    <td>Un push se entrega cuando se manda. No hay «mándalo mañana a las 19:00», así que alguien
+      tiene que estar despierto a las 19:00 para mandarlo.</td>
+  </tr>
+  <tr>
+    <td>Los avisos locales <b>no están instalados</b></td>
+    <td><code>@capacitor/local-notifications</code> no está en <code>package.json</code>, y un
+      plugin nativo <b>no viaja por OTA</b>: binario nuevo, <code>sync:ios</code>, archivar y
+      revisión de Apple.</td>
+  </tr>
+</table></div>
+
+<div class="aviso ojo">
+  <p><b>Y un defecto que ya está ahí, medido:</b> el titular de un plan dentro de la capa tiene
+  <b class="tnum">257 pt</b> y «Torneo de pingpong comunitario» mide <b class="tnum">328,2</b>.
+  Aquí <b>parte línea</b> —no recorta como la lista de Días—, así que ya se está pintando en dos
+  renglones y cuesta <b>+22,8 pt</b>. Poner la hora delante suma <b class="tnum">76,2 pt</b> más:
+  eso es la parte cuatro.</p>
+</div>
+
+<h2><span class="num">Parte uno ·</span> dónde vive la hora <span class="elige">— elige una</span></h2>
+<p>Parece la pregunta aburrida y es la que decide si la parte tres es fácil o es un campo de minas:
+<code>dia</code> y una hora son <b>tiempo local</b>, y el Worker corre en <b>UTC</b>. Madrid es +2
+en agosto y +1 en enero.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">H1</span><span class="op-nom">Texto <code>HH:MM</code>, y nulo si no hay</span></div>
+    <div class="movil">
+      <div class="sec-h">plans</div>
+      <div class="fc"><div class="main"><span class="n">hora: "20:00"</span>
+        <span class="sub">null = sin hora, que es lo normal</span></div></div>
+    </div>
+    <div class="op-cost">Lo más simple de leer, escribir y ordenar —dos cadenas <code>HH:MM</code>
+      se comparan como texto—. <b>Lo paga</b> el aviso: para saber cuándo son las 20:00 en un
+      instante, alguien tiene que aplicar el desfase de Madrid, y eso vive <b>en el servidor</b>.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">H2</span><span class="op-nom">Minutos desde medianoche</span></div>
+    <div class="movil">
+      <div class="sec-h">plans</div>
+      <div class="fc"><div class="main"><span class="n">minuto: 1200</span>
+        <span class="sub">1200 = 20:00 · null = sin hora</span></div></div>
+    </div>
+    <div class="op-cost">Ordena solo y sin trampas de texto. <b>Lo paga</b> que hay que traducirlo
+      en las dos direcciones cada vez que se pinta o se escribe, y que <b>no arregla nada de lo
+      de arriba</b>: sigue siendo una hora local sin zona.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">H3</span><span class="op-nom">La hora, y el instante que escribe el móvil</span></div>
+    <div class="movil">
+      <div class="sec-h">plans</div>
+      <div class="fc"><div class="main"><span class="n">hora: "20:00"</span>
+        <span class="sub">cuando: 1786...  ← lo calcula el móvil</span></div></div>
+    </div>
+    <div class="op-cost">El móvil <b>sabe su desfase</b>, así que convierte al guardar y el Worker
+      solo compara números: <b>cero lógica de zona horaria en el servidor</b>. Es la figura de los
+      IDs de cliente. <b>Lo paga</b> llevar dos campos que podrían discrepar, y que el instante lo
+      fija el aparato que lo escribió.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">H4</span><span class="op-nom">El día pasa a llevar la hora dentro</span></div>
+    <div class="movil">
+      <div class="sec-h">plans</div>
+      <div class="fc"><div class="main"><span class="n">dia: "2026-08-18T20:00"</span>
+        <span class="sub">un solo campo para todo</span></div></div>
+    </div>
+    <div class="op-cost">Un campo en vez de dos. <b>Lo paga</b> todo lo demás: <code>diasDe</code>,
+      <code>porDia</code>, el semáforo, <code>anclaDe('dia', …)</code> y el destino de los avisos
+      comparan <code>dia</code> con <code>AAAA-MM-DD</code> <b>en once sitios</b>. Está aquí para
+      poder descartarla mirándola.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte dos ·</span> los planes que no tienen hora <span class="elige">— elige una</span></h2>
+<p>Que son casi todos: «Día de playa» no empieza a una hora. El martes 18 tuyo tiene cuatro planes
+y probablemente uno o dos tengan hora de verdad.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">S1</span><span class="op-nom">Los sueltos, al final</span>
+      <span class="medida" data-mide="s1"></span></div>
+    <div class="movil"><div id="s1">
+      <div class="fc"><div class="hora"><b>10:30</b></div><div class="main"><span class="n">Playa de la Cala</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora"><b>20:00</b></div><div class="main"><span class="n">Torneo de pingpong</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="fc"><div class="ico">📍</div><div class="main"><span class="n suelta">Kayak</span><span class="sub">a lo largo del día</span></div></div>
+    </div></div>
+    <div class="op-cost">Lo que tiene hora es el esqueleto del día y se lee de arriba abajo; lo que
+      flota, flota al final. <b>Lo paga</b> que un plan de media mañana sin hora queda debajo del
+      de las diez de la noche.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S2</span><span class="op-nom">Los sueltos, al principio</span>
+      <span class="medida" data-mide="s2"></span></div>
+    <div class="movil"><div id="s2">
+      <div class="fc"><div class="ico">📍</div><div class="main"><span class="n suelta">Kayak</span><span class="sub">a lo largo del día</span></div></div>
+      <div class="fc"><div class="hora"><b>10:30</b></div><div class="main"><span class="n">Playa de la Cala</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora"><b>20:00</b></div><div class="main"><span class="n">Torneo de pingpong</span><span class="sub">1 👍 · faltan 4</span></div></div>
+    </div></div>
+    <div class="op-cost">Lo de «todo el día» enmarca lo demás, como una cabecera. <b>Lo paga</b> que
+      lo primero que se lee no es lo primero que pasa, que es justo lo que se venía a saber.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S3</span><span class="op-nom">Poner hora es obligatorio</span>
+      <span class="medida" data-mide="s3"></span></div>
+    <div class="movil"><div id="s3">
+      <div class="fc"><div class="hora"><b>10:30</b></div><div class="main"><span class="n">Playa de la Cala</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora"><b>12:00</b></div><div class="main"><span class="n">Kayak</span><span class="sub">0 👍 · faltan 5</span></div></div>
+      <div class="fc"><div class="hora"><b>20:00</b></div><div class="main"><span class="n">Torneo de pingpong</span><span class="sub">1 👍 · faltan 4</span></div></div>
+    </div></div>
+    <div class="op-cost">Un solo caso que programar, un solo orden, y el aviso vale para todos.
+      <b>Lo paga</b> obligar a inventarse una hora para «Día de playa» — y una hora inventada
+      dispara un aviso de verdad a nueve teléfonos.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S4</span><span class="op-nom">Dos grupos con su rótulo</span>
+      <span class="medida" data-mide="s4"></span></div>
+    <div class="movil"><div id="s4">
+      <div class="sec-h">A su hora</div>
+      <div class="fc"><div class="hora"><b>10:30</b></div><div class="main"><span class="n">Playa de la Cala</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora"><b>20:00</b></div><div class="main"><span class="n">Torneo de pingpong</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="sec-h">A lo largo del día</div>
+      <div class="fc"><div class="ico">📍</div><div class="main"><span class="n">Kayak</span><span class="sub">0 👍 · faltan 5</span></div></div>
+    </div></div>
+    <div class="op-cost">Dice en voz alta lo que S1 deja adivinar, y ningún plan parece estar en
+      el sitio que no es. <b>Lo paga</b> dos rótulos de sección dentro de una capa que
+      <b>ya rueda 238 pt</b> con tres planes.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte tres ·</span> quién dispara el aviso <span class="elige">— elige una</span></h2>
+<div class="aviso ojo">
+  <p><b>Esta es la decisión grande, y no es de diseño.</b> Hoy <b>nada en esta app se dispara
+  solo</b>: los cinco avisos que hay salen de <code>POST /api/cambios</code>, o sea porque alguien
+  ha tocado algo. «Una hora antes» no lo toca nadie — hay que poner un reloj, y solo hay dos
+  sitios donde ponerlo: <b>el servidor</b> o <b>el móvil</b>.</p>
+</div>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">A1</span><span class="op-nom">Un cron en el Worker, cada 5 min</span></div>
+    <div class="push">
+      <div class="cab"><i></i> Ballena Ops · ahora</div>
+      <div class="t">Dentro de una hora: Torneo de pingpong</div>
+      <div class="c">A las 20:00. Toca para ver el día.</div>
+    </div>
+    <div class="op-cost">Lo pedido, exacto, y para todos a la vez sin depender de que nadie abra
+      nada. <b>288 ejecuciones al día</b> con <code>*/5</code>, sobre un tope gratuito de 100.000:
+      no cuesta. <b>Lo paga</b> estrenar en el Worker algo que no existe —un
+      <code>scheduled</code>—, y guardar «este ya se avisó» para no repetir; con H1 o H2, además,
+      la conversión de zona horaria vive aquí.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A2</span><span class="op-nom">Un cron al día: el parte de la mañana</span></div>
+    <div class="push">
+      <div class="cab"><i></i> Ballena Ops · 9:00</div>
+      <div class="t">Hoy, martes 18</div>
+      <div class="c">10:30 Playa de la Cala · 20:00 Torneo de pingpong · y kayak cuando salga.</div>
+    </div>
+    <div class="op-cost">Un solo disparo al día, nada que marcar como «ya avisado», y una
+      notificación en vez de cuatro. <b>Lo paga</b> que <b>no es lo que has pedido</b>: a las 19:00
+      no suena nada, y de un plan de las diez de la noche te enteraste hace trece horas.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A3</span><span class="op-nom">Avisos locales, en cada móvil</span></div>
+    <div class="push">
+      <div class="cab"><i></i> Ballena Ops · ahora · <b>sin cobertura</b></div>
+      <div class="t">Dentro de una hora: Torneo de pingpong</div>
+      <div class="c">A las 20:00. Toca para ver el día.</div>
+    </div>
+    <div class="nada" style="margin-top:8px">Lo programó el propio móvil en la última
+      sincronización, así que suena aunque el camping no tenga línea.</div>
+    <div class="op-cost">Clavado a la hora, funciona <b>sin cobertura</b> en el camping y el
+      servidor no se entera. <b>Lo paga</b> caro: es un <b>plugin nativo</b>, así que <b>binario
+      nuevo y revisión de Apple</b> —no entra por OTA—; cada móvil solo sabe de los planes que
+      haya sincronizado; y hay que <b>cancelar y reprogramar</b> en los nueve cada vez que se
+      mueva una hora.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">A4</span><span class="op-nom">Sin avisos: el día en orden y «Hoy» al día</span></div>
+    <div class="nada">Ningún aviso.<br>«Hoy» abre diciendo <b>«Ahora: Playa de la Cala · luego, a
+      las 20:00, el torneo»</b>.</div>
+    <div class="op-cost">Cero infraestructura nueva, cero permisos, cero pilas. En un camping donde
+      os veis todo el día, el móvil que ya se mira es la app. <b>Lo paga</b> que hay que abrirla —
+      y que es media petición, no la entera.</div>
+  </div>
+</div>
+
+<h2><span class="num">Parte cuatro ·</span> dónde se ve la hora en la fila <span class="elige">— elige una</span></h2>
+<p>El titular tiene <b class="tnum">257 pt</b> y ya se pasa con «Torneo de pingpong comunitario»
+(<b class="tnum">328,2</b>): hoy se pinta en <b>dos líneas</b>, 52 pt. La hora delante suma
+<b class="tnum">76,2</b> y lo deja en <b class="tnum">404,4</b> — <b>siguen siendo dos líneas</b>,
+con 110 pt de margen antes de la tercera. Así que aquí <b>las tres opciones miden lo mismo</b>
+(96,7 pt) y lo que se decide no es el alto: es <b>si la hora se puede leer en columna</b>.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod">V1</span><span class="op-nom">Delante del título</span>
+      <span class="medida" data-mide="v1"></span></div>
+    <div class="movil"><div id="v1">
+      <div class="fc"><div class="ico">📍</div><div class="main"><span class="n">20:00 · Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4 por votar</span></div></div>
+    </div></div>
+    <div class="op-cost">Se lee en el orden en que se piensa: cuándo, y qué. <b>Lo paga</b> que
+      la hora <b>se mueve de sitio en cada fila</b> —va pegada a un título que parte por donde le
+      toca—, así que con cuatro planes las cuatro horas quedan a cuatro alturas distintas y el día
+      deja de leerse de un vistazo. Y un nombre 14 letras más largo sí abre la tercera línea.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">V2</span><span class="op-nom">En el renglón de abajo</span>
+      <span class="medida" data-mide="v2"></span></div>
+    <div class="movil"><div id="v2">
+      <div class="fc"><div class="ico">📍</div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">20:00 · 1 👍 · faltan 4</span></div></div>
+    </div></div>
+    <div class="op-cost">Cero pt: el renglón de abajo ya está y le sobra sitio. <b>Lo paga</b> que
+      la hora deja de ser lo primero que se ve, y con eso se pierde media gracia del orden.</div>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">V3</span><span class="op-nom">En el sitio del icono</span>
+      <span class="medida" data-mide="v3"></span></div>
+    <div class="movil"><div id="v3">
+      <div class="fc"><div class="hora"><b>20:00</b></div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4 por votar</span></div></div>
+    </div></div>
+    <div class="op-cost">Mismo alto que las otras dos, <b>y la hora en columna</b>: siempre en la
+      misma x, que es lo único que deja leer cuatro horas seguidas sin pararse en cada una. Es la
+      figura de la casilla del número en la lista de Días, y el icono que sustituye es una chincheta
+      igual en los cuatro. <b>Lo paga</b> que los planes sin hora se quedan con el icono, así que
+      conviven dos formas de fila —lo que la parte dos ya está decidiendo—.</div>
+  </div>
+</div>
+
+<h2><span class="num">Y las combinaciones ·</span> que suelen ser la respuesta</h2>
+<div class="tabla-caja"><table class="tabla">
+  <tr><th>combinación</th><th>qué sale</th><th>qué cuesta</th></tr>
+  <tr>
+    <td>H3 · S1 · A1 · V3</td>
+    <td>Lo pedido entero: hora, orden y aviso puntual a todos, con el servidor sin tocar zonas
+      horarias porque el instante lo escribe el móvil.</td>
+    <td>Migración + <code>scheduled</code> en el Worker</td>
+  </tr>
+  <tr>
+    <td>H1 · S1 · A4 · V3</td>
+    <td>La mitad barata: el día en orden y con horas, sin estrenar nada. Los avisos se dejan para
+      cuando se vea si hacen falta.</td>
+    <td class="si">Solo una migración</td>
+  </tr>
+  <tr>
+    <td>H3 · S4 · A2 · V3</td>
+    <td>Con el parte de la mañana en vez del aviso por plan: una notificación al día y ningún
+      registro de «ya avisado».</td>
+    <td>Migración + un cron sencillo</td>
+  </tr>
+  <tr>
+    <td>H3 · S1 · A3 · V3</td>
+    <td>Avisos clavados y sin depender de la cobertura del camping.</td>
+    <td class="no">Binario nuevo y revisión de Apple</td>
+  </tr>
+</table></div>
+
+<h2><span class="num">Y además ·</span> cuatro cosas que hay que decidir igual</h2>
+<ul>
+  <li><b>¿Y la cena?</b> No tiene hora, así que en un día ordenado <b>flota</b>. Si el orden es la
+    gracia, la cena debería entrar en él — con su hora, o con una fija del evento («se cena a las
+    21:00»). Si no, el día queda ordenado a medias y con lo más importante fuera de la fila.</li>
+  <li><b>Los avisos son una clase nueva.</b> Hoy hay cinco —solicitud, dinero, gastos, estado,
+    comentarios— y cada una se apaga por su cuenta. Un recordatorio no es ninguna de ellas, así que
+    nace la sexta; y por la regla de la casa —«lo que no está apagado, está encendido»— llegaría
+    <b>encendida a todo el mundo</b> sin tocar ninguna fila.</li>
+  <li><b>«A todos» son los que tienen cuenta y avisos.</b> El aviso llega a quien esté enlazado con
+    una persona, tenga el aparato registrado y no haya apagado la clase. Los críos sin móvil no
+    entran, y eso no lo arregla ninguna opción de aquí.</li>
+  <li><b>Una hora que se mueve.</b> Si un plan pasa de las 20:00 a las 22:00 después de haber
+    avisado, ¿se vuelve a avisar? Con A1 hay que decidirlo (y por eso hace falta guardar qué se
+    avisó); con A2 y A4 la pregunta no existe.</li>
+</ul>
+
+<script>
+// Cada insignia mide **la pieza dibujada**: en las partes dos y cuatro, lo que
+// se compara es cuánto ocupa el bloque en una capa que ya rueda 238 pt.
+for (const b of document.querySelectorAll('.medida[data-mide]')) {
+  const el = document.getElementById(b.dataset.mide)
+  if (!el) { b.textContent = '¿?'; b.classList.add('rota'); continue }
+  const alto = Math.round(el.getBoundingClientRect().height * 10) / 10
+  b.textContent = alto.toString().replace('.', ',') + ' pt'
+}
+</script>
+
+</div>
