@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.66.0',
+    fecha: '2026-08-18',
+    titulo: 'El día enseña todos sus planes',
+    lineas: [
+      'Un día con cuatro planes enseñaba uno: «Torneo de pingpong comunitario y tres más». Ahora salen los cuatro, cada uno en su renglón.',
+      'Y cada uno con sus votos —«Confirmado», o «1 👍 · faltan 4 por votar»—, que antes solo se veían cuando el día tenía un único plan.',
+      'Tocar cualquiera abre el mismo elegidor de siempre para cambiarlos.',
+    ],
+  },
+  {
     version: '0.65.0',
     fecha: '2026-08-18',
     titulo: 'O se cena fuera, o se reparten bungas',

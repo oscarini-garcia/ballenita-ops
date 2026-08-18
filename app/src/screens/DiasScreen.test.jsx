@@ -445,6 +445,55 @@ describe('DiasScreen', () => {
     expect(await screen.findByText('Los bungas')).toBeInTheDocument()
   })
 
+  /**
+   * Los planes de un día **se ven todos** (§14.71).
+   *
+   * El renglón era uno solo y decía «Torneo de pingpong comunitario y tres
+   * más»: de cuatro planes se veía uno, y para saber los otros tres había que
+   * abrir el elegidor — que es la herramienta de cambiarlos, no la de mirar.
+   */
+  it('el día enseña todos sus planes, uno por renglón y con sus votos', async () => {
+    const { eventId, event } = await sembrar()
+    // Cuatro planes el mismo día, como el martes 18 de la captura.
+    for (const titulo of ['Torneo de pingpong comunitario', 'Kayak', 'Cine de verano']) {
+      await addPlan(eventId, { titulo, dia: '2026-08-10' })
+    }
+    render(<DiasScreen eventId={eventId} event={event} />)
+    // Se espera a la cena del 9: con cuatro planes el día 10, cuál de ellos
+    // titula su fila depende del orden en que los devuelva IndexedDB.
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('lunes, 10 de agosto')
+    await screen.findByRole('heading', { name: /lunes, 10 de agosto/i })
+
+    // Los cuatro por su nombre, y ninguno escondido tras un «y tres más». Se
+    // miran **dentro del modal**: la fila de la lista que queda detrás lleva el
+    // titular del día, que es uno de estos mismos.
+    await waitFor(() => {
+      const enLaCapa = [...document.querySelectorAll('.modal .fila-capa .n')].map((e) => e.textContent)
+      for (const titulo of ['Playa de la Cala', 'Torneo de pingpong comunitario', 'Kayak', 'Cine de verano']) {
+        expect(enLaCapa).toContain(titulo)
+      }
+    })
+    expect(document.querySelector('.modal').textContent).not.toMatch(/y tres más/)
+
+    // Con más de uno, el rótulo va en plural.
+    expect(screen.getByText('Los planes')).toBeInTheDocument()
+    // Y cada uno lleva su nota: antes los votos solo salían con un plan.
+    expect(screen.getByText('Confirmado')).toBeInTheDocument()
+  })
+
+  it('y un día sin planes lo sigue diciendo en singular', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('domingo, 9 de agosto')
+    await screen.findByRole('heading', { name: /domingo, 9 de agosto/i })
+    expect(screen.getByText('El plan')).toBeInTheDocument()
+    expect(screen.getByText('Nada apuntado')).toBeInTheDocument()
+  })
+
   /** H1 de dia-abierto.html: quitar la cena sigue pidiendo segunda pulsación. */
   it('quitar la cena pide segunda pulsación, y se lleva platos y bungas', async () => {
     const { eventId, event } = await sembrar()

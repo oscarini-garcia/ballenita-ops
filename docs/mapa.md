@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.65.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1128 pruebas en 117 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.66.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1130 pruebas en 117 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   264 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -357,5 +357,6 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.66** El bunga se resume en una frase, se comenta, y la familia va en pastilla → `Comentarios.jsx`, `GrupoSection.jsx`, `alojamientos.js`, `api.js`, `avisos.js`, `bunga.js` · +3 más
 - **§14.67** «Hoy» cuenta el día, y el día se puede mirar sin montarlo → `reparto-vista.js`
 - **§14.68** Las cenas se montan en el día, y el gasto dice cómo se reparte → `DiasScreen.jsx`, `FichaDeGasto.jsx`, `areas.js`
-- **§14.69** Un día dice lo que hay, en vez de contarlo → `dias.js`
+- **§14.69** Un día dice lo que hay, en vez de contarlo → `DiasScreen.jsx`, `dias.js`
 - **§14.70** O se cena fuera, o se reparten bungas — y el día se nombra en el aviso → `DiasScreen.jsx`, `avisos.js`, `compra.js`, `db.js`, `dias.js`, `stats.js` · +1 más
+- **§14.71** En el día se ven todos los planes, uno por renglón → `DiasScreen.jsx`

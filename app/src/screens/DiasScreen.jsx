@@ -320,7 +320,7 @@ export function CapaDeDia({
    * porque una fila apagada se lee como una avería, y aquí no falta nada:
    * simplemente no te toca a ti colocar el día.
    */
-  const renglon = ({ icono, verde, n, s, abre, apagado = false }) => {
+  const renglon = ({ icono, verde, n, s, abre, apagado = false, clave }) => {
     const cuerpo = (
       <>
         <div className={`ico ${verde ? 'verde' : 'ambar'}`}><Icono nombre={icono} /></div>
@@ -330,9 +330,10 @@ export function CapaDeDia({
         </div>
       </>
     )
-    if (!tocable) return <div className="row fila-capa">{cuerpo}</div>
+    if (!tocable) return <div className="row fila-capa" key={clave}>{cuerpo}</div>
     return (
       <button
+        key={clave}
         className="row fila-boton fila-capa"
         disabled={apagado}
         onClick={() => { tap(); setEligiendo(abre) }}
@@ -367,6 +368,7 @@ export function CapaDeDia({
                   n: titularDeCena(cena ?? null, elegidos),
                   s: subCena,
                   abre: 'platos',
+                  clave: 'cena',
                 })}
               {/* Mirando, la carta de los niños entera: es la pantalla a la que
                   se viene a saber qué se cena, y «otra cosa» no lo contesta. */}
@@ -391,24 +393,44 @@ export function CapaDeDia({
               <>
                 <div className="sec-h" style={{ marginTop: 6 }}>Los bungas</div>
                 <div className="card tight" style={{ marginTop: 6 }}>
-                  {renglon({ icono: 'casa', verde: may.elegido, n: may.n, s: may.s, abre: 'mayores' })}
-                  {renglon({ icono: 'casa', verde: nin.elegido, n: nin.n, s: nin.s, abre: 'ninos' })}
+                  {renglon({ icono: 'casa', verde: may.elegido, n: may.n, s: may.s, abre: 'mayores', clave: 'mayores' })}
+                  {renglon({ icono: 'casa', verde: nin.elegido, n: nin.n, s: nin.s, abre: 'ninos', clave: 'ninos' })}
                 </div>
               </>
             )}
 
-            <div className="sec-h" style={{ marginTop: 6 }}>El plan</div>
+            {/* **Un renglón por plan** (§14.71). Era uno solo que decía «Torneo
+                de pingpong comunitario y tres más», así que de cuatro planes se
+                veía **uno**: para saber los otros tres había que abrir el
+                elegidor, que es la herramienta de cambiarlos y no la de mirar.
+                Es la misma corrección que §14.69 hizo en la lista de Días
+                —nombrar en vez de contar—, que allí no cabía en la fila y aquí
+                sí: la capa rueda y un plan más son 56,4 pt.
+                Cada uno abre el mismo elegidor, así que «cada renglón abre su
+                elegidor» se sigue cumpliendo, y cada uno lleva **su** nota: con
+                el renglón único, los votos solo salían cuando había un plan. */}
+            <div className="sec-h" style={{ marginTop: 6 }}>
+              {delDia.length > 1 ? 'Los planes' : 'El plan'}
+            </div>
             <div className="card tight" style={{ marginTop: 6 }}>
-              {renglon({
-                icono: 'plan',
-                verde: delDia.length > 0,
-                n: delDia.length === 0 ? 'Nada apuntado'
-                  : delDia.length === 1 ? delDia[0].titulo
-                    : `${delDia[0].titulo} y ${delDia.length === 2 ? 'otro más' : `${enLetras(delDia.length - 1)} más`}`,
-                s: delDia.length === 1 ? notaDePlan(delDia[0]) : subPlanes,
-                abre: 'planes',
-                apagado: sinNadaQueTraer,
-              })}
+              {delDia.length === 0
+                ? renglon({
+                  icono: 'plan',
+                  verde: false,
+                  n: 'Nada apuntado',
+                  s: subPlanes,
+                  abre: 'planes',
+                  apagado: sinNadaQueTraer,
+                  clave: 'sin-plan',
+                })
+                : delDia.map((p) => renglon({
+                  clave: p.id,
+                  icono: 'plan',
+                  verde: true,
+                  n: p.titulo,
+                  s: notaDePlan(p),
+                  abre: 'planes',
+                }))}
             </div>
 
             {/* **El tercer sitio del hilo** (§14.55): el día es donde se
