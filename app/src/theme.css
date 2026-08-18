@@ -1410,6 +1410,21 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 .fila-dia.es-hoy .dia-num { box-shadow: 0 0 0 1.5px var(--spout); }
 .fila-dia.es-hoy .dia-abre .n { font-weight: 650; }
 
+/* ── La hora de un plan (SPECS §14.73, plan-con-hora.html · V3) ──────────────
+   Ocupa el sitio del icono, y por eso mide **lo mismo que él** (34 × 34): la
+   gracia es que las cuatro horas de un día queden en la misma x y se lean como
+   una columna, que es lo que no consigue la hora metida en un titular que parte
+   por donde le toca. Cifras de ancho fijo, o «12:00» y «20:45» no alinean. */
+.ico-hora { width: 34px; height: 34px; flex: none; border-radius: 9px; display: grid;
+  place-items: center; background: color-mix(in srgb, var(--spout) 12%, transparent);
+  color: var(--spout-deep); }
+.ico-hora b { font-size: 13px; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+/* El campo de la hora dentro del elegidor, bajo el plan que ya está marcado. */
+.reng-hora { display: flex; align-items: center; gap: 8px; padding: 6px 12px 10px; }
+.reng-hora label { margin: 0; flex: none; }
+.reng-hora input[type=time] { width: auto; flex: none; padding: 7px 10px; }
+
 /* El verbo de una fila cuando no hay deslizamiento detrás: 44 × 44, que es el
    mínimo de Apple, y el dibujo dentro a 19. */
 .verbo-fila { width: 44px; height: 44px; flex: none; display: grid; place-items: center;

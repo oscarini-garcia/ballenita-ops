@@ -58,5 +58,18 @@ APNS_ENTORNO = "produccion"
 #   APNS_CLAVE_P8   · contenido del fichero .p8 de la clave de APNs
 #   APNS_CLAVE_ID   · identificador de esa clave (Key ID)
 
+# El reloj del Worker (SPECS §14.73). Es lo primero de esta app que se dispara
+# solo: todo lo demás sale de que alguien toque algo desde un móvil.
+#
+# Cada cinco minutos, y no cada minuto: el aviso puede salir hasta cinco tarde
+# —entre 60 y 55 minutos antes—, que para «dentro de una hora» no se nota, y son
+# 288 ejecuciones al día sobre un tope gratuito de 100.000.
+#
+# La ventana que mira es «ya entra en la última hora y todavía no ha pasado», no
+# «faltan exactamente sesenta»: así una pasada perdida —un despliegue, un pico—
+# la recoge la siguiente en vez de saltarse el aviso para siempre.
+[triggers]
+crons = ["*/5 * * * *"]
+
 [observability]
 enabled = true

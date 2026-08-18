@@ -41,6 +41,13 @@ const abrirDia = async (nombre) =>
  * —dos pantallas hermanas no contestan distinto a la misma pregunta—, pero deja
  * la búsqueda por texto ambigua.
  */
+const tarjetaDePlanes = () => [...document.querySelectorAll('.modal .card')].at(-1)
+const titulosDePlanes = () => [...tarjetaDePlanes().querySelectorAll('.n')].map((e) => e.textContent)
+const abrirLosPlanes = async () => {
+  await waitFor(() => expect(tarjetaDePlanes()?.querySelector('.fila-boton')).not.toBeNull())
+  await userEvent.click(tarjetaDePlanes().querySelector('.fila-boton'))
+}
+
 const abrirLosPlatos = async () => {
   await waitFor(() => expect(document.querySelector('.modal .fila-boton')).not.toBeNull())
   await userEvent.click(document.querySelector('.modal .fila-boton'))
@@ -522,8 +529,9 @@ describe('DiasScreen', () => {
 
     // Con más de uno, el rótulo va en plural.
     expect(screen.getByText('Los planes')).toBeInTheDocument()
-    // Y cada uno lleva su nota: antes los votos solo salían con un plan.
-    expect(screen.getByText('Confirmado')).toBeInTheDocument()
+    // Y cada uno lleva su nota: antes los votos solo salían con un plan. Sin
+    // hora puesta, la nota lo dice — es lo que explica por qué está al final.
+    expect(screen.getByText(/a lo largo del día · Confirmado/)).toBeInTheDocument()
   })
 
   it('y un día sin planes lo sigue diciendo en singular', async () => {
@@ -535,6 +543,86 @@ describe('DiasScreen', () => {
     await screen.findByRole('heading', { name: /domingo, 9 de agosto/i })
     expect(screen.getByText('El plan')).toBeInTheDocument()
     expect(screen.getByText('Nada apuntado')).toBeInTheDocument()
+  })
+
+  /**
+   * La hora de un plan (§14.73).
+   *
+   * Va en el elegidor y solo sobre los que ya están puestos en este día, porque
+   * una hora es del **día** y no de la idea: «Kayak» no es a las diez, es a las
+   * diez *el martes*.
+   */
+  it('se le pone hora a un plan del día, y viaja con su instante', async () => {
+    const { eventId, event } = await sembrar()
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Playa de la Cala')
+
+    await abrirDia('lunes, 10 de agosto')
+    await abrirLosPlanes()
+    await screen.findByRole('heading', { name: 'Los planes de este día' })
+
+    // El campo sale **solo en los marcados**: un plan libre no tiene día al que
+    // atar una hora. En la semilla, «Noche de juegos de mesa» está libre.
+    expect(document.querySelectorAll('.reng-hora')).toHaveLength(1)
+
+    await userEvent.clear(screen.getByLabelText('A las'))
+    await userEvent.type(screen.getByLabelText('A las'), '20:00')
+    // Borrador: todavía no ha escrito nada (§14.31).
+    expect((await plansOf(eventId)).find((p) => p.titulo === 'Playa de la Cala').hora).toBeFalsy()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+    await waitFor(async () => {
+      const plan = (await plansOf(eventId)).find((p) => p.titulo === 'Playa de la Cala')
+      expect(plan.hora).toBe('20:00')
+      // El instante lo calcula **este móvil**, que es quien sabe su desfase: el
+      // Worker solo compara números y no deduce ninguna zona horaria.
+      expect(plan.cuando).toBe(Math.floor(new Date('2026-08-10T20:00:00').getTime() / 1000))
+    })
+    // Y la fila lo enseña en el sitio del icono, en columna.
+    expect(await screen.findByText('20:00')).toBeInTheDocument()
+  })
+
+  it('los planes del día salen en orden, y los sueltos al final', async () => {
+    const { eventId, event } = await sembrar()
+    const tarde = await addPlan(eventId, { titulo: 'Cine de verano', dia: '2026-08-10', hora: '22:00' })
+    const pronto = await addPlan(eventId, { titulo: 'Kayak', dia: '2026-08-10', hora: '09:30' })
+    await addPlan(eventId, { titulo: 'Vermut', dia: '2026-08-10' })
+    expect([tarde, pronto]).toHaveLength(2)
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('lunes, 10 de agosto')
+    await waitFor(() => {
+      // Con hora, de menor a mayor; sin ella, al final — sin inventarles una.
+      const titulos = titulosDePlanes()
+      expect(titulos.slice(0, 2)).toEqual(['Kayak', 'Cine de verano'])
+      // Entre los dos sueltos **no se dice nada**: `porHora` es estable, así que
+      // conserva el orden en que vengan, y ese lo decide IndexedDB. Fijarlo aquí
+      // sería atar la prueba a algo que no es una promesa de nadie.
+      expect(titulos.slice(2).sort()).toEqual(['Playa de la Cala', 'Vermut'])
+    })
+  })
+
+  it('quitar un plan del día le quita también la hora', async () => {
+    const { eventId, event } = await sembrar()
+    await addPlan(eventId, { titulo: 'Kayak', dia: '2026-08-10', hora: '09:30' })
+    render(<DiasScreen eventId={eventId} event={event} />)
+    await screen.findByText('Paella mixta')
+
+    await abrirDia('lunes, 10 de agosto')
+    await abrirLosPlanes()
+    await screen.findByRole('heading', { name: 'Los planes de este día' })
+    await userEvent.click(screen.getByRole('button', { name: /^Kayak/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
+
+    await waitFor(async () => {
+      const plan = (await plansOf(eventId)).find((p) => p.titulo === 'Kayak')
+      // Vuelve a libres, y sin día no hay hora que guardar: una hora suelta
+      // reaparecería al colocarlo en otro día distinto.
+      expect(plan.dia).toBeNull()
+      expect(plan.hora).toBeNull()
+      expect(plan.cuando).toBeNull()
+    })
   })
 
   /** H1 de dia-abierto.html: quitar la cena sigue pidiendo segunda pulsación. */
@@ -584,7 +672,7 @@ describe('DiasScreen', () => {
     await abrirDia('lunes, 10 de agosto')
     // «Confirmado» distingue el renglón de la capa de la fila del día 10 de la
     // lista de detrás, cuyo rótulo también nombra la playa.
-    await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala Confirmado/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala.*Confirmado/ }))
     await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala/, pressed: true }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
 

@@ -16,6 +16,19 @@
  */
 export const NOTAS = [
   {
+    version: '0.68.0',
+    fecha: '2026-08-18',
+    titulo: 'Los planes tienen hora, y avisan una hora antes',
+    lineas: [
+      'Al colocar un plan en un día se le puede poner hora. Los que la tienen salen ordenados de la mañana a la noche, y los que no, al final — diciendo «a lo largo del día».',
+      'La hora se ve en el sitio del icono, en columna, para poder leer el día de un vistazo.',
+      'Y una hora antes de cada plan con hora, el grupo recibe un aviso. Es lo primero de la app que se dispara solo, sin que nadie toque nada.',
+      'Se apaga en Ajustes → Notificaciones, en «Una hora antes».',
+      'Ojo: cambiar la hora de un plan que ya avisó no vuelve a avisar.',
+      'Lleva un cambio en la base: quien administra lo verá en Ajustes → Actualizar.',
+    ],
+  },
+  {
     version: '0.67.0',
     fecha: '2026-08-18',
     titulo: 'Al elegir bunga se ve a quién le toca',

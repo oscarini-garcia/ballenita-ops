@@ -4518,6 +4518,69 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.73 La hora de un plan, el día en orden y el aviso una hora antes
+
+Decidido en [`docs/diseño/plan-con-hora.html`](diseño/plan-con-hora.html) ·
+**H3 · S1 · A1 · V3**.
+
+- **Eran dos encargos de tamaños muy distintos.** La hora y el orden son un campo
+  y un `sort`; el aviso a la hora justa es otra cosa, porque **nada en esta app se
+  disparaba solo**: los cinco avisos que había salían todos de
+  `POST /api/cambios`, o sea porque alguien acababa de tocar algo.
+- **✅ H3 · el instante lo calcula el móvil.** `plans.hora` («20:00», local) y
+  `plans.cuando` (el mismo momento en epoch), migración `0022`. `dia` y `hora`
+  son tiempo **local** y el Worker corre en **UTC**: Madrid es +2 en agosto y +1
+  en enero, así que convertir allí obliga a deducir un desfase. El móvil ya sabe
+  el suyo. `instanteDe` (`lib/horas.js`) es **la única línea de todo esto que
+  sabe de husos horarios**, y vive donde está la respuesta — la misma figura que
+  los IDs de cliente, y la misma cicatriz que dejó `toISOString()` corriendo los
+  días un día atrás.
+- **✅ A1 · un cron cada cinco minutos**, y es **lo primero de esta app que se
+  dispara solo** (`[triggers]` en `wrangler.toml`, `scheduled` en `index.js`).
+  288 ejecuciones al día sobre un tope gratuito de 100.000.
+- **La ventana es «ya entra en la última hora y todavía no ha pasado»**, no
+  «faltan exactamente sesenta minutos». Con lo segundo bastaría **una pasada
+  perdida** —un despliegue, un pico— para que el aviso no saliera nunca; con
+  esto, la siguiente lo recoge. Lo que impide que salga doce veces no es la
+  ventana sino `avisadoEl`.
+- **Y se marca antes de mandar.** Si APNs falla a medias se pierde un aviso;
+  marcando después, un fallo dejaría el plan sin marcar y volvería a intentarlo
+  **cada cinco minutos hasta la hora**. Un aviso perdido es mejor que doce
+  repetidos.
+- **`avisadoEl` no está en `tablas.js`**, a propósito: es del servidor, y dejarlo
+  fuera de lo que acepta `aplicarCambio` es lo que impide que un cliente lo borre
+  y desate la tanda de doce. Viaja en la instantánea —`SELECT *`— y no molesta.
+- **Un plan ya empezado no avisa**: apuntar a las 21:30 algo que era a las 21:00
+  no puede disparar un recordatorio de algo que ya está pasando.
+- **✅ «Una hora antes» es una clase de aviso propia**, la sexta. Por la regla de
+  §14.39 —se guarda lo apagado, no lo encendido— **nace encendida para todo el
+  mundo** sin tocar ninguna fila, que es justo lo que se quiere. `personIds` va
+  en `null`, «el grupo entero», como en `avisoDeEstado`: aquí no lo provoca una
+  persona sino el reloj, así que no hay a quién excluir.
+- **✅ S1 · los sueltos al final.** Los que tienen hora son el esqueleto del día y
+  van de menor a mayor; «Día de playa» no empieza a ninguna hora, y ponerlo entre
+  las 10:30 y las 20:00 sería inventarse una. `porHora` es estable, así que dos a
+  la misma hora no bailan en cada pintada. Sin hora, el renglón lo **dice** —«a
+  lo largo del día»—, que es lo que explica por qué está abajo.
+- **✅ V3 · la hora ocupa el sitio del icono**, midiendo lo mismo (34 × 34) y con
+  cifras de ancho fijo. Lo que se decidió ahí **no fue el alto**: las tres
+  opciones medían 96,7 pt. Fue que la hora metida en un titular que parte por
+  donde le toca queda a cuatro alturas distintas con cuatro planes, y así no se
+  lee de un vistazo; en el sitio del icono está siempre en la misma x. El icono
+  que sustituye es una chincheta igual en los cuatro.
+- **La hora se pone en el elegidor y solo sobre los planes ya puestos en ese
+  día**, porque una hora es **del día y no de la idea**: «Kayak» no es a las
+  diez, es a las diez *el martes*. Por eso el campo sale al marcarlo y
+  desaparece al desmarcarlo, y **quitar un plan del día le quita la hora** — si
+  no, reaparecería al colocarlo en otro día distinto.
+- **Lo que queda fuera y hay que saber:** mover la hora de un plan **ya avisado
+  no vuelve a avisar**, porque `avisadoEl` no se limpia y un cliente no puede
+  tocarlo. Es lo prudente por defecto —cambiar dos veces una hora no son dos
+  avisos a nueve teléfonos—, pero significa que adelantar un plan tres horas no
+  se anuncia.
+- **Y la cena sigue sin hora**, así que en un día ordenado flota fuera de la
+  fila. Está dicho en la hoja y sin decidir.
+
 ### 14.72 El elegidor de bunga dice cuántas veces ha acogido cada uno
 
 - **El defecto:** la pregunta que se hace al abrir ese elegidor no es «¿cuál es

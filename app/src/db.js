@@ -1,4 +1,5 @@
 import Dexie from 'dexie'
+import { instanteDe } from './lib/horas.js'
 import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
 import { esMayor, pesoDe } from './lib/personas.js'
@@ -857,6 +858,12 @@ export async function addPlan(eventId, p) {
     // en el catálogo puede llevar tres agostos. Es la fecha que enseña el grupo
     // «Propuestas» de Ideas (`docs/diseño/planes-ideas.html` · F2).
     propuestoEl: p.propuestoEl ?? now(),
+    // A qué hora es, y el mismo momento en epoch (§14.73). El instante lo
+    // calcula **el móvil** —`lib/horas.js`—, que es quien sabe su desfase; el
+    // cron del Worker solo compara números. Nulos = el plan no tiene hora, que
+    // es lo normal: «Día de playa» no empieza a ninguna.
+    hora: p.hora ?? null,
+    cuando: p.cuando ?? (p.hora ? instanteDe(p.dia, p.hora) : null),
   })
 }
 export const plansOf = (eventId) => db.plans.where({ eventId }).toArray()

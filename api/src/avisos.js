@@ -52,6 +52,14 @@ export const CLASES_DE_AVISO = [
     pista: 'Si llevas las cuentas: todos los gastos del viaje, te toquen o no, y los que se borren.',
   },
   {
+    // **Los recordatorios llegan encendidos** por la regla de arriba —se guarda
+    // lo apagado, no lo encendido—, y es lo que se quiere: el sentido de esto es
+    // que suene el teléfono de todos una hora antes sin que nadie configure nada.
+    id: 'recordatorio',
+    titulo: 'Una hora antes',
+    pista: 'Un aviso una hora antes de cada plan que tenga hora puesta.',
+  },
+  {
     id: 'comentario',
     titulo: 'Comentarios',
     pista: 'Cuando alguien comenta en algo que te toca, o en un hilo donde ya has escrito.',
@@ -283,6 +291,57 @@ export function diaEnLetras(iso) {
   const d = new Date(`${crudo}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return crudo;
   return `el ${DIAS_SEMANA[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`;
+}
+
+/**
+ * Los planes a los que les toca recordatorio **ahora mismo** (SPECS §14.73).
+ *
+ * Pura y con el reloj de fuera, porque es justo lo que no se puede probar
+ * abriendo el teléfono de nadie: hay que poder plantarse a las 19:03 de un
+ * martes y contar qué sale.
+ *
+ * La ventana es **«ya entra en la última hora y todavía no ha pasado»** y no
+ * «faltan exactamente sesenta minutos». El cron pasa cada cinco, así que con la
+ * segunda regla bastaría una pasada perdida —un despliegue, un pico de
+ * Cloudflare— para que el aviso no saliera nunca; con esta, la siguiente pasada
+ * lo recoge. Lo que impide que salga doce veces no es la ventana sino
+ * `avisadoEl`.
+ *
+ * Un plan **ya pasado no avisa**: si se apunta a las 21:30 algo que era a las
+ * 21:00, lo último que hace falta es un aviso de algo que ya ha empezado.
+ */
+export const UNA_HORA = 60 * 60;
+
+export function planesQueTocaAvisar(planes = [], ahora) {
+  return planes.filter((p) => {
+    const cuando = Number(p?.cuando);
+    if (!Number.isFinite(cuando) || !cuando) return false;
+    if (p?.avisadoEl) return false;
+    if (p?.borrado) return false;
+    return cuando - UNA_HORA <= ahora && ahora < cuando;
+  });
+}
+
+/**
+ * El aviso de un plan que empieza dentro de una hora.
+ *
+ * `personIds` va en **null**, que en esta casa quiere decir «el grupo entero»
+ * —lo mismo que hace `avisoDeEstado`—: un plan del día es de todos, y aquí no
+ * hay nadie que lo haya provocado del que haya que acordarse de excluir, porque
+ * no lo provoca una persona sino el reloj.
+ */
+export function avisoDeRecordatorio(plan) {
+  if (!plan?.titulo) return null;
+  return {
+    clase: 'recordatorio',
+    personIds: null,
+    titulo: `Dentro de una hora: ${plan.titulo}`,
+    cuerpo: plan.hora ? `A las ${plan.hora}.` : 'Toca para ver el día.',
+    // Uno por plan: dos planes a la misma hora son dos cosas distintas que
+    // hacer, y agruparlos dejaría ver solo el segundo.
+    agrupa: `recordatorio:${plan.id}`,
+    ir: plan.dia ? `agenda/dias/${plan.dia}` : 'agenda/hoy',
+  };
 }
 
 /** De qué es un hilo: `'plan:abc'` → `{ tipo: 'plan', id: 'abc' }`. */

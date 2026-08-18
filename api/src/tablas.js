@@ -109,9 +109,14 @@ export const TABLAS = {
     columnas: ['titulo', 'descripcion', 'enlace', 'creadaPor', 'apuntadaEl', 'eventId'],
   },
   plans: {
+    // `hora` («20:00», local) y `cuando` (el mismo momento en epoch) los escribe
+    // **el móvil**, que es quien sabe su desfase (§14.73). `avisadoEl` **no está
+    // aquí a propósito**: lo pone el cron al mandar el recordatorio, y dejarlo
+    // fuera es lo que impide que un cliente lo borre y desate doce avisos.
     columnas: [
       'eventId', 'titulo', 'descripcion', 'dia', 'costeEstimado',
       'ubicacion', 'enlace', 'estado', 'votos', 'ideaId', 'propuestoEl',
+      'hora', 'cuando',
     ],
     json: ['votos'],
   },
