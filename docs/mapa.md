@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.71.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1172 pruebas en 119 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.72.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1174 pruebas en 120 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   272 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -152,7 +152,7 @@ Primera frase de la cabecera de cada módulo.
 - `avatares.js` — Foto de avatar de una persona.
 - `avisos.js` — Lo que está esperando a que alguien haga algo.
 - `borrados.js` — Qué se lleva por delante un borrado, dicho en una frase.
-- `cacharros.js` — El ranking de cacharros: quién gana, quién puede votar y qué se dice de él (SPECS §14.57, `docs/diseño/siete-encargos.html` · G1·G2·G3·G4).
+- `cacharros.js` — El ranking de cacharros: quién gana, quién puede votar y qué se dice de él (SPECS §14.57, `docs/diseño/siete-encargos.html` · G2·G3·G4; **G1 se retiró** en §14.77).
 - `carta.js` — El orden de la carta: qué categorías hay y en qué orden se sirven.
 - `categorias.js` — Las cinco categorías de un gasto.
 - `cielo.js` — De qué color está el cielo a esta hora.
@@ -207,7 +207,7 @@ Primera frase de la cabecera de cada módulo.
 - `AgendaScreen.jsx` — «Agenda», partida en tres áreas (opciones A1 y B2 de `docs/diseño/navegacion.html`; la tercera llegó después, desde Ajustes).
 - `BalancesScreen.jsx` — Saldos: cuánto debe cada familia y quién paga a quién.
 - `BienvenidaScreen.jsx` — Lo que se ve la primera vez que entras, mientras baja lo del grupo.
-- `CacharrosSection.jsx` — El cacharro del año: uno por familia, y se vota el mejor (SPECS §14.57).
+- `CacharrosSection.jsx` — Los cacharros del año: los que traiga cada familia, y se vota el mejor (SPECS §14.57, y §14.77 para el tope que se quitó).
 - `ComidasScreen.jsx` — «Comidas», con dos áreas: **la Carta y la Compra** (`docs/diseño/cenas-fuera-y-reparto.html` · N1).
 - `CompraScreen.jsx` — La lista de la compra: lo que sale de las recetas y lo que se apunta a mano.
 - `CuentasSection.jsx` — Las cuentas que han pedido entrar, y con quién es cada una.
@@ -367,3 +367,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.74** En «Hoy» un plan no dice «A votación», y tocarlo lo abre → `App.jsx`, `DiasScreen.jsx`, `HoyScreen.jsx`, `dias.js`, `recados.js`, `stats.js`
 - **§14.75** La hora cabe en su pastilla, y se escoge a pulsos → `App.jsx`, `DiasScreen.jsx`, `db.js`, `horas.js`
 - **§14.76** En la capa del día la cena se nombra, incluida la de los niños → `DiasScreen.jsx`, `dias.js`
+- **§14.77** Una familia trae los cacharros que quiera → `CacharrosSection.jsx`, `cacharros.js`, `db.js`

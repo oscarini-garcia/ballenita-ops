@@ -4518,6 +4518,37 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.77 Una familia trae los cacharros que quiera
+
+El tope de **uno por familia** (§14.57 · G1) se retira. La fila de apuntar
+desaparecía en cuanto se traía el primero, así que el segundo **no tenía por
+dónde entrar**: quien llega al camping con la nevera y el proyector solo podía
+apuntar uno de los dos, o reescribir el que ya tenía puesto.
+
+- **✅ La fila de apuntar se queda siempre.** Antes la lista de abajo eran «las
+  familias que aún no han traído nada»; ahora son **todas**, y el renglón dice
+  cuántos lleva cada una —«sin cacharro este año», «trae uno», «trae dos»—, que
+  es lo que hace falta saber para decidir si añadir otro y para no apuntar dos
+  veces la misma nevera. El verbo cambia con ello: **«+ Cacharro»** la primera
+  vez y **«+ Otro»** después.
+- **El voto sigue siendo uno por cabeza** (G2) y **nadie vota el suyo** (G3).
+  Nada de `lib/cacharros.js` cambia: `puedeVotar` mira la familia y no la fila,
+  así que con tres entradas de los Pérez ningún Pérez puede votar ninguna.
+- **Lo que sí cambia y conviene decir**: con tres entradas se tienen **tres
+  oportunidades** de llevarse el voto único de cada uno de los demás. Es otra
+  ventaja de traer mucho, como ya lo era el tamaño de la familia, y va en la
+  misma cuenta de que esto es **un juego y no unas elecciones** — que es lo que
+  §14.57 ya decía al lado del ranking en vez de esconderlo.
+- **Por qué el tope no era lo que hacía el ranking.** El comentario de `db.js`
+  decía que «uno por familia» es «lo que lo convierte en un ranking y no en una
+  lista». No lo es: lo que lo convierte en ranking es el **voto único**. Con 👍
+  múltiple los tres empatan a nueve tengan una entrada o cinco; con elección hay
+  ganador aunque haya quince. El tope solo quitaba entradas.
+- **Sin cambios en la base**: `cacharros` ya tenía una fila por cacharro con su
+  `familyId`; lo único que había era un filtro en la pantalla. Y la sección tenía
+  **cero pruebas de pantalla** —solo las del módulo puro—, así que esta vuelta
+  estrena `CacharrosSection.test.jsx`.
+
 ### 14.76 En la capa del día la cena se nombra, incluida la de los niños
 
 El renglón de «La cena» decía **«dos platos · los niños, otra cosa»**, en la

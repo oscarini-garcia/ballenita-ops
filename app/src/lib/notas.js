@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.72.0',
+    fecha: '2026-08-18',
+    titulo: 'Cada familia trae los cacharros que quiera',
+    lineas: [
+      'En Grupo → Gadgets ya no hay tope de uno por familia: la fila de apuntar se queda puesta y el botón pasa a «+ Otro».',
+      'Cada familia dice cuántos lleva —«trae uno», «trae dos»— para no apuntar dos veces la misma nevera.',
+      'Se vota igual: un voto por cabeza, y los de tu propia familia siguen sin contar.',
+    ],
+  },
+  {
     version: '0.71.0',
     fecha: '2026-08-18',
     titulo: 'El día dice qué se cena, y qué cenan los niños',

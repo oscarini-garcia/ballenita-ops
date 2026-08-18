@@ -742,10 +742,14 @@ export const todosLosBungas = () => db.bungas.toArray()
 
 // ── Cacharros: el que trae cada familia, y quién vota cuál (§14.57) ──
 //
-// Es un plan con otro nombre —`votos` es el mismo mapa persona → voto— con dos
-// reglas propias: **uno por familia**, que es lo que lo convierte en un ranking
-// y no en una lista, y **un voto por cabeza**, que es lo que hace que haya
-// ganador. Con 👍 múltiple los tres empatan a nueve.
+// Es un plan con otro nombre —`votos` es el mismo mapa persona → voto— con una
+// regla propia: **un voto por cabeza**, que es lo que hace que haya ganador. Con
+// 👍 múltiple los tres empatan a nueve.
+//
+// El «uno por familia» de §14.57 **se retiró** (§14.77): una familia trae los
+// que quiera. Lo que convierte esto en un ranking y no en una lista es el voto
+// único, no el tope de entradas — y el tope se llevaba por delante el caso
+// normal, que es llegar al camping con la nevera **y** el proyector.
 export const cacharrosOf = (eventId) => db.cacharros.where({ eventId }).toArray()
 
 export async function addCacharro(eventId, { familyId, texto }) {
