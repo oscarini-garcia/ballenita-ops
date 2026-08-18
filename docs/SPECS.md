@@ -4518,6 +4518,57 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.74 En «Hoy» un plan no dice «A votación», y tocarlo lo abre
+
+Dos peticiones de una pantalla, y debajo de la primera un valor muerto que
+llevaba cinco vueltas dando falso.
+
+- **✅ «A votación» se retiró de la lista de planes de «Hoy».** Los cuatro planes
+  del día lo decían, y no por casualidad: es el estado de origen de todo plan,
+  así que la línea repetía cuatro veces lo que ya se sabe por estar mirando una
+  lista de planes. Ahora **solo se dice lo afirmativo** —«Se hace», y el sitio si
+  lo hay— y sin nada que decir el subtítulo **no se pinta**, que no es lo mismo
+  que pintarlo vacío: la fila baja de 70,7 pt a 56.
+- **✅ Y tocar un plan lo abre.** Llevaba a la pestaña de Planes y ahí te dejaba,
+  con la lista entera delante y el plan que acababas de tocar en algún sitio de
+  ella. **El mecanismo ya existía**: `abrirFila` está desde §14.60 para que un
+  aviso tocado abra la fila de la que habla, y `PlanesScreen` ya lo consume
+  esperando a que los planes estén; solo estaba cableado al camino del aviso.
+  `onGoTab` pasa a ser `irA(destino, fila)` en `App.jsx`, y **pone también el
+  área**: Planes tiene tres —Planes · Ideas · Trucos— y las recuerda
+  (`lib/areas.js`), así que quien se dejó abierto el catálogo habría llegado a
+  Ideas y el plan no se habría abierto en ninguna parte.
+
+**El valor muerto.** Debajo de «A votación» había una comparación que **nunca
+podía dar verdadero**: `plan.estado === 'confirmado'`. Los estados de un plan
+son `'sehace'` y `'votando'` desde §14.59, y `'confirmado'` es de antes; el único
+sitio del código que lo escribía era **el sembrado del Demo** (`db.js`). O sea
+que la app decía «A votación» en todos los planes de todos los eventos, y en el
+Demo —el único donde alguien lo habría visto raro— decía lo correcto. Estaban
+afectados **seis sitios**, y se arreglan los seis porque son el mismo defecto:
+
+| dónde | qué salía mal |
+| --- | --- |
+| `screens/HoyScreen.jsx` | «A votación» en todos los planes del día |
+| `lib/dias.js` · `titularDeHoy` | lo mismo en el titular grande |
+| `screens/DiasScreen.jsx` · `notaDePlan` | un plan decidido enseñaba sus votos y quién falta, que es justo lo que §14.59 quitó |
+| `lib/stats.js` | «Planes confirmados» decía **0 de N** en todos los eventos |
+| `lib/recados.js` | un plan ya decidido seguía «esperando votos» |
+| `db.js` · sembrado del Demo | el único sitio que escribía el valor viejo |
+
+Todos pasan a `seHace()`, el predicado que §14.59 dejó escrito en
+`lib/planes.js` precisamente para esto, con su nota de que un plan sin estado
+también se vota.
+
+- **Lo que hizo que durase cinco vueltas fueron las pruebas.** No es que faltasen:
+  había cuatro, y **las cuatro fijaban el valor muerto** —sembraban
+  `estado: 'confirmado'` y comprobaban que salía «Confirmado»—, así que pasaban
+  en verde mientras la pantalla decía lo contrario. Una prueba que se escribe con
+  el mismo dato que el código compara no comprueba nada: comprueba que dos copias
+  del error coinciden. Ahora siembran `ESTADO_SE_HACE` —la constante, no la
+  cadena— y hay una nueva que dice lo que se pidió: **un plan a votación no dice
+  que está a votación**.
+
 ### 14.73 La hora de un plan, el día en orden y el aviso una hora antes
 
 Decidido en [`docs/diseño/plan-con-hora.html`](diseño/plan-con-hora.html) ·

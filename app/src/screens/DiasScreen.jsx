@@ -17,7 +17,7 @@ import { anfitrionPorBunga, vecesEnLetra } from '../lib/anfitrion.js'
 import { instanteDe, porHora, horaValida, SIN_HORA } from '../lib/horas.js'
 import { agrupadosPorCategoria, categoriaDe, etiquetaCategoria } from '../lib/carta.js'
 import { dentroDeFechas } from '../lib/evento.js'
-import { votosDe, quienFaltaPorVotar } from '../lib/planes.js'
+import { votosDe, quienFaltaPorVotar, seHace } from '../lib/planes.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { puedeOrganizar } from '../lib/personas.js'
 import {
@@ -266,10 +266,10 @@ export function CapaDeDia({
     if (p.dia === dia) {
       // Sin hora se dice, porque es lo que explica por qué está al final.
       if (!horaValida(p.hora)) {
-        const votos = p.estado === 'confirmado' ? 'Confirmado' : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
+        const votos = seHace(p) ? 'Se hace' : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
         return `${SIN_HORA} · ${votos}`
       }
-      return p.estado === 'confirmado' ? 'Confirmado'
+      return seHace(p) ? 'Se hace'
         : `${votosDe(p)} 👍 · ${quienFaltaPorVotar(p, personas)}`
     }
     if (p.dia) return `era el ${fmtDiaCorto(p.dia)}, fuera del viaje`

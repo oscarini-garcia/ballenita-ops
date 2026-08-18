@@ -19,7 +19,7 @@ describe('computeStats', () => {
       { platoIds: ['d1'], bungaMayoresId: 'b1', bungaNinosId: 'b2' },
     ],
     plans: [
-      { estado: 'confirmado', votos: { a: '👍', b: '👎' } },
+      { estado: 'sehace', votos: { a: '👍', b: '👎' } },
       { estado: 'votando', votos: { b: '👎', c: '👎' } },
     ],
   }

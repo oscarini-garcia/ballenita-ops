@@ -9,6 +9,7 @@
  * F3 (qué enseña cuando hoy no es del evento) y G1 (una fila por día).
  */
 import { porOrdenDeCarta } from './carta.js'
+import { seHace } from './planes.js'
 
 /**
  * Un día en AAAA-MM-DD **desde la fecha local**, y nunca por `toISOString()`.
@@ -402,9 +403,14 @@ export function titularDeHoy({ cena, platos = [], planes = [], bungaMayores, bun
   const deCena = cena ? 'cena sin platos apuntados' : 'sin cena montada todavía'
   if (planes.length > 0) {
     const plan = planes[0]
-    const estado = plan.estado === 'confirmado' ? 'Confirmado' : 'A votación'
-    const donde = plan.ubicacion ? `, en ${plan.ubicacion}` : ''
-    return { grande: plan.titulo, pequeno: `${estado}${donde} · ${deCena}` }
+    // **«A votación» se retiró** (§14.74) y con ella la comparación muerta que
+    // la hacía salir siempre: el estado de un plan es `'sehace'` o `'votando'`
+    // desde §14.59, y `'confirmado'` no lo escribe nadie más que el sembrado del
+    // Demo. Solo se dice lo afirmativo — que un plan está a votación es lo
+    // normal, y decirlo en el titular gasta la línea en lo que no ha pasado.
+    const donde = plan.ubicacion ? `en ${plan.ubicacion}` : null
+    const pequeno = [seHace(plan) ? 'Se hace' : null, donde, deCena].filter(Boolean).join(' · ')
+    return { grande: plan.titulo, pequeno }
   }
   return { grande: 'Día libre', pequeno: 'Sin cena montada y sin planes — también hace falta' }
 }

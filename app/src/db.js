@@ -3,6 +3,7 @@ import { instanteDe } from './lib/horas.js'
 import { uid, now } from './lib/ids.js'
 import { SYNC_TABLES } from './sync/tables.js'
 import { esMayor, pesoDe } from './lib/personas.js'
+import { ESTADO_SE_HACE } from './lib/planes.js'
 import { MISMA_COSA_MS, apunteDe } from './lib/registro.js'
 import { getMeId } from './lib/identidad.js'
 import { loQueHayQueComprar } from './lib/compra.js'
@@ -1089,7 +1090,7 @@ async function sembrarElEjemplo() {
     bungaNinosId: bSolteros,
   })
 
-  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado', ubicacion: 'Cala del sur', votos: { [curro]: '👍', [ana]: '👍', [pablo]: '👍' } })
+  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: ESTADO_SE_HACE, ubicacion: 'Cala del sur', votos: { [curro]: '👍', [ana]: '👍', [pablo]: '👍' } })
   await addPlan(eventId, { titulo: 'Excursión a las cuevas', dia: '2026-08-12', costeEstimado: 1200, enlace: 'https://example.com/cuevas', votos: { [curro]: '👍', [ana]: '🤷' } })
   await addPlan(eventId, { titulo: 'Noche de juegos de mesa', votos: { [pablo]: '🤷' } })
 

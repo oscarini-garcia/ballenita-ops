@@ -6,6 +6,7 @@ import {
   fraseDeLaNoche,
 } from './dias.js'
 import { diaSiguiente, finPara } from './fechas.js'
+import { ESTADO_SE_HACE } from './planes.js'
 
 // Ballenita 2026, que es la semilla real de `db.js`: 8–15 de agosto.
 const EVENTO = { startDate: '2026-08-08', endDate: '2026-08-15' }
@@ -196,10 +197,10 @@ describe('titularDeHoy', () => {
 
   it('sin cena, manda el plan del día, y la cena baja al renglón pequeño', () => {
     const t = titularDeHoy({
-      planes: [{ titulo: 'Playa de la Cala', estado: 'confirmado', ubicacion: 'Cala del sur' }],
+      planes: [{ titulo: 'Playa de la Cala', estado: ESTADO_SE_HACE, ubicacion: 'Cala del sur' }],
     })
     expect(t.grande).toBe('Playa de la Cala')
-    expect(t.pequeno).toBe('Confirmado, en Cala del sur · sin cena montada todavía')
+    expect(t.pequeno).toBe('Se hace · en Cala del sur · sin cena montada todavía')
   })
 
   it('una cena vacía no le quita el titular a un plan de verdad', () => {
@@ -207,8 +208,9 @@ describe('titularDeHoy', () => {
       cena: { platoIds: [] },
       planes: [{ titulo: 'Torneo de petanca' }],
     })
+    // **«A votación» no se dice** (§14.74): es el estado de origen de todo plan.
     expect(t.grande).toBe('Torneo de petanca')
-    expect(t.pequeno).toBe('A votación · cena sin platos apuntados')
+    expect(t.pequeno).toBe('cena sin platos apuntados')
   })
 
   it('una cena vacía sin plan sí manda: es un hueco reservado', () => {

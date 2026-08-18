@@ -10,6 +10,7 @@ import Alias from '../components/Alias.jsx'
 import HojaDeEstado from '../components/HojaDeEstado.jsx'
 import { CapaDeDia } from './DiasScreen.jsx'
 import { puedeOrganizar } from '../lib/personas.js'
+import { seHace } from '../lib/planes.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { tap } from '../lib/native.js'
 import { estadoEnUnaLinea, partirEstado, quienTieneEstado } from '../lib/estados.js'
@@ -157,21 +158,36 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
               <div className="sub">un día libre, que también hace falta</div>
             </div>
           </div>
-        ) : delDia.map((p) => (
-          <button key={p.id} className="row fila-boton" onClick={() => onGoTab?.('planes')}>
-            {/* La hora en el sitio del icono, como en la capa del día (V3). */}
-            {horaValida(p.hora)
-              ? <div className="ico-hora" aria-hidden><b>{p.hora}</b></div>
-              : <div className="ico"><Icono nombre="plan" /></div>}
-            <div className="main">
-              <div className="n">{p.titulo}</div>
-              <div className="sub">
-                {p.estado === 'confirmado' ? 'Confirmado' : 'A votación'}
-                {p.ubicacion ? ` · ${p.ubicacion}` : ''}
+        ) : delDia.map((p) => {
+          /**
+           * **Solo se dice lo que hay** (SPECS §14.74). El renglón decía «A
+           * votación» en los cuatro planes del día: no era una casualidad de
+           * este viaje sino una comparación muerta —`estado === 'confirmado'`,
+           * un valor que dejó de escribirse en §14.59, cuando los estados
+           * pasaron a ser `'sehace'` y `'votando'`— que daba falso siempre. Con
+           * el predicado bueno, lo afirmativo sale y lo normal se calla: estar a
+           * votación es el estado de origen de todos los planes, y repetirlo
+           * cuatro veces gasta cuatro renglones en no decir nada. Sin nada que
+           * decir el subtítulo no se pinta, que es distinto de pintarlo vacío.
+           */
+          const sub = [seHace(p) ? 'Se hace' : null, p.ubicacion || null].filter(Boolean).join(' · ')
+          return (
+            <button
+              key={p.id}
+              className="row fila-boton"
+              onClick={() => { tap(); onGoTab?.('planes', p.id) }}
+            >
+              {/* La hora en el sitio del icono, como en la capa del día (V3). */}
+              {horaValida(p.hora)
+                ? <div className="ico-hora" aria-hidden><b>{p.hora}</b></div>
+                : <div className="ico"><Icono nombre="plan" /></div>}
+              <div className="main">
+                <div className="n">{p.titulo}</div>
+                {sub && <div className="sub">{sub}</div>}
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          )
+        })}
       </div>
 
       {/* Quién anda en qué (§14.36 · G3): la tira de caras con su estado, bajo

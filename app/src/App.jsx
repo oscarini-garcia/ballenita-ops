@@ -279,6 +279,26 @@ export default function App() {
     if (eventos.length === 1) pick(eventos[0].id)
   }
 
+  /**
+   * Ir a otra pestaña **abriendo una fila concreta** (SPECS §14.74).
+   *
+   * «Hoy» llevaba a la pestaña de Planes y ahí te dejaba, con la lista entera
+   * delante y el plan que acababas de tocar en algún sitio de ella. Lo que
+   * faltaba no era mecanismo: `abrirFila` existe desde §14.60 para que un aviso
+   * tocado abra la fila de la que hablaba, y `PlanesScreen` ya lo consume
+   * esperando a que los planes estén. Solo estaba cableado al camino del aviso.
+   *
+   * El área también se pone: Planes tiene tres —Planes · Ideas · Trucos— y las
+   * recuerda (`lib/areas.js`), así que quien se dejó abierto el catálogo llegaba
+   * a Ideas y el plan no se abría en ninguna parte.
+   */
+  function irA(destino, fila = null) {
+    ponerArea(destino, AREA_DE_ORIGEN[destino])
+    setVolverA(destino)
+    setTab(destino)
+    setAbrirFila(fila)
+  }
+
   // Solo si el evento activo se ha resuelto a "no existe" (borrado), volver a la lista.
   useEffect(() => {
     if (activeId && resolvedForActive && event === null) pick(null)
@@ -449,7 +469,7 @@ export default function App() {
         <AgendaScreen
           eventId={activeId}
           event={event}
-          onGoTab={setTab}
+          onGoTab={irA}
           abrir={abrirFila}
           onAbierta={() => setAbrirFila(null)}
         />

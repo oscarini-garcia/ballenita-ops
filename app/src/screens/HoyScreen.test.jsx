@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import HoyScreen from './HoyScreen.jsx'
-import { db, createEvent, getEvent, addBunga, addPerson, addDish, addDinner, addPlan } from '../db.js'
+import { ESTADO_SE_HACE } from '../lib/planes.js'
+import { db, createEvent, getEvent, addBunga, addPerson, addDish, addDinner, addPlan, plansOf } from '../db.js'
 
 async function sembrar() {
   const eventId = await createEvent({
@@ -18,7 +20,7 @@ async function sembrar() {
   await addDinner(eventId, {
     dia: '2026-08-09', platoIds: ids, bungaMayoresId: ruido, bungaNinosId: fondo,
   })
-  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado' })
+  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: ESTADO_SE_HACE })
   return { eventId, event: await getEvent(eventId) }
 }
 
@@ -83,7 +85,7 @@ describe('HoyScreen', () => {
 
     // Dos veces: el titular y la fila de la lista de planes.
     expect(await screen.findAllByText('Playa de la Cala')).toHaveLength(2)
-    expect(screen.getByText('Confirmado · sin cena montada todavía')).toBeInTheDocument()
+    expect(screen.getByText('Se hace · sin cena montada todavía')).toBeInTheDocument()
     expect(screen.queryByText('Sin cena montada')).toBeNull()
   })
 
@@ -93,7 +95,38 @@ describe('HoyScreen', () => {
     render(<HoyScreen eventId={eventId} event={event} />)
 
     expect(await screen.findAllByText('Playa de la Cala')).toHaveLength(2)
-    expect(screen.getByText('Confirmado')).toBeInTheDocument()
+    expect(screen.getByText('Se hace')).toBeInTheDocument()
+  })
+
+  /**
+   * **«A votación» se retiró y con ella la comparación que la hacía salir
+   * siempre** (SPECS §14.74). Es la prueba que faltaba: la que había fijaba
+   * `'confirmado'` en el sembrado y comprobaba «Confirmado», así que pasaba en
+   * verde mientras la app decía «A votación» en los cuatro planes del día.
+   */
+  it('un plan a votación no dice que está a votación', async () => {
+    const { eventId, event } = await sembrar()
+    await addPlan(eventId, { titulo: 'Torneo de pingpong', dia: '2026-08-10' })
+    hoyEs('2026-08-10')
+    render(<HoyScreen eventId={eventId} event={event} />)
+
+    await screen.findAllByText('Torneo de pingpong')
+    expect(screen.queryByText(/A votación/)).toBeNull()
+  })
+
+  it('tocar un plan lleva a Planes con ese plan abierto', async () => {
+    const { eventId, event } = await sembrar()
+    hoyEs('2026-08-10')
+    const planes = await plansOf(eventId)
+    const playa = planes.find((p) => p.titulo === 'Playa de la Cala')
+    const onGoTab = vi.fn()
+    render(<HoyScreen eventId={eventId} event={event} onGoTab={onGoTab} />)
+
+    const filas = await screen.findAllByRole('button', { name: /Playa de la Cala/ })
+    // La primera es el titular, que abre el día; la de la lista de planes es la
+    // que lleva a Planes (§14.74).
+    await userEvent.click(filas[filas.length - 1])
+    expect(onGoTab).toHaveBeenCalledWith('planes', playa.id)
   })
 
   it('antes del viaje enseña el primer día y cuánto falta, no un vacío', async () => {

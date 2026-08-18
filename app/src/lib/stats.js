@@ -3,6 +3,7 @@
 // Las fichas nuevas se decidieron en `docs/diseño/numeros.html` (T1–T4, T7, T8).
 import { isoLocal, diasDe, diasEntre } from './dias.js'
 import { anfitrionPorBunga } from './anfitrion.js'
+import { seHace } from './planes.js'
 
 export function computeStats({
   expenses = [],
@@ -53,7 +54,9 @@ export function computeStats({
   const hostBalance = [...host.values()].map((h) => ({ ...h, total: h.mayores + h.ninos }))
 
   // Planes.
-  const plansConfirmed = plans.filter((p) => p.estado === 'confirmado').length
+  // `'confirmado'` es de antes de §14.59 y no lo escribe nadie: la ficha decía
+  // 0 de N en todos los eventos menos el Demo (§14.74).
+  const plansConfirmed = plans.filter(seHace).length
   const noCount = new Map()
   for (const p of plans) for (const [personId, v] of Object.entries(p.votos ?? {})) if (v === '👎') noCount.set(personId, (noCount.get(personId) ?? 0) + 1)
   let topNoVoter = null

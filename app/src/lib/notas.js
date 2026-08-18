@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.69.0',
+    fecha: '2026-08-18',
+    titulo: 'En «Hoy», un plan se toca y se abre',
+    lineas: [
+      'Los planes de hoy ya no dicen «A votación» debajo. Lo decían todos, que es como no decir nada: ahora solo sale lo que hay — «Se hace», y el sitio si lo tiene.',
+      'Y tocar un plan lo abre, en vez de dejarte en la lista de Planes buscándolo.',
+      'De paso, «Planes confirmados» en Números vuelve a contar: decía 0 en todos los eventos.',
+    ],
+  },
+  {
     version: '0.68.0',
     fecha: '2026-08-18',
     titulo: 'Los planes tienen hora, y avisan una hora antes',

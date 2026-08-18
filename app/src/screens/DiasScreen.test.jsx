@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DiasScreen from './DiasScreen.jsx'
+import { ESTADO_SE_HACE } from '../lib/planes.js'
 import {
   db, createEvent, getEvent, addFamily, addBunga, addPerson, addDish, addDinner, addPlan,
   updatePlan, dinnersOf, plansOf,
@@ -25,7 +26,7 @@ async function sembrar() {
   await addDinner(eventId, {
     dia: '2026-08-09', platoIds: [paella, sandia], bungaMayoresId: ruido, bungaNinosId: fondo,
   })
-  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: 'confirmado' })
+  await addPlan(eventId, { titulo: 'Playa de la Cala', dia: '2026-08-10', estado: ESTADO_SE_HACE })
   await addPlan(eventId, { titulo: 'Noche de juegos de mesa', votos: { [curro]: '👍' } })
   return { eventId, event: await getEvent(eventId), ruido }
 }
@@ -531,7 +532,7 @@ describe('DiasScreen', () => {
     expect(screen.getByText('Los planes')).toBeInTheDocument()
     // Y cada uno lleva su nota: antes los votos solo salían con un plan. Sin
     // hora puesta, la nota lo dice — es lo que explica por qué está al final.
-    expect(screen.getByText(/a lo largo del día · Confirmado/)).toBeInTheDocument()
+    expect(screen.getByText(/a lo largo del día · Se hace/)).toBeInTheDocument()
   })
 
   it('y un día sin planes lo sigue diciendo en singular', async () => {
@@ -670,9 +671,9 @@ describe('DiasScreen', () => {
     await screen.findByText('Playa de la Cala')
 
     await abrirDia('lunes, 10 de agosto')
-    // «Confirmado» distingue el renglón de la capa de la fila del día 10 de la
+    // «Se hace» distingue el renglón de la capa de la fila del día 10 de la
     // lista de detrás, cuyo rótulo también nombra la playa.
-    await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala.*Confirmado/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala.*Se hace/ }))
     await userEvent.click(await screen.findByRole('button', { name: /Playa de la Cala/, pressed: true }))
     await userEvent.click(screen.getByRole('button', { name: 'Listo' }))
 
