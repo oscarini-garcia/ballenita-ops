@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { porHora, horaValida } from '../lib/horas.js'
+import { porHora, horaValida, horaCorta } from '../lib/horas.js'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { dinnersOf, plansOf, bungasOf, personsOf, familiesOf, listDishes, ponerEstado } from '../db.js'
 import Icono from '../components/Icono.jsx'
@@ -179,7 +179,7 @@ export default function HoyScreen({ eventId, event, onGoTab }) {
             >
               {/* La hora en el sitio del icono, como en la capa del día (V3). */}
               {horaValida(p.hora)
-                ? <div className="ico-hora" aria-hidden><b>{p.hora}</b></div>
+                ? <div className="ico-hora" aria-hidden><b>{horaCorta(p.hora)}</b></div>
                 : <div className="ico"><Icono nombre="plan" /></div>}
               <div className="main">
                 <div className="n">{p.titulo}</div>

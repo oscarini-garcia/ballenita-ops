@@ -7,6 +7,7 @@ import {
   addShopItem, shopItemsOf, updateShopItem, removeShopItem, clearBoughtShopItems,
   addBunga, asignarBungaAFamilia, borrarFamilia,
   markBought, unmarkBought,
+  addPlan, updatePlan, redondearHorasDePlanes, db,
 } from './db.js'
 import { computeFamilyBalances, simplifyDebts } from './lib/reparto.js'
 
@@ -258,5 +259,57 @@ describe('borrarFamilia — suelta lo que colgaba de ella', () => {
     expect((await personsOf(ev)).find((p) => p.id === per).familyId).toBe(null)
     // A la gente de otra familia no la toca.
     expect((await personsOf(ev)).find((p) => p.name === 'Ana').familyId).toBe(otra)
+  })
+})
+
+/**
+ * **Solo horas en punto, y la regla vive en la puerta** (SPECS §14.75).
+ *
+ * La pastilla de C2 enseña «20h», y eso solo es verdad si nada puede guardar
+ * «20:45» — ni el elegidor, ni un cliente viejo por la cola de cambios. Por eso
+ * se prueba contra `db.js` y no contra la pantalla.
+ */
+describe('la hora de un plan se guarda en punto', () => {
+  it('al crearlo y al corregirlo, y el instante va con la hora redondeada', async () => {
+    const eventId = await createEvent({ name: 'Ballenita', startDate: '2026-08-08', endDate: '2026-08-15' })
+    const id = await addPlan(eventId, { titulo: 'Fata', dia: '2026-08-10', hora: '23:46' })
+
+    const nacido = (await plansOf(eventId)).find((p) => p.id === id)
+    expect(nacido.hora).toBe('23:00')
+    expect(nacido.cuando).toBe(Math.floor(new Date('2026-08-10T23:00:00').getTime() / 1000))
+
+    await updatePlan(id, { hora: '10:30' })
+    const corregido = (await plansOf(eventId)).find((p) => p.id === id)
+    expect(corregido.hora).toBe('10:00')
+    // El instante se rehace **con la hora ya redondeada**: si no, el aviso
+    // sonaría a las 10:30 de un plan que en pantalla pone «10h».
+    expect(corregido.cuando).toBe(Math.floor(new Date('2026-08-10T10:00:00').getTime() / 1000))
+  })
+
+  it('quitar la hora se lleva el instante, y mover el día lo recalcula', async () => {
+    const eventId = await createEvent({ name: 'Ballenita', startDate: '2026-08-08', endDate: '2026-08-15' })
+    const id = await addPlan(eventId, { titulo: 'Kayak', dia: '2026-08-10', hora: '09:00' })
+
+    await updatePlan(id, { dia: '2026-08-12', hora: '09:00' })
+    expect((await plansOf(eventId)).find((p) => p.id === id).cuando)
+      .toBe(Math.floor(new Date('2026-08-12T09:00:00').getTime() / 1000))
+
+    await updatePlan(id, { dia: null, hora: null })
+    const suelto = (await plansOf(eventId)).find((p) => p.id === id)
+    expect(suelto.hora).toBeNull()
+    expect(suelto.cuando).toBeNull()
+  })
+
+  it('el barrido redondea lo que quedara guardado, y es silencioso si no hay nada', async () => {
+    const eventId = await createEvent({ name: 'Ballenita', startDate: '2026-08-08', endDate: '2026-08-15' })
+    const id = await addPlan(eventId, { titulo: 'Fata', dia: '2026-08-10' })
+    // Se mete a mano con minutos, que es lo que hay guardado de la v0.68.0: la
+    // puerta ya no deja escribirlo, así que se salta para poder probarlo.
+    await db.plans.update(id, { hora: '23:46' })
+
+    expect(await redondearHorasDePlanes(eventId)).toBe(1)
+    expect((await plansOf(eventId)).find((p) => p.id === id).hora).toBe('23:00')
+    // Idempotente: la segunda vuelta no escribe nada.
+    expect(await redondearHorasDePlanes(eventId)).toBe(0)
   })
 })

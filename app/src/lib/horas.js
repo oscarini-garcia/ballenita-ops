@@ -47,5 +47,43 @@ export function porHora(planes = []) {
   })
 }
 
+/**
+ * La hora en punto más cercana **por debajo** (SPECS §14.75).
+ *
+ * Desde C2 la app solo escribe horas exactas, y esto es lo que traduce lo que
+ * ya estaba guardado: «10:30» → «10:00», «23:46» → «23:00». **Se baja y no se
+ * redondea al más próximo** a propósito: subir las 23:46 a las 00:00 cambia el
+ * plan **de día**, y un plan que salta a la madrugada siguiente es peor error
+ * que uno adelantado 46 minutos. Lo que no es una hora se queda en nulo.
+ */
+export function aEnPunto(hora) {
+  if (!horaValida(hora)) return null
+  return `${String(hora).slice(0, 2)}:00`
+}
+
+/** ¿Está ya en punto? Lo que decide si a una fila le hace falta el redondeo. */
+export const enPunto = (hora) => horaValida(hora) && hora.slice(3) === '00'
+
+/**
+ * Lo que se lee dentro de la pastilla: «20h», «9h», «0h»
+ * (`docs/diseño/hora-que-quepa.html` · C2).
+ *
+ * «20:00» mide 41,4 pt a 13 px y la caja mide 34: se salía por los dos lados.
+ * Quitando los minutos —que desde §14.75 son siempre cero— cabe con aire y en
+ * una sola línea, que es la que se lee sin pararse. **Sin el cero de delante**:
+ * «9h» y no «09h», porque nadie dice «las cero nueve» y en columna la cifra
+ * sigue alineada por la derecha con las de dos.
+ *
+ * Una hora con minutos que todavía no se haya redondeado se enseña **entera**:
+ * decir «10h» donde pone «10:30» es la única forma de que la pastilla mienta, y
+ * caber no vale ese precio. Sale de la caja hasta que se guarde, y guardarla es
+ * abrir su día.
+ */
+export function horaCorta(hora) {
+  if (!horaValida(hora)) return null
+  if (!enPunto(hora)) return hora
+  return `${Number(hora.slice(0, 2))}h`
+}
+
 /** Lo que se lee bajo un plan sin hora, en el renglón de los votos. */
 export const SIN_HORA = 'a lo largo del día'

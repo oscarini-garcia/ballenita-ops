@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { instanteDe, horaValida, porHora } from './horas.js'
+import { instanteDe, horaValida, porHora, aEnPunto, enPunto, horaCorta } from './horas.js'
 
 /**
  * La hora de un plan (§14.73).
@@ -69,5 +69,45 @@ describe('el orden de los planes de un día', () => {
     const original = [conHora('b', '20:00'), conHora('a', '09:00')]
     porHora(original)
     expect(original.map((p) => p.id)).toEqual(['b', 'a'])
+  })
+})
+
+/**
+ * Solo horas en punto (§14.75, `hora-que-quepa.html` · C2 · S4).
+ *
+ * La pastilla enseña «20h», y eso solo es verdad si nada puede guardar «20:45».
+ * Aquí se prueban las dos mitades: que redondear no cambie el plan de día, y
+ * que lo que todavía lleve minutos **se enseñe entero** en vez de mentir.
+ */
+describe('las horas van en punto', () => {
+  it('redondea hacia abajo, nunca al día siguiente', () => {
+    expect(aEnPunto('10:30')).toBe('10:00')
+    expect(aEnPunto('23:46')).toBe('23:00')
+    expect(aEnPunto('20:00')).toBe('20:00')
+    expect(aEnPunto('00:59')).toBe('00:00')
+  })
+
+  it('lo que no es una hora se queda en nulo', () => {
+    expect(aEnPunto('')).toBeNull()
+    expect(aEnPunto(null)).toBeNull()
+    expect(aEnPunto('25:00')).toBeNull()
+  })
+
+  it('sabe cuál está ya en punto', () => {
+    expect(enPunto('20:00')).toBe(true)
+    expect(enPunto('20:01')).toBe(false)
+    expect(enPunto(null)).toBe(false)
+  })
+
+  it('dentro de la pastilla va «20h», sin el cero de delante', () => {
+    expect(horaCorta('20:00')).toBe('20h')
+    expect(horaCorta('09:00')).toBe('9h')
+    expect(horaCorta('00:00')).toBe('0h')
+    expect(horaCorta(null)).toBeNull()
+  })
+
+  it('una hora con minutos se enseña entera: caber no vale una mentira', () => {
+    expect(horaCorta('10:30')).toBe('10:30')
+    expect(horaCorta('23:46')).toBe('23:46')
   })
 })

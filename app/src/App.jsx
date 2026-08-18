@@ -5,7 +5,7 @@
 // acceso, la lista de eventos— y monta el motor de sincronización.
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { getEvent, listEvents } from './db.js'
+import { getEvent, listEvents, redondearHorasDePlanes } from './db.js'
 import WhaleLogo from './components/WhaleLogo.jsx'
 import AccesoScreen from './screens/AccesoScreen.jsx'
 import EnlaceScreen from './screens/EnlaceScreen.jsx'
@@ -298,6 +298,18 @@ export default function App() {
     setTab(destino)
     setAbrirFila(fila)
   }
+
+  /**
+   * Las horas con minutos que quedaran guardadas se redondean al abrir (§14.75).
+   *
+   * Va aquí y no en una pantalla porque no es de ninguna: es la parte de C2 que
+   * hace que la pastilla no pueda mentir. Lee y casi siempre no escribe nada, y
+   * en cuanto lo haya hecho una vez no vuelve a tener trabajo.
+   */
+  useEffect(() => {
+    if (!activeId) return
+    redondearHorasDePlanes(activeId).catch(() => { /* ya se hará al siguiente arranque */ })
+  }, [activeId])
 
   // Solo si el evento activo se ha resuelto a "no existe" (borrado), volver a la lista.
   useEffect(() => {

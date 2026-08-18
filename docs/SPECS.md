@@ -4518,6 +4518,82 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.75 La hora cabe en su pastilla, y se escoge a pulsos
+
+Decidido en `docs/diseño/hora-que-quepa.html` · **C2 · S4**. La hoja midió dos
+preguntas que resultaron ser una: **si el selector solo da horas en punto, la
+pastilla deja de tener un problema**.
+
+**Antes de las opciones, la hoja encontró dos defectos** y los dos se arreglan
+aquí:
+
+- **La maqueta que decidió §14.73 ya se salía.** `plan-con-hora.html` · V3 dibujó
+  la pastilla con dos renglones y luego metió «10:30» entero en el de arriba: a
+  13 px mide **41,4 pt** y la caja **34**. No se vio porque sus cinco insignias
+  `data-mide` medían la tarjeta de cuatro renglones, que mide lo mismo con la
+  hora dentro que con la hora fuera.
+- **La letra de la pastilla no pasaba por `--escala`** (`13px` a pelo): la hora
+  medía igual en Normal que en Enorme, o sea que quien agranda la app lo
+  agrandaba todo menos la hora.
+
+**C2 · dentro va «20h», no «20:00».** Sin los minutos cabe en una línea y con
+aire, y el cuerpo cuelga de la escala: `calc(12px * var(--escala))`. Medido en
+las tres tallas, «20h» da **25,3 · 28,3 · 31,8 pt** en una caja de 34 — cabe
+hasta en Enorme, que es lo que fija el número: con 13 px de base se salía por
+medio punto. Los 13,4 px de Grande son además un pelo **más** que los 13 fijos de
+antes. Sin el cero de delante: «9h» y no «09h».
+
+**S4 · menos, la cifra y más.** Fuera el `<input type="time">`, que sacaba el
+disco del sistema: dos rodillos y **1.440 posiciones para una decisión de 24**,
+con las 20:45 tan fáciles de poner sin querer como las 20:00 porque el segundo
+rodillo arranca donde esté el reloj del móvil. El renglón mide **60 pt** —los que
+sustituye medían 61,6—, cabe bajo cada plan marcado sin sacar el elegidor de su
+capa, y las dianas son de 44, el mínimo de Apple.
+
+- **Da la vuelta en los dos extremos**: 23h → 0h y 0h → 23h. Sin eso, el plan de
+  medianoche no se puede poner subiendo desde las 20h, y el camino más corto
+  entre dos horas cualesquiera nunca pasa de doce toques. Es lo que le quita
+  hierro al coste conocido de S4 —que llegar es a pulsos, y de 20 a 9 son once—.
+  Es **un dial sobre las 24 horas de ese día**, no aritmética sobre una línea de
+  tiempo: 0h es el principio del día, no el final. Es lo mismo que hacía el disco.
+- **Sin hora puesta sale «Poner hora», y pone las 12h.** Es el punto del día desde
+  el que ninguna hora queda a más de doce toques, y desde el que las de un camping
+  —la playa por la mañana, la cena por la noche— quedan a cuatro y a ocho. Con
+  rejilla no habría hecho falta ninguna; con un paso a paso hay que elegir.
+
+**Lo viejo con minutos se redondea, y por dos caminos.** C2 solo es honesta si
+nada puede guardar «20:45», así que:
+
+- **La regla vive en la puerta**, no en la pantalla: `addPlan` y `updatePlan`
+  (`db.js`) fuerzan la hora en punto. Vale también para lo que llegue de un
+  cliente viejo por la cola de cambios, que es lo que una comprobación en el
+  elegidor no cubre.
+- **Se redondea hacia abajo, nunca al más próximo**: subir las 23:46 a las 00:00
+  cambiaría el plan **de día**, y un plan que salta a la madrugada siguiente es
+  peor error que uno adelantado 46 minutos.
+- **El instante se rehace siempre que venga la hora.** Redondear sin mover
+  `cuando` dejaría el aviso sonando a las 10:30 de un plan que en pantalla pone
+  «10h» — la clase de desfase que no se ve hasta que suena el teléfono a la hora
+  que no es.
+- **Y un barrido al arrancar** (`redondearHorasDePlanes`, llamado desde
+  `App.jsx`): la puerta se ocupa de lo que se escriba a partir de ahora, pero un
+  plan que nadie vuelva a abrir se quedaría con sus «23:46» y con la pastilla
+  enseñándolos enteros, saliéndose de la caja. Lee, y si no hay nada que
+  redondear no escribe; que los nueve móviles lo corran a la vez no rompe nada,
+  porque los nueve escriben el mismo valor.
+- **Mientras tanto, la pastilla no miente**: `horaCorta` enseña **entera** una
+  hora que todavía lleve minutos. Decir «10h» donde pone «10:30» es la única
+  forma de que mienta, y caber no vale ese precio — se sale de la caja hasta que
+  se guarde, y guardarla es abrir su día o reabrir la app.
+
+**Lo que no se eligió y por qué se descartó**, para no rehacer el camino: C1 (dos
+renglones siempre) dejaba el minuto a 10 px, por debajo de todo lo demás de la
+app; C3 (caja de 48) costaba 14 pt de título en los cuatro renglones y dejaba el
+icono nadando; C4 (letra a 10 px) cabía por 2,2 pt que desaparecen al colgarla de
+la escala; S1 (rejilla de 24 en hoja propia) es mejor selector pero pedía un
+componente y un nivel de navegación; S2 y S5, desplegadas en su sitio, piden 222
+y 170 pt **por plan marcado** en una capa cuyo tope son 658,3.
+
 ### 14.74 En «Hoy» un plan no dice «A votación», y tocarlo lo abre
 
 Dos peticiones de una pantalla, y debajo de la primera un valor muerto que
