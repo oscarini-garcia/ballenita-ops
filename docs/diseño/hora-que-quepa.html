@@ -1,0 +1,518 @@
+<title>La hora no cabe en su pastilla</title>
+<style>
+:root{--pg:#f4f6f8;--pg-2:#ffffff;--tx:#16242c;--tx-2:#4d6674;--tx-3:#7c919d;--ln:#dde6ea;--ac:#22708f;--cod-tx:#ffffff;--mal:#a8443a;--ok:#0a6b4c;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;--ok:#5fc79e;}}
+:root[data-theme="dark"]{--pg:#0e1a20;--pg-2:#152730;--tx:#e6eef3;--tx-2:#a9bfc9;--tx-3:#7c919d;--ln:#233c48;--ac:#7fc2dd;--cod-tx:#0e1a20;--mal:#e0857a;--ok:#5fc79e;}
+body{margin:0;background:var(--pg);color:var(--tx);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+.wrap{max-width:1180px;margin:0 auto;padding:38px 20px 90px;}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.02em;margin:0 0 14px;max-width:19em;}
+h2{font-size:21px;margin:56px 0 6px;letter-spacing:-.01em;}
+h2 .num{color:var(--tx-3);font-weight:600;}
+h2 .elige{font-weight:400;color:var(--tx-3);font-size:16px;}
+h3{font-size:16px;margin:26px 0 4px;}
+p{margin:0 0 12px;max-width:62em;color:var(--tx-2);}
+p b,li b,td b{color:var(--tx);}
+code{font:600 13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--pg-2);border:1px solid var(--ln);border-radius:5px;padding:1px 5px;color:var(--tx);}
+.ficha{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 16px;background:var(--pg-2);border:1px solid var(--ln);border-radius:10px;font-size:13.5px;color:var(--tx-2);margin:0 0 10px;}
+.ficha b{color:var(--tx);}
+.aviso{border-left:3px solid var(--ac);padding:2px 0 2px 14px;margin:18px 0;}
+.aviso.ojo{border-color:var(--mal);}
+ul{margin:0 0 12px;padding-left:20px;color:var(--tx-2);max-width:62em;}
+li{margin:0 0 7px;}
+.rejilla{display:flex;flex-wrap:wrap;gap:26px;margin:20px 0 0;align-items:flex-start;}
+.op{width:362px;flex:none;}
+@media (max-width:480px){.wrap{padding:24px 12px 70px;}.rejilla{flex-wrap:nowrap;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}.tabla-caja{overflow-x:auto;}}
+.op-cab{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 9px;margin:0 0 8px;}
+.op-nom{flex:1 1 auto;}
+.cod{flex:none;font-weight:700;font-size:12.5px;letter-spacing:.06em;background:var(--ac);color:var(--cod-tx);padding:3px 8px;border-radius:6px;white-space:nowrap;}
+.cod.gris{background:var(--tx-3);}
+.op-nom{font-weight:650;font-size:15.5px;flex:1 1 auto;min-width:9em;}
+.op-cost{font-size:13.5px;color:var(--tx-2);margin:9px 2px 0;line-height:1.5;}
+.medida{display:inline-block;flex:none;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;border:1px solid var(--ln);border-radius:6px;padding:2px 7px;color:var(--tx-2);margin-left:auto;white-space:nowrap;}
+.medida.rota{border-color:var(--mal);color:var(--mal);}
+.medida.bien{border-color:var(--ok);color:var(--ok);}
+.tabla{border-collapse:collapse;font-size:14px;margin:10px 0 0;}
+.tabla td,.tabla th{border-bottom:1px solid var(--ln);padding:7px 16px 7px 0;text-align:left;color:var(--tx-2);vertical-align:top;}
+.tabla th{color:var(--tx);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;}
+.tabla td:first-child{color:var(--tx);font-weight:650;white-space:nowrap;}
+.tabla .no{color:var(--mal);font-weight:650;}
+.tabla .si{color:var(--ok);font-weight:650;}
+.tnum{font-variant-numeric:tabular-nums;}
+
+/* ── El móvil, calcado de `theme.css` ────────────────────────────────────────
+   La capa del día y su elegidor, a 362 pt de ancho. Los valores de `--t-*` son
+   los de la talla **Grande** (×1,12), que es la de fábrica. La pastilla de la
+   hora lleva su `13px` a pelo tal como está hoy en `theme.css:1421`. */
+.movil{--foam:#f1f5f7;--foam-2:#ffffff;--ink:#12262f;--ink-soft:#4d6674;--ink-faint:#7c919d;
+  --line:#c3d2da;--line-soft:#dde6ea;--spout:#22708f;--spout-deep:#1a5a74;--papel:#ffffff;
+  --verde:#0a6b4c;--gold:#a8752a;
+  --t-body:19.04px;--t-row:17.92px;--t-sub:15.68px;--t-label:14.56px;--t-micro:12.88px;
+  width:362px;box-sizing:border-box;background:var(--papel);color:var(--ink);border:1px solid #a9bfc9;
+  border-radius:14px;padding:8px 12px;font:var(--t-row)/1.45 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;}
+.fc{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line-soft);}
+.fc:first-child{border-top:none;}
+.ico{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;
+  background:rgba(10,107,76,.15);color:var(--verde);font-size:16px;}
+.ico.ambar{background:rgba(168,117,42,.20);color:var(--gold);}
+.main{flex:1;min-width:0;max-width:257px;}
+.n{display:block;font-size:var(--t-row);font-weight:550;}
+.sub{display:block;font-size:var(--t-sub);color:var(--ink-soft);}
+
+/* La pastilla, **tal cual está hoy**: caja de 34 y «20:00» a 13 px dentro. */
+.hora{width:34px;height:34px;flex:none;border-radius:9px;display:grid;place-items:center;
+  background:rgba(34,112,143,.12);color:var(--spout-deep);}
+.hora b{font-size:13px;font-weight:750;font-variant-numeric:tabular-nums;}
+/* Marca el desbordamiento sin cambiar ni un píxel de lo medido. */
+.hora.marca{outline:1px dashed var(--mal);outline-offset:0;}
+
+/* C1 · dos renglones. */
+.hora.c1{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.02;}
+.hora.c1 b{font-size:15px;}
+.hora.c1 i{font-style:normal;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;}
+/* C2 · la hora y su «h». */
+.hora.c2 b{font-size:15px;}
+/* C3 · la caja crece. */
+.hora.c3{width:48px;}
+.fc.c3 .main{max-width:243px;}
+.ico.c3{width:48px;}
+/* C4 · la letra encoge. */
+.hora.c4 b{font-size:10px;}
+/* C5 · en punto una línea, con minutos dos. */
+.hora.c5{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.02;}
+.hora.c5 b{font-size:15px;}
+.hora.c5 i{font-style:normal;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;}
+
+/* ── El elegidor y sus selectores de hora ─────────────────────────────────── */
+.eleccion{display:flex;flex-direction:column;margin-top:6px;border:1px solid var(--line-soft);
+  border-radius:12px;overflow:hidden;background:var(--foam-2);}
+.op-el{display:flex;flex-wrap:wrap;row-gap:2px;align-items:center;gap:10px;width:100%;min-height:48px;
+  padding:10px 14px;box-sizing:border-box;border-bottom:1px solid var(--line-soft);background:none;
+  color:var(--ink);font-size:var(--t-row);text-align:left;}
+.op-el:last-child{border-bottom:none;}
+.op-el .et{flex:1 0 100%;font-weight:550;}
+.op-el .no{margin-left:0;text-align:left;flex:1;font-size:var(--t-label);color:var(--ink-faint);}
+.op-el .tic{margin-left:8px;color:var(--spout-deep);font-size:15px;font-weight:700;}
+/* El renglón de hoy: rótulo, campo nativo y «Quitar». */
+.reng{display:flex;align-items:center;gap:8px;padding:6px 12px 10px;}
+.reng label{font-size:var(--t-label);color:var(--ink-soft);flex:none;}
+.reng .nativo{flex:none;width:151px;height:45.6px;box-sizing:border-box;border:1px solid var(--line);
+  border-radius:10px;background:var(--foam-2);display:flex;align-items:center;padding:0 10px;
+  font-size:var(--t-body);font-variant-numeric:tabular-nums;}
+.reng .quitar{flex:none;border:1px solid var(--line);border-radius:9px;background:none;
+  padding:6px 11px;font-size:var(--t-label);color:var(--ink-soft);}
+/* El disco del sistema, dibujado a la altura que ocupa. */
+.disco{width:362px;box-sizing:border-box;background:#e9edf0;border:1px solid #cfdde4;border-radius:14px;
+  height:216px;display:flex;align-items:center;justify-content:center;gap:0;overflow:hidden;
+  font-variant-numeric:tabular-nums;color:#12262f;}
+.disco .col{width:74px;text-align:center;font-size:21px;line-height:34px;color:#7c919d;}
+.disco .col b{display:block;color:#12262f;font-weight:600;background:rgba(0,0,0,.05);}
+.disco .dp{font-size:21px;color:#12262f;}
+
+/* Rejilla de horas. */
+.grid{display:grid;gap:6px;padding:10px 12px;}
+.grid.seis{grid-template-columns:repeat(6,1fr);}
+.grid.ocho{grid-template-columns:repeat(8,1fr);}
+.h{height:44px;display:grid;place-items:center;border:1px solid var(--line-soft);border-radius:10px;
+  background:var(--foam-2);font-size:var(--t-row);font-variant-numeric:tabular-nums;color:var(--ink);}
+.h.on{background:var(--spout-deep);border-color:var(--spout-deep);color:#fff;font-weight:650;}
+.h.off{color:var(--ink-faint);}
+/* Tira horizontal. */
+.tira{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;}
+.tira .h{width:44px;flex:none;}
+.tira-pie{font-size:var(--t-micro);color:var(--ink-faint);padding:0 12px 8px;}
+/* Menos y más. */
+.step{display:flex;align-items:center;gap:8px;padding:6px 12px 10px;}
+.step label{font-size:var(--t-label);color:var(--ink-soft);flex:none;}
+.step .b{width:44px;height:44px;flex:none;border:1px solid var(--line);border-radius:11px;
+  background:none;display:grid;place-items:center;font-size:21px;color:var(--spout-deep);}
+.step .v{flex:1;text-align:center;font-size:var(--t-body);font-weight:650;font-variant-numeric:tabular-nums;}
+/* Cabecera de una hoja que sustituye. */
+.hoja-cab{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 10px;
+  border-bottom:1px solid var(--line-soft);}
+.hoja-cab .t{font-size:var(--t-body);font-weight:650;}
+.hoja-cab .d{font-size:var(--t-micro);color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;}
+.hoja-pie{display:flex;gap:8px;padding:10px 0 2px;}
+.hoja-pie .btn{flex:1;height:44px;display:grid;place-items:center;border-radius:11px;font-size:var(--t-row);}
+.hoja-pie .btn.g{background:var(--spout-deep);color:#fff;font-weight:600;}
+.hoja-pie .btn.f{border:1px solid var(--line);color:var(--ink-soft);}
+.chip-hora{margin-left:auto;flex:none;border:1px solid var(--line);border-radius:9px;padding:5px 10px;
+  font-size:var(--t-label);font-variant-numeric:tabular-nums;color:var(--spout-deep);font-weight:650;}
+.chip-hora.vacio{color:var(--ink-faint);font-weight:400;}
+.regla{font-size:var(--t-micro);color:var(--ink-faint);padding:6px 2px 0;}
+</style>
+
+<div class="wrap">
+
+<h1>La hora se sale de su pastilla por los dos lados, y para escogerla sale el disco del sistema con sus 1.440 minutos</h1>
+
+<div class="ficha">
+  <span>Dibujado como «ahora»: <b>v0.68.0</b> (§14.73, mergeada en la <code>#148</code>)</span>
+  <span>Ancho: <b>362 pt</b> — la capa del día en un iPhone de 390</span>
+  <span>Talla: <b>Grande</b> ×1,12, la de fábrica</span>
+  <span>Paleta: <b>Abisal Sobrio</b>, cara clara</span>
+  <span>Contenido: el del evento de verdad</span>
+</div>
+
+<p>Dos preguntas que parecen una: <b>que la hora quepa donde va</b> —que es donde te gusta— y
+<b>con qué se escoge</b>. Van juntas porque la segunda decide la primera: si solo se pueden
+poner horas en punto, lo que hay que meter en 34 pt no es «20:00» sino «20h», y eso <b>ya
+cabe</b>. Pero las horas con minutos que hay puestas hoy en el evento —<code>10:30</code>,
+<code>23:46</code>— no se van a ninguna parte, así que ninguna opción puede fingir que no
+existen.</p>
+
+<h2><span class="num">Antes de las opciones ·</span> dos defectos que no se eligen</h2>
+
+<p><b>Uno. La maqueta que decidió esto ya se salía, y su insignia miraba a otro lado.</b>
+<code>plan-con-hora.html</code> · V3 dibujó la pastilla con dos renglones —un <code>&lt;b&gt;</code>
+de 13 px sobre un <code>&lt;span&gt;</code> de 10— y luego metió «10:30» <b>entero</b> en el
+<code>&lt;b&gt;</code>. A 13 px «20:00» mide <b>41,4 pt</b> y la caja mide <b>34</b>: se salía
+3,7 por cada lado, en la hoja igual que en el móvil. No se vio porque las cinco insignias
+<code>data-mide</code> apuntaban a la tarjeta entera, y una tarjeta de 4 renglones mide lo
+mismo con la hora dentro que con la hora fuera. Aquí las insignias miden <b>la pastilla</b>.</p>
+
+<p><b>Dos. La letra de la pastilla no pasa por <code>--escala</code>.</b>
+<code>theme.css:1421</code> pone <code>font-size: 13px</code> a pelo, así que «20:00» mide
+exactamente <b>41,4 pt en Normal, en Grande y en Enorme</b>: quien pone el móvil en Enorme
+—que es para quien se puso Grande de fábrica— agranda toda la app <b>menos la hora</b>. Es lo
+que §14.11 prohíbe en un <code>style={{…}}</code>, y la guarda de <code>estilos.test.js</code>
+no lo pilla porque está en el CSS. Se arregla, y hay que decir que <b>encarece el problema</b>:
+colgándolo de la escala, en Enorme la letra sube a ~14,6 px y «20:00» pasa a medir <b>46,6</b>.
+Cualquier opción de la parte uno tiene que caber <b>con la letra escalada</b>, no solo hoy.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod gris">AHORA</span><span class="op-nom">Lo que hay puesto</span>
+      <span class="medida" data-mide="#a1 .hora b" data-caja="#a1 .hora"></span></div>
+    <div class="movil" id="a1">
+      <div class="fc"><div class="hora marca"><b>10:30</b></div><div class="main"><span class="n">Ir al Riuet</span><span class="sub">3 👍 · faltan 2</span></div></div>
+      <div class="fc"><div class="hora marca"><b>20:00</b></div><div class="main"><span class="n">Tardeo cena de chiringo</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora marca"><b>23:46</b></div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="fc"><div class="ico ambar">📍</div><div class="main"><span class="n">Fata</span><span class="sub">a lo largo del día</span></div></div>
+    </div>
+    <p class="op-cost">La raya de puntos es la caja de 34. El texto la desborda <b>7,4 pt</b>,
+      un 22 % de más, y como la pastilla no recorta se derrama por los dos lados: se come el
+      margen izquierdo de la capa y el hueco que la separa del título.</p>
+  </div>
+</div>
+
+<h2><span class="num">Parte uno ·</span> que la hora quepa en 34 pt <span class="elige">— elige una</span></h2>
+
+<p>La caja son 34 × 34 porque es <b>la misma que el icono</b> al que sustituye: esa es toda la
+gracia de V3 —cuatro renglones con su marca en la misma x, que es lo que deja leer un día de
+un vistazo—. Lo que se decide aquí es qué se mete dentro, no cuánto mide la caja; salvo en C3,
+que es precisamente la que propone mover la caja.</p>
+
+<div class="rejilla">
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C1</span><span class="op-nom">Dos renglones: hora arriba, minutos abajo</span>
+      <span class="medida" data-mide="#c1 .hora" data-caja="#c1 .hora"></span></div>
+    <div class="movil" id="c1">
+      <div class="fc"><div class="hora c1"><b>10</b><i>30</i></div><div class="main"><span class="n">Ir al Riuet</span><span class="sub">3 👍 · faltan 2</span></div></div>
+      <div class="fc"><div class="hora c1"><b>20</b><i>00</i></div><div class="main"><span class="n">Tardeo cena de chiringo</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora c1"><b>23</b><i>46</i></div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="fc"><div class="ico ambar">📍</div><div class="main"><span class="n">Fata</span><span class="sub">a lo largo del día</span></div></div>
+    </div>
+    <p class="op-cost">Es lo que la maqueta de §14.73 dibujó y el código no llegó a poner.
+      Cabe con holgura —20,9 el renglón de arriba, 13,9 el de abajo— y la caja sigue midiendo
+      34 × 34, así que la fila no crece: 70,7 pt, los mismos. <b>Cuesta</b> que el minuto queda a
+      10 px —lo más pequeño de toda la app son los 12,9 de <code>--t-micro</code>— y que «00»
+      ocupa un renglón entero para no decir nada: tres de las cuatro horas de un día suelen ser
+      en punto.</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C2</span><span class="op-nom">Solo la hora, con su «h»</span>
+      <span class="medida" data-mide="#c2 .hora b" data-caja="#c2 .hora"></span></div>
+    <div class="movil" id="c2">
+      <div class="fc"><div class="hora c2"><b>10h</b></div><div class="main"><span class="n">Ir al Riuet</span><span class="sub">3 👍 · faltan 2</span></div></div>
+      <div class="fc"><div class="hora c2"><b>20h</b></div><div class="main"><span class="n">Tardeo cena de chiringo</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora c2"><b>23h</b></div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="fc"><div class="ico ambar">📍</div><div class="main"><span class="n">Fata</span><span class="sub">a lo largo del día</span></div></div>
+    </div>
+    <p class="op-cost">La más legible con diferencia: 15 px, la mitad más de cuerpo que los 10
+      del minuto de C1. <b>Cuesta que miente</b> con lo que ya está guardado — «10h» donde pone
+      <code>10:30</code> y «23h» donde pone <code>23:46</code> —, y no miente un poco: la de las
+      23:46 es la fiesta que acaba, y a las 23 en punto no ha empezado. Solo es honesta si nadie
+      puede volver a escribir un minuto <b>y</b> lo viejo se redondea al guardarlo.</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C3</span><span class="op-nom">La caja crece a 48</span>
+      <span class="medida" data-mide="#c3 .hora b" data-caja="#c3 .hora"></span></div>
+    <div class="movil" id="c3">
+      <div class="fc c3"><div class="hora c3"><b>10:30</b></div><div class="main"><span class="n">Ir al Riuet</span><span class="sub">3 👍 · faltan 2</span></div></div>
+      <div class="fc c3"><div class="hora c3"><b>20:00</b></div><div class="main"><span class="n">Tardeo cena de chiringo</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc c3"><div class="hora c3"><b>23:46</b></div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="fc c3"><div class="ico ambar c3">📍</div><div class="main"><span class="n">Fata</span><span class="sub">a lo largo del día</span></div></div>
+    </div>
+    <p class="op-cost">Nada se pierde y nada se encoge. <b>Cuesta 14 pt de título</b> en los
+      cuatro renglones (257 → 243) porque para no romper la columna tiene que crecer
+      <b>también el icono</b> del renglón sin hora — si no, las marcas dejan de estar en la misma
+      x y se acabó lo que se ganaba. La fila no crece —sigue en 70,7 pt—, pero un icono de 24
+      dentro de una caja de 48 × 34 es un dibujo nadando en su hueco.</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C4</span><span class="op-nom">La letra baja a 10 px</span>
+      <span class="medida" data-mide="#c4 .hora b" data-caja="#c4 .hora"></span></div>
+    <div class="movil" id="c4">
+      <div class="fc"><div class="hora c4"><b>10:30</b></div><div class="main"><span class="n">Ir al Riuet</span><span class="sub">3 👍 · faltan 2</span></div></div>
+      <div class="fc"><div class="hora c4"><b>20:00</b></div><div class="main"><span class="n">Tardeo cena de chiringo</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora c4"><b>23:46</b></div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="fc"><div class="ico ambar">📍</div><div class="main"><span class="n">Fata</span><span class="sub">a lo largo del día</span></div></div>
+    </div>
+    <p class="op-cost">Un cambio de una línea, y cabe con 2,2 pt de aire. <b>Cuesta</b> que 10 px
+      es <b>lo más pequeño de la aplicación entera</b> —2,9 por debajo de <code>--t-micro</code>—
+      y que el aire de 2,2 desaparece en cuanto se arregla el defecto dos: con la letra colgada
+      de la escala, en Enorme vuelve a salirse. A 11 px ya no cabe hoy (35,0 en 34).</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">C5</span><span class="op-nom">En punto una línea, con minutos dos</span>
+      <span class="medida" data-mide="#c5 .hora" data-caja="#c5 .hora"></span></div>
+    <div class="movil" id="c5">
+      <div class="fc"><div class="hora c5"><b>10</b><i>30</i></div><div class="main"><span class="n">Ir al Riuet</span><span class="sub">3 👍 · faltan 2</span></div></div>
+      <div class="fc"><div class="hora c5"><b>20h</b></div><div class="main"><span class="n">Tardeo cena de chiringo</span><span class="sub">Confirmado</span></div></div>
+      <div class="fc"><div class="hora c5"><b>23</b><i>46</i></div><div class="main"><span class="n">Torneo de pingpong comunitario</span><span class="sub">1 👍 · faltan 4</span></div></div>
+      <div class="fc"><div class="ico ambar">📍</div><div class="main"><span class="n">Fata</span><span class="sub">a lo largo del día</span></div></div>
+    </div>
+    <p class="op-cost">C2 cuando la hora es en punto y C1 cuando no. Misma caja, misma x, mismo
+      cuerpo de 15 px en la cifra que se lee. <b>No miente nunca</b> y, en cuanto la parte dos
+      impida escribir minutos, el renglón pequeño solo lo llevan las horas viejas y va
+      desapareciendo solo. <b>Cuesta</b> una regla más en la hoja de estilo y dos formas en la
+      misma columna mientras dure la mezcla — que es exactamente lo que hay en el evento hoy.</p>
+  </div>
+
+</div>
+
+<h2><span class="num">Parte dos ·</span> con qué se escoge la hora <span class="elige">— elige una</span></h2>
+
+<p>Hoy es un <code>&lt;input type="time"&gt;</code>: un campo de 151 × 45,6 pt que al tocarlo saca
+el disco del sistema, con <b>hora y minuto</b>, o sea 1.440 posiciones para elegir entre las 24
+que se usan. Y el campo no está en una pantalla suya: vive <b>dentro de la fila</b> del elegidor
+de planes, así que cada plan marcado añade un renglón de <b>61,6 pt</b> a una capa cuyo tope son
+658,3. Con tres planes marcados eso son 184,8 pt de renglones de hora.</p>
+
+<div class="rejilla">
+  <div class="op">
+    <div class="op-cab"><span class="cod gris">AHORA</span><span class="op-nom">El campo y el disco del sistema</span>
+      <span class="medida" data-mide="#s0 .reng" data-alto="1"></span></div>
+    <div class="movil" id="s0">
+      <div class="eleccion">
+        <div class="op-el"><span class="et">Tardeo cena de chiringo</span><span class="no">Confirmado</span><span class="tic">✓</span></div>
+      </div>
+      <div class="reng"><label>A las</label><div class="nativo">20:00</div><div class="quitar">Quitar</div></div>
+    </div>
+    <div style="margin-top:8px" class="disco">
+      <div class="col">18<b>19</b>20</div><div class="dp">:</div><div class="col">44<b>45</b>46</div>
+    </div>
+    <p class="op-cost">El disco tapa la capa entera, gira en dos ejes y ofrece 1.440 combinaciones
+      para una decisión de 24. Y las <b>20:45</b> son tan fáciles de poner sin querer como las
+      20:00, porque el segundo rodillo empieza donde estaba la hora del móvil.</p>
+  </div>
+</div>
+
+<div class="rejilla">
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S1</span><span class="op-nom">Rejilla de 24, en hoja propia</span>
+      <span class="medida" data-mide="#s1" data-alto="1"></span></div>
+    <div class="movil" id="s1">
+      <div class="hoja-cab"><div><div class="t">¿A qué hora?</div><div class="d">Tardeo cena de chiringo</div></div><div class="d">Mié 19</div></div>
+      <div class="grid seis">
+        <div class="h off">0</div><div class="h off">1</div><div class="h off">2</div><div class="h off">3</div><div class="h off">4</div><div class="h off">5</div>
+        <div class="h">6</div><div class="h">7</div><div class="h">8</div><div class="h">9</div><div class="h">10</div><div class="h">11</div>
+        <div class="h">12</div><div class="h">13</div><div class="h">14</div><div class="h">15</div><div class="h">16</div><div class="h">17</div>
+        <div class="h">18</div><div class="h">19</div><div class="h on">20</div><div class="h">21</div><div class="h">22</div><div class="h">23</div>
+      </div>
+      <div class="hoja-pie"><div class="btn f">Sin hora</div><div class="btn g">Listo</div></div>
+    </div>
+    <div class="movil" style="margin-top:10px">
+      <div class="eleccion">
+        <div class="op-el"><span class="et">Tardeo cena de chiringo</span><span class="no">Confirmado</span><span class="chip-hora">20h</span><span class="tic">✓</span></div>
+        <div class="op-el"><span class="et">Ir al Riuet</span><span class="no">3 👍 · faltan 2</span><span class="chip-hora vacio">Poner hora</span><span class="tic">✓</span></div>
+        <div class="op-el"><span class="et">Fata</span><span class="no">0 👍 · faltan 5</span></div>
+      </div>
+      <div class="regla">Por dónde se entra: la hora es una pastilla en la propia fila, y solo la
+        llevan los planes marcados. Tocarla abre la hoja de arriba.</div>
+    </div>
+    <p class="op-cost">Celdas de <b>47 × 44</b> —la diana mínima de Apple es 44— y las 24 horas a
+      la vez: se ve la que hay puesta sin buscarla. La hoja entera mide <b>361,3 pt</b> de los
+      658,3 que da una capa, así que cabe con un plan o con nueve: <b>no depende de cuántos haya
+      marcados</b>, que es lo que hunde a S2 y a S5. Sustituye la lista de planes en vez de
+      apilarse encima, que es lo que ya decidió §14.31 para los elegidores.
+      <b>Cuesta</b> un nivel más de navegación (plan → hora → volver) y hay que escribir el
+      componente. A cambio quita los 61,6 pt del renglón de hoy en cada plan marcado.</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S2</span><span class="op-nom">La misma rejilla, desplegada en su sitio</span>
+      <span class="medida rota" data-mide="#s2 .grid" data-alto="1"></span></div>
+    <div class="movil" id="s2">
+      <div class="eleccion">
+        <div class="op-el"><span class="et">Tardeo cena de chiringo</span><span class="no">Confirmado</span><span class="tic">✓</span></div>
+      </div>
+      <div class="grid seis">
+        <div class="h off">0</div><div class="h off">1</div><div class="h off">2</div><div class="h off">3</div><div class="h off">4</div><div class="h off">5</div>
+        <div class="h">6</div><div class="h">7</div><div class="h">8</div><div class="h">9</div><div class="h">10</div><div class="h">11</div>
+        <div class="h">12</div><div class="h">13</div><div class="h">14</div><div class="h">15</div><div class="h">16</div><div class="h">17</div>
+        <div class="h">18</div><div class="h">19</div><div class="h on">20</div><div class="h">21</div><div class="h">22</div><div class="h">23</div>
+      </div>
+    </div>
+    <p class="op-cost">Cero navegación: la hora se pone sin salir de donde se marcó el plan.
+      <b>Cuesta que no cabe</b>: son <b>222 pt por plan marcado</b>, y un día con tres planes
+      puestos pide <b>666 pt solo de rejillas</b> — más que los 658,3 de tope de una capa, y eso
+      antes de la cabecera, del buscador, de las tres filas de los planes, de los planes libres y
+      de los dos botones.</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S3</span><span class="op-nom">Una tira horizontal de 24</span>
+      <span class="medida" data-mide="#s3 .tira" data-alto="1"></span></div>
+    <div class="movil" id="s3">
+      <div class="eleccion">
+        <div class="op-el"><span class="et">Tardeo cena de chiringo</span><span class="no">Confirmado</span><span class="tic">✓</span></div>
+      </div>
+      <div class="tira">
+        <div class="h">6</div><div class="h">7</div><div class="h">8</div><div class="h">9</div><div class="h">10</div><div class="h">11</div><div class="h">12</div><div class="h">13</div><div class="h">14</div><div class="h">15</div><div class="h">16</div><div class="h">17</div><div class="h">18</div><div class="h">19</div><div class="h on">20</div><div class="h">21</div><div class="h">22</div><div class="h">23</div>
+      </div>
+      <div class="tira-pie">Se arrastra. La de las 20:00 está puesta.</div>
+    </div>
+    <p class="op-cost">Un carril de una fila: cabe desplegado bajo cada plan sin romper nada, y
+      son <b>62 pt por plan</b> en vez de los 222 de S2. <b>Cuesta</b> que las 24 horas ocupan
+      <b>1.242 pt</b> de carril en una ventana de 336, o sea que <b>se ven seis y media a la
+      vez</b>: la hora que está puesta no se ve si cae fuera del trozo visible, y para saber si
+      hay alguna hay que arrastrar. Un elegidor que hay que recorrer para saber qué dice es lo
+      contrario de una rejilla.</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S4</span><span class="op-nom">Menos y más, en el renglón</span>
+      <span class="medida" data-mide="#s4 .step" data-alto="1"></span></div>
+    <div class="movil" id="s4">
+      <div class="eleccion">
+        <div class="op-el"><span class="et">Tardeo cena de chiringo</span><span class="no">Confirmado</span><span class="tic">✓</span></div>
+      </div>
+      <div class="step"><label>A las</label><div class="b">−</div><div class="v">20h</div><div class="b">+</div><div class="quitar">Quitar</div></div>
+    </div>
+    <p class="op-cost">Lo más barato de escribir y lo más pequeño: <b>62 pt</b>, prácticamente lo
+      mismo que los 61,6 del renglón de hoy, sin navegación y sin componente nuevo. <b>Cuesta</b> que llegar es a
+      pulsos: de las 20 a las 9 de la mañana son <b>once toques</b>. Y no enseña las horas, las
+      cuenta: no hay forma de ver el día entero, que es lo que se está montando.</p>
+  </div>
+
+  <div class="op">
+    <div class="op-cab"><span class="cod">S5</span><span class="op-nom">La rejilla girada: empieza a las 7</span>
+      <span class="medida" data-mide="#s5 .grid" data-alto="1"></span></div>
+    <div class="movil" id="s5">
+      <div class="eleccion">
+        <div class="op-el"><span class="et">Tardeo cena de chiringo</span><span class="no">Confirmado</span><span class="tic">✓</span></div>
+      </div>
+      <div class="grid ocho">
+        <div class="h">7</div><div class="h">8</div><div class="h">9</div><div class="h">10</div><div class="h">11</div><div class="h">12</div><div class="h">13</div><div class="h">14</div>
+        <div class="h">15</div><div class="h">16</div><div class="h">17</div><div class="h">18</div><div class="h">19</div><div class="h on">20</div><div class="h">21</div><div class="h">22</div>
+        <div class="h">23</div><div class="h">0</div><div class="h">1</div><div class="h">2</div><div class="h">3</div><div class="h">4</div><div class="h">5</div><div class="h">6</div>
+      </div>
+    </div>
+    <p class="op-cost">Las mismas 24 horas pero <b>empezando a las 7</b>, que es cuando empieza un
+      día de camping: la que se busca cae casi siempre en las dos primeras filas. Tres filas en
+      vez de cuatro, <b>170 pt</b> por plan. <b>Cuesta</b> que la celda baja a <b>33,8 pt</b> de
+      ancho —diez por debajo de los 44 de Apple, y son cifras a las que hay que apuntar con el
+      pulgar— y que sigue sin caber con tres planes marcados: 510 pt de los 658,3.</p>
+  </div>
+
+</div>
+
+<h2><span class="num">Parte tres ·</span> las combinaciones</h2>
+
+<p>Las dos partes se cruzan en un sitio: <b>si el selector solo da horas en punto, la pastilla
+deja de tener un problema</b>. Lo que sobrevive en cualquier caso son las horas con minutos que
+ya están guardadas.</p>
+
+<div class="tabla-caja">
+<table class="tabla">
+  <tr><th>Combinación</th><th>Qué sale</th><th>Lo viejo con minutos</th><th>Qué cuesta</th></tr>
+  <tr>
+    <td>C5 · S1</td>
+    <td>Pastilla honesta siempre, rejilla de 24 a la vista en hoja propia. <b>Mi sugerencia.</b></td>
+    <td class="si">Se ve tal cual («23» sobre «46») hasta que alguien la toque; al tocarla, la
+      rejilla preselecciona las 23 y guardar escribe 23:00.</td>
+    <td>Un componente nuevo y un nivel de navegación.</td>
+  </tr>
+  <tr>
+    <td>C2 · S1</td>
+    <td>La pastilla más legible que hay, 15 px y una sola línea siempre.</td>
+    <td class="no">«23h» donde pone 23:46, hasta que se toque. Miente en la fila que más se mira.</td>
+    <td>Obliga a redondear todo lo viejo de golpe, con migración.</td>
+  </tr>
+  <tr>
+    <td>C1 · S1</td>
+    <td>Dos renglones siempre, incluso en «20 / 00».</td>
+    <td class="si">Se ve entera y exacta.</td>
+    <td>El minuto a 10 px para siempre, y «00» ocupando renglón sin decir nada.</td>
+  </tr>
+  <tr>
+    <td>C5 · S4</td>
+    <td>Lo mismo que sugiero pero sin escribir componente: menos y más en el renglón.</td>
+    <td class="si">Igual que C5 · S1.</td>
+    <td>Once toques para cruzar el día. Es la salida rápida si lo que corre es entregar.</td>
+  </tr>
+  <tr>
+    <td>C3 · S1</td>
+    <td>No se toca el formato de la hora, se ensancha la casilla.</td>
+    <td class="si">Se ve entera.</td>
+    <td>14 pt menos de título en los cuatro renglones y el icono nadando en 48 × 34.</td>
+  </tr>
+</table>
+</div>
+
+<h2><span class="num">Parte cuatro ·</span> lo que hay que decidir aunque no sea una opción</h2>
+
+<ul>
+  <li><b>Qué pasa con las horas con minutos que ya están puestas.</b> Tres salidas: dejarlas y
+    enseñarlas (C1, C5), redondearlas <b>al abrirlas</b> —la rejilla preselecciona la hora y
+    guardar escribe el minuto a cero— o redondearlas <b>todas de golpe</b> con una migración.
+    La del medio es la única que no pierde nada sin avisar. En el evento de hoy son
+    <b>2 de 3</b>.</li>
+  <li><b>La hora de origen que sale marcada.</b> Hoy el disco del sistema abre en la hora del
+    móvil, que es una hora cualquiera. Con rejilla no hace falta ninguna: se abre <b>sin nada
+    marcado</b> y se ve el día entero.</li>
+  <li><b>El aviso de una hora antes ya está.</b> Cambiar el selector no lo toca: sigue saliendo
+    de <code>cuando</code>, que lo calcula el móvil (<code>lib/horas.js</code>). Redondear
+    23:46 a 23:00 <b>sí mueve el aviso</b> 46 minutos, y como <code>avisadoEl</code> no se puede
+    escribir desde el cliente, un plan ya avisado no vuelve a avisar. Es correcto, pero conviene
+    saberlo.</li>
+  <li><b>La franja apagada de madrugada</b> (0–5 en S1) es cromo, no una regla: se pueden pulsar.
+    Si estorba, se quita y ya.</li>
+</ul>
+
+<script>
+// Cada insignia mide **la pieza en discusión**, no la tarjeta que la contiene —
+// que es justo el fallo de `plan-con-hora.html`: cinco insignias midiendo un
+// bloque de cuatro renglones no notan que la hora se sale por los lados.
+//
+// `data-alto` mide el alto del bloque (parte dos, donde lo que se compara es lo
+// que ocupa dentro de una capa con tope). Sin él se mide el **ancho del texto**
+// de la pastilla contra el ancho de su caja, que es la pregunta de la parte uno.
+for (const b of document.querySelectorAll('.medida[data-mide]')) {
+  const el = document.querySelector(b.dataset.mide)
+  if (!el) { b.textContent = '¿?'; b.classList.add('rota'); continue }
+  const num = (n) => (Math.round(n * 10) / 10).toString().replace('.', ',')
+  if (b.dataset.alto) { b.textContent = num(el.getBoundingClientRect().height) + ' pt de alto'; continue }
+  // Una pastilla de dos renglones cabe si cabe **el más ancho**: se mide cada
+  // hijo por separado y se compara el mayor, que es lo que decide si se sale.
+  const hijos = el.children.length ? [...el.children] : [el]
+  const texto = Math.max(...hijos.map((h) => {
+    const r = document.createRange(); r.selectNodeContents(h)
+    return r.getBoundingClientRect().width
+  }))
+  const caja = document.querySelector(b.dataset.caja).getBoundingClientRect().width
+  const sobra = texto - caja
+  b.textContent = num(texto) + ' en ' + num(caja)
+    + (sobra > 0 ? ' · se sale ' + num(sobra) : ' · sobran ' + num(-sobra))
+  b.classList.add(sobra > 0 ? 'rota' : 'bien')
+}
+</script>
+
+</div>
