@@ -7,7 +7,7 @@ import { useIdentidad } from '../lib/identidad.js'
 import { CATEGORIES, catOf } from '../lib/categorias.js'
 import { IMPORTE_VACIO, desdeCents, totalCents, guardable, enPalabras } from '../lib/importe.js'
 import { splitCents } from '../lib/reparto.js'
-import { comoSeReparte } from '../lib/reparto-gente.js'
+import { comoSeReparte, genteDeAtajo } from '../lib/reparto-gente.js'
 import { repartoDeFamilias, fraseDelReparto } from '../lib/reparto-vista.js'
 import Comentarios from '../components/Comentarios.jsx'
 import PadDeImporte from '../components/PadDeImporte.jsx'
@@ -41,7 +41,10 @@ import { tap } from '../lib/native.js'
 function resumenDeEntre(estado, persons) {
   const raro = comoSeReparte(estado, persons)
   if (raro) return raro
-  return `todos (${persons.length})`
+  // El número sale de **lo que hay marcado** y no del censo: con alguien fuera
+  // (§14.78) «todos» son cinco de seis, y decir seis sería contar a quien no
+  // entra en la cuenta que se está haciendo.
+  return `todos (${estado.participantIds?.length ?? persons.length})`
 }
 
 /**
@@ -96,7 +99,10 @@ export default function FichaDeGasto({ event, eventId, families, persons, gasto,
     gasto?.payers?.[0]?.familyId ?? me?.familyId ?? familias[0]?.id ?? '',
   )
   const [participantIds, setParticipantIds] = useState(
-    () => gasto?.participantIds ?? persons.map((p) => p.id),
+    // Un gasto nuevo nace con **los que están** (§14.78): `genteDeAtajo` es lo
+    // que define «Todos», y ponerlo a mano aquí era tener la regla escrita dos
+    // veces con una de ellas sin enterarse de la ausencia.
+    () => gasto?.participantIds ?? genteDeAtajo('todos', persons),
   )
   const [reparto, setReparto] = useState(gasto?.reparto ?? null)
   const [description, setDescription] = useState(gasto?.description ?? '')

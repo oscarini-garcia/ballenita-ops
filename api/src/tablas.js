@@ -52,6 +52,9 @@ export const TABLAS = {
     columnas: [
       'eventId', 'name', 'apodo', 'familyId', 'edad',
       'comeConMayores', 'cuentaComoAdultoReparto', 'pesoReparto', 'avatar', 'estado',
+      // Quien se ha ido unos días (0023). Nulo = está, para que las filas de
+      // antes queden bien sin tocarlas.
+      'ausente',
       // Cuándo se puso el estado (0013). No vale `updatedAt`: esa se mueve con
       // cualquier cambio de la persona, y la tira de «Hoy» se ordena por lo
       // nuevo de **el estado**, no por lo último que alguien tocó de su ficha.

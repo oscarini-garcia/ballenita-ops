@@ -123,6 +123,22 @@ describe('las dos mesas', () => {
     expect(ninos).toBe(0.6)
   })
 
+  /**
+   * **Quien se ha ido no come** (SPECS §14.78). Se filtra dentro y no en cada
+   * quien llama —son dos, `db.js` y `lib/borrados.js`— porque olvidarse en uno
+   * deja la compra de una semana contando a alguien que no está.
+   */
+  it('quien está fuera no pide raciones', () => {
+    const { mayores, ninos } = racionesPorMesa([
+      { edad: 'adulto', pesoReparto: 1 },
+      { edad: 'adulto', pesoReparto: 1, ausente: 1 },
+      { edad: 'niño', pesoReparto: 0.6 },
+      { edad: 'niño', pesoReparto: 0.6, ausente: 1 },
+    ])
+    expect(mayores).toBe(1)
+    expect(ninos).toBe(0.6)
+  })
+
   it('el adolescente sin mesa dicha come con los mayores, como un adulto', () => {
     const { mayores, ninos } = racionesPorMesa([
       { edad: 'adolescente', pesoReparto: 1 },

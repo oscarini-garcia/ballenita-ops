@@ -41,7 +41,8 @@
     "migrar:remoto19": "wrangler d1 execute ballena-ops --remote --file=migraciones/0019_resumen_del_bunga.sql",
     "migrar:remoto20": "wrangler d1 execute ballena-ops --remote --file=migraciones/0020_enlace_reutilizable.sql",
     "migrar:remoto21": "wrangler d1 execute ballena-ops --remote --file=migraciones/0021_cena_fuera.sql",
-    "migrar:remoto22": "wrangler d1 execute ballena-ops --remote --file=migraciones/0022_plan_con_hora.sql"
+    "migrar:remoto22": "wrangler d1 execute ballena-ops --remote --file=migraciones/0022_plan_con_hora.sql",
+    "migrar:remoto23": "wrangler d1 execute ballena-ops --remote --file=migraciones/0023_persona_ausente.sql"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

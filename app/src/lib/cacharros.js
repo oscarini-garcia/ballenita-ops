@@ -25,6 +25,8 @@
  */
 
 /** Cuántos han elegido este cacharro. */
+import { losQueEstan } from './personas.js'
+
 export const votosDeCacharro = (cacharro) => Object.keys(cacharro?.votos ?? {}).length
 
 /**
@@ -63,7 +65,8 @@ export const ranking = (cacharros = []) => [...cacharros].sort((a, b) =>
  * llegara nunca al total.
  */
 export const quienesPuedenVotar = (cacharros = [], personas = []) =>
-  personas.filter((p) => cacharros.some((c) => puedeVotar(c, p)))
+  // Quien está fuera no cuenta en el «3 de 9 han votado» (§14.78).
+  losQueEstan(personas).filter((p) => cacharros.some((c) => puedeVotar(c, p)))
 
 /** Cuántos han votado ya, de los que podían. */
 export const cuantosHanVotado = (cacharros = [], personas = []) =>

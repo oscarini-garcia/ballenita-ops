@@ -1563,6 +1563,14 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mini .dato { font-size: var(--t-micro); color: var(--ink-faint); white-space: nowrap; }
 .mini.anadir { color: var(--spout-deep); font-size: var(--t-sub); font-weight: 600; padding: 10px 0; }
+/* Quien se ha ido unos días (§14.78). **Se aparta, no se esconde**: la fila
+   sigue donde estaba y se abre igual —hay que poder devolverlo—, pero el avatar
+   pierde fuerza y el nombre deja de ir en seminegrita, que es lo que hace que la
+   lista se lea de un vistazo como «estos cinco están». El texto no se aclara:
+   `--ink-faint` sobre el papel ya es el color más bajo que usa la casa, y
+   bajarlo más lo sacaría de contraste. */
+.mini.se-fue .av { opacity: .45; }
+.mini.se-fue .quien { font-weight: 400; color: var(--ink-soft); }
 
 /* Las filas de «Sueltos» comparten el .row de siempre, con la parte tocable
    separada del verbo que lleva al lado. */

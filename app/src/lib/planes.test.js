@@ -66,3 +66,34 @@ describe('se hace y punto (§14.59)', () => {
     expect(Object.keys(plan.votos)).toHaveLength(2)
   })
 })
+
+/**
+ * **A quien no está no se le espera** (SPECS §14.78): un plan del jueves con
+ * «faltan 3 por votar» que son los tres que se volvieron el martes no se cierra
+ * nunca.
+ */
+describe('quién falta por votar, con gente fuera', () => {
+  const GENTE = [
+    { id: 'a', name: 'Ana' },
+    { id: 'b', name: 'Bea' },
+    { id: 'c', name: 'Curro', ausente: 1 },
+  ]
+
+  it('no cuenta a quien se ha ido', () => {
+    expect(quienFaltaPorVotar({ votos: { a: '👍', b: '👍' } }, GENTE)).toBe('han votado todos')
+  })
+
+  it('y su voto, si lo dejó puesto, sigue contando', () => {
+    // Votar es una cosa y estar es otra: `votosDe` no mira la ausencia, así que
+    // el 👍 que dejó Curro antes de irse no se pierde.
+    expect(votosDe({ votos: { c: '👍' } })).toBe(1)
+    // Pero no se le espera: falta Bea, que sí está.
+    expect(quienFaltaPorVotar({ votos: { a: '👍', c: '👍' } }, GENTE)).toBe('falta por votar Bea')
+  })
+
+  it('«sin votos todavía» mira solo a los que están', () => {
+    // Los dos que quedan no han votado, así que el plan está en blanco por más
+    // que Curro dejara el suyo puesto.
+    expect(quienFaltaPorVotar({ votos: { c: '👍' } }, GENTE)).toBe('sin votos todavía')
+  })
+})

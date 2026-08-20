@@ -159,3 +159,85 @@ describe('cómo se reparte, dicho en dos palabras', () => {
     expect(comoSeReparte({ participantIds: ['g1', 'p1'] }, GENTE)).toBe('entre 2')
   })
 })
+
+/**
+ * **«Todos» son los que están** (SPECS §14.78). El martes que los Pérez se han
+ * vuelto a casa, meterlos en el reparto de la cena de esa noche es cobrarles
+ * una paella que no se comen.
+ */
+describe('quien se ha ido no entra en los atajos', () => {
+  const CON_AUSENTE = [
+    { id: 'curro', edad: 'adulto' },
+    { id: 'ana', edad: 'adulto', ausente: 1 },
+    { id: 'fran', edad: 'niño' },
+    { id: 'lucia', edad: 'niño', ausente: 1 },
+  ]
+
+  it('«Todos» deja fuera a quien no está', () => {
+    expect(genteDeAtajo('todos', CON_AUSENTE)).toEqual(['curro', 'fran'])
+  })
+
+  it('«Mayores» también, y sigue siendo por edad', () => {
+    expect(genteDeAtajo('mayores', CON_AUSENTE)).toEqual(['curro'])
+  })
+
+  it('pero se le puede marcar a mano: un gasto suyo sigue siendo suyo', () => {
+    // La lista no lo esconde; lo que se quita es que entre solo. Si la garrafa
+    // de aceite se compró cuando estaba, se marca y ya.
+    expect(atajoDe(['curro', 'ana', 'fran'], CON_AUSENTE)).toBeNull()
+    expect(atajoDe(['curro', 'fran'], CON_AUSENTE)).toBe('todos')
+  })
+})
+
+/**
+ * **Lo normal no se anuncia, y ahora hay dos normales** (SPECS §14.78): el grupo
+ * entero —los gastos de antes de que nadie se fuera— y el grupo que está.
+ */
+describe('cómo se reparte, con gente fuera', () => {
+  const GENTE = [
+    { id: 'curro', edad: 'adulto', name: 'Curro' },
+    { id: 'ana', edad: 'adulto', name: 'Ana' },
+    { id: 'fran', edad: 'niño', name: 'Fran' },
+    { id: 'lucia', edad: 'niño', name: 'Lucía', ausente: 1 },
+  ]
+
+  it('el reparto entre los que están no sale marcado', () => {
+    expect(comoSeReparte({ participantIds: ['curro', 'ana', 'fran'] }, GENTE)).toBe('')
+  })
+
+  it('y el de un gasto viejo, con todos dentro, tampoco', () => {
+    // Se apuntó cuando estaban todos: anunciarlo como raro sería marcar de
+    // extraño lo que era el caso normal el día que se guardó.
+    expect(comoSeReparte({ participantIds: ['curro', 'ana', 'fran', 'lucia'] }, GENTE)).toBe('')
+  })
+
+  it('«sin los niños» se mide sobre los que están', () => {
+    expect(comoSeReparte({ participantIds: ['curro', 'ana'] }, GENTE)).toBe('sin los niños')
+  })
+
+  it('lo que sí es raro se sigue diciendo', () => {
+    expect(comoSeReparte({ participantIds: ['curro'] }, GENTE)).toBe('entre 1')
+    expect(comoSeReparte({ participantIds: [] }, GENTE)).toBe('nadie todavía')
+  })
+})
+
+describe('la casilla de una familia con alguien de viaje (§14.78)', () => {
+  const GARCIA = [
+    { id: 'curro', name: 'Curro', ausente: 1 },
+    { id: 'marta', name: 'Marta' },
+    { id: 'fran', name: 'Fran' },
+  ]
+
+  it('se llena con los que están: la raya no se queda puesta para siempre', () => {
+    expect(estadoDeFamilia(GARCIA, new Set(['marta', 'fran']))).toBe('todo')
+  })
+
+  it('y si alguien mete al que se fue, vuelve a hacer falta que estén los tres', () => {
+    expect(estadoDeFamilia(GARCIA, new Set(['curro', 'marta']))).toBe('parte')
+    expect(estadoDeFamilia(GARCIA, new Set(['curro', 'marta', 'fran']))).toBe('todo')
+  })
+
+  it('vacío sigue siendo vacío', () => {
+    expect(estadoDeFamilia(GARCIA, new Set())).toBe('nada')
+  })
+})
