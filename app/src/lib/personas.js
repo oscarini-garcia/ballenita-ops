@@ -83,6 +83,44 @@ export const estaAqui = (persona) => !persona?.ausente
 export const losQueEstan = (personas = []) => personas.filter(estaAqui)
 
 /**
+ * Cómo está una casa y qué hace su interruptor (SPECS §14.79).
+ *
+ * Marcar uno a uno deja la casa **a medias**, y ese es el estado del que hay que
+ * poder salir por los dos lados. La regla es una sola y por eso cabe en una
+ * línea: **con alguien dentro el botón se los lleva a todos; con la casa vacía,
+ * los devuelve**. Desde media casa, una pulsación la vacía y la siguiente la
+ * llena — sin estado intermedio que no tenga salida.
+ *
+ * Es lo que evita el problema clásico de la casilla de tres estados, que aquí
+ * habría sido peor de lo normal: el botón no dice cómo está la casa —eso lo dice
+ * el recuento de al lado— sino **qué va a pasar si lo tocas**.
+ */
+export function comoEstaLaCasa(gente = []) {
+  const estan = losQueEstan(gente).length
+  const fuera = gente.length - estan
+  return {
+    estan,
+    fuera,
+    // `marcar` es lo que se va a escribir en los suyos: `true` = se van todos.
+    marcar: estan > 0,
+    verbo: estan > 0 ? 'Se han ido unos días' : 'Han vuelto',
+  }
+}
+
+/**
+ * «5 personas», «3 personas · 2 fuera», «3 fuera».
+ *
+ * **El cero no se dice**, que es la regla de §14.38: la casa entera fuera decía
+ * «0 personas · 3 fuera», y el cero delante de un número que sí importa se lee
+ * como una avería antes que como un dato.
+ */
+export function cuantosEnLaCasa(gente = []) {
+  const { estan, fuera } = comoEstaLaCasa(gente)
+  if (estan === 0 && fuera > 0) return `${fuera} fuera`
+  return `${estan} ${estan === 1 ? 'persona' : 'personas'}${fuera > 0 ? ` · ${fuera} fuera` : ''}`
+}
+
+/**
  * Emoji para elegir de un toque, además de escribir el que quieras.
  *
  * El del cromo se fue (§14.13), pero el que eliges tú es contenido y se queda —y

@@ -63,6 +63,22 @@ export function puedeEditarFamilia(sesion, me, familyId) {
  */
 export const puedeEditarBungas = (sesion, me) => mandaEnTodo(sesion) || esAdultoDelGrupo(me)
 
+/**
+ * ¿Puede decir quién está estos días? **Cualquier adulto, y de cualquier casa**
+ * (SPECS §14.79).
+ *
+ * Es la misma excepción que los bungas y por la misma razón: quién está hoy en
+ * el camping **no es un dato privado de una familia**, es un hecho del viaje del
+ * que cuelgan la compra y el reparto de cada gasto nuevo. Quien ve marcharse a
+ * los Pérez el miércoles tiene que poder decirlo sin buscar a un Pérez con el
+ * móvil a mano, porque si no se dice, la compra del jueves sigue contando cinco.
+ *
+ * Y **no abre la ficha**: editar el nombre, la edad o el avatar de otra casa
+ * sigue siendo de esa casa (§14.63). Lo que se comparte es este interruptor, que
+ * es reversible de una pulsación y no se lleva nada por delante.
+ */
+export const puedeMarcarAusencias = (sesion, me) => mandaEnTodo(sesion) || esAdultoDelGrupo(me)
+
 /** El cacharro de una familia lo apunta y lo quita esa familia. */
 export const puedeEditarCacharro = (sesion, me, familyId) => puedeEditarFamilia(sesion, me, familyId)
 

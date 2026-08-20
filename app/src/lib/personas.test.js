@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { EDADES, EMOJIS_PERSONA, pesoDe, puedeOrganizar, estaAqui, losQueEstan } from './personas.js'
+import {
+  EDADES, EMOJIS_PERSONA, pesoDe, puedeOrganizar, estaAqui, losQueEstan,
+  comoEstaLaCasa, cuantosEnLaCasa,
+} from './personas.js'
 
 describe('pesos por edad', () => {
   it('son tres: adulto 1, adolescente 1 y niño 0,6', () => {
@@ -62,5 +65,51 @@ describe('quién está estos días', () => {
     ]
     expect(losQueEstan(gente).map((p) => p.id)).toEqual(['a', 'c'])
     expect(losQueEstan()).toEqual([])
+  })
+})
+
+/**
+ * El interruptor de toda una casa (§14.79).
+ *
+ * Lo que se prueba aquí es que el estado **a medias** —el que deja marcar uno a
+ * uno— tenga salida por los dos lados: una pulsación vacía la casa y la
+ * siguiente la llena. Un botón que solo supiera «se han ido» dejaría media casa
+ * sin forma de volver entera.
+ */
+const aqui = (name) => ({ name })
+const fuera = (name) => ({ name, ausente: 1 })
+
+describe('cómo está una casa', () => {
+  it('con todos dentro, el botón se los lleva', () => {
+    const casa = comoEstaLaCasa([aqui('Curro'), aqui('Ana')])
+    expect(casa).toMatchObject({ estan: 2, fuera: 0, marcar: true, verbo: 'Se han ido unos días' })
+  })
+
+  it('con la casa vacía, los devuelve', () => {
+    const casa = comoEstaLaCasa([fuera('Curro'), fuera('Ana')])
+    expect(casa).toMatchObject({ estan: 0, fuera: 2, marcar: false, verbo: 'Han vuelto' })
+  })
+
+  it('a medias se los lleva a todos, y la siguiente los trae', () => {
+    const media = [aqui('Curro'), fuera('Ana')]
+    expect(comoEstaLaCasa(media).marcar).toBe(true)
+    // Tras esa pulsación no queda nadie, y entonces el botón cambia de verbo.
+    expect(comoEstaLaCasa(media.map((p) => ({ ...p, ausente: 1 }))).verbo).toBe('Han vuelto')
+  })
+
+  it('una casa vacía de gente no rompe la cuenta', () => {
+    expect(comoEstaLaCasa([])).toMatchObject({ estan: 0, fuera: 0, marcar: false })
+  })
+
+  it('el recuento dice los que están y aparte los que no', () => {
+    expect(cuantosEnLaCasa([aqui('Curro')])).toBe('1 persona')
+    expect(cuantosEnLaCasa([aqui('Curro'), aqui('Ana')])).toBe('2 personas')
+    expect(cuantosEnLaCasa([aqui('Curro'), fuera('Ana'), fuera('Pablo')])).toBe('1 persona · 2 fuera')
+  })
+
+  it('con la casa entera fuera no dice «0 personas»', () => {
+    // El cero delante de un número que sí importa se lee como una avería.
+    expect(cuantosEnLaCasa([fuera('Curro'), fuera('Ana'), fuera('Pablo')])).toBe('3 fuera')
+    expect(cuantosEnLaCasa([fuera('Curro')])).toBe('1 fuera')
   })
 })

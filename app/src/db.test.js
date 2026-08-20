@@ -8,6 +8,7 @@ import {
   addBunga, asignarBungaAFamilia, borrarFamilia,
   markBought, unmarkBought,
   addPlan, updatePlan, redondearHorasDePlanes, db,
+  addPerson, personsOf, updatePerson, marcarAusenciaDeFamilia,
 } from './db.js'
 import { computeFamilyBalances, simplifyDebts } from './lib/reparto.js'
 
@@ -311,5 +312,53 @@ describe('la hora de un plan se guarda en punto', () => {
     expect((await plansOf(eventId)).find((p) => p.id === id).hora).toBe('23:00')
     // Idempotente: la segunda vuelta no escribe nada.
     expect(await redondearHorasDePlanes(eventId)).toBe(0)
+  })
+})
+
+/**
+ * Toda la casa se va, o toda la casa vuelve (SPECS §14.79).
+ *
+ * Se prueba contra `db.js` y no contra la pantalla porque lo que importa aquí es
+ * lo que **no** escribe: sin el filtro, marcar «se han ido» en una casa donde ya
+ * se habían ido dos encola cinco cambios para mover tres, y el recap del grupo
+ * se llena de renglones que no cambian nada.
+ */
+describe('marcarAusenciaDeFamilia', () => {
+  async function casa() {
+    const eventId = await createEvent({ name: 'Ballenita' })
+    const garcia = await addFamily(eventId, { name: 'García' })
+    const perez = await addFamily(eventId, { name: 'Pérez' })
+    await addPerson(eventId, { name: 'Curro', familyId: garcia, edad: 'adulto' })
+    await addPerson(eventId, { name: 'Ana', familyId: garcia, edad: 'adulto' })
+    await addPerson(eventId, { name: 'Luis', familyId: perez, edad: 'adulto' })
+    return { eventId, garcia, perez }
+  }
+
+  it('se lleva a los suyos y no toca a los de al lado', async () => {
+    const { eventId, garcia, perez } = await casa()
+    expect(await marcarAusenciaDeFamilia(eventId, garcia, true)).toBe(2)
+
+    const gente = await personsOf(eventId)
+    expect(gente.filter((p) => p.familyId === garcia).every((p) => p.ausente === 1)).toBe(true)
+    expect(gente.find((p) => p.familyId === perez).ausente).toBeFalsy()
+  })
+
+  it('no escribe lo que ya está puesto', async () => {
+    const { eventId, garcia } = await casa()
+    const curro = (await personsOf(eventId)).find((p) => p.name === 'Curro')
+    await updatePerson(curro.id, { ausente: 1 })
+
+    // Solo se mueve Ana: Curro ya estaba fuera.
+    expect(await marcarAusenciaDeFamilia(eventId, garcia, true)).toBe(1)
+    // Y una segunda vuelta no mueve a nadie.
+    expect(await marcarAusenciaDeFamilia(eventId, garcia, true)).toBe(0)
+  })
+
+  it('los devuelve enteros', async () => {
+    const { eventId, garcia } = await casa()
+    await marcarAusenciaDeFamilia(eventId, garcia, true)
+    expect(await marcarAusenciaDeFamilia(eventId, garcia, false)).toBe(2)
+    const gente = (await personsOf(eventId)).filter((p) => p.familyId === garcia)
+    expect(gente.every((p) => p.ausente === 0)).toBe(true)
   })
 })
