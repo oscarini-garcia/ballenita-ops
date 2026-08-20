@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { estaAqui } from '../lib/personas.js'
 import Icono from '../components/Icono.jsx'
 import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { tap } from '../lib/native.js'
@@ -218,8 +219,11 @@ function FilaPersona({ persona, dentro, onAlternar, sangrada = false, conFamilia
     >
       <Casilla estado={puesta ? 'todo' : 'nada'} />
       <span className="et">{persona.name}</span>
+      {/* **Quien está fuera se dice aquí también** (§14.78). Sigue en la lista y
+          se puede marcar —la garrafa de aceite se compró cuando estaba— pero
+          tiene que verse, o se marca sin querer al repasar la familia entera. */}
       <span className="no">
-        {familia ? `${familia.name} · ` : ''}×{persona.pesoReparto}
+        {estaAqui(persona) ? '' : 'fuera · '}{familia ? `${familia.name} · ` : ''}×{persona.pesoReparto}
       </span>
     </button>
   )

@@ -364,3 +364,59 @@ describe('quién lleva las cuentas (§14.58)', () => {
     expect(await screen.findByText('¿Qué bunga?')).toBeTruthy()
   })
 })
+
+/**
+ * **Quien se va unos días** (SPECS §14.78).
+ *
+ * La única forma de quitar a alguien del reparto era borrarlo, y borrar se lleva
+ * por delante todo lo que ya había apuntado a su nombre. El interruptor lo deja
+ * en su casa y en su sitio, sin contar.
+ */
+describe('se ha ido unos días (§14.78)', () => {
+  it('el interruptor lo guarda, y la fila lo dice sin esconderlo', async () => {
+    const { eventId } = await sembrar()
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
+    render(<GrupoSection eventId={eventId} />)
+
+    await userEvent.click((await enFamilia('García')).getByText('Curro'))
+    await userEvent.click(await screen.findByRole('switch', { name: /Se ha ido unos días/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(async () => {
+      const gente = await personsOf(eventId)
+      expect(gente.find((p) => p.name === 'Curro').ausente).toBe(1)
+    })
+    // Sigue en su familia: se aparta, no se esconde.
+    const garcia = await enFamilia('García')
+    expect(garcia.getByText('Curro')).toBeInTheDocument()
+    expect(garcia.getByText(/fuera · adulto/)).toBeInTheDocument()
+  })
+
+  it('el recuento de la familia cuenta a los que están y dice cuántos faltan', async () => {
+    const { eventId, garcia } = await sembrar()
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
+    await addPerson(eventId, { name: 'Ana', familyId: garcia, edad: 'adulto' })
+    render(<GrupoSection eventId={eventId} />)
+
+    // Los dos están.
+    expect(await screen.findByText('2 personas')).toBeInTheDocument()
+
+    await userEvent.click((await enFamilia('García')).getByText('Ana'))
+    await userEvent.click(await screen.findByRole('switch', { name: /Se ha ido unos días/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    // «2 personas» de una casa donde una se ha vuelto es el número con el que
+    // nadie hace la compra.
+    expect(await screen.findByText('1 persona · 1 fuera')).toBeInTheDocument()
+  })
+
+  it('en «Nueva persona» no se pregunta: todavía no tiene sentido', async () => {
+    const { eventId } = await sembrar()
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
+    render(<GrupoSection eventId={eventId} />)
+
+    await userEvent.click((await enFamilia('García')).getByRole('button', { name: '+ Persona' }))
+    await screen.findByRole('heading', { name: /Nueva persona/ })
+    expect(screen.queryByRole('switch', { name: /Se ha ido unos días/ })).not.toBeInTheDocument()
+  })
+})

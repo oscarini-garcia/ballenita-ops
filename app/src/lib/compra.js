@@ -19,6 +19,7 @@
  */
 
 import { normalizarIngredientes, estirar, loQueSeCompra, claveDeIngrediente, cifra } from './receta.js'
+import { losQueEstan } from './personas.js'
 
 /**
  * Cuántas raciones se sientan en cada mesa.
@@ -26,7 +27,11 @@ import { normalizarIngredientes, estirar, loQueSeCompra, claveDeIngrediente, cif
  * En raciones y no en personas: seis niños no comen lo que seis adultos, y el
  * 0,6 ya está decidido en `lib/personas.js` desde que existe el reparto.
  */
-export function racionesPorMesa(personas = []) {
+export function racionesPorMesa(todas = []) {
+  // **Quien está fuera no come** (§14.78). Se filtra aquí y no en cada quien
+  // llama porque son dos —`db.js` y `lib/borrados.js`— y olvidarse en uno deja
+  // la compra de una semana contando a alguien que no está.
+  const personas = losQueEstan(todas)
   const suma = (lista) => lista.reduce((t, p) => t + (Number(p.pesoReparto) || 1), 0)
   const mayores = personas.filter((p) => p.comeConMayores ?? p.edad !== 'niño')
   const ninos = personas.filter((p) => !(p.comeConMayores ?? p.edad !== 'niño'))

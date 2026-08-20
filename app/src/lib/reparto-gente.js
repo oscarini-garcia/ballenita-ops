@@ -9,7 +9,7 @@
 // a cada uno lo sigue diciendo `lib/reparto.js`, que es la regla de oro.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { esMayor } from './personas.js'
+import { esMayor, estaAqui, losQueEstan } from './personas.js'
 
 /**
  * **Mayores son todos los que no son niños, por su edad** (SPECS §14.49).
@@ -41,10 +41,18 @@ export const ATAJOS = [
   { id: 'nadie', etiqueta: 'Nadie' },
 ]
 
-/** Los ids que deja puestos un atajo. */
+/**
+ * Los ids que deja puestos un atajo.
+ *
+ * **Quien está fuera no entra** (§14.78): «Todos» son los que están, que es lo
+ * que quiere decir la palabra el martes que los Pérez se han vuelto a casa. No
+ * se le esconde de la lista —abajo sale, marcado, y se puede marcar a mano—
+ * porque un gasto legítimo puede tocarle: la garrafa de aceite se compró cuando
+ * estaba. Lo que se quita es que entre **solo**.
+ */
 export function genteDeAtajo(atajo, persons = []) {
-  if (atajo === 'todos') return persons.map((p) => p.id)
-  if (atajo === 'mayores') return mayoresDe(persons).map((p) => p.id)
+  if (atajo === 'todos') return losQueEstan(persons).map((p) => p.id)
+  if (atajo === 'mayores') return mayoresDe(losQueEstan(persons)).map((p) => p.id)
   return []
 }
 
@@ -86,9 +94,15 @@ export function porFamilias(persons = [], families = []) {
  * suelto, y es el que hace falta dibujar para que «2 de 3» no haya que leerlo.
  */
 export function estadoDeFamilia(gente = [], dentro = new Set()) {
-  const cuantos = gente.filter((p) => dentro.has(p.id)).length
+  // **Quien está fuera no cuenta para el «todo»** (§14.78). Sin esto, la casilla
+  // de cualquier familia con alguien de viaje se quedaría con la raya de «a
+  // medias» **para siempre**, señalando como raro lo que es su estado normal.
+  // Lo que cuenta es la gente que está **más** la que esté marcada a mano: si
+  // alguien mete al que se fue, la familia vuelve a tener tres para llenarse.
+  const cuentan = gente.filter((p) => estaAqui(p) || dentro.has(p.id))
+  const cuantos = cuentan.filter((p) => dentro.has(p.id)).length
   if (cuantos === 0) return 'nada'
-  return cuantos === gente.length ? 'todo' : 'parte'
+  return cuantos === cuentan.length ? 'todo' : 'parte'
 }
 
 /**
@@ -130,13 +144,19 @@ export function comoSeReparte({ reparto, participantIds = [] }, persons = []) {
   if (reparto?.modo === 'partes') return 'a partes'
   if (reparto?.modo === 'importes') return 'por importes'
   const dentro = participantIds.length
-  if (!persons.length || dentro === persons.length) return ''
+  // **Dos repartos son «el de siempre»** desde §14.78: el grupo entero y el
+  // grupo que está estos días. El primero, porque un gasto de la semana pasada
+  // se apuntó cuando estaban todos y decir «entre 6» de él sería anunciar como
+  // raro lo que era normal; el segundo, porque es lo normal hoy. Sin esto, en
+  // cuanto alguien se va **todos** los gastos nuevos salen marcados.
+  const aqui = losQueEstan(persons)
+  if (!persons.length || dentro === persons.length || dentro === aqui.length) return ''
   if (dentro === 0) return 'nadie todavía'
-  const mayores = mayoresDe(persons)
+  const mayores = mayoresDe(aqui)
   if (dentro === mayores.length && mayores.every((p) => participantIds.includes(p.id))) {
     return 'sin los niños'
   }
-  const peques = pequesDe(persons)
+  const peques = pequesDe(aqui)
   if (peques.length && dentro === peques.length && peques.every((p) => participantIds.includes(p.id))) {
     return 'solo los peques'
   }

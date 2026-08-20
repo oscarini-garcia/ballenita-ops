@@ -61,6 +61,28 @@ export const esMayor = (persona) => EDADES.find((e) => e.id === persona?.edad)?.
 export const puedeOrganizar = (me) => !me || (EDADES.find((e) => e.id === me.edad)?.organiza ?? true)
 
 /**
+ * Quién está estos días (SPECS §14.78).
+ *
+ * El grupo no siempre está entero: alguien llega el miércoles, alguien se vuelve
+ * el viernes. Quien no está **no cuenta** —ni en el reparto de un gasto nuevo, ni
+ * en la compra, ni entre los que faltan por votar—, y esas tres son las cuentas
+ * que se hacían mal cuando la única forma de quitar a alguien era borrarlo, que
+ * se lleva por delante todo lo que ya había apuntado a su nombre.
+ *
+ * **Un interruptor y no dos fechas**, que es lo que se pidió: unas fechas de ida
+ * y vuelta obligan a decidir qué pasa con el gasto apuntado el martes por quien
+ * se fue el miércoles, y aquí no hay nada que decidir. Cuenta o no cuenta.
+ *
+ * `ausente` nulo es «está»: las filas de antes de la migración `0023` quedan
+ * bien sin tocarlas, y nadie desaparece de un reparto sin que alguien lo pida —
+ * la misma regla que `esMayor` con la edad desconocida.
+ */
+export const estaAqui = (persona) => !persona?.ausente
+
+/** Los que están, que es entre quiénes se cuenta todo lo que se cuenta ahora. */
+export const losQueEstan = (personas = []) => personas.filter(estaAqui)
+
+/**
  * Emoji para elegir de un toque, además de escribir el que quieras.
  *
  * El del cromo se fue (§14.13), pero el que eliges tú es contenido y se queda —y

@@ -4518,6 +4518,73 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.78 Quien se va unos días deja de contar
+
+El grupo no está entero toda la semana: alguien llega el miércoles, alguien se
+vuelve el viernes. Hasta ahora la única forma de sacar a alguien de las cuentas
+era **borrarlo**, que se lleva por delante todo lo que ya había apuntado a su
+nombre — y por eso no lo hacía nadie, y la compra y el reparto seguían contando
+a quien estaba en su casa.
+
+- **✅ Un interruptor en su ficha**, «Se ha ido unos días» (Grupo → Familias →
+  la persona). **Sin fechas**, que es lo que se pidió: unas de ida y vuelta
+  obligan a decidir qué pasa con el gasto apuntado el martes por quien se fue el
+  miércoles, y aquí no hay nada que decidir — cuenta o no cuenta.
+- **Lo tocan los adultos**, que es la línea que ya decide todo lo demás de esta
+  pantalla: `puedeEditarFamilia` (§14.63) — un adulto de su casa, o quien
+  administra. No hace falta regla nueva.
+- **En «Nueva persona» no se pregunta**: un interruptor que dice «no está» en
+  alguien que se está creando pregunta por un estado que todavía no significa
+  nada.
+
+**Dónde deja de contar** (tres sitios, y los tres en la lógica pura para que no
+se pueda olvidar uno):
+
+| dónde | qué cambia |
+| --- | --- |
+| `reparto-gente.js` · `genteDeAtajo` | «Todos» y «Mayores» son **los que están**. Meter a los Pérez en la paella del martes que se volvieron a casa es cobrarles una cena que no se comen. |
+| `compra.js` · `racionesPorMesa` | Quien no está **no come**. Se filtra dentro y no en cada quien llama —son dos, `db.js` y `lib/borrados.js`— porque olvidarse en uno deja la compra de una semana contando a alguien que no está. |
+| `planes.js` · `quienFaltaPorVotar` y `cacharros.js` · `quienesPuedenVotar` | **No se le espera**. Un plan del jueves con «faltan 3 por votar» que son los tres que se fueron el martes no se cierra nunca. |
+
+**Y dónde sigue contando, a propósito**: `votosDe` no mira la ausencia, así que
+el 👍 que dejó antes de irse **no se pierde**; y **lo ya apuntado a su nombre no
+se toca** — `participantIds` vive dentro de cada gasto, así que ningún saldo se
+mueve al marcar a alguien.
+
+- **Se aparta, no se esconde** (la regla de §14.10-quater). Sigue en su familia,
+  en su sitio y en la lista de «Entre quién se divide», con «fuera ·» delante de
+  la edad y el avatar a media tinta. Poder marcarlo a mano es el caso legítimo:
+  la garrafa de aceite se compró cuando estaba. Lo que se quita es que entre
+  **solo**.
+- **El recuento de la familia dice las dos cosas**: «1 persona · 1 fuera». «2
+  personas» de una casa donde una se ha vuelto es el número con el que nadie
+  hace la compra.
+
+**Dos defectos que habría metido esta vuelta y se vieron en el navegador**, no en
+las pruebas:
+
+- **La ficha de un gasto tenía la regla escrita dos veces.** `FichaDeGasto.jsx`
+  arrancaba con `persons.map((p) => p.id)` en vez de `genteDeAtajo('todos', …)`,
+  así que el renglón seguía diciendo «Entre todos (6)» con la sexta persona en su
+  casa. Ahora hay un solo sitio que define «Todos».
+- **Todo gasto nuevo habría salido marcado como raro.** `comoSeReparte` decía
+  «lo normal no se anuncia» comparando contra el censo entero; con alguien fuera,
+  el reparto normal pasaba a ser «entre 5» de 6. Ahora **hay dos normales** —el
+  grupo entero, que es como se apuntaron los gastos de antes, y el grupo que está
+  hoy— y ninguno de los dos se anuncia. Lo mismo en `estadoDeFamilia`: sin
+  tocarlo, la casilla de cualquier familia con alguien de viaje se quedaba con la
+  raya de «a medias» **para siempre**, señalando como raro su estado normal.
+
+**Lo que no cambia y conviene saber**: el «gasto medio por persona» de Números
+divide por el censo entero, porque es una media de todo el viaje y quien se fue
+estuvo parte de él; y la tira de «Quién anda en qué» sigue enseñando el estado de
+quien se ha ido, que es suyo y lo puso él.
+
+**Base de datos**: `persons.ausente INTEGER` (migración `0023`). Nulo = está, así
+que las filas de antes quedan bien sin tocarlas — la misma regla que `esMayor`
+con la edad desconocida. **Quien administra tiene que aplicarla** en Ajustes →
+Actualizar.
+
 ### 14.77 Una familia trae los cacharros que quiera
 
 El tope de **uno por familia** (§14.57 · G1) se retira. La fila de apuntar

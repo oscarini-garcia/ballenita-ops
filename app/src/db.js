@@ -417,6 +417,9 @@ export async function addPerson(eventId, p) {
     // Quién se entera de **todos** los gastos, le toquen o no (§14.58). Nace
     // apagado: es un encargo, no un rasgo, y lo pone quien administra.
     llevaLasCuentas: p.llevaLasCuentas ?? false,
+    // Quien se ha ido unos días (§14.78). Nace **estando**, que es lo que menos
+    // daño hace: nadie sale de un reparto sin que alguien lo pida.
+    ausente: p.ausente ? 1 : 0,
   })
 }
 export const personsOf = (eventId) => db.persons.where({ eventId }).toArray()

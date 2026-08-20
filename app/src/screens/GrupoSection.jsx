@@ -21,7 +21,7 @@ import Confirmar from '../components/Confirmar.jsx'
 import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre } from '../lib/asignacion.js'
 import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
-import { EDADES, EMOJIS_PERSONA, pesoDe, puedeOrganizar } from '../lib/personas.js'
+import { EDADES, EMOJIS_PERSONA, estaAqui, losQueEstan, pesoDe, puedeOrganizar } from '../lib/personas.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
 import {
@@ -148,8 +148,15 @@ export default function GrupoSection({ eventId, area = 'familias', abrir: abrirE
                     {/* El estado de la familia se retira (§14.66): quien dice
                         en qué anda es cada persona, y dos estados encima del
                         mismo grupo se contradicen sin que nadie los actualice. */}
+                    {/* Cuenta **los que están** (§14.78) y dice aparte los que
+                        no: «5 personas» de una casa donde tres se han vuelto es
+                        el número con el que nadie hace la compra. */}
                     <span className="acordeon-nota">
-                      {gente.length} {gente.length === 1 ? 'persona' : 'personas'}
+                      {(() => {
+                        const estan = losQueEstan(gente).length
+                        const fuera = gente.length - estan
+                        return `${estan} ${estan === 1 ? 'persona' : 'personas'}${fuera > 0 ? ` · ${fuera} fuera` : ''}`
+                      })()}
                     </span>
                   </>
                 )}
@@ -187,14 +194,20 @@ export default function GrupoSection({ eventId, area = 'familias', abrir: abrirE
                 {gente.map((p) => (
                   <button
                     type="button"
-                    className="mini"
+                    className={`mini${estaAqui(p) ? '' : ' se-fue'}`}
                     key={p.id}
                     disabled={!miFamilia(f.id)}
                     onClick={() => abrir({ tipo: 'persona', id: p.id })}
                   >
                     <span className="av chica" data-emojis={contarEmojis(p.avatar)} style={{ background: f.color }}>{p.avatar}</span>
                     <span className="quien">{p.name}{p.apodo ? ` «${p.apodo}»` : ''}</span>
-                    <span className="dato">{p.edad}{p.llevaLasCuentas ? ' · cuentas' : ''}</span>
+                    {/* Quien no está **se dice, no se esconde** (§14.78, la
+                        regla de §14.10-quater): sigue en su casa y en su sitio,
+                        con la seña delante de la edad porque es lo que cambia
+                        cómo se lee todo lo demás de esta pantalla. */}
+                    <span className="dato">
+                      {estaAqui(p) ? '' : 'fuera · '}{p.edad}{p.llevaLasCuentas ? ' · cuentas' : ''}
+                    </span>
                   </button>
                 ))}
                 {miFamilia(f.id) && (
@@ -226,7 +239,9 @@ export default function GrupoSection({ eventId, area = 'familias', abrir: abrirE
                       <span className="av sin" data-emojis={contarEmojis(p.avatar)}>{p.avatar}</span>
                       <span className="main">
                         <span className="n">{p.name}</span>
-                        <span className="sub">sin familia · {p.edad}</span>
+                        <span className="sub">
+                          sin familia · {estaAqui(p) ? '' : 'fuera · '}{p.edad}
+                        </span>
                       </span>
                     </button>
                   </div>
@@ -843,6 +858,10 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
   // Quién se entera de **todos** los gastos (§14.58 · L1). Es un encargo, no un
   // rasgo: lo pone quien administra y no se deduce de la edad.
   const [lleva, setLleva] = useState(Boolean(persona?.llevaLasCuentas))
+  // **Quien se va unos días** (§14.78). Es un interruptor y no dos fechas: se
+  // pidió sin límite de tiempo, y unas fechas obligarían a decidir qué pasa con
+  // el gasto apuntado el martes por quien se fue el miércoles.
+  const [ausente, setAusente] = useState(Boolean(persona?.ausente))
   const familia = families.find((f) => f.id === familyId)
   // Creada desde su ficha (N2): la familia la dice el sitio donde se ha pulsado,
   // así que preguntarla otra vez es preguntar algo ya contestado.
@@ -857,6 +876,9 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
       // llevaba las cuentas lo apaga en el mismo gesto, y así no queda una fila
       // marcada que la pantalla ya no enseña.
       llevaLasCuentas: lleva && puedeOrganizar({ edad }),
+      // 1 o 0 y no `true`/`false`: en D1 la columna es `INTEGER` (migración
+      // `0023`), y `tablas.js` transporta el número tal cual.
+      ausente: ausente ? 1 : 0,
     }
     if (nueva) await addPerson(eventId, datos)
     else await updatePerson(persona.id, datos)
@@ -947,6 +969,34 @@ function EditorPersona({ eventId, persona, familyIdFijo, families, gastos, onCer
               <span className="n">Lleva las cuentas</span>
               <span className="sub">
                 Le llegan <b>todos</b> los gastos, le toquen o no — y también los que se borren.
+              </span>
+            </span>
+          </button>
+        </>
+      )}
+
+      {/* **Se ha ido unos días** (§14.78). Solo en alguien que ya existe: en
+          «Nueva persona» un interruptor que dice «no está» pregunta por un
+          estado que todavía no tiene sentido. Lo puede tocar quien puede abrir
+          esta ficha, que son los adultos de su familia y quien administra
+          (`puedeEditarFamilia`, §14.63) — la misma línea que decide todo lo
+          demás de esta pantalla. */}
+      {!nueva && (
+        <>
+          <label>Estos días</label>
+          <button
+            type="button"
+            className={`casilla-larga${ausente ? ' on' : ''}`}
+            role="switch"
+            aria-checked={ausente}
+            onClick={() => { tap(); setAusente(!ausente) }}
+          >
+            <span className="tic" aria-hidden>{ausente ? '✓' : ''}</span>
+            <span className="main">
+              <span className="n">Se ha ido unos días</span>
+              <span className="sub">
+                Deja de contar en <b>la compra</b>, en <b>«Todos»</b> al repartir un gasto y entre
+                los que faltan por votar. Lo ya apuntado a su nombre <b>no se toca</b>.
               </span>
             </span>
           </button>

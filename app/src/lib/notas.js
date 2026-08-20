@@ -16,6 +16,18 @@
  */
 export const NOTAS = [
   {
+    version: '0.73.0',
+    fecha: '2026-08-18',
+    titulo: 'Quien se va unos días deja de contar',
+    lineas: [
+      'En Grupo → Familias, al abrir a alguien hay un interruptor: «Se ha ido unos días». Lo ponen los adultos de su casa.',
+      'Deja de contar en la compra, en «Todos» al repartir un gasto y entre los que faltan por votar. No hay que poner fechas.',
+      'Lo ya apuntado a su nombre no se toca: ningún saldo se mueve, y el voto que dejara puesto sigue contando.',
+      'Sigue en su familia con un «fuera» delante — se aparta, no se esconde—, y se le puede marcar a mano en un gasto que sí le toque.',
+      'Lleva un cambio en la base: quien administra lo verá en Ajustes → Actualizar.',
+    ],
+  },
+  {
     version: '0.72.0',
     fecha: '2026-08-18',
     titulo: 'Cada familia trae los cacharros que quiera',

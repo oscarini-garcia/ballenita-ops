@@ -11,6 +11,8 @@
  */
 
 /** Cuántos han dicho que sí. El 🤷 y el 👎 no suman. */
+import { losQueEstan } from './personas.js'
+
 export const votosDe = (plan) => Object.values(plan?.votos ?? {}).filter((v) => v === '👍').length
 
 /**
@@ -49,8 +51,12 @@ export const seHace = (plan) => plan?.estado === ESTADO_SE_HACE
  * toque a Luis»—. Con cinco es una lista que no cabe y que no dice nada que el
  * número no diga.
  */
-export function quienFaltaPorVotar(plan, personas = []) {
+export function quienFaltaPorVotar(plan, todas = []) {
   const votos = plan?.votos ?? {}
+  // **A quien no está no se le espera** (§14.78): un plan del jueves con «faltan
+  // 3 por votar» que son los tres que se volvieron el martes no se cierra nunca.
+  // Su voto, si lo dejó puesto, sigue contando — eso es `votosDe` y no se toca.
+  const personas = losQueEstan(todas)
   const sinVotar = personas.filter((p) => !votos[p.id])
   if (sinVotar.length === 0) return 'han votado todos'
   if (sinVotar.length === personas.length) return 'sin votos todavía'
