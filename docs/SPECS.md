@@ -4518,6 +4518,43 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.79 La casa entera de una vez, y lo marca cualquier adulto
+
+Dos cosas que faltaban en §14.78.
+
+- **✅ Toda la casa de una vez.** Una familia que se vuelve el miércoles eran
+  cinco interruptores, uno por ficha, abriendo y cerrando cinco hojas. Ahora la
+  solapa de la familia lleva su renglón —el mismo dibujo que el del bunga, mismo
+  sitio y mismo tamaño— y lo hace de una pulsación. `marcarAusenciaDeFamilia`
+  vive en `db.js` y no en la pantalla porque son **varias escrituras que quieren
+  ser una sola idea**, y **no escribe lo que ya está puesto**: sin ese filtro,
+  marcar una casa donde ya se habían ido dos encola cinco cambios para mover
+  tres y llena el recap de renglones que no cambian nada (§14.50).
+- **El botón no dice cómo está la casa, dice qué va a pasar si lo tocas.** Con
+  alguien dentro se los lleva a todos; con la casa vacía, los devuelve
+  (`comoEstaLaCasa`, puro). Es lo que le da salida **por los dos lados** al
+  estado a medias que deja marcar uno a uno, y esquiva el problema de la casilla
+  de tres estados sin inventarse un tercer dibujo: cómo está la casa ya lo dice
+  el recuento de la solapa, a un centímetro.
+- **✅ Y lo marca cualquier adulto, de cualquier casa** (`puedeMarcarAusencias`).
+  Es la misma excepción que los bungas (§14.63) y por la misma razón: **quién
+  está hoy en el camping no es un dato privado de una familia**, es un hecho del
+  viaje del que cuelgan la compra y el reparto de cada gasto nuevo. Quien ve
+  marcharse a los Pérez el miércoles tiene que poder decirlo sin buscar a un
+  Pérez con el móvil a mano — si no se dice, la compra del jueves sigue contando
+  cinco.
+- **Pero no arrastra la ficha.** Editar el nombre, la edad o el avatar de otra
+  casa sigue siendo de esa casa. Por eso la fila de una persona pasa a ser **el
+  cuerpo y una casilla**: son dos permisos distintos sobre la misma fila y un
+  solo botón no puede tener dos. Es la figura de `gasto-entre.html` · C2 —la
+  casilla marca, el cuerpo abre— con la casilla a **44 × 44**, el mínimo de
+  Apple. Vacía es «no está», que es como se lee una lista de asistencia.
+- **El cero no se dice** (§14.38): la casa entera fuera decía «0 personas · 3
+  fuera», y un cero delante de un número que sí importa se lee como una avería
+  antes que como un dato. Ahora dice «3 fuera».
+- **Sin cambios en la base.** `persons.ausente` es de §14.78 (migración `0023`);
+  esto solo escribe la misma columna en varias filas y ensancha un permiso.
+
 ### 14.78 Quien se va unos días deja de contar
 
 El grupo no está entero toda la semana: alguien llega el miércoles, alguien se

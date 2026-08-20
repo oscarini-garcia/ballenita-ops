@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.74.0',
+    fecha: '2026-08-20',
+    titulo: 'La casa entera se va de una vez',
+    lineas: [
+      'En Grupo → Familias, cada casa tiene su «Se han ido unos días»: una pulsación y se van todos. La siguiente los trae.',
+      'Y cada persona lleva su casilla al lado, para marcar uno a uno sin abrir su ficha.',
+      'Esto lo puede hacer cualquier adulto, también con la gente de otra casa: quién está hoy es de lo que dependen la compra y el reparto. Editar su ficha sigue siendo de los suyos.',
+    ],
+  },
+  {
     version: '0.73.0',
     fecha: '2026-08-18',
     titulo: 'Quien se va unos días deja de contar',

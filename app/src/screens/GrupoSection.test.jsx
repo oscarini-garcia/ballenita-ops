@@ -6,6 +6,7 @@ import {
   createEvent, addFamily, addBunga, addPerson, updatePerson,
   familiesOf, bungasOf, personsOf,
 } from '../db.js'
+import { setMeId } from '../lib/identidad.js'
 
 async function sembrar() {
   const eventId = await createEvent({ name: 'Ballenita', currency: 'EUR' })
@@ -418,5 +419,78 @@ describe('se ha ido unos días (§14.78)', () => {
     await userEvent.click((await enFamilia('García')).getByRole('button', { name: '+ Persona' }))
     await screen.findByRole('heading', { name: /Nueva persona/ })
     expect(screen.queryByRole('switch', { name: /Se ha ido unos días/ })).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * **Toda la casa, y cualquier adulto** (SPECS §14.79).
+ *
+ * Dos cosas que faltaban en §14.78: marcar la casa entera de una vez —una familia
+ * que se vuelve el miércoles son cinco interruptores— y que lo pueda hacer
+ * **cualquier adulto**, porque quién está hoy en el camping es un hecho del
+ * viaje del que cuelgan la compra y el reparto, no un dato privado de una casa.
+ */
+describe('toda la casa se va, y lo marca cualquier adulto (§14.79)', () => {
+  // Con sesión de miembro los cerrojos están puestos, y la identidad es una
+  // persona de verdad: `useIdentidad` guarda un id, no una ficha.
+  // **Se espera a la gente, no a la casa.** `enFamilia` resuelve en cuanto está
+  // el nombre de la familia, y sus filas las trae `useLiveQuery` un tick después:
+  // con `getByRole` la prueba fallaba una vez de cada muchas, que es la peor
+  // clase de prueba que hay. `findBy*` reintenta.
+  const soy = async (eventId, campos) => {
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'miembro' } }))
+    setMeId(eventId, await addPerson(eventId, campos))
+  }
+
+  it('el botón de la casa se los lleva a todos, y la siguiente los trae', async () => {
+    const { eventId, garcia } = await sembrar()
+    localStorage.setItem('ballena.sesion', JSON.stringify({ cuenta: { rol: 'administrador' } }))
+    await addPerson(eventId, { name: 'Ana', familyId: garcia, edad: 'adulto' })
+    render(<GrupoSection eventId={eventId} />)
+
+    const casa = async () => (await enFamilia('García')).findByRole('button', { name: /toda la casa/ })
+    expect(await casa()).toHaveTextContent('Se han ido unos días')
+
+    await userEvent.click(await casa())
+    await waitFor(async () => {
+      const gente = (await personsOf(eventId)).filter((p) => p.familyId === garcia)
+      expect(gente.every((p) => p.ausente === 1)).toBe(true)
+    })
+    // Con la casa vacía el botón cambia de verbo: el estado a medias tiene
+    // salida por los dos lados.
+    await waitFor(async () => expect(await casa()).toHaveTextContent('Han vuelto'))
+
+    await userEvent.click(await casa())
+    await waitFor(async () => {
+      const gente = (await personsOf(eventId)).filter((p) => p.familyId === garcia)
+      expect(gente.every((p) => !p.ausente)).toBe(true)
+    })
+  })
+
+  it('un adulto de otra casa marca a quien quiera, pero no le abre la ficha', async () => {
+    const { eventId, solteros } = await sembrar()
+    await soy(eventId, { name: 'Pablo', familyId: solteros, edad: 'adulto' })
+    render(<GrupoSection eventId={eventId} />)
+
+    const garcia = await enFamilia('García')
+    // La casilla de Curro sí, aunque sea de los García.
+    await userEvent.click(await garcia.findByRole('button', { name: /Marcar que Curro se ha ido/ }))
+    await waitFor(async () => {
+      const gente = await personsOf(eventId)
+      expect(gente.find((p) => p.name === 'Curro').ausente).toBe(1)
+    })
+    // Su ficha no: eso sigue siendo de su casa (§14.63). Se busca por el nombre
+    // de la fila y no por rol, que la casilla también se llama «Curro».
+    expect((await garcia.findByText('Curro')).closest('button')).toBeDisabled()
+  })
+
+  it('un adolescente no marca a nadie', async () => {
+    const { eventId, garcia } = await sembrar()
+    await soy(eventId, { name: 'Fran', familyId: garcia, edad: 'adolescente' })
+    render(<GrupoSection eventId={eventId} />)
+
+    const enCasa = await enFamilia('García')
+    expect(await enCasa.findByRole('button', { name: /Marcar que Curro se ha ido/ })).toBeDisabled()
+    expect(await enCasa.findByRole('button', { name: /toda la casa/ })).toBeDisabled()
   })
 })

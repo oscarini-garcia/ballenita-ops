@@ -427,6 +427,26 @@ export const updatePerson = (id, patch) => escribir('persons', id, patch)
 export const removePerson = (id) => removeRow('persons', id)
 
 /**
+ * Toda la casa se va, o toda la casa vuelve (SPECS §14.79).
+ *
+ * Va aquí y no en la pantalla porque son **varias escrituras que quieren ser una
+ * sola idea**: cada una encola su cambio, y hacerlas en un bucle suelto dentro
+ * de un `onClick` era pedir que se quedara a medias al cerrar la app entre la
+ * tercera y la cuarta.
+ *
+ * **No escribe lo que ya está puesto.** Sin ese filtro, marcar «se han ido» en
+ * una casa donde ya se habían ido dos encola cinco cambios para mover tres, y el
+ * recap del grupo se llena de renglones que no cambian nada (§14.50).
+ */
+export async function marcarAusenciaDeFamilia(eventId, familyId, ausente) {
+  const gente = (await personsOf(eventId)).filter((p) => p.familyId === familyId)
+  const valor = ausente ? 1 : 0
+  const mueven = gente.filter((p) => (p.ausente ? 1 : 0) !== valor)
+  for (const p of mueven) await updatePerson(p.id, { ausente: valor })
+  return mueven.length
+}
+
+/**
  * Tu estado, con su «cuándo» (§14.36-bis). El `estadoEl` lo escribe el cliente
  * —no vale `updatedAt`, que se mueve al corregir un apodo— y por eso la tira de
  * «Hoy» ordena por novedad desde el primer pintado, sin esperar a sincronizar.

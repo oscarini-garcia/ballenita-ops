@@ -7,7 +7,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   familiesOf, addFamily, updateFamily, borrarFamilia,
   bungasOf, addBunga, updateBunga, removeBunga, asignarBungaAFamilia,
-  personsOf, addPerson, updatePerson, removePerson,
+  personsOf, addPerson, updatePerson, removePerson, marcarAusenciaDeFamilia,
   expensesOf, dinnersOf,
   PEGATINAS, addAlojamiento, listAlojamientos, updateAlojamiento, todosLosBungas, listEvents,
   anclaDe, comentariosDelEvento,
@@ -21,14 +21,18 @@ import Confirmar from '../components/Confirmar.jsx'
 import { bungaDeFamilia, bungasLibres, familiasLibres, etiquetaBunga, etiquetaCorta, porNombre } from '../lib/asignacion.js'
 import { aliasDe, aliasSugerido, aliasSigueAlNombre } from '../lib/alias.js'
 import { tap } from '../lib/native.js'
-import { EDADES, EMOJIS_PERSONA, estaAqui, losQueEstan, pesoDe, puedeOrganizar } from '../lib/personas.js'
+import {
+  EDADES, EMOJIS_PERSONA, comoEstaLaCasa, cuantosEnLaCasa, estaAqui, pesoDe, puedeOrganizar,
+} from '../lib/personas.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { TOPE_EMOJIS, contarEmojis, cortarEmojis } from '../lib/emojis.js'
 import {
   conPegatina, hayQueResumir, historicoDe, huellaDelSitio, pegatinasPuestas,
   resumenDelHistorico, resumenDelSitio,
 } from '../lib/alojamientos.js'
-import { mandaEnTodo, porQueNoPuedes, puedeEditarBungas, puedeEditarFamilia } from '../lib/permisos.js'
+import {
+  mandaEnTodo, porQueNoPuedes, puedeEditarBungas, puedeEditarFamilia, puedeMarcarAusencias,
+} from '../lib/permisos.js'
 import { leerSesion } from '../auth/sesion.js'
 import { comentarioDeBunga, resumenDeBunga } from '../sync/api.js'
 import { sinLeer } from '../lib/comentarios.js'
@@ -97,6 +101,9 @@ export default function GrupoSection({ eventId, area = 'familias', abrir: abrirE
   const puedoTodo = mandaEnTodo(sesion)
   const miFamilia = (familyId) => puedeEditarFamilia(sesion, me, familyId)
   const conBungas = puedeEditarBungas(sesion, me)
+  // **Quién está lo dice cualquier adulto** (§14.79): es un hecho del viaje del
+  // que cuelgan la compra y el reparto, no un dato privado de una casa.
+  const conAusencias = puedeMarcarAusencias(sesion, me)
   const razon = porQueNoPuedes(sesion, me)
 
   const abrir = (e) => { tap(); setEditor(e) }
@@ -151,13 +158,7 @@ export default function GrupoSection({ eventId, area = 'familias', abrir: abrirE
                     {/* Cuenta **los que están** (§14.78) y dice aparte los que
                         no: «5 personas» de una casa donde tres se han vuelto es
                         el número con el que nadie hace la compra. */}
-                    <span className="acordeon-nota">
-                      {(() => {
-                        const estan = losQueEstan(gente).length
-                        const fuera = gente.length - estan
-                        return `${estan} ${estan === 1 ? 'persona' : 'personas'}${fuera > 0 ? ` · ${fuera} fuera` : ''}`
-                      })()}
-                    </span>
+                    <span className="acordeon-nota">{cuantosEnLaCasa(gente)}</span>
                   </>
                 )}
               >
@@ -191,24 +192,62 @@ export default function GrupoSection({ eventId, area = 'familias', abrir: abrirE
                   )
                 })()}
 
+                {/* **El cuerpo abre y la casilla marca** (§14.79, la figura de
+                    `gasto-entre.html` · C2): son dos permisos distintos sobre la
+                    misma fila —la ficha es de su casa, quién está es de todos—,
+                    y un solo botón no puede tener dos. La casilla mide 44 × 44,
+                    que es el mínimo de Apple. */}
+                {/* **Toda la casa de una vez** (§14.79). El botón no dice cómo
+                    está la casa —eso lo dice el recuento de la solapa— sino qué
+                    va a pasar si lo tocas, que es lo que le da salida por los
+                    dos lados al estado a medias que deja marcar uno a uno. */}
+                {gente.length > 0 && (() => {
+                  const casa = comoEstaLaCasa(gente)
+                  return (
+                    <button
+                      type="button"
+                      className="mini toda-la-casa"
+                      disabled={!conAusencias}
+                      onClick={() => { tap(); marcarAusenciaDeFamilia(eventId, f.id, casa.marcar) }}
+                    >
+                      <span className="ico"><Icono nombre="familia" /></span>
+                      <span className="quien">{casa.verbo}</span>
+                      <span className="dato">toda la casa</span>
+                    </button>
+                  )
+                })()}
+
                 {gente.map((p) => (
-                  <button
-                    type="button"
-                    className={`mini${estaAqui(p) ? '' : ' se-fue'}`}
-                    key={p.id}
-                    disabled={!miFamilia(f.id)}
-                    onClick={() => abrir({ tipo: 'persona', id: p.id })}
-                  >
-                    <span className="av chica" data-emojis={contarEmojis(p.avatar)} style={{ background: f.color }}>{p.avatar}</span>
-                    <span className="quien">{p.name}{p.apodo ? ` «${p.apodo}»` : ''}</span>
-                    {/* Quien no está **se dice, no se esconde** (§14.78, la
-                        regla de §14.10-quater): sigue en su casa y en su sitio,
-                        con la seña delante de la edad porque es lo que cambia
-                        cómo se lee todo lo demás de esta pantalla. */}
-                    <span className="dato">
-                      {estaAqui(p) ? '' : 'fuera · '}{p.edad}{p.llevaLasCuentas ? ' · cuentas' : ''}
-                    </span>
-                  </button>
+                  <div className={`mini-fila${estaAqui(p) ? '' : ' se-fue'}`} key={p.id}>
+                    <button
+                      type="button"
+                      className="mini"
+                      disabled={!miFamilia(f.id)}
+                      onClick={() => abrir({ tipo: 'persona', id: p.id })}
+                    >
+                      <span className="av chica" data-emojis={contarEmojis(p.avatar)} style={{ background: f.color }}>{p.avatar}</span>
+                      <span className="quien">{p.name}{p.apodo ? ` «${p.apodo}»` : ''}</span>
+                      {/* Quien no está **se dice, no se esconde** (§14.78, la
+                          regla de §14.10-quater): sigue en su casa y en su
+                          sitio, con la seña delante de la edad porque es lo que
+                          cambia cómo se lee todo lo demás de esta pantalla. */}
+                      <span className="dato">
+                        {estaAqui(p) ? '' : 'fuera · '}{p.edad}{p.llevaLasCuentas ? ' · cuentas' : ''}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`aqui${estaAqui(p) ? ' si' : ''}`}
+                      disabled={!conAusencias}
+                      aria-pressed={estaAqui(p)}
+                      aria-label={estaAqui(p)
+                        ? `Marcar que ${p.name} se ha ido unos días`
+                        : `Marcar que ${p.name} ha vuelto`}
+                      onClick={() => { tap(); updatePerson(p.id, { ausente: estaAqui(p) ? 1 : 0 }) }}
+                    >
+                      {estaAqui(p) && <Icono nombre="visto" />}
+                    </button>
+                  </div>
                 ))}
                 {miFamilia(f.id) && (
                   <>

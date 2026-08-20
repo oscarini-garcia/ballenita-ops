@@ -1569,8 +1569,30 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    lista se lea de un vistazo como «estos cinco están». El texto no se aclara:
    `--ink-faint` sobre el papel ya es el color más bajo que usa la casa, y
    bajarlo más lo sacaría de contraste. */
-.mini.se-fue .av { opacity: .45; }
-.mini.se-fue .quien { font-weight: 400; color: var(--ink-soft); }
+.mini-fila.se-fue .av { opacity: .45; }
+.mini-fila.se-fue .quien { font-weight: 400; color: var(--ink-soft); }
+
+/* ── El cuerpo abre y la casilla marca (§14.79) ──────────────────────────────
+   Son dos permisos sobre la misma fila: la ficha es de su casa y quién está es
+   de todos, así que no puede ser un solo botón. El borde se muda del `.mini` al
+   contenedor, o la casilla se quedaría fuera de la raya. */
+.mini-fila { display: flex; align-items: center; gap: 4px; width: 100%;
+  border-top: 1px solid var(--line-soft); }
+.mini-fila .mini { border-top: none; flex: 1; min-width: 0; }
+/* 44 × 44, el mínimo de Apple, con el dibujo a 20. Vacía es «no está»: un aro
+   sin nada dentro, que es como se lee una lista de asistencia. */
+.aqui { width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  background: none; border: 1px solid var(--line); border-radius: 11px;
+  color: var(--verde); cursor: pointer; }
+.aqui svg { width: 20px; height: 20px; display: block; }
+.aqui.si { background: color-mix(in srgb, var(--verde) 12%, transparent);
+  border-color: color-mix(in srgb, var(--verde) 35%, transparent); }
+.aqui:disabled { opacity: .4; cursor: default; }
+/* El renglón de toda la casa comparte el dibujo del bunga: mismo sitio, mismo
+   tamaño, misma forma de leerse. */
+.mini.toda-la-casa .ico { width: 26px; height: 26px; border-radius: 7px; flex: none;
+  display: grid; place-items: center; background: var(--foam-2); color: var(--ink-soft); }
+.mini.toda-la-casa .ico svg { width: 16px; height: 16px; display: block; }
 
 /* Las filas de «Sueltos» comparten el .row de siempre, con la parte tocable
    separada del verbo que lleva al lado. */
