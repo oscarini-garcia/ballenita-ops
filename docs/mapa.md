@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.74.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1210 pruebas en 120 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.75.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1219 pruebas en 120 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   272 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -304,7 +304,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.3** ⚠️ Safari iOS — confirmado por counter-ops → `engine.js`
 - **§14.7** ✅ Veredicto de viabilidad — ¿aguanta el modelo de counter-ops? → `reparto.js`
 - **§14.9** ⚠️ Migración a backend propio (Worker + D1) — **sustituye a 14.2, 14.5-bis y 14.5-ter** → `BienvenidaScreen.jsx`, `CuentasSection.jsx`, `EventSettingsScreen.jsx`, `MejorasSection.jsx`, `ProgresoModal.jsx`, `api.js` · +11 más
-- **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `ComidasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlanesScreen.jsx` · +3 más
+- **§14.10** Cromo de la app: cabecera, barra inferior y modales → `App.jsx`, `ComidasScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlanesScreen.jsx` · +4 más
 - **§14.11** Tipografía: un número y toda la escala → `BalancesScreen.jsx`
 - **§14.13** Los dibujos, y el único color que informa → `StatsScreen.jsx`, `categorias.js`, `personas.js`, `pwa.js`
 - **§14.14** El grupo: una ficha por familia, y la hoja que sube desde abajo → `Confirmar.jsx`, `EventSettingsScreen.jsx`, `GrupoSection.jsx`, `PlatosScreen.jsx`, `borrados.js`, `evento.js` · +1 más
@@ -370,3 +370,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.77** Una familia trae los cacharros que quiera → `CacharrosSection.jsx`, `cacharros.js`, `db.js`
 - **§14.78** Quien se va unos días deja de contar → `FichaDeGasto.jsx`, `GrupoSection.jsx`, `HojaDeEntre.jsx`, `cacharros.js`, `compra.js`, `db.js` · +3 más
 - **§14.79** La casa entera de una vez, y lo marca cualquier adulto → `GrupoSection.jsx`, `db.js`, `permisos.js`, `personas.js`
+- **§14.80** Lo que ya pasó baja al final, marcado → `PlanesScreen.jsx`, `planes.js`

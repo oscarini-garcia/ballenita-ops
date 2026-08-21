@@ -1010,6 +1010,14 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
    juegos de m…», que es lo mismo que no ponerlo. Mismo trato que los platos. */
 .fila-plan .main .n { white-space: normal; }
 
+/* Lo que ya pasó (§14.80). **Se aparta, no se esconde**: la fila sigue entera y
+   se abre igual —dentro están sus comentarios y quién votó qué—, pero baja el
+   tono para que la lista se lea de un vistazo como «esto es lo que queda». No se
+   tacha: un plan que se hizo no es un plan cancelado, y la raya de Mejoras
+   significa justo lo contrario de lo que pasa aquí. */
+.fila-plan.hecho .main .n { font-weight: 500; color: var(--ink-soft); }
+.fila-plan.hecho .main .sub { color: var(--ink-faint); }
+
 /* El día ya elegido se marca también en el icono, no solo en la pastilla: es lo
    que separa los dos grupos de un vistazo sin leer el encabezado. */
 .ico.verde { background: color-mix(in srgb, var(--owed) 16%, transparent); color: var(--owed); }
