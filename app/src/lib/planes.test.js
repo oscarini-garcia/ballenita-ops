@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { ESTADO_SE_HACE, ESTADO_VOTANDO, quienFaltaPorVotar, seHace, votosDe } from './planes.js'
+import {
+  ESTADO_SE_HACE, ESTADO_VOTANDO, porPasar, quienFaltaPorVotar, seHace, votosDe, yaPaso,
+} from './planes.js'
 
 const gente = [
   { id: 'p1', name: 'Curro' },
@@ -95,5 +97,48 @@ describe('quién falta por votar, con gente fuera', () => {
     // Los dos que quedan no han votado, así que el plan está en blanco por más
     // que Curro dejara el suyo puesto.
     expect(quienFaltaPorVotar({ votos: { c: '👍' } }, GENTE)).toBe('sin votos todavía')
+  })
+})
+
+/**
+ * Lo que ya pasó (SPECS §14.80).
+ *
+ * Se decide con el calendario y no con un estado guardado: un dato así se
+ * quedaría viejo en el momento en que nadie abriera la app, y aquí la respuesta
+ * la da la fecha sola.
+ */
+describe('un plan que ya pasó', () => {
+  const HOY = '2026-08-18'
+
+  it('el de ayer sí, el de mañana no', () => {
+    expect(yaPaso({ dia: '2026-08-17' }, HOY)).toBe(true)
+    expect(yaPaso({ dia: '2026-08-19' }, HOY)).toBe(false)
+  })
+
+  it('el de hoy **no ha pasado**: la tarde es de esta tarde', () => {
+    // Bajarlo al grupo de lo hecho a las 00:01 sería decirle a quien abre la app
+    // por la mañana que el plan de la tarde ya está.
+    expect(yaPaso({ dia: HOY }, HOY)).toBe(false)
+  })
+
+  it('sin día no pasa nunca, aunque el viaje entero haya terminado', () => {
+    // Un plan que nadie llegó a poner en un día no se hizo: se quedó sin hacer,
+    // y ese sigue a votación, que es lo que dice la verdad de él.
+    expect(yaPaso({ titulo: 'Kayaks' }, HOY)).toBe(false)
+    expect(yaPaso({ dia: null }, HOY)).toBe(false)
+    expect(yaPaso(null, HOY)).toBe(false)
+  })
+
+  it('parte la lista en dos y conserva el orden de cada lado', () => {
+    const planes = [
+      { id: 'a', dia: '2026-08-16' },
+      { id: 'b', dia: '2026-08-20' },
+      { id: 'c' },
+      { id: 'd', dia: '2026-08-17' },
+      { id: 'e', dia: HOY },
+    ]
+    const { quedan, hechos } = porPasar(planes, HOY)
+    expect(hechos.map((p) => p.id)).toEqual(['a', 'd'])
+    expect(quedan.map((p) => p.id)).toEqual(['b', 'c', 'e'])
   })
 })

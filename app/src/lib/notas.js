@@ -16,6 +16,16 @@
  */
 export const NOTAS = [
   {
+    version: '0.75.0',
+    fecha: '2026-08-21',
+    titulo: 'Los planes que ya pasaron salen marcados',
+    lineas: [
+      'En Planes, lo que ya se hizo baja a su grupo del final —«Ya se hicieron»— con el visto verde y la pastilla «hecho».',
+      'Deja de pedir votos: un plan del martes ya no dice «faltan 4 por votar» el jueves. Dice el día que fue.',
+      'El de hoy sigue arriba hasta mañana, y un plan sin día no baja nunca: ese no se hizo, se quedó sin hacer.',
+    ],
+  },
+  {
     version: '0.74.0',
     fecha: '2026-08-20',
     titulo: 'La casa entera se va de una vez',

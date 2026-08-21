@@ -45,6 +45,38 @@ export const ESTADO_SE_HACE = 'sehace'
 export const seHace = (plan) => plan?.estado === ESTADO_SE_HACE
 
 /**
+ * Un plan **ya pasó** si su día es anterior a hoy (SPECS §14.80).
+ *
+ * No es un estado guardado y no debe serlo: sería un dato que hay que mantener
+ * al día —y que se quedaría viejo en el momento en que nadie abriera la app—
+ * cuando el calendario ya lo contesta solo. La misma figura que `porDia`
+ * (§14.10-quater), que tampoco guarda «fuera de fechas».
+ *
+ * **El día de hoy no ha pasado**: la cena de esta noche es de esta noche hasta
+ * que termine, y adelantarla al grupo de lo hecho a las 00:01 sería decirle a
+ * quien abre la app por la mañana que el plan de la tarde ya está.
+ *
+ * **Sin día no pasa nunca**, aunque el viaje entero haya terminado: un plan que
+ * nadie llegó a poner en un día no se hizo, se quedó sin hacer. Ese sigue donde
+ * estaba, a votación, que es lo que dice la verdad de él.
+ */
+export const yaPaso = (plan, hoy) => Boolean(plan?.dia) && plan.dia < hoy
+
+/**
+ * Los planes partidos en los que quedan y los que ya se hicieron.
+ *
+ * Devuelve los dos lados y no solo uno porque quien lo llama necesita los dos, y
+ * filtrar dos veces la misma lista con dos predicados contrarios es la forma
+ * habitual de que uno de los dos se quede sin actualizar.
+ */
+export function porPasar(planes = [], hoy) {
+  const quedan = []
+  const hechos = []
+  for (const p of planes) (yaPaso(p, hoy) ? hechos : quedan).push(p)
+  return { quedan, hechos }
+}
+
+/**
  * «falta por votar Luis», «faltan 3 por votar», «han votado todos».
  *
  * Los nombres solo cuando son uno o dos: ahí un nombre es accionable —«dale un

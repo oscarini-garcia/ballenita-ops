@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, within, waitFor } from '@testing-library/react'
 import userEventBase from '@testing-library/user-event'
 import PlanesScreen from './PlanesScreen.jsx'
@@ -12,6 +12,7 @@ import { db, createEvent, getEvent, addPerson, addFamily, addPlan, plansOf, list
  * quién falta y que devolver a ideas lo hacen los adultos (§14.43-bis).
  */
 async function viaje() {
+  hoyEs('2026-08-16')
   const eventId = await createEvent({ name: 'Viaje', startDate: '2026-08-15', endDate: '2026-08-22' })
   // Cada uno de su familia: el alias que sale al votar es el de la suya, y sin
   // familia no habría pastilla que comprobar.
@@ -24,6 +25,25 @@ async function viaje() {
   localStorage.setItem(`ballena.me:${eventId}`, curro)
   return { eventId, event: await getEvent(eventId), curro, ana, luis }
 }
+
+/**
+ * **«Hoy» se congela** (§14.80). Desde que lo que ya pasó baja a su grupo, esta
+ * pantalla depende del calendario, y las fechas de la semilla son de agosto de
+ * 2026: sin congelar, estas pruebas pasarían hasta esa semana y a partir de ahí
+ * fallarían todas a la vez sin que nadie hubiera tocado nada. Se planta el reloj
+ * **dentro del viaje**, que es donde se mira esta pantalla.
+ *
+ * **Se falsea `Date` y nada más** (`toFake`). Con los temporizadores falsos
+ * enteros, Dexie sobre `fake-indexeddb` se queda a medias —«Transaction has
+ * already completed or failed» en las veinte pruebas— porque una transacción de
+ * IndexedDB vive entre tareas y aquí las tareas las mueve el reloj. `Date` es lo
+ * único que hace falta: `hoyISO()` no usa temporizadores.
+ */
+function hoyEs(iso) {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(`${iso}T12:00:00`))
+}
+afterEach(() => { vi.useRealTimers() })
 
 const titulos = () => [...document.querySelectorAll('.fila-plan .n')].map((e) => e.textContent)
 
@@ -283,7 +303,7 @@ describe('un plan no se crea aquí: sale de proponer una idea', () => {
 describe('se hace y punto (§14.59)', () => {
   it('lo decidido va en su grupo, sin votos ni «faltan N por votar»', async () => {
     const { eventId, event } = await viaje()
-    await addPlan(eventId, { titulo: 'Paella del sábado', dia: '2026-08-15', estado: 'sehace' })
+    await addPlan(eventId, { titulo: 'Paella del sábado', dia: '2026-08-18', estado: 'sehace' })
     await addPlan(eventId, { titulo: 'Kayaks en la cala', votos: { x: '👍' } })
     render(<PlanesScreen eventId={eventId} event={event} />)
 
@@ -333,5 +353,76 @@ describe('se hace y punto (§14.59)', () => {
     await abrir('Kayaks en la cala')
     await seVe('Tu voto')
     expect(screen.queryByRole('button', { name: 'Se hace y punto' })).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * **Lo que ya pasó baja al final marcado** (SPECS §14.80).
+ *
+ * Un plan del martes seguía diciendo «faltan 4 por votar» el jueves, entre los
+ * que todavía se deciden: es pedir un voto para algo que ya ocurrió.
+ */
+describe('ya se hicieron (§14.80)', () => {
+  it('el de ayer baja a su grupo, marcado y diciendo cuándo fue', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Kayaks en la cala', dia: '2026-08-15' })
+    await addPlan(eventId, { titulo: 'Cena de despedida', dia: '2026-08-20' })
+    hoyEs('2026-08-16')
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    expect(await screen.findByText(/Ya se hicieron · 1/)).toBeInTheDocument()
+    expect(screen.getByText(/Elegidos · 1/)).toBeInTheDocument()
+    // Y va al final: lo que queda por delante manda la lista.
+    expect(titulos()).toEqual(['Cena de despedida', 'Kayaks en la cala'])
+
+    const fila = screen.getByRole('button', { name: /Kayaks en la cala/ })
+    expect(within(fila).getByText('hecho')).toBeInTheDocument()
+    // Lo que ya pasó dice **cuándo fue**, no a quién hay que darle un toque.
+    expect(within(fila).queryByText(/falta/)).not.toBeInTheDocument()
+  })
+
+  it('el de hoy sigue arriba: la tarde es de esta tarde', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Bici a Cadaqués', dia: '2026-08-16' })
+    hoyEs('2026-08-16')
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    expect(await screen.findByText(/Elegidos · 1/)).toBeInTheDocument()
+    expect(screen.queryByText(/Ya se hicieron/)).not.toBeInTheDocument()
+  })
+
+  it('sin día no baja, aunque el viaje haya terminado', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Kayaks en la cala' })
+    hoyEs('2026-09-30')
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    // Un plan que nadie puso en un día no se hizo: se quedó sin hacer.
+    expect(await screen.findByText(/A votación · 1/)).toBeInTheDocument()
+    expect(screen.queryByText(/Ya se hicieron/)).not.toBeInTheDocument()
+  })
+
+  it('lo que se hacía y ya pasó también baja, y deja de estar «pendiente»', async () => {
+    const { eventId, event } = await viaje()
+    await addPlan(eventId, { titulo: 'Paella del sábado', dia: '2026-08-15', estado: 'sehace' })
+    hoyEs('2026-08-16')
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    expect(await screen.findByText(/Ya se hicieron · 1/)).toBeInTheDocument()
+    expect(screen.queryByText(/Se hacen/)).not.toBeInTheDocument()
+    const fila = screen.getByRole('button', { name: /Paella del sábado/ })
+    expect(within(fila).getByText('hecho')).toBeInTheDocument()
+    expect(within(fila).queryByText('se hace')).not.toBeInTheDocument()
+  })
+
+  it('se sigue abriendo: dentro están sus comentarios y quién votó qué', async () => {
+    const { eventId, event, curro } = await viaje()
+    await addPlan(eventId, { titulo: 'Kayaks en la cala', dia: '2026-08-15', votos: { [curro]: '👍' } })
+    hoyEs('2026-08-16')
+    render(<PlanesScreen eventId={eventId} event={event} />)
+
+    await abrir('Kayaks en la cala')
+    // `abrir` ya comprueba que la capa está: dentro sigue estando quién votó.
+    expect(screen.getByText('Quién ha votado')).toBeInTheDocument()
   })
 })

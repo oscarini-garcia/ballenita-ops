@@ -4518,6 +4518,45 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.80 Lo que ya pasó baja al final, marcado
+
+Un plan del martes seguía el jueves entre «Elegidos», diciendo «faltan 4 por
+votar»: pedir un voto para algo que ya ocurrió. La lista de Planes es para
+decidir lo que queda, y lo que ya se hizo estorbaba justo ahí.
+
+- **✅ Grupo propio al final: «Ya se hicieron».** Va después de los tres grupos
+  vivos y antes de «Fuera de las fechas». **Se aparta, no se esconde**, que es la
+  regla de §14.10-quater y la de Mejoras: media gracia del viaje es mirar atrás y
+  ver lo que se hizo, y la fila se sigue abriendo entera —dentro están sus
+  comentarios y quién votó qué—.
+- **✅ La fila va marcada**: el icono pasa a **visto** en verde —el mismo dibujo
+  con el que se marca una mejora hecha y una línea comprada—, la pastilla dice
+  «hecho», y el título baja de peso y de tono. **No se tacha**: un plan que se
+  hizo no es un plan cancelado, y la raya de Mejoras significa justo lo contrario
+  de lo que pasa aquí.
+- **Y dice cuándo fue, no a quién hay que darle un toque.** «Faltan 4 por votar»
+  y «se hace» son tareas, y de un plan del martes no queda ninguna.
+- **Lo decide el calendario, no un estado guardado** (`yaPaso`, `porPasar`, en
+  `lib/planes.js`, puros). Un estado guardado se quedaría viejo en el momento en
+  que nadie abriera la app; la fecha lo contesta sola. Es la misma figura que
+  `porDia`, que tampoco guarda «fuera de fechas».
+- **El día de hoy no ha pasado.** La cena de esta noche es de esta noche hasta
+  que termine: bajarla al grupo de lo hecho a las 00:01 sería decirle a quien
+  abre la app por la mañana que el plan de la tarde ya está.
+- **Sin día no pasa nunca**, aunque el viaje entero haya terminado: un plan que
+  nadie llegó a poner en un día **no se hizo**, se quedó sin hacer, y sigue a
+  votación — que es lo que dice la verdad de él.
+- **Lo que se hacía y ya pasó también baja**, y deja de llevar su pastilla de
+  «se hace»: era un compromiso, y los compromisos se cumplen o no, pero no
+  siguen pendientes.
+- **Y las pruebas de Planes pasan a correr con «hoy» congelado.** Desde que la
+  pantalla depende del calendario, sus fechas de agosto de 2026 la habrían dejado
+  en verde hasta esa semana y en rojo entera a partir de ahí, sin que nadie
+  tocara nada. Se falsea **`Date` y nada más** (`toFake`): con los temporizadores
+  falsos enteros, Dexie sobre `fake-indexeddb` se queda a medias —«Transaction
+  has already completed or failed» en las veinte— porque una transacción vive
+  entre tareas y ahí las tareas las mueve el reloj.
+
 ### 14.79 La casa entera de una vez, y lo marca cualquier adulto
 
 Dos cosas que faltaban en §14.78.

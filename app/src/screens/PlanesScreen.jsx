@@ -9,7 +9,10 @@ import { useBloqueoDeScroll } from '../lib/scrollLock.js'
 import { useIdentidad } from '../lib/identidad.js'
 import { puedeOrganizar } from '../lib/personas.js'
 import { porDia } from '../lib/evento.js'
-import { ESTADO_SE_HACE, ESTADO_VOTANDO, quienFaltaPorVotar, seHace, votosDe } from '../lib/planes.js'
+import { hoyISO } from '../lib/dias.js'
+import {
+  ESTADO_SE_HACE, ESTADO_VOTANDO, porPasar, quienFaltaPorVotar, seHace, votosDe,
+} from '../lib/planes.js'
 import { tap } from '../lib/native.js'
 import Icono from '../components/Icono.jsx'
 import Alias from '../components/Alias.jsx'
@@ -75,17 +78,23 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
   // Lo que se cayó fuera de las fechas sigue apartado (§14.10-quater): un plan en
   // un día que el viaje ya no tiene no es un plan elegido.
   const { dentro, fuera } = porDia(plans, event)
+  // **Lo que ya pasó baja al final marcado** (§14.80, la regla de §14.10-quater
+  // y la de Mejoras): un plan del martes sigue diciendo «faltan 4 por votar» el
+  // jueves, y eso es pedir un voto para algo que ya ocurrió. No se esconde
+  // —media gracia del viaje es mirar atrás y ver lo que se hizo— pero deja de
+  // estorbar entre lo que todavía se decide.
+  const { quedan, hechos } = porPasar(dentro, hoyISO())
   // **Tres grupos, y el primero es nuevo** (§14.59). Antes eran «Elegidos» —los
   // que tenían día— y «Disponibles»; ahora manda el estado, porque «esto se
   // hace» y «esto tiene día» son dos cosas distintas y muchas veces se decide
   // la primera antes que la segunda: «a los kayaks vamos fijo, ya veremos
   // cuándo». Un plan que se hace y aún no tiene día sale arriba, diciendo que
   // le falta el día.
-  const seHacen = dentro.filter(seHace)
+  const seHacen = quedan.filter(seHace)
     .sort((a, b) => (a.dia || '9999').localeCompare(b.dia || '9999')
       || (a.titulo || '').localeCompare(b.titulo || '', 'es'))
-  const elegidos = dentro.filter((p) => !seHace(p) && p.dia)
-  const disponibles = dentro.filter((p) => !seHace(p) && !p.dia)
+  const elegidos = quedan.filter((p) => !seHace(p) && p.dia)
+  const disponibles = quedan.filter((p) => !seHace(p) && !p.dia)
     .sort((a, b) => votosDe(b) - votosDe(a) || (a.titulo || '').localeCompare(b.titulo || '', 'es'))
 
   /**
@@ -93,7 +102,7 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
    * Es lo accionable —a esos hay que darles un toque— y cabe en el subtítulo que
    * ya existe, sin gastar un sitio nuevo.
    */
-  function Fila({ plan, elegido }) {
+  function Fila({ plan, elegido, hecho = false }) {
     // Quién falta lo dice `lib/planes.js`, que es de donde lo saca también la
     // hoja de planes libres de Agenda: dos sitios contando lo mismo con palabras
     // distintas se leen como dos cosas distintas.
@@ -106,13 +115,21 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
     const suyos = comentarios.filter((c) => c.ancla === anclaDe('plan', plan.id))
     const conComentarios = suyos.length
     const nuevos = sinLeer(suyos, { eventId, ancla: anclaDe('plan', plan.id), meId: me })
-    const detalle = decidido
-      ? (plan.dia ? fmtDay(plan.dia) : 'falta el día')
-      : (elegido ? fmtDay(plan.dia) : quienFaltaPorVotar(plan, persons))
+    // Lo que ya pasó dice **cuándo fue**, y nada más: quién falta por votar es
+    // una tarea, y de un plan del martes no queda ninguna (§14.80).
+    const detalle = hecho ? fmtDay(plan.dia)
+      : decidido
+        ? (plan.dia ? fmtDay(plan.dia) : 'falta el día')
+        : (elegido ? fmtDay(plan.dia) : quienFaltaPorVotar(plan, persons))
     return (
-      <button className="row fila-plan" onClick={() => { tap(); setAbierto(plan.id) }}>
-        <div className={`ico${(decidido && plan.dia) || elegido ? ' verde' : ''}${decidido && !plan.dia ? ' ambar' : ''}`}>
-          <Icono nombre="plan" />
+      <button
+        className={`row fila-plan${hecho ? ' hecho' : ''}`}
+        onClick={() => { tap(); setAbierto(plan.id) }}
+      >
+        <div className={`ico${hecho || (decidido && plan.dia) || elegido ? ' verde' : ''}${!hecho && decidido && !plan.dia ? ' ambar' : ''}`}>
+          {/* El visto y no la chincheta: es el mismo dibujo con el que se marca
+              una mejora hecha y una compra comprada. */}
+          <Icono nombre={hecho ? 'visto' : 'plan'} />
         </div>
         <div className="main">
           <div className="n">{plan.titulo}</div>
@@ -127,9 +144,11 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
             💬 {conComentarios}
           </span>
         )}
-        {decidido
-          ? <span className="pill owed">se hace</span>
-          : <span className={`pill ${elegido ? 'owed' : 'neutral'} tnum`}>{votosDe(plan)}</span>}
+        {hecho
+          ? <span className="pill neutral">hecho</span>
+          : decidido
+            ? <span className="pill owed">se hace</span>
+            : <span className={`pill ${elegido ? 'owed' : 'neutral'} tnum`}>{votosDe(plan)}</span>}
       </button>
     )
   }
@@ -175,6 +194,15 @@ export default function PlanesScreen({ eventId, event, abrir, onAbierta }) {
           <div className="sec-h"><span>A votación · {disponibles.length}</span><span>por votos</span></div>
           <div className="card tight">
             {disponibles.map((p) => <Fila key={p.id} plan={p} />)}
+          </div>
+        </>
+      )}
+
+      {hechos.length > 0 && (
+        <>
+          <div className="sec-h"><span>Ya se hicieron · {hechos.length}</span><span>por día</span></div>
+          <div className="card tight">
+            {hechos.map((p) => <Fila key={p.id} plan={p} hecho />)}
           </div>
         </>
       )}
