@@ -16,6 +16,15 @@
  */
 export const NOTAS = [
   {
+    version: '0.75.1',
+    fecha: '2026-08-21',
+    titulo: 'En Trucos ya se ve el truco',
+    lineas: [
+      'El título de cada truco no se veía con el móvil en oscuro: salía claro sobre un recuadro claro. Ahora se lee.',
+      'Era el botón de la fila sin vestir, así que el navegador lo pintaba a su manera.',
+    ],
+  },
+  {
     version: '0.75.0',
     fecha: '2026-08-21',
     titulo: 'Los planes que ya pasaron salen marcados',

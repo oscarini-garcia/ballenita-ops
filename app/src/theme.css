@@ -980,11 +980,18 @@ input[type=time]::-webkit-date-and-time-value { text-align: left; }
 .row.fila-gasto { width: 100%; background: none; border: none; font-family: inherit;
   text-align: left; color: inherit; padding: 11px 0; cursor: pointer; }
 .row.fila-gasto:focus-visible { outline: 2px solid var(--spout); outline-offset: -2px; border-radius: 8px; }
-.row.fila-plan, .fila-idea .main.destapa, .fila-mejora .main.destapa {
+/* **El destapar de una fila se viste por su clase, no por su pantalla**
+   (SPECS §14.81). Esto enumeraba a sus consumidores —`.fila-idea` y
+   `.fila-mejora`—, así que el tercero en llegar, la fila de un truco, se quedó
+   con el botón **tal como lo pinta el navegador**: fondo `rgb(239,239,239)` con
+   el texto en `--ink`, o sea **1,02 : 1** en la cara oscura. El título no es que
+   se leyera mal: no se veía. Un reset escrito como lista de sitios es una lista
+   que hay que acordarse de ampliar, y `src/estilos.test.js` monta guardia. */
+.row.fila-plan, .row .main.destapa {
   width: 100%; background: none; border: none; font-family: inherit;
   text-align: left; color: inherit; padding: 0; }
 .row.fila-plan { display: flex; align-items: center; gap: 11px; padding: 10px 0; }
-.fila-idea .main.destapa, .fila-mejora .main.destapa { display: block; min-width: 0; flex: 1; }
+.row .main.destapa { display: block; min-width: 0; flex: 1; }
 
 /* ── Mejoras (SPECS §14.22, `docs/diseño/mejoras.html` · C2) ─────────────────
    El visto delante de cada mejora: dibujo de 28, toque de 44 — la regla del

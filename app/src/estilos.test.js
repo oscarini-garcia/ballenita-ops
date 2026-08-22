@@ -156,6 +156,59 @@ describe('una capa se ve como capa', () => {
  * blanco de fábrica: **el campo se veía literalmente en blanco**. Las tres veces
  * se vio en el móvil y ninguna aquí. Ahora la lista se comprueba sola.
  */
+/**
+ * **Un `button` sin vestir se pinta con el fondo del navegador** (SPECS §14.81).
+ *
+ * El reset que le quita el cromo al botón que destapa una fila enumeraba a sus
+ * consumidores —`.fila-idea` y `.fila-mejora`—, y el tercero en llegar, la fila
+ * de un truco, se quedó fuera: fondo `rgb(239,239,239)` con el texto en `--ink`,
+ * o sea **1,02 : 1** en la cara oscura. El título no es que se leyera mal, es
+ * que no se veía.
+ *
+ * Es exactamente el mismo mordisco que el de los campos de aquí abajo, y lleva
+ * la misma guardia: **la lista se saca del JSX**, no de la memoria de nadie.
+ */
+describe('los botones que no parecen botones', () => {
+  const CSS = readFileSync(join(RAIZ, 'theme.css'), 'utf8')
+
+  /**
+   * **Se mide, no se lee el selector.** Un botón al que nadie le quita el cromo
+   * sale con `buttonface` de fondo, y eso jsdom sí lo sabe decir: es el mismo
+   * valor que devolvía el navegador de verdad en la fila de un truco.
+   */
+  it('el botón que destapa una fila no se pinta como un botón', () => {
+    document.head.innerHTML = `<style>${CSS}</style>`
+    document.body.innerHTML = '<div class="row"><button class="main destapa">x</button></div>'
+    const boton = document.querySelector('.main.destapa')
+    expect(getComputedStyle(boton).backgroundColor, 'sale con el fondo de fábrica del navegador')
+      .not.toBe('buttonface')
+    expect(getComputedStyle(boton).borderTopStyle).not.toBe('outset')
+    document.head.innerHTML = ''
+    document.body.innerHTML = ''
+  })
+
+  /**
+   * Y el reset **no lleva el nombre de una pantalla delante**.
+   *
+   * Enumeraba a sus consumidores —`.fila-idea` y `.fila-mejora`—, y el tercero
+   * en llegar, la fila de un truco, se quedó fuera. Una lista de sitios es una
+   * lista que hay que acordarse de ampliar; una clase viste a quien la lleve.
+   */
+  it('y viste por clase, sin listar pantallas', () => {
+    const conLaForma = [...CSS.matchAll(/^([^{}\n][^{}]*)\{/gm)]
+      .flatMap(([, sel]) => sel.split(','))
+      .map((x) => x.trim())
+      .filter((x) => x.includes('.main.destapa'))
+    expect([...new Set(conLaForma)]).toEqual(['.row .main.destapa'])
+  })
+
+  /** Y que siga habiendo alguno en el JSX: si no, esta guardia sobra. */
+  it('sigue habiendo filas que se destapan', () => {
+    const cuantos = jsx().filter((f) => /className="[^"]*\bdestapa\b/.test(readFileSync(f, 'utf8')))
+    expect(cuantos.length).toBeGreaterThan(0)
+  })
+})
+
 describe('los campos de formulario', () => {
   const CSS = readFileSync(join(RAIZ, 'theme.css'), 'utf8')
   // La regla que da fondo, borde y ancho a todos los campos. Se busca al

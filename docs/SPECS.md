@@ -4518,6 +4518,34 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.81 En Trucos no se veía el truco
+
+El título de cada truco salía **invisible** en la cara oscura: fondo
+`rgb(239,239,239)` con el texto en `--ink` (`#e6eef3`), o sea **1,02 : 1**. No es
+que se leyera mal — no estaba. Se veía la firma de debajo y un rectángulo claro
+donde tenía que estar la frase.
+
+- **La causa: un reset escrito como lista de pantallas.** El que le quita el
+  cromo al botón que destapa una fila decía
+  `.fila-idea .main.destapa, .fila-mejora .main.destapa`, y la fila de un truco
+  es `.row > button.main.destapa` **sin ninguna de las dos clases**. Sin reset,
+  el navegador pinta el botón como pinta un botón: `buttonface` de fondo y borde
+  `outset`. El color sí lo heredaba de la app, y por eso salía claro sobre claro.
+- **✅ El arreglo va a la causa**: `.row .main.destapa`. Viste a quien lleve la
+  clase, no a quien esté en la pantalla que había cuando se escribió la regla.
+- **✅ Y monta guardia, medida** (`src/estilos.test.js`). Es **el mismo mordisco**
+  que el de los campos de formulario —§14.27-bis, «tercera vez que muerde lo
+  mismo»— y lleva la misma medicina: la prueba **inyecta `theme.css` en jsdom**,
+  monta la fila y comprueba que el fondo no es `buttonface`. No lee el selector:
+  lo mide. Comprobado al revés, estrechando el reset a mano: las dos mitades de
+  la guardia se ponen rojas.
+- **Y la segunda mitad prohíbe la forma que lo causó**: ninguna regla que hable
+  de `.main.destapa` puede llevar el nombre de una pantalla delante. `.fila-fam
+  .destapa` de `HojaDeEntre` no entra —es otra forma, con su propia regla
+  completa—, y por eso la guardia mira `.main.destapa` y no `.destapa` a secas.
+- **Sin cambios en la base ni en ninguna pantalla**: una línea de CSS y tres
+  pruebas.
+
 ### 14.80 Lo que ya pasó baja al final, marcado
 
 Un plan del martes seguía el jueves entre «Elegidos», diciendo «faltan 4 por
