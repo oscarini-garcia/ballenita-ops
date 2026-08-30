@@ -9,8 +9,8 @@ Cada hecho declarado dos veces coincide con su gemelo.
 
 ## Las dos piezas
 
-- **`app/`** v0.75.1 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
-  1222 pruebas en 120 ficheros · `npm test` → `vitest run`
+- **`app/`** v0.76.0 — PWA para gestionar los eventos del grupo de amigos — gastos estilo Splitwise entre familias, offline-first. 🐳
+  1233 pruebas en 120 ficheros · `npm test` → `vitest run`
 - **`api/`** v1.0.0 — API de Ballena Ops sobre Cloudflare Workers y D1 🐳
   272 pruebas en 25 ficheros · `npm test` → `node --test 'test/*.test.js'`
 
@@ -329,7 +329,7 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.34** Cada versión se describe a sí misma → `EventSettingsScreen.jsx`, `notas.js`
 - **§14.36** Tu estado, en la cabecera → `HoyScreen.jsx`, `PastillaDeEstado.jsx`, `api.js`, `db.js`, `estados.js`, `index.js`
 - **§14.37** La marca es el icono, y el rojo se reserva para lo que falla → `EventSettingsScreen.jsx`
-- **§14.38** Borrar pregunta, y la pregunta dice qué se lleva → `DiasScreen.jsx`, `anfitrion.js`, `personas.js`
+- **§14.38** Borrar pregunta, y la pregunta dice qué se lleva → `DiasScreen.jsx`, `anfitrion.js`, `personas.js`, `reparto-vista.js`
 - **§14.39** De qué avisarte, y no avisarte de lo tuyo → `CuentasSection.jsx`, `api.js`, `avisos.js`, `index.js`
 - **§14.41** Quién puede tocar qué: la cuenta siembra la identidad, y los cerrojos → `BalancesScreen.jsx`, `DiasScreen.jsx`, `EventSettingsScreen.jsx`, `ExpensesScreen.jsx`, `GrupoSection.jsx`, `db.js` · +5 más
 - **§14.42** Con sesión, quién eres lo dice la cuenta y no se elige → `BotonDePerfil.jsx`, `EventSettingsScreen.jsx`, `identidad.js`
@@ -371,3 +371,4 @@ Leído de las citas que los comentarios del código hacen a `docs/SPECS.md`.
 - **§14.78** Quien se va unos días deja de contar → `FichaDeGasto.jsx`, `GrupoSection.jsx`, `HojaDeEntre.jsx`, `cacharros.js`, `compra.js`, `db.js` · +3 más
 - **§14.79** La casa entera de una vez, y lo marca cualquier adulto → `GrupoSection.jsx`, `db.js`, `permisos.js`, `personas.js`
 - **§14.80** Lo que ya pasó baja al final, marcado → `PlanesScreen.jsx`, `planes.js`
+- **§14.82** En la lista de gastos, lo que te toca a ti → `ExpensesScreen.jsx`, `reparto-vista.js`

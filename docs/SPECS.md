@@ -4518,6 +4518,48 @@ encendida no hacía nada.
 
 ## 15. Registro de decisiones
 
+### 14.82 En la lista de gastos, lo que te toca a ti
+
+Decidido en `docs/diseño/gasto-lo-tuyo.html` · **A1 · B1 · C1**. La cifra ya
+estaba calculada —`expenseFamilyShares` es la que usa Saldos—, así que lo que se
+decidió no fue cómo sacarla sino dónde cabe, de quién es y qué dice el día que
+pagaste tú.
+
+- **A1 · debajo del importe, en su columna.** El total arriba como siempre y lo
+  tuyo debajo, en el azul de la app. La columna del importe tenía **una línea de
+  alto en una fila que ya medía dos**, así que la segunda cabe sin que la fila
+  crezca — que es lo que descartó a las otras cuatro: la del renglón de debajo
+  costaba 22,8 pt por fila y la de dos columnas dejaba el título en 77.
+- **B1 · lo de tu familia**, no tu parte por cabeza. La deuda se salda entre
+  casas, así que es la cifra que casa con Saldos y con lo que se acaba pagando.
+  Tu sexta parte no aparece en ninguna otra pantalla, y dos pantallas que
+  contestan distinto a la misma pregunta se leen como un fallo.
+- **C1 · siempre lo consumido**, también en los gastos que pagaste tú. Una
+  columna, una regla y ninguna excepción, así que **suma**: el total del final
+  dice «De los que te tocan 116,16 €», que es el remate de la decisión y lo que
+  la convierte en algo más que un dato por fila. Quién puso el dinero ya vive en
+  Saldos, que es la pantalla de al lado y la que existe para eso.
+- **El cero no se dice** (§14.38): un gasto que no te toca no pinta «te tocan
+  0,00 €», se calla. Y sin identidad puesta —la libreta local, la demostración—
+  no hay «tú» y la fila se queda exactamente como estaba.
+
+**Lo que la hoja no vio y sí vio el navegador.** La hoja midió A1 con la segunda
+línea puesta a **la cifra sola**, y la implementación empezó poniendo el rótulo
+entero: «te tocan 74,00 €» lleva la columna a **133,9 pt**, estrecha el título a
+146,1 y **parte el renglón de debajo**, con lo que la fila se iba a 93,5 — el
+coste exacto que A1 decía no tener. Con «tú 74,00 €» a `--t-label` seguía robando
+9,2 pt en Enorme, lo justo para partir «Varios · pagó Solteros · solo los
+mayores». A **`--t-micro`** la columna cabe entera dentro de lo que ya ocupaba
+«148,00 €». Comprobado gasto a gasto, con y sin identidad, en Grande y en
+Enorme: **ninguna fila crece y el título no pierde un punto**.
+
+Es un escalón más pequeño de lo que decía la hoja, y es lo que hace verdadera su
+medida — el sitio donde se comprueba una medida es la app, no la maqueta que la
+propuso.
+
+- **Sin cambios en la base ni en la sincronización**: la cifra sale de lo que ya
+  está guardado, y no hay migración.
+
 ### 14.81 En Trucos no se veía el truco
 
 El título de cada truco salía **invisible** en la cara oscura: fondo

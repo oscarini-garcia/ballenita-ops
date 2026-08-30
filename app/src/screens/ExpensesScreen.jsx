@@ -9,6 +9,7 @@ import Recado from '../components/Recado.jsx'
 import Icono from '../components/Icono.jsx'
 import Confirmar from '../components/Confirmar.jsx'
 import { comoSeReparte } from '../lib/reparto-gente.js'
+import { loQueTeToca } from '../lib/reparto-vista.js'
 import { queSeLlevaUnGasto } from '../lib/borrados.js'
 import { tap } from '../lib/native.js'
 import { useIdentidad } from '../lib/identidad.js'
@@ -35,6 +36,12 @@ export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
   const { me } = useIdentidad(eventId, persons)
   const soloMirar = !puedeOrganizar(me)
   const famName = (id) => families.find((f) => f.id === id)?.name ?? '—'
+  // **Lo que te toca a ti, en la misma columna del importe** (§14.82 · A1·B1·C1).
+  // El mapa de personas se hace una vez y no por fila: `expenseFamilyShares` lo
+  // pide en cada gasto, y con nueve personas y treinta gastos eso son treinta
+  // vueltas a la misma lista.
+  const personsById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const tuyo = (gasto) => loQueTeToca(gasto, personsById, me?.familyId)
 
   // Llegar desde un aviso abre ese gasto (§14.60 · R2). Se espera a que la lista
   // esté: con la app recién arrancada el toque llega antes que la instantánea.
@@ -45,6 +52,8 @@ export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
   }, [abrir, expenses.length])
 
   const total = expenses.reduce((s, e) => s + (e.amountCents ?? 0), 0)
+  const sumaMia = expenses.reduce((s, e) => s + (loQueTeToca(e, personsById, me?.familyId) ?? 0), 0)
+  const totalMio = me?.familyId && sumaMia > 0 ? sumaMia : null
 
   return (
     <div className="body">
@@ -79,6 +88,7 @@ export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
           // solo cuando no hay descripción, que es cuando hace falta desempatar
           // —«Pagó Solteros · sin los niños» ya son 238 pt de los 245 que caben—.
           const raro = comoSeReparte(e, persons)
+          const mio = tuyo(e)
           const sub = [
             puesto ? c.label : null,
             `${puesto ? 'p' : 'P'}agó ${e.payers?.map((p) => famName(p.familyId)).join(', ')}`,
@@ -94,7 +104,23 @@ export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
                   {e.currency && e.currency !== event.currency && <> · <span className="pill fx">{e.amountOriginal} {e.currency}</span></>}
                 </span>
               </span>
-              <span className="amt tnum">{formatCents(e.amountCents, event.currency)}</span>
+              {/* La columna del importe pasa a dos renglones cuando hay un «tú»
+                  a quien referirse. **No crece la fila ni estrecha el título**:
+                  medido gasto a gasto, con y sin identidad, en Grande y en
+                  Enorme — cada fila mide exactamente lo que medía. Esta columna
+                  tenía una línea de alto en una fila que ya medía dos. */}
+              {mio === null
+                ? <span className="amt tnum">{formatCents(e.amountCents, event.currency)}</span>
+                : (
+                  <span className="amt tnum con-lo-mio">
+                    {formatCents(e.amountCents, event.currency)}
+                    {/* **«tú», y no «te tocan»** (§14.82). Medido: con el verbo
+                        entero la columna se va a 133,9 pt, estrecha el título a
+                        146,1 y **parte el renglón de debajo**, así que la fila
+                        crecía a 93,5 — el coste que A1 decía no tener. */}
+                    <span className="lo-mio">tú {formatCents(mio, event.currency)}</span>
+                  </span>
+                )}
             </>
           )
           // El escaparate: la misma fila, sin gesto detrás ni ficha que abrir.
@@ -138,7 +164,13 @@ export default function ExpensesScreen({ eventId, event, abrir, onAbierta }) {
       {expenses.length > 0 && (
         <div className="card tight total-final">
           <div><div className="cifra-l">Gasto total del evento</div>
-            <div className="tnum cifra">{formatCents(total, event.currency)}</div></div>
+            <div className="tnum cifra">{formatCents(total, event.currency)}</div>
+            {/* El remate de C1: una columna con una sola regla **suma**, y lo que
+                suma es lo que te ha costado el viaje. Sin esto, la cifra de cada
+                fila no acaba en ninguna parte. */}
+            {totalMio !== null && (
+              <div className="cifra-tuya tnum">De los que te tocan {formatCents(totalMio, event.currency)}</div>
+            )}</div>
           <div className="pill neutral">{expenses.length} gastos</div>
         </div>
       )}

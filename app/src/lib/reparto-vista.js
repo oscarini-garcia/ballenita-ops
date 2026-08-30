@@ -22,6 +22,32 @@ const cifra = (cents) => new Intl.NumberFormat('es-ES', {
  * Sale ordenado de más a menos y **sin las familias a cero**: una casa que no
  * entra en el gasto no es un renglón que diga «0,00 €», es una casa que no está.
  */
+/**
+ * Lo que le toca a **tu familia** de un gasto, en céntimos (SPECS §14.82,
+ * `docs/diseño/gasto-lo-tuyo.html` · A1 · B1 · C1).
+ *
+ * **La de tu familia y no la tuya por cabeza** (B1): la deuda se salda entre
+ * casas, así que es la cifra que casa con Saldos y con lo que se acaba pagando.
+ * Tu sexta parte no aparece en ninguna otra pantalla, y dos pantallas que
+ * contestan distinto a la misma pregunta se leen como un fallo.
+ *
+ * **Y siempre lo consumido, también cuando pagaste tú** (C1): una columna, una
+ * regla y ninguna excepción, así que sumada de arriba abajo da lo que te ha
+ * costado el viaje. Quién puso el dinero ya vive en Saldos, que es la pantalla
+ * de al lado y la que existe para eso.
+ *
+ * Devuelve `null` —y entonces no se pinta nada— en los tres casos en los que no
+ * hay respuesta o la respuesta es cero: sin identidad puesta (la libreta local,
+ * la demostración), sin familia, y cuando el gasto no te toca. **El cero no se
+ * dice** (§14.38): «te tocan 0,00 €» es ruido en una lista donde lo que importa
+ * es comparar de un vistazo las filas que sí.
+ */
+export function loQueTeToca(gasto, personsById, familyId) {
+  if (!gasto || !familyId) return null
+  const cents = expenseFamilyShares(gasto, personsById).get(familyId) ?? 0
+  return cents > 0 ? cents : null
+}
+
 export function repartoDeFamilias({ amountCents, participantIds, reparto }, familias, personsById) {
   const porFamilia = expenseFamilyShares(
     { amountCents, participantIds, reparto },
