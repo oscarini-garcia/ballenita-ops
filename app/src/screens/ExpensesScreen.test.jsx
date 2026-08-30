@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import ExpensesScreen from './ExpensesScreen.jsx'
 import { createEvent, addFamily, addPerson, addExpense, expensesOf } from '../db.js'
 import { setMeId } from '../lib/identidad.js'
+import { formatCents } from '../lib/money.js'
 
 // Los creadores de `db.js` devuelven el id, no la fila.
 const FECHA = '2026-08-12T18:00:00.000Z'
@@ -454,5 +455,93 @@ describe('Gastos · cómo se va a repartir', () => {
       expect(euros[0]).toMatch(/13,00/)
       expect(euros[1]).toMatch(/13,00/)
     })
+  })
+})
+
+/**
+ * **La columna de lo tuyo** (SPECS §14.82, `gasto-lo-tuyo.html` · A1 · B1 · C1).
+ *
+ * En la semilla, «Cañas en el chiringuito» son 24,60 € entre Curro (García),
+ * Ana (Pérez) y Pablo (niño, Pérez, peso 0,6): García 9,46 y Pérez 15,14. Los
+ * paga García, así que sirve además para C1 — pagas 24,60 y te tocan 9,46.
+ */
+describe('lo que te toca a ti (§14.82)', () => {
+  /**
+   * **La fila no crece**, que es lo que descartó a las otras cuatro formas de la
+   * hoja. Se comprueba aquí porque en el navegador se cayó una vez: con «te
+   * tocan 74,00 €» la columna se iba a 133,9 pt y partía el renglón de debajo.
+   */
+  it('el rótulo es «tú» y no un verbo: con el verbo la fila crecía', async () => {
+    const { eventId, event, curro } = await sembrar()
+    setMeId(eventId, curro)
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+
+    await screen.findByText('tú 9,46 €')
+    // Se mira **el renglón de la fila** y no la pantalla: el pie sí lleva el
+    // verbo entero —«De los que te tocan…»—, porque ahí hay una línea para él.
+    // La cifra se compone con la misma función que la pinta: `Intl` mete un
+    // espacio **duro** antes del €, y contra un literal con espacio normal dos
+    // cadenas idénticas a la vista no son iguales.
+    const enLaFila = [...document.querySelectorAll('.lo-mio')].map((e) => e.textContent)
+    expect(enLaFila).toEqual([`tú ${formatCents(946, 'EUR')}`])
+  })
+
+  it('sale bajo el importe, con lo de tu familia y no tu parte por cabeza', async () => {
+    const { eventId, event, curro } = await sembrar()
+    setMeId(eventId, curro)
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+
+    await screen.findByText('Cañas en el chiringuito')
+    // C1: lo pagó su casa entera y aun así dice lo consumido.
+    expect(await screen.findByText('tú 9,46 €')).toBeInTheDocument()
+    // El total sigue arriba en su sitio: son dos, el de la fila y el del pie.
+    expect(screen.getAllByText(/24,60 €/).length).toBeGreaterThan(0)
+  })
+
+  it('desde la otra casa el número es el suyo', async () => {
+    const { eventId, event, ana } = await sembrar()
+    setMeId(eventId, ana)
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+
+    await screen.findByText('Cañas en el chiringuito')
+    // Ana y Pablo: 1 + 0,6 de 2,6 partes.
+    expect(await screen.findByText('tú 15,14 €')).toBeInTheDocument()
+  })
+
+  it('sin identidad puesta no hay «tú», y la fila se queda como estaba', async () => {
+    const { eventId, event } = await sembrar()
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+
+    await screen.findByText('Cañas en el chiringuito')
+    expect(screen.queryByText(/^tú /)).toBeNull()
+  })
+
+  it('un gasto que no te toca no dice «0,00 €»: se calla', async () => {
+    const { eventId, event, garcia, curro, ana } = await sembrar({ conGasto: false })
+    await addExpense(eventId, {
+      description: 'Cena de los Pérez', amountCents: 3000, currency: 'EUR',
+      category: 'restaurante', dateISO: FECHA,
+      payers: [{ familyId: garcia, amountCents: 3000 }], participantIds: [ana],
+    })
+    setMeId(eventId, curro)
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+
+    await screen.findByText('Cena de los Pérez')
+    expect(screen.queryByText(/^tú /)).toBeNull()
+  })
+
+  it('y el total del final suma lo tuyo, que es para lo que sirve la columna', async () => {
+    const { eventId, event, garcia, curro, ana } = await sembrar()
+    await addExpense(eventId, {
+      description: 'Gasolina', amountCents: 4000, currency: 'EUR',
+      category: 'varios', dateISO: FECHA,
+      payers: [{ familyId: garcia, amountCents: 4000 }], participantIds: [curro, ana],
+    })
+    setMeId(eventId, curro)
+    render(<ExpensesScreen eventId={eventId} event={event} />)
+
+    await screen.findByText('Gasolina')
+    // 9,46 de las cañas + 20,00 de la gasolina.
+    expect(await screen.findByText(/De los que te tocan 29,46 €/)).toBeInTheDocument()
   })
 })

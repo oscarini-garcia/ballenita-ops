@@ -598,6 +598,35 @@ body.modal-abierto .body { overflow: hidden; }
 .row .main .n.envuelve { white-space: normal; overflow: visible; }
 .amt.owe { color: var(--owe); } .amt.owed { color: var(--owed); }
 
+/* ── Lo que te toca a ti, bajo el importe (SPECS §14.82 · A1) ────────────────
+   La columna del importe pasa a dos renglones **sin que la fila crezca**: tenía
+   una línea de alto en una fila que ya medía dos, así que los 70,7 pt de la fila
+   de un gasto siguen siendo 70,7 (102,4 en Enorme). Es lo que descartó a las
+   otras cuatro formas de la hoja — la del renglón de debajo costaba 22,8 pt por
+   fila y la de dos columnas dejaba el título en 77.
+
+   **Dos cosas se midieron en el navegador y las dos cambiaron el dibujo.** El
+   rótulo entero —«te tocan 74,00 €»— llevaba la columna a 133,9 pt, estrechaba
+   el título a 146,1 y **partía el renglón de debajo**: la fila se iba a 93,5, el
+   coste que A1 decía no tener. Y con «tú 74,00 €» a `--t-label` seguía robando
+   9,2 pt en Enorme, lo justo para partir «Varios · pagó Solteros · solo los
+   mayores». A `--t-micro` la columna **cabe entera dentro de lo que ya ocupaba
+   «148,00 €»**: ninguna fila crece y el título no pierde un punto en ninguna
+   talla. Es un escalón más pequeño de lo que decía la hoja, y es lo que hace
+   verdadera su medida.
+
+   Va en el azul de la app y no en el verde de los saldos: no es un saldo, es lo
+   que has consumido. `tabular-nums` lo hereda de `.amt`, y sin él «74,00» y
+   «148,00» no alinean por la coma. */
+.amt.con-lo-mio { display: flex; flex-direction: column; align-items: flex-end;
+  line-height: 1.2; }
+.amt .lo-mio { font-size: var(--t-micro); font-weight: 600; color: var(--spout-deep);
+  white-space: nowrap; }
+/* Y el remate en el total del final: la columna suma, y lo que suma es lo que te
+   ha costado el viaje. */
+.cifra-tuya { font-size: var(--t-sub); font-weight: 600; color: var(--spout-deep);
+  margin-top: 2px; }
+
 .av { width: 36px; height: 36px; border-radius: 8px; flex: none; display: grid; place-items: center;
   font-size: var(--t-body); color: #fff; overflow: hidden; }
 /* Con dos o tres dibujos, la casilla **los encoge** en vez de recortarlos

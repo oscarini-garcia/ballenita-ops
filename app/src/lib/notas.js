@@ -16,6 +16,17 @@
  */
 export const NOTAS = [
   {
+    version: '0.76.0',
+    fecha: '2026-08-22',
+    titulo: 'Cada gasto dice lo que te toca a ti',
+    lineas: [
+      'En la lista de Gastos, bajo el importe de cada uno sale lo que le toca a tu familia: «tú 74,00 €».',
+      'Y el total del final lo suma: «De los que te tocan 116,16 €», que es lo que te ha costado el viaje.',
+      'Es siempre lo consumido, también en los gastos que pagaste tú — quién puso el dinero se sigue viendo en Saldos.',
+      'Un gasto que no te toca no dice nada, y sin saber quién eres la fila se queda como estaba.',
+    ],
+  },
+  {
     version: '0.75.1',
     fecha: '2026-08-21',
     titulo: 'En Trucos ya se ve el truco',

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { repartoDeFamilias, fraseDelReparto } from './reparto-vista.js'
+import { repartoDeFamilias, fraseDelReparto, loQueTeToca } from './reparto-vista.js'
 import { formatCents } from './money.js'
 
 /**
@@ -170,5 +170,57 @@ describe('y cabe en un renglón', () => {
     )
     const frase = texto(fraseDelReparto(filas))
     expect(frase.length, `«${frase}» son ${frase.length} letras`).toBeLessThanOrEqual(TOPE)
+  })
+})
+
+/**
+ * Lo que te toca a ti de un gasto (SPECS §14.82 · A1 · B1 · C1).
+ *
+ * Tres decisiones y las tres se prueban aquí, porque es donde se pueden probar
+ * sin montar una pantalla: **la de tu familia** y no tu parte por cabeza,
+ * **siempre lo consumido** aunque hayas pagado tú, y **nada cuando es cero**.
+ */
+describe('lo que te toca de un gasto', () => {
+  // García: Curro y Marta. Pérez: Ana. Seis euros entre tres a partes iguales.
+  const gente = {
+    curro: { id: 'curro', familyId: 'garcia' },
+    marta: { id: 'marta', familyId: 'garcia' },
+    ana: { id: 'ana', familyId: 'perez' },
+  }
+  const gasto = {
+    amountCents: 600,
+    participantIds: ['curro', 'marta', 'ana'],
+    payers: [{ familyId: 'perez', amountCents: 600 }],
+  }
+
+  it('es lo de tu familia entera, no tu parte por cabeza', () => {
+    // Curro es uno de tres, pero su casa son dos: 400, no 200. Es la cifra que
+    // casa con Saldos, que es donde se liquida.
+    expect(loQueTeToca(gasto, gente, 'garcia')).toBe(400)
+    expect(loQueTeToca(gasto, gente, 'perez')).toBe(200)
+  })
+
+  it('no cambia porque hayas pagado tú: una regla y ninguna excepción', () => {
+    // Los Pérez pusieron los 600 y consumen 200. La columna dice 200 — quién
+    // puso el dinero vive en Saldos, que es la pantalla de al lado.
+    expect(loQueTeToca(gasto, gente, 'perez')).toBe(200)
+  })
+
+  it('nulo cuando no hay a quién referirse: sin identidad y sin familia', () => {
+    expect(loQueTeToca(gasto, gente, null)).toBeNull()
+    expect(loQueTeToca(gasto, gente, undefined)).toBeNull()
+    expect(loQueTeToca(null, gente, 'garcia')).toBeNull()
+  })
+
+  it('y nulo cuando el gasto no te toca: el cero no se dice', () => {
+    const soloGarcia = { ...gasto, participantIds: ['curro', 'marta'] }
+    expect(loQueTeToca(soloGarcia, gente, 'perez')).toBeNull()
+  })
+
+  it('respeta el reparto fino, que es de donde sale la cifra', () => {
+    // Con reparto por partes manda lo escrito, no las cabezas (§14.26).
+    const aMedias = { ...gasto, reparto: { modo: 'partes', porFamilia: { garcia: 1, perez: 3 } } }
+    expect(loQueTeToca(aMedias, gente, 'garcia')).toBe(150)
+    expect(loQueTeToca(aMedias, gente, 'perez')).toBe(450)
   })
 })
