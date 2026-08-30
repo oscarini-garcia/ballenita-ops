@@ -1,0 +1,579 @@
+<title>Lo que te toca en cada gasto</title>
+<style>
+  :root {
+    --bg: #f1f4f8;
+    --card: #ffffff;
+    --lift: #fafcfe;
+    --ink: #1c2733;
+    --sub: #55677a;
+    --line: rgba(28, 39, 51, 0.12);
+    --line-hard: rgba(28, 39, 51, 0.28);
+    --ac: #1793a8;
+    --ac-ink: #ffffff;
+    --rec: #7a8ea1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14181d;
+      --card: #1e242b;
+      --lift: #242b33;
+      --ink: #dce5ee;
+      --sub: #93a4b5;
+      --line: rgba(220, 229, 238, 0.12);
+      --line-hard: rgba(220, 229, 238, 0.3);
+      --ac: #40c4d8;
+      --ac-ink: #10181d;
+      --rec: #7f92a5;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14181d;
+    --card: #1e242b;
+    --lift: #242b33;
+    --ink: #dce5ee;
+    --sub: #93a4b5;
+    --line: rgba(220, 229, 238, 0.12);
+    --line-hard: rgba(220, 229, 238, 0.3);
+    --ac: #40c4d8;
+    --ac-ink: #10181d;
+    --rec: #7f92a5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15.5px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 40px 20px 140px; }
+  .mono { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; }
+  h1 { font-size: 27px; line-height: 1.2; margin: 0 0 10px; letter-spacing: -0.01em; text-wrap: balance; }
+  .stand { color: var(--sub); margin: 0 0 8px; max-width: 60ch; }
+  .stand em { color: var(--ink); font-style: italic; }
+  .q { margin-top: 44px; }
+  .qhead {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sub);
+    margin: 0 0 4px;
+  }
+  .qtitle { font-size: 19px; font-weight: 650; margin: 0 0 6px; text-wrap: balance; }
+  .qwhy { color: var(--sub); margin: 0 0 14px; max-width: 62ch; }
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    color: var(--ink);
+    font: inherit;
+    transition: border-color 0.12s ease;
+  }
+  .opt:hover { border-color: var(--line-hard); }
+  .opt:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
+  .opt[aria-pressed="true"] { border-color: var(--ac); box-shadow: 0 0 0 1.5px var(--ac); }
+  .optrow { display: flex; align-items: baseline; gap: 10px; }
+  .tok {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ac);
+    flex: none;
+  }
+  .oname { font-weight: 640; font-size: 16px; }
+  .rec {
+    margin-left: auto;
+    flex: none;
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    color: var(--rec);
+    border: 1px solid var(--line-hard);
+    border-radius: 99px;
+    padding: 2px 8px;
+  }
+  .obody { color: var(--sub); margin: 6px 0 0; font-size: 14.5px; max-width: 62ch; }
+  .obody b { color: var(--ink); font-weight: 600; }
+  /* Mockup block: a static preview of the option, drawn at the same fidelity
+     as its rivals. Never put a button, link or input in here — the card is
+     itself a button and would swallow the tap. */
+  .mock {
+    margin: 12px 0 2px;
+    background: var(--lift);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 12px 14px;
+    overflow: hidden;
+  }
+  .mock svg { display: block; width: 100%; height: auto; max-height: 200px; }
+  .mock .sample { color: var(--ink); font-size: 14px; line-height: 1.55; margin: 0; }
+  .mock .sample + .sample { margin-top: 8px; }
+  .mock .caption {
+    display: block;
+    margin-top: 8px;
+    color: var(--sub);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
+  .opt.none .oname { color: var(--sub); font-weight: 600; }
+  .opt.none .tok { color: var(--sub); }
+  details.note { margin-top: 10px; }
+  details.note summary {
+    cursor: pointer;
+    color: var(--sub);
+    font-size: 13.5px;
+    list-style: none;
+    display: inline-block;
+    border-bottom: 1px dashed var(--line-hard);
+  }
+  details.note summary::-webkit-details-marker { display: none; }
+  details.note textarea {
+    margin-top: 8px;
+    width: 100%;
+    min-height: 60px;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+    resize: vertical;
+  }
+  details.note textarea:focus-visible { outline: 2px solid var(--ac); outline-offset: 1px; }
+  .foot { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--sub); font-size: 14px; max-width: 62ch; }
+  .foot b { color: var(--ink); font-weight: 600; }
+  .bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--lift);
+    border-top: 1px solid var(--line);
+    padding: 12px max(20px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-bottom));
+  }
+  .barin { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+  .count { color: var(--sub); font-size: 14px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .count .mono { color: var(--ink); }
+  .copy {
+    flex: none;
+    background: var(--ac);
+    color: var(--ac-ink);
+    border: 0;
+    border-radius: 99px;
+    padding: 9px 18px;
+    font: inherit;
+    font-weight: 620;
+    font-size: 14.5px;
+    cursor: pointer;
+  }
+  .copy:disabled { opacity: 0.45; cursor: default; }
+  .copy:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* `.mock` es un `<span>` dentro del `<button>` de la tarjeta, y sin esto se
+     queda en línea: los bloques de dentro parten su caja en trozos y el
+     `overflow: hidden` del template se come la primera letra de cada pie. */
+  .mock { display: block; }
+  /* La fila de un gasto, calcada de `app/src/theme.css` y dibujada a la misma
+     proporción que en el móvil: 362 pt de tarjeta, icono de 34, importe a la
+     derecha. Los tamaños van en px de esta página, no en pt del móvil — lo que
+     se compara aquí es la forma; los pt medidos están en el cuerpo de cada
+     opción. */
+  .fila { display: flex; align-items: center; gap: 10px; padding: 9px 0;
+    border-top: 1px solid var(--line); }
+  .fila:first-child { border-top: none; }
+  .fila .ico { width: 30px; height: 30px; flex: none; border-radius: 8px;
+    display: grid; place-items: center; font-size: 15px;
+    background: color-mix(in srgb, var(--ac) 14%, transparent); }
+  .fila .txt { flex: 1; min-width: 0; }
+  .fila .n { display: block; font-size: 14px; font-weight: 560; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fila .s { display: block; font-size: 12px; color: var(--sub); }
+  .fila .s.parte { white-space: normal; }
+  .fila .cif { font-variant-numeric: tabular-nums; font-weight: 640; font-size: 14px;
+    white-space: nowrap; text-align: right; }
+  .fila .dos { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+  .fila .dos .men { font-size: 11.5px; font-weight: 600; color: var(--ac); }
+  .fila .dos .men.gris { color: var(--sub); font-weight: 500; }
+  .fila .col { width: 74px; flex: none; }
+  .recorta { color: var(--sub); }
+  .mando { display: flex; gap: 3px; background: var(--line); padding: 3px;
+    border-radius: 8px; margin-bottom: 8px; font-size: 11.5px; }
+  .mando span { flex: 1; text-align: center; padding: 5px 4px; border-radius: 6px; color: var(--sub); }
+  .mando span.on { background: var(--card); color: var(--ink); font-weight: 620; }
+  .mock .cap2 { display: block; margin-top: 8px; color: var(--sub); font-size: 12px; }
+  table.med { border-collapse: collapse; font-size: 13.5px; margin: 10px 0 0; width: 100%; }
+  table.med td, table.med th { border-bottom: 1px solid var(--line); padding: 6px 10px 6px 0;
+    text-align: left; color: var(--sub); vertical-align: top; }
+  table.med th { color: var(--ink); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; }
+  table.med td:first-child { color: var(--ink); font-weight: 620; white-space: nowrap; }
+  table.med .num { font-variant-numeric: tabular-nums; }
+  table.med .mal { color: #b4544a; font-weight: 620; }
+  @media (prefers-reduced-motion: reduce) { .opt { transition: none; } }
+</style>
+
+<div class="wrap">
+  <h1>Lo que te toca en cada gasto</h1>
+  <p class="stand">Pediste <em>«en gastos, añade otra columna que sea lo que te toca a ti de
+  cada gasto»</em>. La cifra ya está calculada —<code class="mono">expenseFamilyShares</code> la
+  usa Saldos—, así que lo que hay que decidir no es cómo sacarla sino <b>dónde cabe</b>, <b>de
+  quién es</b> y <b>qué dice el día que pagaste tú</b>.</p>
+  <p class="stand"><b>Antes de las opciones, un hecho medido que no se vota:</b> la fila de un
+  gasto <b>ya va sin sitio</b>. «Compra grande Mercadona» pide <b>273,2 pt</b> de título en una
+  caja de <b>192,2</b> — hoy, sin tocar nada, se recorta con puntos suspensivos. Cualquier
+  columna nueva sale de ahí, y por eso las medidas de abajo son la mitad del argumento.</p>
+
+  <section class="q" data-q="A">
+    <p class="qhead">Pregunta A · Dónde cabe</p>
+    <p class="qtitle">¿Dónde va la segunda cifra?</p>
+    <p class="qwhy">Todo dibujado a 362 pt de tarjeta con los gastos del Demo, y medido en
+    Chromium en las dos tallas que se usan. Hoy la fila mide <b>70,7 pt</b> (102,4 en Enorme).</p>
+    <div class="opts">
+
+      <button class="opt" data-t="A1" aria-pressed="false">
+        <span class="optrow"><span class="tok">A1</span><span class="oname">Debajo del importe, en su columna</span><span class="rec">RECOMENDADA</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">148,00 €<span class="men">te tocan 74,00</span></span></span>
+          <span class="fila"><span class="ico">⛽</span><span class="txt"><span class="n">Gasolina ida</span><span class="s">Varios · pagó Solteros</span></span><span class="cif dos">60,00 €<span class="men">te tocan 30,00</span></span></span>
+          <span class="fila"><span class="ico">🍷</span><span class="txt"><span class="n">Hielo y birras 🍷</span><span class="s">Bebida · pagó García</span></span><span class="cif dos">24,30 €<span class="men">te tocan 12,15</span></span></span>
+          <span class="cap2">Cifras reales del Demo, siendo tú de los García.</span>
+        </span>
+        <p class="obody">La columna del importe pasa a dos renglones: el total arriba como
+        siempre, lo tuyo debajo en pequeño y en el azul de la app. <b>Sale gratis: 70,7 pt, que
+        es exactamente lo que mide la fila hoy</b> —la columna del importe tenía una línea de
+        alto en una fila de dos—, y el título se queda en sus 192,2. <b>Cuesta</b> que la cifra
+        de abajo va a 14,6 px, un escalón por debajo del renglón de «pagó Pérez», y que dos
+        números pegados obligan a leer cuál es cuál la primera vez.</p>
+      </button>
+
+      <button class="opt" data-t="A2" aria-pressed="false">
+        <span class="optrow"><span class="tok">A2</span><span class="oname">Lo tuyo manda y el total baja</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">74,00 €<span class="men gris">de 148,00</span></span></span>
+          <span class="fila"><span class="ico">⛽</span><span class="txt"><span class="n">Gasolina ida</span><span class="s">Varios · pagó Solteros</span></span><span class="cif dos">30,00 €<span class="men gris">de 60,00</span></span></span>
+          <span class="fila"><span class="ico">🍷</span><span class="txt"><span class="n">Hielo y birras 🍷</span><span class="s">Bebida · pagó García</span></span><span class="cif dos">12,15 €<span class="men gris">de 24,30</span></span></span>
+          <span class="cap2">La misma fila, con los dos números cambiados de sitio.</span>
+        </span>
+        <p class="obody">Las mismas dos líneas, al revés: manda lo tuyo y el total pasa a ser el
+        contexto. <b>70,7 pt también</b>, y el título pierde 8,9 (192,2 → 183,3) porque «74,00 €»
+        y «de 148,00» no son más estrechos que «148,00 €». <b>Cuesta la pregunta que contesta la
+        pantalla</b>: deja de ser «cuánto ha costado el viaje» y pasa a ser «cuánto me está
+        costando a mí». El total del final ya no cuadra con lo que suma la columna, y eso hay que
+        decidirlo a propósito, no de rebote.</p>
+      </button>
+
+      <button class="opt" data-t="A3" aria-pressed="false">
+        <span class="optrow"><span class="tok">A3</span><span class="oname">En el renglón de debajo</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s parte">Compra · pagó Pérez · te tocan 74,00 €</span></span><span class="cif">148,00 €</span></span>
+          <span class="fila"><span class="ico">⛽</span><span class="txt"><span class="n">Gasolina ida</span><span class="s parte">Varios · pagó Solteros · solo los mayores · te tocan 30,00 €</span></span><span class="cif">60,00 €</span></span>
+          <span class="cap2">El segundo gasto es el caso que rompe: ya llevaba «solo los mayores».</span>
+        </span>
+        <p class="obody">Ninguna columna nueva: la frase se alarga. <b>Cuesta 22,8 pt por fila</b>
+        —de 70,7 a 93,5, y en Enorme de 102,4 a 128— porque el renglón parte en dos, y ocho
+        gastos pasan de 565 a <b>748 pt</b>. Y el renglón ya estaba lleno: «Varios · pagó
+        Solteros · solo los mayores» son 180,2 pt de los 192,2 que caben, así que lo tuyo entra
+        siempre en la segunda línea. Un número dentro de una frase tampoco se compara de un
+        vistazo con el de la fila de arriba, que es la mitad de para qué sirve una columna.</p>
+      </button>
+
+      <button class="opt" data-t="A4" aria-pressed="false">
+        <span class="optrow"><span class="tok">A4</span><span class="oname">Un interruptor: el total o lo mío</span></span>
+        <span class="mock">
+          <span class="mando"><span>Todo el viaje</span><span class="on">Lo mío</span></span>
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif">74,00 €</span></span>
+          <span class="fila"><span class="ico">⛽</span><span class="txt"><span class="n">Gasolina ida</span><span class="s">Varios · pagó Solteros</span></span><span class="cif">30,00 €</span></span>
+          <span class="fila"><span class="ico">🍷</span><span class="txt"><span class="n">Hielo y birras 🍷</span><span class="s">Bebida · pagó García</span></span><span class="cif">12,15 €</span></span>
+          <span class="cap2">Una sola columna; el mando de arriba decide qué número enseña.</span>
+        </span>
+        <p class="obody">Una columna con dos lecturas, y un segmentado arriba —la pieza de
+        <code class="mono">SubNav</code>, que ya existe—. <b>Cero coste de alto en la fila y el
+        título intacto</b>, y el total del final cambia con él, así que la pantalla siempre cuadra
+        consigo misma. <b>Cuesta</b> unos 44 pt fijos de mando, que no se pueden comparar los dos
+        números a la vez —que es justo lo que se pide al pedir «otra columna»— y que es
+        <b>estado escondido</b>: quien lo deje en «Lo mío» y vuelva mañana lee cifras que no son
+        las del viaje sin acordarse de por qué.</p>
+      </button>
+
+      <button class="opt" data-t="A5" aria-pressed="false">
+        <span class="optrow"><span class="tok">A5</span><span class="oname">Dos columnas de verdad</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n recorta">Compra grande Mer…</span><span class="s">pagó Pérez</span></span><span class="cif col">148,00 €</span><span class="cif col" style="font-weight:520;color:var(--sub)">74,00 €</span></span>
+          <span class="fila"><span class="ico">⛽</span><span class="txt"><span class="n recorta">Gasolina ida</span><span class="s">pagó Solteros</span></span><span class="cif col">60,00 €</span><span class="cif col" style="font-weight:520;color:var(--sub)">30,00 €</span></span>
+          <span class="cap2">Dibujado para que se vea por qué no: el título es lo que paga.</span>
+        </span>
+        <p class="obody"><b>Está aquí para descartarla, y con el número delante.</b> Dos columnas
+        de cifra dejan el título en <b>77 pt</b> —de 192,2— cuando hoy ya se recorta pidiendo
+        273,2. Y la fila se va a <b>116,2 pt</b> porque el renglón de debajo se parte. Es la
+        lectura literal de «otra columna» y es la única que no cabe: en un móvil de 390 no hay
+        dos columnas de dinero y un nombre.</p>
+      </button>
+
+      <button class="opt none" data-t="A0" aria-pressed="false">
+        <span class="optrow"><span class="tok">A0</span><span class="oname">Ninguna de estas</span></span>
+        <p class="obody">La columna se queda sin hacer y la cifra sigue solo dentro del gasto
+        abierto. Escribe abajo qué forma tenías en la cabeza.</p>
+      </button>
+    </div>
+    <details class="note"><summary>Apuntar algo sobre A</summary><textarea data-n="A" placeholder="Viaja con la letra en el bloque que se copia."></textarea></details>
+  </section>
+
+  <section class="q" data-q="B">
+    <p class="qhead">Pregunta B · De quién</p>
+    <p class="qtitle">«A ti» ¿es tu familia o eres tú en persona?</p>
+    <p class="qwhy">La deuda se salda <b>entre familias</b>: es lo que enseña Saldos y lo que se
+    liquida. Pero un gasto también se sabe repartir por cabezas, y las dos cifras existen ya
+    (<code class="mono">expenseFamilyShares</code> y <code class="mono">expensePersonShares</code>).</p>
+    <div class="opts">
+
+      <button class="opt" data-t="B1" aria-pressed="false">
+        <span class="optrow"><span class="tok">B1</span><span class="oname">Lo de tu familia</span><span class="rec">RECOMENDADA</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">148,00 €<span class="men">te tocan 74,00</span></span></span>
+          <span class="cap2">Los García son tres de seis, así que la mitad. Y esos 74,00 son los
+          que se ven en Saldos.</span>
+        </span>
+        <p class="obody">La cifra que <b>casa con Saldos y con lo que se acaba pagando</b>: nadie
+        liquida por su cuenta, se liquida por casa. <b>Cuesta</b> que en una familia de cuatro el
+        número es grande y no es «tuyo» en el sentido literal — pero es el que sale de tu
+        cartera cuando toca poner.</p>
+      </button>
+
+      <button class="opt" data-t="B2" aria-pressed="false">
+        <span class="optrow"><span class="tok">B2</span><span class="oname">Tú en persona</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">148,00 €<span class="men">te tocan 24,67</span></span></span>
+          <span class="cap2">Tu sexta parte. En Saldos no aparece este número por ningún lado.</span>
+        </span>
+        <p class="obody">La lectura literal de «a ti»: tu parte por cabeza, con el peso de tu
+        edad. Para quien va solo es idéntica a B1, y para una familia de cuatro es un número
+        cuatro veces más pequeño. <b>Cuesta que no es la cifra de ninguna otra pantalla</b>: no
+        cuadra con Saldos, no cuadra con lo que se liquida, y dos pantallas que contestan
+        distinto a la misma pregunta se leen como un fallo.</p>
+      </button>
+
+      <button class="opt" data-t="B3" aria-pressed="false">
+        <span class="optrow"><span class="tok">B3</span><span class="oname">La familia en la lista, tú dentro del gasto</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">148,00 €<span class="men">te tocan 74,00</span></span></span>
+          <span class="cap2">Y al abrirlo, bajo «Cómo se reparte»: «García 74,00 € — de los que
+          tú pones 24,67 €».</span>
+        </span>
+        <p class="obody">B1 en la lista y B2 <b>donde ya hay sitio</b>: el bloque «Cómo se
+        reparte» del gasto abierto, que desde §14.68 ya enumera lo de cada familia. Cada número
+        donde significa algo, y ninguno contradice a Saldos. <b>Cuesta</b> una línea más en ese
+        bloque y ser la única de las tres que toca dos pantallas.</p>
+      </button>
+
+      <button class="opt none" data-t="B0" aria-pressed="false">
+        <span class="optrow"><span class="tok">B0</span><span class="oname">Ninguna de estas</span></span>
+        <p class="obody">Si ninguna es lo que querías decir con «a ti», dilo abajo — de esto
+        depende qué número se pinta, así que A no se puede implementar sin B.</p>
+      </button>
+    </div>
+    <details class="note"><summary>Apuntar algo sobre B</summary><textarea data-n="B" placeholder="Viaja con la letra en el bloque que se copia."></textarea></details>
+  </section>
+
+  <section class="q" data-q="C">
+    <p class="qtitle">¿Y qué dice la columna el día que pagaste tú?</p>
+    <p class="qhead">Pregunta C · Cuando pagas</p>
+    <p class="qwhy">Es la trampa de la columna y no se ve hasta que está puesta. En el Demo,
+    los Pérez pagan los 148,00 € del Mercadona y consumen 49,34: si la columna dice «te tocan
+    49,34» junto a un gasto que <b>han pagado entero</b>, la fila se lee como una deuda cuando
+    en realidad les deben.</p>
+    <div class="opts">
+
+      <button class="opt" data-t="C1" aria-pressed="false">
+        <span class="optrow"><span class="tok">C1</span><span class="oname">Siempre lo que te toca</span><span class="rec">RECOMENDADA</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">148,00 €<span class="men">te tocan 49,34</span></span></span>
+          <span class="cap2">Siendo tú de los Pérez: pagaste 148 y te tocan 49,34.</span>
+        </span>
+        <p class="obody">Una columna, una regla, ninguna excepción: <b>siempre lo consumido</b>.
+        Sumada de arriba abajo da lo que te ha costado el viaje, que es la pregunta de la
+        pantalla. <b>Cuesta</b> que en tus propios gastos convive con un «pagó Pérez» que dice
+        otra cosa — y lo que compensa eso es que <b>quién paga qué ya vive en Saldos</b>, que es
+        la pantalla de al lado y la que existe para eso.</p>
+      </button>
+
+      <button class="opt" data-t="C2" aria-pressed="false">
+        <span class="optrow"><span class="tok">C2</span><span class="oname">Lo que te toca, y el saldo si pagaste</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">148,00 €<span class="men" style="color:#0a6b4c">te deben 98,66</span></span></span>
+          <span class="fila"><span class="ico">⛽</span><span class="txt"><span class="n">Gasolina ida</span><span class="s">Varios · pagó Solteros</span></span><span class="cif dos">60,00 €<span class="men">te tocan 20,00</span></span></span>
+          <span class="cap2">La primera la pagaste tú; la segunda no.</span>
+        </span>
+        <p class="obody">La columna dice el <b>efecto en tu saldo</b>: «te tocan» cuando pagó
+        otro, «te deben» en verde cuando pagaste tú. Es la lectura más honesta fila a fila y usa
+        el verde que en esta app ya significa «a favor». <b>Cuesta que la columna deja de sumar
+        nada útil</b> —mezcla consumido con neto—, que aparece un segundo color en una lista que
+        hoy solo colorea la categoría, y que «te deben» al lado de «pagó Pérez» siendo tú un
+        Pérez es una frase que hay que leer dos veces.</p>
+      </button>
+
+      <button class="opt" data-t="C3" aria-pressed="false">
+        <span class="optrow"><span class="tok">C3</span><span class="oname">Nada cuando pagaste tú</span></span>
+        <span class="mock">
+          <span class="fila"><span class="ico">🛒</span><span class="txt"><span class="n">Compra grande Mercadona</span><span class="s">Compra · pagó Pérez</span></span><span class="cif dos">148,00 €<span class="men gris">lo pusiste tú</span></span></span>
+          <span class="fila"><span class="ico">⛽</span><span class="txt"><span class="n">Gasolina ida</span><span class="s">Varios · pagó Solteros</span></span><span class="cif dos">60,00 €<span class="men">te tocan 20,00</span></span></span>
+          <span class="cap2">Sin cifra donde pusiste el dinero.</span>
+        </span>
+        <p class="obody">Se calla en vez de arriesgarse a confundir: donde pagaste tú, la
+        columna dice quién lo puso y no cuánto. <b>Cuesta que se calla justo donde más dinero
+        hay</b> —tus propios gastos suelen ser los gordos— y que la columna deja de tener un
+        número en todas las filas, que es lo que la hacía una columna.</p>
+      </button>
+
+      <button class="opt none" data-t="C0" aria-pressed="false">
+        <span class="optrow"><span class="tok">C0</span><span class="oname">Ninguna de estas</span></span>
+        <p class="obody">Si prefieres otra regla para tus propios gastos, escríbela abajo.</p>
+      </button>
+    </div>
+    <details class="note"><summary>Apuntar algo sobre C</summary><textarea data-n="C" placeholder="Viaja con la letra en el bloque que se copia."></textarea></details>
+  </section>
+
+  <div class="foot">
+    <p><b>Las medidas, juntas.</b> Chromium, tarjeta de 362 pt, contenido del Demo. «Hoy» es la
+    fila tal cual está en la v0.75.1.</p>
+    <table class="med">
+      <tr><th></th><th>Alto en Grande</th><th>Alto en Enorme</th><th>Título</th></tr>
+      <tr><td>Hoy</td><td class="num">70,7 pt</td><td class="num">102,4 pt</td><td class="num">192,2 pt <span class="mal">(pide 273,2)</span></td></tr>
+      <tr><td>A1</td><td class="num">70,7 pt</td><td class="num">102,4 pt</td><td class="num">192,2 pt</td></tr>
+      <tr><td>A2</td><td class="num">70,7 pt</td><td class="num">102,4 pt</td><td class="num">183,3 pt</td></tr>
+      <tr><td>A3</td><td class="num mal">93,5 pt</td><td class="num mal">128 pt</td><td class="num">192,2 pt</td></tr>
+      <tr><td>A4</td><td class="num">70,7 pt</td><td class="num">102,4 pt</td><td class="num">192,2 pt</td></tr>
+      <tr><td>A5</td><td class="num mal">116,2 pt</td><td class="num mal">128 pt</td><td class="num mal">77 pt</td></tr>
+    </table>
+    <p style="margin-top:16px"><b>Lo que no se dibuja aquí, porque no cambia con la elección:</b>
+    la cifra no toca la base de datos ni la sincronización —sale de lo que ya está guardado—,
+    no hay migración, y sin identidad puesta (la libreta local, la demostración) <b>no hay
+    «tú»</b>: ahí la columna no se pinta y la fila se queda como hoy.</p>
+    <p><b>Mi sugerencia es A1 · B1 · C1</b>: la única que sale a coste cero de alto, con la cifra
+    que cuadra con Saldos y una sola regla sin excepciones.</p>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="barin">
+    <span class="count" id="count"></span>
+    <button class="copy" id="copy">Copiar</button>
+  </div>
+</div>
+
+<script>
+  const KEY = "options.lo-que-te-toca";
+  const TITLE = document.title;
+  const SECTIONS = [...document.querySelectorAll(".q")];
+  const LETTERS = SECTIONS.map((q) => q.dataset.q);
+  // A question opts into combining by carrying data-multi="true".
+  const MULTI = new Set(SECTIONS.filter((q) => q.dataset.multi === "true").map((q) => q.dataset.q));
+
+  // Picks are held per letter as a list of tokens, so a single-pick question and
+  // a combining one share one shape. An empty list means undecided; the list
+  // ["A0"] means the options were seen and none served.
+  const state = { picks: {}, notes: {} };
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    if (saved.notes) state.notes = saved.notes;
+    for (const [l, v] of Object.entries(saved.picks || {})) {
+      const list = Array.isArray(v) ? v : v ? [v] : [];
+      if (list.length) state.picks[l] = list;
+    }
+  } catch {}
+  const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+
+  const count = document.getElementById("count");
+  const copy = document.getElementById("copy");
+
+  const picked = (l) => state.picks[l] || [];
+  const rank = (t) => parseInt(t.slice(1), 10);
+  const tokens = (l) => picked(l).join("+");
+
+  function toggle(t) {
+    const l = t[0];
+    const none = l + "0";
+    const list = picked(l);
+    const on = list.includes(t);
+    let next;
+    if (!MULTI.has(l)) {
+      next = on ? [] : [t];
+    } else if (on) {
+      next = list.filter((x) => x !== t);
+    } else if (t === none) {
+      next = [t]; // "none of these" stands alone
+    } else {
+      next = [...list.filter((x) => x !== none), t].sort((a, b) => rank(a) - rank(b));
+    }
+    if (next.length) state.picks[l] = next;
+    else delete state.picks[l];
+  }
+
+  function block() {
+    const done = LETTERS.filter((l) => picked(l).length);
+    const lines = ["Opciones — " + TITLE + ": " + (done.map(tokens).join(" · ") || "nada elegido")];
+    for (const l of LETTERS) {
+      const note = (state.notes[l] || "").trim();
+      if (note) lines.push(l + ": " + note);
+    }
+    const legend = [];
+    if (done.some((l) => picked(l).includes(l + "0"))) legend.push("0 = ninguna de estas");
+    if (done.some((l) => picked(l).length > 1)) legend.push("+ = todas esas");
+    if (legend.length) lines.push("(" + legend.join("; ") + ")");
+    return lines.join("\n");
+  }
+
+  function paint() {
+    for (const btn of document.querySelectorAll(".opt")) {
+      const t = btn.dataset.t;
+      btn.setAttribute("aria-pressed", String(picked(t[0]).includes(t)));
+    }
+    const done = LETTERS.filter((l) => picked(l).length);
+    const missing = LETTERS.filter((l) => !picked(l).length);
+    count.innerHTML = done.length
+      ? '<span class="mono">' + done.map(tokens).join(" · ") + "</span>" +
+        (missing.length ? " — falta elegir: " + missing.join(", ") : "")
+      : "Nada elegido todavía — toca una opción, o «Ninguna de estas».";
+    copy.disabled = done.length === 0;
+  }
+
+  document.querySelectorAll(".opt").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toggle(btn.dataset.t);
+      keep();
+      paint();
+    });
+  });
+
+  document.querySelectorAll("textarea[data-n]").forEach((area) => {
+    area.value = state.notes[area.dataset.n] || "";
+    if (area.value) area.closest("details").open = true;
+    area.addEventListener("input", () => {
+      state.notes[area.dataset.n] = area.value;
+      keep();
+    });
+  });
+
+  copy.addEventListener("click", async () => {
+    const text = block();
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch {
+      const t = document.createElement("textarea");
+      t.value = text;
+      document.body.appendChild(t);
+      t.select();
+      try { ok = document.execCommand("copy"); } catch {}
+      t.remove();
+    }
+    copy.textContent = ok ? "Copiado" : "No se pudo copiar — está aquí abajo";
+    if (!ok) alert(text);
+    setTimeout(() => { copy.textContent = "Copiar"; }, 2000);
+  });
+
+  paint();
+</script>
